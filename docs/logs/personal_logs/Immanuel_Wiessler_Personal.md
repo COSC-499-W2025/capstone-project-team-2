@@ -1,8 +1,10 @@
 ## Dates of Sprint: (09/15/2025 – 09/21/2025)
 
-### Task Types Worked On (Screenshot from Peer Eval)
+### Peer Eval Screenshot:
+<img width="1080" height="626" alt="20-09-2025_PeerEval_SamM" src="https://github.com/user-attachments/assets/6f3506a1-dca2-4b9d-9128-81e1625d9b01" />
 
-![alt text](image.png)
+
+
 
 ---
 
