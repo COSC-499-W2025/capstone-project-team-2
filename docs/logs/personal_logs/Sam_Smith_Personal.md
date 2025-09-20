@@ -8,7 +8,7 @@ NA
 <h2>Project board tasks: </h2>
 NA
 <h2>Tasks completed in last week:</h2>
+
   - functional and non-functional requirements (whole team)
-  
   - created individual personal log files
     
