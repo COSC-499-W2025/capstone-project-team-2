@@ -2,12 +2,13 @@
 
 ### Task Types Worked On (Screenshot from Peer Eval)
 
-- ![docs/logs/peer evals/[peer eval screenshot]](path/to/peereval.png)
+![alt text](image-2.png)
 
 ---
 
 ### Features Worked on this Milestone (Provide sufficient detail)
-  * Requirements Document Creation & Refinement  
+  * #1 Requirements Document Creation & Refinement  
+  * #2 github established
 
 ---
 
@@ -24,7 +25,11 @@
         <td><strong>STATUS</strong></td>
     </tr>
     <tr>
-        <td>Requirements document <span style=" font-weight:bold">(draft & refine)</span> </td>
+        <td>Completion of Project requirments <span style=" font-weight:bold">(draft & refine)</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+    <tr>
+        <td>github established</td>
         <td><span style= "color:green"; font-weight:bold>Complete</span></td >
     </tr>
 </table>
