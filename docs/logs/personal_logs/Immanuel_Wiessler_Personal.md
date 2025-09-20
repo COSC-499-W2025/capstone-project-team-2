@@ -2,7 +2,7 @@
 
 ### Task Types Worked On (Screenshot from Peer Eval)
 
-![alt text](image-2.png)
+![alt text](image.png)
 
 ---
 
