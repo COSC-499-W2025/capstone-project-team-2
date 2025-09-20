@@ -1,9 +1,10 @@
 
-## Friday (9/15- 9/20)
+## Dates of Sprint: (09/15/2025 – 09/21/2025)
 
-### Task Types Worked On (Screenshot from Peer Eval)
+### Peer Eval Screenshot:
 
-- ![docs/logs/peer evals/[peer eval screenshot]](path/to/peereval.png)
+<img width="1092" height="626" alt="image" src="https://github.com/user-attachments/assets/1cd5aa35-ccdd-41b8-a9e8-a50ae9f1a9c3" />
+
 
 ### Features Worked on this Milestone (Provide sufficient detail)
   * #1: Discussed with team and got the project requirements created and refined
