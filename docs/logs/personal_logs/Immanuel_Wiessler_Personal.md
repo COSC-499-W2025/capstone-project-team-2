@@ -47,3 +47,53 @@
     requirements <span style="font-weight:bold">(functional and non-functional)</span>. Additionally, no issues have been added to the project board yet.
 </details>
 
+
+
+## Dates of Sprint: (09/22/2025 – 09/28/2025) week 6
+
+
+### Peer Eval Screenshot:
+
+
+
+---
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1 Created and finalize the system desgin graph
+  * #2 Worked on proposal doc and finalzie 
+
+---
+
+## Associated Tasks from Project Board:
+- N/A (Project board not yet populated)
+
+---
+
+### Progress Update (since 09/15/2025)
+
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong></td>
+        <td><strong>STATUS</strong></td>
+    </tr>
+    <tr>
+        <td>Completion of Project requirments <span style=" font-weight:bold">(draft & refine)</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+    <tr>
+        <td>github established</td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+</table>
+
+
+---
+
+### Extra Details:
+<details>
+    <summary>Click to expand</summary>
+    The main focus for this week was setting up the GitHub repository and 
+    collaborating with other team members to discuss and refine our project 
+    requirements <span style="font-weight:bold">(functional and non-functional)</span>. Additionally, no issues have been added to the project board yet.
+</details>
+
