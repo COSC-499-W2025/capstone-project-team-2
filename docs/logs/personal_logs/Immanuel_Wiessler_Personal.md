@@ -32,7 +32,7 @@
     </tr>
     <tr>
         <td>github established</td>
-        <td>![Complete](https://img.shields.io/badge/Status-Complete-green)</td >
+        <td>Complete</td >
     </tr>
 </table>
 
