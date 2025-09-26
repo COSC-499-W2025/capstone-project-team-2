@@ -88,6 +88,7 @@
 
 ---
 ## Next week goals
+The goals for the Week 5 is as follows:
 - Work on creating our <span style='font-weight:bold'> Data flow diagram (DFD) </span> for our system
 
 ---
