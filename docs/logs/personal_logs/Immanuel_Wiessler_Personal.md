@@ -88,7 +88,7 @@
 
 ---
 ## Next week goals
-The goals for the Week 5 is as follows:
+The goals for Week 5 are as follows:
 - Work on creating our <span style='font-weight:bold'> Data flow diagram (DFD) </span> for our system
 
 ---
@@ -96,7 +96,7 @@ The goals for the Week 5 is as follows:
 ### Extra Details:
 <details>
     <summary><span style='font-weight:bold'>Click to expand</span> </summary>
-    This weeks focus was on  where the team worked on various different parts of the project propsal which in my case was the <span style='font-weight: bold'> Project Scope and Usage Scenario</span>
+    This week's focus was on  where the team worked on various parts of the project proposal, which in my case was the <span style='font-weight: bold'> Project Scope and Usage Scenario</span>
 
 
 </details>
