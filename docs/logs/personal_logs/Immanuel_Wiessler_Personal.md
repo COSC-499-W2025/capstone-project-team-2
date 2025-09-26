@@ -61,8 +61,8 @@
 ---
 
 ### Features Worked on this Milestone   
-  * #1 Created and finalize the system desgin graph
-  * #2 Worked on proposal doc and finalzie 
+  * #1 Created and finalized the system design graph
+  * #2 Worked on proposal doc and finalizing 
 
 ---
 
