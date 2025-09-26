@@ -79,7 +79,7 @@
         <td><strong>STATUS</strong></td>
     </tr>
     <tr>
-        <td>Completion of Project Propsoal <span style=" font-weight:bold">(draft & refine)</span> </td>
+        <td>Completion of Project Propsoal <strong>(draft & refine)</strong> </td>
         <td><span style= "color:green"; font-weight:bold>Complete</span></td >
     </tr>
     
@@ -89,15 +89,14 @@
 ---
 ## Next week goals
 The goals for Week 5 are as follows:
-- Work on creating our <span style='font-weight:bold'> Data flow diagram (DFD) </span> for our system
+- Work on creating our <strong>Data flow diagram (DFD)</strong> for our system
 
 ---
 
 ### Extra Details:
 <details>
-    <summary><span style='font-weight:bold'>Click to expand</span> </summary>
-    This week's focus was on  where the team worked on various parts of the project proposal, which in my case was the <span style='font-weight: bold'> Project Scope and Usage Scenario</span>
-
-
+  <summary><b>Click to expand</b></summary>
+  This week's focus was on various aspects of the project proposal, with me working on the <strong>Project Scope and Usage Scenario</strong> of the project proposal document.
 </details>
+
 
