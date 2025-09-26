@@ -63,6 +63,7 @@
 ### Features Worked on this Milestone   
   * #1 Created and finalized the system design graph
   * #2 Worked on proposal doc and finalizing 
+  * #3 Deciding on development stack 
 
 ---
 
