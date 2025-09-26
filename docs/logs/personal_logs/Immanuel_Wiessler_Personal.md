@@ -80,7 +80,7 @@
     </tr>
     <tr>
         <td>Completion of Project Propsoal <strong>(draft & refine)</strong> </td>
-        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+        <td><img src="https://img.shields.io/badge/Status-Complete-green" alt="Complete"></td>
     </tr>
     
 </table>
