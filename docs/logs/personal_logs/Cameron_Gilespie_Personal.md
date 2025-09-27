@@ -6,24 +6,29 @@
 
 
 ### Features Worked on this Milestone (Provide sufficient detail)
-  * #1: Discussed with team and got the project requirements created and refined
+  * #1: Project Proposal creation/refinement 
 
 
 ## Associated Tasks from Project Board:
 
 | Task ID | Description        | Feature   | Assigned To | Status   |
 | ------- | ------------------ | --------- | ----------- | -------- |
-| [N/A]   | [Completion of Project requirments] | [N/A] | [ALL]  | [Complete] |
-| [N/A]   | [Establishing REPO]| [N/A]     | [ALL]       | [Complete]|
+| [N/A]   | [Refinement of Project Proposal] | [N/A] | [ALL]  | [Complete] |
 
 
+---
+## Next week goals
+The goals for Week 5:
+- Work on creating Data flow diagram (DFD1) for our project
+
+---
 
 ### Extra Details:
 
-N/A
 <details>
+The primary focus this week for me was the completetion of the project proposal and I was tasked with the documentation of the team log this week.
 
-
+</details>
 
 ## Dates of Sprint: (09/15/2025 – 09/21/2025)
 
