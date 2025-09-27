@@ -32,7 +32,7 @@
     </tr>
     <tr>
         <td>github established</td>
-        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+        <td>Complete</td >
     </tr>
 </table>
 
@@ -55,16 +55,22 @@
 
 
 ### Peer Eval Screenshot:
+![alt text](image.png)
 
 
 
 ---
 
 ### Features Worked on this Milestone   
-  * #1 Created and finalize the system desgin graph
-  * #2 Worked on proposal doc and finalzie 
+  * #1 Created and finalized the system design graph
+  * #2 Worked on proposal doc and finalizing 
+  * #3 Deciding on the development stack
+  
 
----
+
+  
+
+
 
 ## Associated Tasks from Project Board:
 - N/A (Project board not yet populated)
@@ -79,8 +85,12 @@
         <td><strong>STATUS</strong></td>
     </tr>
     <tr>
-        <td>Completion of Project Propsoal <span style=" font-weight:bold">(draft & refine)</span> </td>
-        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+        <td>Completion of Project Propsoal <strong>(draft & refine)</strong> </td>
+        <td><img src="https://img.shields.io/badge/Status-Complete-green" alt="Complete"></td>
+    </tr>
+    <tr>
+     <td>Completion of System desgin mockup</td>
+     <td><img src="https://img.shields.io/badge/Status-Complete-green" alt="Complete"></td>
     </tr>
     
 </table>
@@ -88,16 +98,18 @@
 
 ---
 ## Next week goals
-The goals for the Week 5 is as follows:
-- Work on creating our <span style='font-weight:bold'> Data flow diagram (DFD) </span> for our system
+The goals for Week 5 are as follows:
+- Work on creating our <strong>Data flow diagram (DFD)</strong> for our system
 
 ---
 
 ### Extra Details:
 <details>
-    <summary><span style='font-weight:bold'>Click to expand</span> </summary>
-    This weeks focus was on  where the team worked on various different parts of the project propsal which in my case was the <span style='font-weight: bold'> Project Scope and Usage Scenario</span>
+  <summary><b>Click to expand</b></summary>
+  This week's focus was on various aspects of the project proposal, with me working on the <strong>Project Scope and Usage Scenario</strong> of the project proposal document.
+  additionally i worked on the inital design of architectures layout of our system 
 
 
 </details>
+
 
