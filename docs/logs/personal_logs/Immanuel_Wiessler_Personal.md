@@ -85,6 +85,10 @@
         <td>Completion of Project Propsoal <strong>(draft & refine)</strong> </td>
         <td><img src="https://img.shields.io/badge/Status-Complete-green" alt="Complete"></td>
     </tr>
+    <tr>
+     <td>Completion of System desgin mockup</td>
+     <td><img src="https://img.shields.io/badge/Status-Complete-green" alt="Complete"></td>
+    </tr>
     
 </table>
 
