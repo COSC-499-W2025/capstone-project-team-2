@@ -67,7 +67,10 @@
   * #3 Deciding on the development stack
   
 
----
+
+  
+
+
 
 ## Associated Tasks from Project Board:
 - N/A (Project board not yet populated)
@@ -104,6 +107,9 @@ The goals for Week 5 are as follows:
 <details>
   <summary><b>Click to expand</b></summary>
   This week's focus was on various aspects of the project proposal, with me working on the <strong>Project Scope and Usage Scenario</strong> of the project proposal document.
+  additionally i worked on the inital design of architectures layout of our system 
+
+
 </details>
 
 
