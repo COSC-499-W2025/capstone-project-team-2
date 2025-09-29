@@ -22,4 +22,5 @@ NA
 
   - functional and non-functional requirements (whole team)
   - created individual personal log files
+  
     
