@@ -16,6 +16,7 @@
 
 ## Associated Tasks from Project Board:
 - N/A (Project board not yet populated)
+test
 ---
 
 ### Progress Update (since 09/15/2025)
@@ -112,3 +113,69 @@ The goals for Week 5 are as follows:
 </details>
 
 
+
+
+
+
+
+
+## Dates of Sprint: (09/29/2025 – 10/05/2025) week 5
+
+
+### Peer Eval Screenshot:
+
+
+
+
+---
+
+### Features Worked on this Milestone   
+  * #1 Created and finalized the system design graph
+  * #2 Worked on proposal doc and finalizing 
+  * #3 Deciding on the development stack
+  
+
+
+  
+
+
+
+## Associated Tasks from Project Board:
+- N/A (Project board not yet populated)
+
+---
+
+### Progress Update (since 09/22/2025)
+
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong></td>
+        <td><strong>STATUS</strong></td>
+    </tr>
+    <tr>
+        <td>Blank </td>
+        <td><img src="https://img.shields.io/badge/Status-Complete-green" alt="Complete"></td>
+    </tr>
+    <tr>
+     <td>Blank_2</td>
+     <td><img src="https://img.shields.io/badge/Status-Complete-green" alt="Complete"></td>
+    </tr>
+    
+</table>
+
+
+---
+## Next week goals
+The goals for Week 5 are as follows:
+- blank
+
+---
+
+### Extra Details:
+<details>
+  <summary><b>Click to expand</b></summary>
+  This week's focus was on various aspects of the project proposal, with me working on the <strong>Project Scope and Usage Scenario</strong> of the project proposal document.
+  additionally i worked on the inital design of architectures layout of our system 
+
+
+</details>
