@@ -9,8 +9,9 @@
 ---
 
 ### Features Worked on this Milestone (Provide sufficient detail)
-  * #1 Requirements Document Creation & Refinement  
-  * #2 github established
+  * #1 Requirements Document Creation & Refinement
+  * #2 Worked on proposal doc and finalizing   
+  * #3 Deciding on the development stack
 
 ---
 
@@ -60,8 +61,9 @@
 ---
 
 ### Features Worked on this Milestone   
-  * #1 Created and finalize the system desgin graph
-  * #2 Worked on proposal doc and finalzie 
+  * #1 Created and finalized the system design graph
+  * #2 Worked on proposal doc and finalizing 
+  * #3 Deciding on the development stack
 
 ---
 
@@ -78,8 +80,12 @@
         <td><strong>STATUS</strong></td>
     </tr>
     <tr>
-        <td>Completion of Project Propsoal <span style=" font-weight:bold">(draft & refine)</span> </td>
-        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+        <td>Completion of Project Propsoal <strong>(draft & refine)</strong> </td>
+        <td><img src="https://img.shields.io/badge/Status-Complete-green" alt="Complete"></td>
+    </tr>
+    <tr>
+     <td>Completion of System desgin mockup</td>
+     <td><img src="https://img.shields.io/badge/Status-Complete-green" alt="Complete"></td>
     </tr>
     
 </table>
@@ -94,8 +100,9 @@ The goals for the Week 5 is as follows:
 
 ### Extra Details:
 <details>
-    <summary><span style='font-weight:bold'>Click to expand</span> </summary>
-    This weeks focus was on  where the team worked on various different parts of the project propsal which in my case was the <span style='font-weight: bold'> Project Scope and Usage Scenario</span>
+  <summary><b>Click to expand</b></summary>
+  This week's focus was on various aspects of the project proposal, with me working on the <strong>Project Scope and Usage Scenario</strong> of the project proposal document.
+  additionally i worked on the inital design of architectures layout of our system 
 
 
 </details>
