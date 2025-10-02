@@ -145,8 +145,7 @@ The goals for Week 5 are as follows:
 
 ---
 
-### Progress Update (since 09/22/2025)
-
+### Progress Update (since 09/29/2025)
 <table>
     <tr>
         <td><strong>TASK/ISSUE #</strong></td>
