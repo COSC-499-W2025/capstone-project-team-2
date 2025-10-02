@@ -130,9 +130,9 @@ The goals for Week 5 are as follows:
 ---
 
 ### Features Worked on this Milestone   
-  * #1 Created and finalized the system design graph
-  * #2 Worked on proposal doc and finalizing 
-  * #3 Deciding on the development stack
+  * #1 Worked collaborative with other team members on making our <strong>DFD Graph</strong> for both level 0 and level 1 
+  * #2 Worked on team log for this week
+  
   
 
 
@@ -153,29 +153,30 @@ The goals for Week 5 are as follows:
         <td><strong>STATUS</strong></td>
     </tr>
     <tr>
-        <td>Blank </td>
+        <td>DFD Design at level 0 and level 1</td>
         <td><img src="https://img.shields.io/badge/Status-Complete-green" alt="Complete"></td>
     </tr>
     <tr>
-     <td>Blank_2</td>
-     <td><img src="https://img.shields.io/badge/Status-Complete-green" alt="Complete"></td>
+        <td>Worked on our team log for week 5</td>
+        <td><img src="https://img.shields.io/badge/Status-Complete-green" alt="Complete"></td>
     </tr>
+   
+
     
 </table>
 
 
 ---
 ## Next week goals
-The goals for Week 5 are as follows:
-- blank
-
+The goals for Week 6 are as follows:
+- Review finalized requirements
+- Finalize system design and work allocation
 ---
 
 ### Extra Details:
 <details>
   <summary><b>Click to expand</b></summary>
-  This week's focus was on various aspects of the project proposal, with me working on the <strong>Project Scope and Usage Scenario</strong> of the project proposal document.
-  additionally i worked on the inital design of architectures layout of our system 
+ This weeks focus to working on DFD graph based on submitted propsals, creating the DFD Graph consisting of Level 0 and level 1 
 
 
 </details>
