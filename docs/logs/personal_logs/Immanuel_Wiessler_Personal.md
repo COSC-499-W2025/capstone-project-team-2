@@ -153,11 +153,11 @@ The goals for the Week 5 is as follows:
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 5)  
-Following on from last week’s reflection, which highlighted our strong working bond, this week we demonstrated effective teamwork in the development of the **DFD design** based on our project requirements including the necessary aspects for each level. The progress made reflects how well we are starting to align as a group. However, there were also some communication challenges — for instance, certain members began working on parts of the DFD diagram without realizing it had already been completed. This overlap shows that while collaboration is improving, we still need clearer coordination and task assignment to avoid duplicated work or ensure that people now that a certian task in underway by one of the team members in the future.  
+This week we demonstrated this week we demonstrated effective teamwork in the development of the **DFD design** based on our project requirements which we submitted in week 4 making sure to include the necessary requiremnets for both **level 0** and **level 1**, which included the external actors and the way in which the data flowed from our backend to the frontend **(UI)** and at the same time, One thing I noticed is that now we have finally settle into assumed roles. To conclude this weeks reflection one thing I noticed is that we had one small issue in terms of communication task this week which was that one of the team members created both level 0 and level 1 without informing the other teams members that they had finished the graphs, Moving forward we are going to introucde a system in dicord server to ensure that everyone knows who is currently working on what task, to prevent duplicate task or code.
 
 ---
 
 ## 🧠 Reflection on Past Cycle (Week 4)  
-Looking back at **Week 4**, our team developed a better understanding of each member’s working style, which helped us stay more consistent with the assignment of tasks. This improved coordination allowed us to finalize our **project requirements** in a timely manner. In my view, Week 4 marked a turning point where the team really began to “click,” laying the groundwork for smoother collaboration in the following weeks.  
+Looking back at **Week 4**, our team developed a better understanding of each member’s working style, which helped us stay more consistent with the assignment of tasks. This improved coordination allowed us to finalize our **project requirements** in a timely manner. In my view, Week 4 marked a turning point where the team really began to **“click”**, laying the groundwork for smoother collaboration in the following weeks for this project
 
 ---
