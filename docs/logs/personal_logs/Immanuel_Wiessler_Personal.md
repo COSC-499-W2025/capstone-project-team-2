@@ -156,12 +156,12 @@ The goals for Week 5 are as follows:
 
 ---
 
-## 🪞 Reflection on Current Cycle (Week 5)  
+## 🧠 Reflection on Current Cycle (Week 5)  
 Following on from last week’s reflection, which highlighted our strong working bond, this week we demonstrated effective teamwork in the development of the **DFD design** based on our project requirements including the necessary aspects for each level. The progress made reflects how well we are starting to align as a group. However, there were also some communication challenges — for instance, certain members began working on parts of the DFD diagram without realizing it had already been completed. This overlap shows that while collaboration is improving, we still need clearer coordination and task assignment to avoid duplicated work or ensure that people now that a certian task in underway by one of the team members in the future.  
 
 ---
 
-## 🪞 Reflection on Past Cycle (Week 4)  
+## 🧠 Reflection on Past Cycle (Week 4)  
 Looking back at **Week 4**, our team developed a better understanding of each member’s working style, which helped us stay more consistent with the assignment of tasks. This improved coordination allowed us to finalize our **project requirements** in a timely manner. In my view, Week 4 marked a turning point where the team really began to “click,” laying the groundwork for smoother collaboration in the following weeks.  
 
 ---
