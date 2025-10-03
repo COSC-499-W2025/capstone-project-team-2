@@ -130,8 +130,8 @@ The goals for Week 5 are as follows:
 ---
 
 ## 🚀 Features Worked On  
-- ✦ Collaborated with teammates on the **DFD Graph** (Level 0 and Level 1)  
-- ✦ Completed the **team log** for Week 5  
+-  Collaborated with teammates on the **DFD Graph** (Level 0 and Level 1)  
+-  Completed the **team log** for Week 5  
 
 ---
 
@@ -140,12 +140,12 @@ The goals for Week 5 are as follows:
 
 ---
 
-## 📈 Progress Update (since 09/29/2025)  
+## 📈 Progress Update (since 10/02/2025)  
 
 | Task/Issue | Status |
 |------------|--------|
-| DFD Design (Level 0 & Level 1) | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
-| Team Log – Week 5 | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **DFD Design (Level 0 & Level 1)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Team Log – Week 5** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 
 ---
 
@@ -157,7 +157,7 @@ The goals for Week 5 are as follows:
 ---
 
 ## 🪞 Reflection on Current Cycle (Week 5)  
-Following on from last week’s reflection, which highlighted our strong working bond, this week we demonstrated effective teamwork in the development of the **DFD design** based on our project requirements. The progress made reflects how well we are starting to align as a group. However, there were also some communication challenges — for instance, certain members began working on parts of the DFD diagram without realizing it had already been completed. This overlap shows that while collaboration is improving, we still need clearer coordination and task assignment to avoid duplicated work in the future.  
+Following on from last week’s reflection, which highlighted our strong working bond, this week we demonstrated effective teamwork in the development of the **DFD design** based on our project requirements including the necessary aspects for each level. The progress made reflects how well we are starting to align as a group. However, there were also some communication challenges — for instance, certain members began working on parts of the DFD diagram without realizing it had already been completed. This overlap shows that while collaboration is improving, we still need clearer coordination and task assignment to avoid duplicated work or ensure that people now that a certian task in underway by one of the team members in the future.  
 
 ---
 
