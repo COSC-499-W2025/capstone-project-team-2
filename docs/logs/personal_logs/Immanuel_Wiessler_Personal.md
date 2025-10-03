@@ -9,8 +9,9 @@
 ---
 
 ### Features Worked on this Milestone (Provide sufficient detail)
-  * #1 Requirements Document Creation & Refinement  
-  * #2 github established
+  * #1 Requirements Document Creation & Refinement
+  * #2 Worked on proposal doc and finalizing   
+  * #3 Deciding on the development stack
 
 ---
 
@@ -32,7 +33,7 @@ test
     </tr>
     <tr>
         <td>github established</td>
-        <td>Complete</td >
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
     </tr>
 </table>
 
@@ -55,7 +56,6 @@ test
 
 
 ### Peer Eval Screenshot:
-![alt text](image.png)
 
 
 
@@ -65,12 +65,8 @@ test
   * #1 Created and finalized the system design graph
   * #2 Worked on proposal doc and finalizing 
   * #3 Deciding on the development stack
-  
 
-
-  
-
-
+---
 
 ## Associated Tasks from Project Board:
 - N/A (Project board not yet populated)
@@ -98,8 +94,8 @@ test
 
 ---
 ## Next week goals
-The goals for Week 5 are as follows:
-- Work on creating our <strong>Data flow diagram (DFD)</strong> for our system
+The goals for the Week 5 is as follows:
+- Work on creating our <span style='font-weight:bold'> Data flow diagram (DFD) </span> for our system
 
 ---
 
