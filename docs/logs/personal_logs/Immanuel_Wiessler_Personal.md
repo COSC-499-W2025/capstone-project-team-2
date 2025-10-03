@@ -119,63 +119,48 @@ The goals for Week 5 are as follows:
 
 
 
-## Dates of Sprint: (09/29/2025 – 10/05/2025) week 5
 
-
-### Peer Eval Screenshot:
-
-
-
+# 📝 Personal Log – Week 5 (09/29/2025 – 10/05/2025)
 
 ---
 
-### Features Worked on this Milestone   
-  * #1 Worked collaborative with other team members on making our <strong>DFD Graph</strong> for both level 0 and level 1 
-  * #2 Worked on team log for this week
-  
-  
-
-
-  
-
-
-
-## Associated Tasks from Project Board:
-- N/A (Project board not yet populated)
+## 📊 Peer Evaluation  
+*(Insert screenshot here)*  
 
 ---
 
-### Progress Update (since 09/29/2025)
-<table>
-    <tr>
-        <td><strong>TASK/ISSUE #</strong></td>
-        <td><strong>STATUS</strong></td>
-    </tr>
-    <tr>
-        <td>DFD Design at level 0 and level 1</td>
-        <td><img src="https://img.shields.io/badge/Status-Complete-green" alt="Complete"></td>
-    </tr>
-    <tr>
-        <td>Worked on our team log for week 5</td>
-        <td><img src="https://img.shields.io/badge/Status-Complete-green" alt="Complete"></td>
-    </tr>
-   
-
-    
-</table>
-
+## 🚀 Features Worked On  
+- ✦ Collaborated with teammates on the **DFD Graph** (Level 0 and Level 1)  
+- ✦ Completed the **team log** for Week 5  
 
 ---
-## Next week goals
-The goals for Week 6 are as follows:
-- Review finalized requirements
-- Finalize system design and work allocation
+
+## 📌 Associated Tasks from Project Board  
+- N/A (Project board not yet populated)  
+
 ---
 
-### Extra Details:
-<details>
-  <summary><b>Click to expand</b></summary>
- This weeks focus to working on DFD graph based on submitted propsals, creating the DFD Graph consisting of Level 0 and level 1 
+## 📈 Progress Update (since 09/29/2025)  
 
+| Task/Issue | Status |
+|------------|--------|
+| DFD Design (Level 0 & Level 1) | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| Team Log – Week 5 | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 
-</details>
+---
+
+## 🎯 Next Week’s Goals  
+- Review finalized **project requirements**  
+- Finalize **system design**  
+
+---
+
+## 🪞 Reflection on Current Cycle (Week 5)  
+Following on from last week’s reflection, which highlighted our strong working bond, this week we demonstrated effective teamwork in the development of the **DFD design** based on our project requirements. The progress made reflects how well we are starting to align as a group. However, there were also some communication challenges — for instance, certain members began working on parts of the DFD diagram without realizing it had already been completed. This overlap shows that while collaboration is improving, we still need clearer coordination and task assignment to avoid duplicated work in the future.  
+
+---
+
+## 🪞 Reflection on Past Cycle (Week 4)  
+Looking back at **Week 4**, our team developed a better understanding of each member’s working style, which helped us stay more consistent with the assignment of tasks. This improved coordination allowed us to finalize our **project requirements** in a timely manner. In my view, Week 4 marked a turning point where the team really began to “click,” laying the groundwork for smoother collaboration in the following weeks.  
+
+---
