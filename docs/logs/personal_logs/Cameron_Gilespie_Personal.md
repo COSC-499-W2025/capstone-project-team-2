@@ -1,3 +1,37 @@
+## Dates of Sprint: (09/28/2025 – 10/05/2025)
+
+### Peer Eval Screenshot:
+
+<img width="1092" height="626" alt="image" src="https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Cameron-Personal-Logs/docs/logs/peer_eval_screenshots/03-10-2025_peerEval-Cameron-Gillespie.png" />
+
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: Creation of DFD level 1 & 0
+
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description        | Feature   | Assigned To | Status   |
+| ------- | ------------------ | --------- | ----------- | -------- |
+| [N/A]   | [Creation of DFD level 1 & 0] | [N/A] | [ALL]  | [Complete] |
+
+
+---
+## Next week goals
+The goals for Week 6:
+- Update repo README with link to system final system architecture diagram with explanation
+- Update repo README with link to DFD Level 1 with explanation
+- Update repo README with link to revised WBS
+
+---
+
+### Extra Details:
+
+<details>
+The primary focus this week for me was the completetion of the DFD level 1 and level 0, I provided input on the final product once completed and also created a channel in our server so we can keep track of who is doing what.
+
+</details>
+
 ## Dates of Sprint: (09/20/2025 – 09/28/2025)
 
 ### Peer Eval Screenshot:
