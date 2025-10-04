@@ -38,3 +38,23 @@
 
 ### Extra Details:
 * Refined system architecture diagram
+
+---------------------------------
+
+## Sunday (28/9 - 03/10)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/03-10-2025_PeerEval_SamM.PNG)
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * NA
+
+## Associated Tasks from Project Board:
+* NA
+
+### Progress Update (since 6/5/2024) 
+* NA
+
+### Extra Details:
+* Discussed DFD diagrams in team meetings
