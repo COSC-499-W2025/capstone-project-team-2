@@ -17,6 +17,7 @@
 
 ## Associated Tasks from Project Board:
 - N/A (Project board not yet populated)
+test
 ---
 
 ### Progress Update (since 09/15/2025)
@@ -107,3 +108,56 @@ The goals for the Week 5 is as follows:
 
 </details>
 
+
+
+
+
+
+
+
+
+# 📝 Personal Log – Week 5 (09/29/2025 – 10/05/2025)
+
+---
+
+## 📊 Peer Evaluation  
+![alt text](image.png)
+
+---
+
+## 🚀 Features Worked On  
+-  Collaborated with teammates on the **DFD Graph** (Level 0 and Level 1)  
+-  Completed the **team log** for Week 5  
+
+---
+
+## 📌 Associated Tasks from Project Board  
+- N/A (Project board not yet populated)  
+
+---
+
+## 📈 Progress Update (since 10/02/2025)  
+
+| Task/Issue | Status |
+|------------|--------|
+| **DFD Design (Level 0 & Level 1)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Team Log – Week 5** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+
+---
+
+## 🎯 Next Week’s Goals  
+- Review finalized **project requirements** 
+- Finalize **system design** for new project requirements
+- Create a  new **DFD Desgin** for these new project requirements  
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 5)  
+This week we demonstrated effective teamwork in the development of the **DFD design** based on our project requirements which we submitted in week 4 making sure to include the necessary requiremnets for both **level 0** and **level 1**, which included the external actors and the way in which the data flowed from our backend to the frontend **(UI)** and at the same time, One thing I noticed is that now we have finally settle into assumed roles. To conclude this weeks reflection one thing I noticed is that we had one small issue in terms of communication task this week which was that one of the team members created both level 0 and level 1 without informing the other teams members that they had finished the graphs, Moving forward we are going to introucde a system in dicord server to ensure that everyone knows who is currently working on what task, to prevent duplicate task or code.
+
+---
+
+## 🧠 Reflection on Past Cycle (Week 4)  
+Looking back at **Week 4**, our team developed a better understanding of each member’s working style, which helped us stay more consistent with the assignment of tasks. This improved coordination allowed us to finalize our **project requirements** in a timely manner. In my view, Week 4 marked a turning point where the team really began to **“click”**, laying the groundwork for smoother collaboration in the following weeks for this project
+
+---
