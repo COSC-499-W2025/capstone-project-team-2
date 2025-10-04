@@ -121,7 +121,7 @@ The goals for the Week 5 is as follows:
 ---
 
 ## 📊 Peer Evaluation  
-*(Insert screenshot here)*  
+![alt text](image.png)
 
 ---
 
