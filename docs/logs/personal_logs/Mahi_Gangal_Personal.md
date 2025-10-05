@@ -67,3 +67,58 @@ The goals for the Week 5 is as follows:
 
 
 </details>
+
+## Dates of Sprint: (09/29/2025 – 10/05/2025) 
+
+
+### Peer Eval Screenshot: <img width="1095" height="634" alt="Mahi gangal " src="https://github.com/user-attachments/assets/55aba6f3-cb37-4ef2-a448-2cf802911128" />
+
+
+
+
+
+---
+
+### Features Worked on this Milestone   
+  * #1 Worked with the team on creating DFD Graphs Level 0 and Level 1
+
+
+---
+
+## Associated Tasks from Project Board:
+- N/A (Project board not yet populated)
+
+---
+
+### Progress Update (since 09/29/2025)
+
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong></td>
+        <td><strong>STATUS</strong></td>
+    </tr>
+    <tr>
+        <td>Completion of DFD Level 0 and Level 1<span style=" font-weight:bold">(draft & refine)</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+    
+</table>
+
+
+---
+## Next week goals
+The goals for the Week 5 is as follows:
+- Finalize project requirements
+- Finalize system design for new project requirements
+- Finalize DFDs for new project requirements
+- Revise Docker
+---
+
+### Extra Details:
+<details>
+    <summary><span style='font-weight:bold'>Click to expand</span> </summary>
+  This week the team discussed creating DFD Levels 0 and 1. I started the templated for both and created the Level 0, which was later discussed and enhanced by the team. I also reviewed the DFD Level 1 and made sure it matches our system design architecture and the team discussions.
+    </span>
+
+
+</details>
