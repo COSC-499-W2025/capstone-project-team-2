@@ -150,7 +150,8 @@ The goals for the Week 5 is as follows:
 ## 🎯 Next Week’s Goals  
 - Review finalized **project requirements** 
 - Finalize **system design** for new project requirements
-- Create a  new **DFD Desgin** for these new project requirements  
+- Create a  new **DFD Desgin** for these new project requirements
+- Revise **Docker** 
 
 ---
 
