@@ -183,9 +183,8 @@ Looking back at **Week 4**, our team developed a better understanding of each me
 ---
 
 ## 📌 Associated Tasks from Project Board  
-- ![Extract files from zip folder provided #34](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/34)
-- ![Create requirements file #27](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/27)
-- 
+- [Extract files from zip folder provided #34](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/34)
+- [Create requirements file #27](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/27)
 
 ---
 
