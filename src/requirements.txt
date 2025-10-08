@@ -4,5 +4,4 @@ dearpygui
 FreeSimpleGUI
 matplotlib
 zipfile 
-ollama
 click
