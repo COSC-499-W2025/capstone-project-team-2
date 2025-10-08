@@ -183,6 +183,8 @@ Looking back at **Week 4**, our team developed a better understanding of each me
 ---
 
 ## 📌 Associated Tasks from Project Board  
+- Extract files from zip folder provided #34
+- Create requirements file #27
 
 ---
 
