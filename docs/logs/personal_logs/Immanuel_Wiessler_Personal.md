@@ -196,12 +196,12 @@ Looking back at **Week 4**, our team developed a better understanding of each me
 ---
 
 ## 🎯 Next Week’s Goals  
-- Begining working on new issues for the project
+- Begining working coding in regards to new issues on our kanaban project 
 
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 5)
-This week, we began updating both our **DFD graph** and our **System Architecture Design** to incorporate the newly introduced project requirements for Milestone 1. We began populating our GitHub Kanban board with the associated issues in milestone 1. Additionally, this week marks the actual start of the project, because we began coding some of the problems. For example, in my case, I worked on the beginning of the **file extraction system** and also created the **requirements.txt** file consisting of the possible Python libraries that we can use  in our project, where we discuss these libraries and
+This week, we began updating both our **DFD graph** and our **System Architecture Design** to incorporate the newly introduced project requirements for Milestone 1. We began populating our GitHub Kanban board with the associated issues in milestone Additionally, this week marks the actual start of the project, because we began coding some of the problems. For example, in my case, I worked on the beginning of the **file extraction system** and also created the **requirements.txt** file consisting of the possible Python libraries that we can use  in our project, where we discuss these libraries and
 Also, taking into account that my overall team's Python skill level is minimal, ensuring that the chosen libraries are easy to pick up
 
 
@@ -212,8 +212,8 @@ Overall, this week we did not encounter any significant issues with each other, 
 
 ---
 
-## 🧠 Reflection on Past Cycle (Week 4)  
-
+## 🧠 Reflection on Past Cycle (Week 5)  
+For week 5 I began to notice that our team structure has become more organized unlike last week which was orgainzied, but overall week 5 has nothing to report in terms of team structure and general sstuff
 
 ---
 
