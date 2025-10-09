@@ -166,7 +166,7 @@ Looking back at **Week 4**, our team developed a better understanding of each me
 ---
 
 
-# 📝 Personal Log – Week 6 (09/29/2025 – 10/05/2025)
+# 📝 Personal Log – Week 6 (10/06/2025 – 10/09/2025)
 
 ## 📊 Peer Evaluation  
 
@@ -199,11 +199,11 @@ Looking back at **Week 4**, our team developed a better understanding of each me
 ---
 
 ## 🎯 Next Week’s Goals  
-- Beginning work on the newly created issues in our kanban project
+- Beginning work on the newly created issues in our kanban project/ continue working on current issue assigned to me
 
 ---
 
-## 🧠 Reflection on Current Cycle (Week 5)
+## 🧠 Reflection on Current Cycle (Week 6)
 This week, we began updating both our **DFD graph** and our **System Architecture Design** to incorporate the newly introduced project requirements for Milestone 1. We began populating our **GitHub Kanban board** with the associated issues in the milestone 1. Additionally, this week marks the actual start of the project, because we began coding some of the problems. For example, in my case, I worked on the initial development of the **file extraction system**, where I focused on extracting components (taking a zip file and extracting its contents). At the same time, I worked on creating the **pytest file** to test the functionality of my extraction file. In addition, I created the **requirements.txt** file consisting of the possible Python libraries that we can use  in our project, where we discuss these libraries and
 Additionally, considering that my overall team's Python skill level is minimal, I need to ensure that the chosen libraries are easy to pick up.
 
