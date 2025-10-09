@@ -1,3 +1,4 @@
+import shutil
 import zipfile
 import os
 from pathlib import Path
@@ -33,11 +34,3 @@ class extractInfo:
 
 
 
-"""
-extract = extractInfo("TEST.zip").extractFiles()
-outpath = Path("temp")
-if outpath.exists():
-    print("extraction is sucess")
-    for file in outpath.iterdir():
-        print(file)
-"""
