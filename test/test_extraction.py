@@ -9,7 +9,7 @@ from src.extraction import extractInfo
 class TestExtraction(unittest.TestCase):
 
     """
-    Here I am using one of builtin function python unitTest library which run at the start of the test where in this case
+    Here I we are using one of builtin function python unitTest library which run at the start of the test where in this case
     it creates a random  folder and switches to that directory that it creates a
     new zip fle and saves it inside the created temporary folder. and instantiate our extractInfo class from extraction.py
 
