@@ -188,7 +188,7 @@ Looking back at **Week 4**, our team developed a better understanding of each me
 
 ---
 
-## 📈 Progress Update (since 10/02/2025)  
+## 📈 Progress Update (since 10/06/2025)  
 
 | Task/Issue | Status |
 |------------|--------|
