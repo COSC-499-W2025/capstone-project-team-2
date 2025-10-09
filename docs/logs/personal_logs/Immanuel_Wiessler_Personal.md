@@ -164,3 +164,59 @@ This week we demonstrated effective teamwork in the development of the **DFD des
 Looking back at **Week 4**, our team developed a better understanding of each member’s working style, which helped us stay more consistent with the assignment of tasks. This improved coordination allowed us to finalize our **project requirements** in a timely manner. In my view, Week 4 marked a turning point where the team really began to **“click”**, laying the groundwork for smoother collaboration in the following weeks for this project
 
 ---
+
+
+# 📝 Personal Log – Week 6 (10/06/2025 – 10/09/2025)
+
+## 📊 Peer Evaluation  
+
+
+
+
+---
+
+## 🚀 Features Worked On  
+-  Created the **python requriements.txt** file
+-  Began coding work on the extraction of files strored in a zip file
+- adding newly defined issues to our kanban
+
+---
+
+## 📌 Associated Tasks from Project Board  
+- [Extract files from zip folder provided #34](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/34)
+- [Create requirements file #27](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/27)
+
+---
+
+## 📈 Progress Update (since 10/06/2025)  
+
+| Task/Issue | Status |
+|------------|--------|
+| **Creation of python requirements.txt** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Created a class function for file extraction(zip file)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+|**Created pytest file for testing the extraction method**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
+
+---
+
+## 🎯 Next Week’s Goals  
+- Beginning work on the newly created issues in our kanban project/ continue working on current issue assigned to me
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 6)
+This week, we began updating both our **DFD graph** and our **System Architecture Design** to incorporate the newly introduced project requirements for Milestone 1. We began populating our **GitHub Kanban board** with the associated issues in the milestone 1. Additionally, this week marks the actual start of the project, because we began coding some of the problems. For example, in my case, I worked on the initial development of the **file extraction system**, where I focused on extracting components (taking a zip file and extracting its contents). At the same time, I worked on creating the **pytest file** to test the functionality of my extraction file. In addition, I created the **requirements.txt** file consisting of the possible Python libraries that we can use  in our project, where we discuss these libraries and
+Additionally, considering that my overall team's Python skill level is minimal, I need to ensure that the chosen libraries are easy to pick up.
+
+
+Overall, this week we did not encounter any significant issues with each other, and we also introduced the proposed system to help prevent miscommunication, specifically duplicate code and tasks.
+
+
+
+
+---
+
+## 🧠 Reflection on Past Cycle (Week 5)  
+For week 5 I began to notice that our team structure has become more organized unlike last week which was orgainzied, but overall week 5 has nothing to report in terms of team structure and general sstuff
+
+---
+
