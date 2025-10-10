@@ -1,22 +1,86 @@
-[![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-2e0aaae1b6195c2367325f4f02e2d04e9abb55f0b24a779b69b11b9e10269abc.svg)](https://classroom.github.com/online_ide?assignment_repo_id=20510459&assignment_repo_type=AssignmentRepo)
-# Project-Starter
-Please use the provided folder structure for your project. You are free to organize any additional internal folder structure as required by the project. 
+# 🧠 Capstone Project — Team 2
 
-```
-.
-├── docs                    # Documentation files
-│   ├── contract            # Team contract
-│   ├── proposal            # Project proposal 
-│   ├── design              # UI mocks
-│   ├── minutes             # Minutes from team meetings
-│   ├── logs                # Team and individual Logs
-│   └── ...          
-├── src                     # Source files (alternatively `app`)
-├── tests                   # Automated tests 
-├── utils                   # Utility files
-└── README.md
-```
+> *A capstone software project for COSC 499 (Winter 2025), designed and implemented by Team 2 at UBC Okanagan.*
 
+---
 
-Please use a branching workflow, and once an item is ready, do remember to issue a PR, review, and merge it into the master branch.
-Be sure to keep your docs and README.md up-to-date.
+## 📚 Table of Contents
+
+1. [Project Overview](#project-overview)  
+2. [Features](#features)  
+3. [System Architecture](#system-architecture)  
+4. [DFD Level 1](#dfd-level-1)  
+5. [Work Breakdown Structure](#work-breakdown-structure)  
+6. [Project Structure](#project-structure)  
+7. [Getting Started](#getting-started)  
+8. [Usage](#usage)  
+9. [Dependencies](#dependencies)  
+10. [Contributing](#contributing)  
+11. [License](#license)  
+12. [Contact](#contact)
+
+---
+
+## 📝 Project Overview
+
+This project is being developed as part of **COSC 499: Capstone Project** at UBCO.  
+The goal is to design, build, and deliver a working system that addresses a real-world problem using software engineering best practices.
+
+- **Course:** COSC 499 (Winter 2025)  
+- **Team:** Team 2  
+- **Tech Stack:** Python, Streamlit, SQLite, GitHub Actions, HTML/CSS, JavaScript, and others.
+
+---
+
+## ✨ Features
+
+- Modular backend and frontend architecture  
+- Streamlined user interface and authentication system  
+- Structured project documentation (WBS, DFDs, Architecture diagrams)  
+- CI/CD deployment pipelines  
+- Database integration with SQLite
+
+---
+
+## 🏗️ System Architecture
+
+The architecture of the system follows a **modular layered design**, separating concerns across the **presentation**, **application**, and **data** layers.
+
+![System Architecture](docs/architecture_diagram.png) <!-- Replace with your actual image path -->
+
+**Key Components:**
+
+- **Frontend (Presentation Layer)**: Streamlit UI or web-based interface  
+- **Backend (Application Layer)**: Python-based logic and API handlers  
+- **Database Layer**: SQLite for local development and testing  
+- **External Services**: GitHub Actions for CI/CD, optional API integrations
+
+**Design Principles**
+
+- Loose coupling between components  
+- Scalability through modularity  
+- Reusability and maintainability
+
+---
+
+## 🧭 DFD Level 1
+
+The **Level 1 Data Flow Diagram** provides a more detailed view of data movement between processes, entities, and data stores.
+
+![DFD Level 1](docs/dfd_level1.png) <!-- Replace with your actual image path -->
+
+**Entities & Processes**
+
+| Entity / Process        | Description                                      |
+|--------------------------|--------------------------------------------------|
+| External User            | End user interacting with the system             |
+| Authentication Service   | Handles login, registration, and user validation |
+| Database (SQLite)        | Stores user data and system information          |
+| API Handlers             | Coordinates requests and business logic          |
+
+---
+
+## 🧰 Work Breakdown Structure
+
+Below is the **high-level WBS** outlining the major phases of the project:
+
