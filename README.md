@@ -24,11 +24,19 @@
 ## 📝 Project Overview
 
 This project is being developed as part of **COSC 499: Capstone Project** at UBCO.  
-The goal is to design, build, and deliver a working system that addresses a real-world problem using software engineering best practices.
+The project is **Mining Digital Work Artifcats** is tool
+designed to help individual analyze reflect on their 
+digtal creavtive and professional output. The main focus is  on extracting and analyzing artifacts generated udring the course of everyday work activites, Including
+**Programming coce**, **Repositories**, **documents**,
+**notes**,**desgin sketches** and **media files** through the collecting of the user data and the associated metadata, the system will provide insight into the user's contribution, creative direction, and project evolution. This will allow the user/individuals to gain better insight into their work habbits, showcase their contributions,and also highlight their personal growth 
+
+The platform target users are **graduating students** and **early career professional** who want to improve their **prersonal protfolio**
+
+
 
 - **Course:** COSC 499 (Winter 2025)  
 - **Team:** Team 2  
-- **Tech Stack:** Python, Streamlit, SQLite, GitHub Actions, HTML/CSS, JavaScript, and others.
+- **Tech Stack:** Python
 
 ---
 
