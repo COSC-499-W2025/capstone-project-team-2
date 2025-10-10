@@ -4,6 +4,24 @@ import os
 from pathlib import Path
 
 
+
+def test():
+    """
+       Send a message to a recipient.
+
+       :param str sender: The person sending the message
+       :param str recipient: The recipient of the message
+       :param str message_body: The body of the message
+       :param priority: The priority of the message, can be a number 1-5
+       :type priority: integer or None
+       :return: the message id
+       :rtype: int
+       :raises ValueError: if the message_body exceeds 160 characters
+       :raises TypeError: if the message_body is not a basestring
+       """
+
+
+
 class extractInfo:
     """
     This is a helper class that is for extracting the
@@ -18,9 +36,7 @@ class extractInfo:
         Initializes the extractor with file path to the
         ZIP file/archive
 
-        parameters
-        ----------
-        ZipfilePath: path to the ZIP file
+        :param str zipfilePath : path to the ZIP file
 
         """
 
@@ -36,14 +52,8 @@ class extractInfo:
         performs extraction where the extracted files are placed
         into the 'temp' folder
 
-
-        Raises
-        ------
-        if the entered zip file path is not found or not valid
-        it raises FileNotFoundError
-
-        if the entered zip file is either invalid or corrupted
-        it raise the zipfile.BadZipFile exception from ZipFile
+        :raises FileNotFoundError: if the entered zip file path is not found or not vaild
+        :raises zipfile.BadZipFile: if the entered zip file is invalid or corrupted
 
         """
 
