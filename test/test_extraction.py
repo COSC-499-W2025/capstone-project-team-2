@@ -10,8 +10,8 @@ class TestExtraction(unittest.TestCase):
 
     """
     This is a Unit test for extraction.py
-
     These test cover the following issues:
+    
     -Successful extraction of a valid Zip files
     -Handling of empty zip files
     -Handling of non-existent zip files
