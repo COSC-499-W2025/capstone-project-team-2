@@ -30,13 +30,19 @@ digtal creavtive and professional output. The main focus is  on extracting and a
 **Programming coce**, **Repositories**, **documents**,
 **notes**,**desgin sketches** and **media files** through the collecting of the user data and the associated metadata, the system will provide insight into the user's contribution, creative direction, and project evolution. This will allow the user/individuals to gain better insight into their work habbits, showcase their contributions,and also highlight their personal growth 
 
-The platform target users are **graduating students** and **early career professional** who want to improve their **prersonal protfolio**
+The platform target users are **graduating students** and **early career professionals** who want to improve their **personal portfolio**
 
 
 
 - **Course:** COSC 499 (Winter 2025)  
 - **Team:** Team 2  
 - **Tech Stack:** Python
+- **Team Members**:
+   - Immanuel Wiessler(20803375)
+   - Sam Smith
+   - Puneet Maan
+   - Samantha Manranda
+   - Cameron Gillespie 
 
 ---
 
