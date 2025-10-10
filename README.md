@@ -59,8 +59,7 @@ The platform target users are **graduating students** and **early career profess
 ## 🏗️ System Architecture
 
 The architecture of the system follows a **modular layered design**, separating concerns across the **presentation**, **application**, and **data** layers.
-
-![System Architecture](docs/architecture_diagram.png) <!-- Replace with your actual image path -->
+<img width="2000" height="1600" alt="Copy of Copy of CAPSTONE 499 System design Team2 -Page-1 drawio" src="https://github.com/user-attachments/assets/bf6d49ac-18c0-4691-b845-ab9ccff00b70" />
 
 **Key Components:**
 
