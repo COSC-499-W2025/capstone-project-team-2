@@ -33,6 +33,7 @@ class extractInfo:
     PATH_ERROR_TEXT = "Error! File not found at path: "
     NOT_ZIP_ERROR_TEXT = "Error! File at path is not a ZIP file:\n"
     BAD_FILE_ERROR_TEXT = "Error! Zip file contains bad file: "
+    BAD_ZIP_ERROR_TEXT = "Error! Zip file is bad!"
 
     def __init__(self, zipfilePath):
 
@@ -86,8 +87,11 @@ class extractInfo:
             return self.PATH_ERROR_TEXT + self.zipfilePath
         if not zipfile.is_zipfile(self.zipfilePath):    #checks if zip file is a zip file
             return self.NOT_ZIP_ERROR_TEXT + self.zipfilePath
-        with zipfile.ZipFile(self.zipfilePath, 'r') as zip_test:
-            bad_file = zip_test.testzip()   #Checks for corruption in zip file
-            if (bad_file == None):
-                return None
-            return self.BAD_FILE_ERROR_TEXT + bad_file
+        try:
+            with zipfile.ZipFile(self.zipfilePath, 'r') as zip_test:
+                bad_file = zip_test.testzip()   #Checks for corruption in zip file
+                if (bad_file == None):
+                    return None
+                return self.BAD_FILE_ERROR_TEXT + bad_file
+        except zipfile.BadZipFile:  #Catches corrupted zip files
+            return self.BAD_ZIP_ERROR_TEXT

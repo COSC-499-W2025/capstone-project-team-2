@@ -162,8 +162,20 @@ class TestExtraction(unittest.TestCase):
         extractInfo_instance = extractInfo(path)
         text = extractInfo_instance.verifyZIP()
         print(text)
-        self.assertTrue(extractInfo_instance.BAD_FILE_ERROR_TEXT in text)
+        self.assertTrue(extractInfo_instance.BAD_ZIP_ERROR_TEXT in text)
 
+    def test_verifyZIP_not_bad_not_zip(self):
+        """
+        Negative Test
+        Test for when file is not a zip file, that file isn't marked as bad
+
+        Verifies that:
+        - Non-zip file isn't marked as bad zip file
+        """
+        path = os.path.join(self.original_cwd, "test\\TestZips\\test.txt")
+        extractInfo_instance = extractInfo(path)
+        text = extractInfo_instance.verifyZIP()
+        self.assertFalse(extractInfo_instance.BAD_ZIP_ERROR_TEXT in text)
 
     def tearDown(self):
 
