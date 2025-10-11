@@ -5,21 +5,6 @@ from pathlib import Path
 
 
 
-def test():
-    """
-       Send a message to a recipient.
-
-       :param str sender: The person sending the message
-       :param str recipient: The recipient of the message
-       :param str message_body: The body of the message
-       :param priority: The priority of the message, can be a number 1-5
-       :type priority: integer or None
-       :return: the message id
-       :rtype: int
-       :raises ValueError: if the message_body exceeds 160 characters
-       :raises TypeError: if the message_body is not a basestring
-       """
-
 
 
 class extractInfo:
@@ -29,6 +14,11 @@ class extractInfo:
     further processing
 
     """
+
+    PATH_ERROR_TEXT = "Error! File not found at path: "
+    NOT_ZIP_ERROR_TEXT = "Error! File at path is not a ZIP file:\n"
+    BAD_FILE_ERROR_TEXT = "Error! Zip file contains bad file: "
+    BAD_ZIP_ERROR_TEXT = "Error! Zip file is bad!"
 
     def __init__(self, zipfilePath):
 
@@ -71,3 +61,25 @@ class extractInfo:
         temp_file_path = os.path.join(workingdirectory, "temp")
         with zipfile.ZipFile(self.zipfilePath, 'r') as zip_ref:
             zip_ref.extractall(temp_file_path)
+
+    def verifyZIP(self) -> str:
+        """
+        Tests that file at self.zipfilePath is a valid zip file
+
+        Return None if file is validated, or error text if file invalid
+        """
+        if not os.path.exists(self.zipfilePath):    #Checks filepath
+            return self.PATH_ERROR_TEXT + self.zipfilePath
+        if not zipfile.is_zipfile(self.zipfilePath):    #checks if zip file is a zip file
+            return self.NOT_ZIP_ERROR_TEXT + self.zipfilePath
+        try:
+            with zipfile.ZipFile(self.zipfilePath, 'r') as zip_test:
+                bad_file = zip_test.testzip()   #Checks for corruption in zip file
+                if (bad_file == None):
+                    return None
+                return self.BAD_FILE_ERROR_TEXT + bad_file
+        except zipfile.BadZipFile:  #Catches corrupted zip files
+            return self.BAD_ZIP_ERROR_TEXT
+
+
+
