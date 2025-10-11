@@ -1,19 +1,21 @@
 
-## Saturday (6/5- 6/7)
+## Dates of Spring (10/06/2025 -10/11/2025)
 
 ### Task Types Worked On (Screenshot from Peer Eval)
 
-<img <img width="1460" height="1060" alt="image" src="https://github.com/user-attachments/assets/75b8cc0b-ea86-45b8-ab73-94e1f321d9b1"/>
+ <img width="1460" height="1060" alt="image" src="https://github.com/user-attachments/assets/75b8cc0b-ea86-45b8-ab73-94e1f321d9b1"/>
 
 ### Features Worked on this Milestone (Provide sufficient detail)
 
 - #1. updated system architecture diagram and readme
-- #2. Code review for PR #46 and #47
 
 ## Associated Tasks from Project Board:
 
- N/A (Project board not yet populated)
-
+| Task ID | Description                | Feature                     | Assigned To | Status   |
+| ------- | -------------------------- | --------------------------- | ----------- | -------- |
+| [#43]   | Update system architecture | system architecture diagram |   ssmith86  | open     |
+|         |  and readme                |  and readme                 |             |          |
+                                          
 ### Progress Update (since 6/5/2024) 
 <table>
     <tr>
@@ -30,21 +32,7 @@
         <td>Complete
         </td>
     </tr>
-    <tr>
-        <!-- Task/Issue # -->
-        <td> review zip file extraction and verification code
-        </td>
-        <!-- Status -->
-        <td>In Progress
-        </td>
-    </tr>
-    <tr>
-        <!-- Task/Issue # -->
-        <td>Task C
-        </td>
-        <!-- Status -->
-        <td>In Progress
-        </td>
+  
     </tr>
 </table>
 
