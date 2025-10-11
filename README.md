@@ -24,20 +24,20 @@
 ## 📝 Project Overview
 
 This project is being developed as part of **COSC 499: Capstone Project** at UBCO.  
-The project is **Mining Digital Work Artifacts** is tool designed to help individual analyze reflect on their digtal creavtive and professional output. The main focus is  on extracting and analyzing artifacts generated udring the course of everyday work activites, including **Programming coce**, **Repositories**, **documents**, **notes**, **desgin sketches** and **media files** through the collecting of the user data and the associated metadata, the system will provide insight into the user's contribution, creative direction, and project evolution. This will allow the user/individuals to gain better insight into their work habbits, showcase their contributions, and also highlight their personal growth 
+The project, titled **Mining Digital Work Artifacts**, is a tool designed to help individuals analyze and reflect on their digtal creative and professional output. The main focus is on extracting and analyzing artifacts generated during the course of everyday work activites, including **Programming code**, **Repositories**, **documents**, **notes**, **desgin sketches** and **media files**. Through the collection of the users data and associated metadata, the system will provide insight into the user's contribution, creative direction, and project evolution. This will allow the user/individual to gain better insight into their work habits, showcase their contributions, and highlight their personal growth. 
 
-The platform target users are **graduating students** and **early career professionals** who want to improve their **personal portfolio**
+The platforms target users are **graduating students** and **early career professionals** who want to improve their **personal portfolio**
 
 - **Course:** COSC 499 (Winter 2025)  
 - **Team:** Team 2  
 - **Tech Stack:** Python
 - **Team Members**:
-   - Immanuel Wiessler(20803375)
+   - Immanuel Wiessler
    - Sam Smith
    - Puneet Maan
    - Samantha Manranda
    - Cameron Gillespie
-   - Mahi Gangal (27227875)
+   - Mahi Gangal
 
 ---
 
