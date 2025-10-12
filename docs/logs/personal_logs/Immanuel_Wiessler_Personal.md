@@ -169,6 +169,7 @@ Looking back at **Week 4**, our team developed a better understanding of each me
 # 📝 Personal Log – Week 6 (10/06/2025 – 10/09/2025)
 
 ## 📊 Peer Evaluation  
+<img width="1221" height="939" alt="image" src="https://github.com/user-attachments/assets/654c8f44-ebf0-4b91-bccb-e5afc29a6104" />
 
 
 
