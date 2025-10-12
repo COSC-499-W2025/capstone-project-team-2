@@ -11,13 +11,7 @@
 3. [System Architecture](#system-architecture)  
 4. [DFD Level 1](#dfd-level-1)  
 5. [Work Breakdown Structure](#work-breakdown-structure)  
-6. [Project Structure](#project-structure)  
-7. [Getting Started](#getting-started)  
-8. [Usage](#usage)  
-9. [Dependencies](#dependencies)  
-10. [Contributing](#contributing)  
-11. [License](#license)  
-12. [Contact](#contact)
+
 
 ---
 
