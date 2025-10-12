@@ -205,7 +205,7 @@ Looking back at **Week 4**, our team developed a better understanding of each me
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 6)
-This week, we began updating both our **DFD graph** and our **System Architecture Design** to incorporate the newly introduced project requirements for Milestone 1. We began populating our **GitHub Kanban board** with the associated issues in the milestone 1. Additionally, this week marks the actual start of the project, because we began coding some of the problems. For example, in my case, I worked on the initial development of the **file extraction system**, where I focused on extracting components (taking a zip file and extracting its contents). At the same time, I worked on creating the **pytest file** to test the functionality of my extraction file. In addition, I created the **requirements.txt** file consisting of the possible Python libraries that we can use  in our project, where we discuss these libraries and
+This week, we began updating both our **DFD graph** and our **System Architecture Design** to incorporate the newly introduced project requirements for Milestone 1. We began populating our GitHub Kanban board with the associated issues in Milestone 1. Additionally, this week marks the actual start of the project, because we began coding some of the problems. For example, in my case, I worked on the initial development of the **file extraction system**, where I focused on extracting components (taking a zip file and extracting its contents). At the same time, I worked on creating the **pytest file** to test the functionality of my extraction file. In addition, I made the **requirements.txt** file consisting of the possible Python libraries that we can use in our project, where we discuss these libraries and
 Additionally, considering that my overall team's Python skill level is minimal, I need to ensure that the chosen libraries are easy to pick up.
 
 
@@ -217,7 +217,7 @@ Overall, this week we did not encounter any significant issues with each other, 
 ---
 
 ## 🧠 Reflection on Past Cycle (Week 5)  
-For week 5 I began to notice that our team structure has become more organized unlike last week which was orgainzied, but overall week 5 has nothing to report in terms of team structure and general sstuff
+For week 5, I began to notice that our team structure has become more organized, unlike last week, which was unorganized, but overall week 5 has nothing to report in terms of team structure and general sstuff
 
 ---
 
