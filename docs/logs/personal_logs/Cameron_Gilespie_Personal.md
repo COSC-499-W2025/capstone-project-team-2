@@ -1,3 +1,38 @@
+## Dates of Sprint: (10/6/2025 – 10/11/2025)
+
+### Peer Eval Screenshot:
+
+<img width="1092" height="626" alt="image" src="https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Cameron-Personal-Logs/docs/logs/peer_eval_screenshots/CGill_Peer_Eval_10-11-25.png" />
+
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: Creation file Heirarchy scanner
+  * #2: code review
+
+
+## Associated Tasks from Project Board:
+
+| Description        | Status   |
+| ------------------ | -------- |
+| [Creation file Heirarchy scanner]  | [Complete] |
+| [Code Review]  | [Complete] |
+
+
+---
+## Next week goals
+The goals for Week 6:
+- Discuss issues on Kanban board for next steps
+- Evolve the Heirarchy Scanner to extract basic data from files
+
+---
+
+### Extra Details:
+
+<details>
+My primary goal was to create essentially the skeleton for our file data extraction which first required a program able to pull in the files from a specific directory and then detect the file structure. The proof of this is in the output of all the file names in the correct directory structure. In the coming weeks I plan to further evolve this to collect data such as Modification Dates, Creation dates as well as anything else we might include in our project. I also this week provided some overview to Immanuel to discuss his coding segment as well as to ensure my own understanding of python was correct given this was my first time coding in python
+
+</details>
+
 ## Dates of Sprint: (09/28/2025 – 10/05/2025)
 
 ### Peer Eval Screenshot:
