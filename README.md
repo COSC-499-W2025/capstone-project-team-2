@@ -1,22 +1,97 @@
-[![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-2e0aaae1b6195c2367325f4f02e2d04e9abb55f0b24a779b69b11b9e10269abc.svg)](https://classroom.github.com/online_ide?assignment_repo_id=20510459&assignment_repo_type=AssignmentRepo)
-# Project-Starter
-Please use the provided folder structure for your project. You are free to organize any additional internal folder structure as required by the project. 
+# 🧠 Capstone Project — Team 2
 
-```
-.
-├── docs                    # Documentation files
-│   ├── contract            # Team contract
-│   ├── proposal            # Project proposal 
-│   ├── design              # UI mocks
-│   ├── minutes             # Minutes from team meetings
-│   ├── logs                # Team and individual Logs
-│   └── ...          
-├── src                     # Source files (alternatively `app`)
-├── tests                   # Automated tests 
-├── utils                   # Utility files
-└── README.md
-```
+> *A capstone software project for COSC 499 (Winter 2025), designed and implemented by Team 2 at UBC Okanagan.*
+
+---
+
+## 📚 Table of Contents
+
+1. [Project Overview](#project-overview)  
+2. [Features](#features)  
+3. [System Architecture](#system-architecture)  
+4. [DFD Level 1](#dfd-level-1)  
+5. [Work Breakdown Structure](#work-breakdown-structure)  
+6. [Project Structure](#project-structure)  
+7. [Getting Started](#getting-started)  
+8. [Usage](#usage)  
+9. [Dependencies](#dependencies)  
+10. [Contributing](#contributing)  
+11. [License](#license)  
+12. [Contact](#contact)
+
+---
+
+## 📝 Project Overview
+
+This project is being developed as part of **COSC 499: Capstone Project** at UBCO.  
+The project, titled **Mining Digital Work Artifacts**, is a tool designed to help individuals analyze and reflect on their digtal creative and professional output. The main focus is on extracting and analyzing artifacts generated during the course of everyday work activites, including **Programming code**, **Repositories**, **documents**, **notes**, **desgin sketches** and **media files**. Through the collection of the users data and associated metadata, the system will provide insight into the user's contribution, creative direction, and project evolution. This will allow the user/individual to gain better insight into their work habits, showcase their contributions, and highlight their personal growth. 
+
+The platforms target users are **graduating students** and **early career professionals** who want to improve their **personal portfolio**
+
+- **Course:** COSC 499 (Winter 2025)  
+- **Team:** Team 2  
+- **Tech Stack:** Python
+- **Team Members**:
+   - Immanuel Wiessler
+   - Sam Smith
+   - Puneet Maan
+   - Samantha Manranda
+   - Cameron Gillespie
+   - Mahi Gangal
+
+---
+
+## ✨ Features
+
+- Modular backend and frontend architecture  
+- Streamlined user interface and authentication system  
+- Structured project documentation (WBS, DFDs, Architecture diagrams)  
+- CI/CD deployment pipelines  
+- Database integration with SQLite
+
+---
+
+## 🏗️ System Architecture
+
+This system architecture illustrates the structural design of the application, showing how the frontend, backend, database, and external services interact. It emphasizes modularity, scalability, and maintainability through a three-layered design.
+
+<img width="2000" height="1600" alt="Copy of Copy of CAPSTONE 499 System design Team2 -Page-1 drawio" src="https://github.com/user-attachments/assets/bf6d49ac-18c0-4691-b845-ab9ccff00b70" />
 
 
-Please use a branching workflow, and once an item is ready, do remember to issue a PR, review, and merge it into the master branch.
-Be sure to keep your docs and README.md up-to-date.
+**Key Components:**
+
+- **Frontend (Presentation Layer)**: Built using DearPyGui or FreeSimpleGUI, the frontend provides a simple and interactive interface for users to upload files, view metadata, and interact with the application’s features.
+- **Backend (Application Layer)**: Handles file parsing, validation, and metadata extraction using os, shutil, zipfile, and pymdeco. Implements logic for ranking projects, summarizing results, and managing errors. Click may optionally support a CLI version of the app.
+- **Database Layer**: SQLite is used to store extracted metadata, configuration details, and logs during local development and testing.
+- **External Services**: GitHub Actions supports CI/CD for automated testing and updates. Optional APIs may enhance metadata extraction or external integrations.
+  
+**Design Principles**
+
+- Loose coupling – Components interact through well-defined interfaces
+- Scalability through modularity – Each module can be developed and tested independently
+- Reusability and maintainability – Code organization supports easy updates and debugging
+---
+
+## 🧭 DFD Level 1
+
+The following Data Flow Diagram (DFD) represents how data moves through the system — from user input to backend processing and output generation.
+
+![DFD Level 1](docs/dfd_level1.png) <!-- Replace with your actual image path -->
+
+**Entities & Processes**
+
+| Entity / Process        | Description                                      |
+|--------------------------|--------------------------------------------------|
+| External User            | End user interacting with the system             |
+| Authentication Service   | Handles login, registration, and user validation |
+| Database (SQLite)        | Stores user data and system information          |
+| API Handlers             | Coordinates requests and business logic          |
+
+---
+
+## 🧰 Work Breakdown Structure
+
+Below is the **high-level WBS** outlining the major phases of the project:
+
+[📊 View the Google Sheet](https://docs.google.com/spreadsheets/d/1zsUdvJTiAwR4KajjdB9kgwPiE1tOSrDV0mg0tFfgSF8/edit?usp=sharing)
+
