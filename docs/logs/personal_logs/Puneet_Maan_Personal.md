@@ -1,7 +1,7 @@
 ## Sprint Log: (10/06/2025 – 10/12/2025)
 
 ### Peer Evaluation
-![alt text](../peer_eval_screenshots/12-10-2025_PeerEval_Peter.png)
+![alt text](../peer_eval_screenshots/12-10-2025_PeerEval_Puneet_Maan.png)
 
 ### Weekly Goals Recap  
 This week, the primary focus was on updating the project documentation to reflect the most current system requirements. This included a major update to the `README.md` file, where we integrated a detailed **Level 1 Data Flow Diagram (DFD)** and added structured visual and tabular representations of system components and processes. These updates were aligned with Milestones 1 through 3.
