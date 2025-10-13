@@ -70,7 +70,8 @@ This system architecture illustrates the structural design of the application, s
 
 The Level 1 **Data Flow Diagram (DFD)** represents the main system components and how data flows between **external entities**, **core processes**, and **internal data stores**.
 
-![DFD Level 1](<level1 dfd updated.png>)
+![DFD Level 1](https://github.com/COSC-499-W2025/capstone-project-team-2/blob/updated_dfd/level1%20dfd%20updated.png?raw=true)
+
 
 ### External Entities
 
