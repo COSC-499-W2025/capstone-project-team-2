@@ -55,7 +55,7 @@ This system architecture illustrates the structural design of the application, s
 **Key Components:**
 
 - **Frontend (Presentation Layer)**: Built using DearPyGui or FreeSimpleGUI, the frontend provides a simple and interactive interface for users to upload files, view metadata, and interact with the application’s features.
-- **Backend (Application Layer)**: Handles file parsing, validation, and metadata extraction using os, shutil, zipfile, and pymdeco. Implements logic for ranking projects, summarizing results, and managing errors. Click may optionally support a CLI version of the app.
+- **Backend (Application Layer)**: Handles file parsing, validation, and metadata extraction using os, shutil, zipfile, and mimetypes. Implements logic for ranking projects, summarizing results, and managing errors. Click may optionally support a CLI version of the app.
 - **Database Layer**: SQLite is used to store extracted metadata, configuration details, and logs during local development and testing.
 - **External Services**: GitHub Actions supports CI/CD for automated testing and updates. Optional APIs may enhance metadata extraction or external integrations.
   
@@ -64,14 +64,14 @@ This system architecture illustrates the structural design of the application, s
 - Loose coupling – Components interact through well-defined interfaces
 - Scalability through modularity – Each module can be developed and tested independently
 - Reusability and maintainability – Code organization supports easy updates and debugging
+
 ---
 
 ## DFD Level 1
 
 The Level 1 **Data Flow Diagram (DFD)** represents the main system components and how data flows between **external entities**, **core processes**, and **internal data stores**.
 
-![DFD Level 1](https://github.com/COSC-499-W2025/capstone-project-team-2/blob/updated_dfd/level1%20dfd%20updated.png?raw=true)
-
+![DFD Level 1](<level1 dfd updated.png>)
 
 ### External Entities
 
@@ -101,8 +101,6 @@ The Level 1 **Data Flow Diagram (DFD)** represents the main system components an
 | **D3** | Insights & Rankings      | Aggregated metrics, skills, rankings, and project timelines. | 2 |
 | **D4** | Custom Items & Media     | User-edited descriptions, thumbnails, resume versions, and custom portfolio texts. | 2–3 |
 | **D5** | Audit Logs               | Ingestion logs, analysis logs, external service interaction logs, and admin actions. | 2 |
-
----
 
 ### Milestone Overview
 
