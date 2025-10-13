@@ -71,7 +71,7 @@ This system architecture illustrates the structural design of the application, s
 
 The Level 1 **Data Flow Diagram (DFD)** represents the main system components and how data flows between **external entities**, **core processes**, and **internal data stores**.
 
-![DFD Level 1](<level1 dfd updated.png>)
+![DFD Level 1](<docs/design/level1 dfd updated.png>)
 
 ### External Entities
 
