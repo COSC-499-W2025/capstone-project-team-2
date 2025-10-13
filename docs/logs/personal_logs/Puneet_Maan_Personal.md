@@ -1,3 +1,46 @@
+## Sprint Log: (10/06/2025 – 10/12/2025)
+
+### Peer Evaluation
+![alt text](../peer_eval_screenshots/12-10-2025_PeerEval_Puneet_Maan.png)
+
+### Weekly Goals Recap  
+This week, the primary focus was on updating the project documentation to reflect the most current system requirements. This included a major update to the `README.md` file, where we integrated a detailed **Level 1 Data Flow Diagram (DFD)** and added structured visual and tabular representations of system components and processes. These updates were aligned with Milestones 1 through 3.
+
+### Additional Details  
+- **README Updates**:  
+  - Added a visual **Level 1 DFD** (`level1 dfd updated.png`) representing the current architecture.
+  - Included clearly labeled tables for:
+    - External Entities  
+    - Core Processes (P1–P5) with milestone mappings  
+    - Internal Data Stores (D1–D5)  
+  - Created a **Milestone Overview Table** to support development planning.
+- **System Design Alignment**: The updated DFD and tables ensure a consistent understanding of how the system components interact, both internally and externally.
+- **Issue Closures**:  
+  - Closes [#43](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/43) – Edited README to include DFD and architectural details.  
+  - Closes [#25](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/25) – Created new Level 1 DFD based on updated system requirements.
+
+### Plan for the Next Cycle  
+For the week ahead (10/13/2025 – 10/19/2025), we plan to:
+- Ensure every team member has their local environment fully prepared for implementation.
+- Begin setting up **Docker** in local development environments? (not sure yet).
+- Define roles for backend setup as we move closer to implementation.
+- Review and potentially iterate on the updated DFD and milestone mappings.
+
+### Reflection Points  
+
+#### What Went Well  
+- Successfully updated and documented the **Level 1 DFD** with a visual and organized format.
+- Documentation clarity improved significantly, making the system easier to understand for both current and new contributors.
+- Issue tracking and resolution were efficient, with tasks clearly linked and completed as planned.
+
+#### What Didn't Go Well  
+- Encountered a minor issue with GitHub-hosted image linking, requiring multiple uploads.
+- Initial file handling led to confusion about proper resource referencing
+
+This sprint was productive, with a strong focus on aligning documentation with the evolving system design. The updated DFD and milestone breakdowns now offer a clearer roadmap for development going forward.
+
+## ====================================================
+
 ## Sprint Log: (09/29/2025 – 10/05/2025)
 
 ### Peer Evaluation
