@@ -122,3 +122,74 @@ The goals for the Week 5 is as follows:
 
 
 </details>
+
+## Dates of Sprint: (10/06/2025 – 10/12/2025) 
+
+
+### Peer Eval Screenshot: <img width="1050" height="616" alt="Mahi Gangal SS" src="https://github.com/user-attachments/assets/0587fcf4-f94b-482e-91ba-ea9723e09de7" />
+
+
+
+
+
+---
+
+### Features Worked on this Milestone   
+  * #1 Worked on revising the system architecture based on the new requirements and the explanation for it and added it to the README file.
+  * #2 Worked on creating and populating the WBS and linking it to the README file.
+  * #3 Set up my local environment.
+  * #4 Wrote tests for user consent feature, following the TDD format.
+
+
+---
+
+## Associated Tasks from Project Board:
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/47
+- https://github.com/COSC-499-W2025/capstone-project-team-2/issues/26
+- https://github.com/COSC-499-W2025/capstone-project-team-2/issues/31
+- https://github.com/COSC-499-W2025/capstone-project-team-2/issues/28
+
+---
+
+### Progress Update (since 10/06/2025)
+
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong></td>
+        <td><strong>STATUS</strong></td>
+    </tr>
+    <tr>
+        <td>Completion of system architecture and explanation</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+    <tr>
+    <td>Completion of WBS</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+    <tr>
+    <td>Creating unit tests for user consent</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+    <tr>
+    <td>Implementing user consent feature</span> </td>
+        <td><span style= "color:green"; font-weight:bold>In progress</span></td >
+    </tr>
+    
+    
+</table>
+
+
+---
+## Next week goals
+Continue working on current issue assigned to me, implementing the user consent feature.
+
+---
+
+### Extra Details:
+<details>
+    <summary><span style='font-weight:bold'>Click to expand</span> </summary>
+  The team discussed the tasks to do be done and reveiwed the updated requirements. I worked on revising the system architecture and adding it to the README. I also focused on creating the Work Breakdown Structure. I setup my local environemnt and wrote tests for the feature that I am going to implement in the next sprint.
+    </span>
+
+
+</details>
