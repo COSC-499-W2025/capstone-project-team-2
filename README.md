@@ -55,7 +55,7 @@ This system architecture illustrates the structural design of the application, s
 **Key Components:**
 
 - **Frontend (Presentation Layer)**: Built using DearPyGui or FreeSimpleGUI, the frontend provides a simple and interactive interface for users to upload files, view metadata, and interact with the application’s features.
-- **Backend (Application Layer)**: Handles file parsing, validation, and metadata extraction using os, shutil, zipfile, and pymdeco. Implements logic for ranking projects, summarizing results, and managing errors. Click may optionally support a CLI version of the app.
+- **Backend (Application Layer)**: Handles file parsing, validation, and metadata extraction using os, shutil, zipfile, and mimetypes. Implements logic for ranking projects, summarizing results, and managing errors. Click may optionally support a CLI version of the app.
 - **Database Layer**: SQLite is used to store extracted metadata, configuration details, and logs during local development and testing.
 - **External Services**: GitHub Actions supports CI/CD for automated testing and updates. Optional APIs may enhance metadata extraction or external integrations.
   
@@ -64,22 +64,51 @@ This system architecture illustrates the structural design of the application, s
 - Loose coupling – Components interact through well-defined interfaces
 - Scalability through modularity – Each module can be developed and tested independently
 - Reusability and maintainability – Code organization supports easy updates and debugging
+
 ---
 
-## 🧭 DFD Level 1
+## DFD Level 1
 
-The following Data Flow Diagram (DFD) represents how data moves through the system — from user input to backend processing and output generation.
+The Level 1 **Data Flow Diagram (DFD)** represents the main system components and how data flows between **external entities**, **core processes**, and **internal data stores**.
 
-![DFD Level 1](docs/dfd_level1.png) <!-- Replace with your actual image path -->
+![DFD Level 1](<docs/design/level1 dfd updated.png>)
 
-**Entities & Processes**
+### External Entities
 
-| Entity / Process        | Description                                      |
-|--------------------------|--------------------------------------------------|
-| External User            | End user interacting with the system             |
-| Authentication Service   | Handles login, registration, and user validation |
-| Database (SQLite)        | Stores user data and system information          |
-| API Handlers             | Coordinates requests and business logic          |
+| Entity              | Description |
+|---------------------|-------------|
+| **Project Owner**   | Grants consent, uploads zipped folders, provides filters, and retrieves résumé or portfolio-ready outputs. *(Milestone 1–3)* |
+| **Maintainer/Admin**| Performs administrative actions like backups and deletions. *(Milestone 2–3)* |
+| **Local File System** | Supplies input folders/files and stores output artifacts like reports, dashboards, backups. *(Milestone 1–3)* |
+| **External Service** | (Optional) Services like LLMs, used to enhance insights if user consent is given. *(Milestone 2)* |
+
+### Core Processes
+
+| ID    | Process Name             | Description | Milestone |
+|-------|--------------------------|-------------|-----------|
+| **1.0** | Consent & Config         | Captures user/admin consent, configuration policies, and settings for analysis and privacy. | 1 |
+| **2.0** | Ingest & Validate        | Validates, scans, and indexes artifacts from zipped folders. Handles file errors, duplicates, and metadata. | 1 |
+| **3.0** | Analyze Projects         | Computes project metrics, contribution roles, timelines, languages, and skills from indexed data. Can interact with external services if consented. | 1–2 |
+| **4.0** | Rank & Summarize         | Ranks projects based on user contributions, skill relevance, and recency. Generates summaries, timelines, and portfolio highlights. | 2 |
+| **5.0** | Customize & Retrieve     | Lets users retrieve, edit, export, or delete items. Supports portfolio customization and resume ready output generation. | 2–3 |
+
+### Internal Data Stores
+
+| ID     | Data Store               | Description | Milestone |
+|--------|--------------------------|-------------|-----------|
+| **D1** | Configs & Consents       | Stores consent records, configuration settings, and admin policies. | 1 |
+| **D2** | Artifacts & Metadata     | Indexed files, metadata, authorship, and timestamps used for analysis. | 1 |
+| **D3** | Insights & Rankings      | Aggregated metrics, skills, rankings, and project timelines. | 2 |
+| **D4** | Custom Items & Media     | User-edited descriptions, thumbnails, resume versions, and custom portfolio texts. | 2–3 |
+| **D5** | Audit Logs               | Ingestion logs, analysis logs, external service interaction logs, and admin actions. | 2 |
+
+### Milestone Overview
+
+| Milestone | Focus | Key Additions |
+|-----------|-------|----------------|
+| **Milestone 1** | Core ingestion & analysis | Processes 1–3, Data Stores D1–D2 |
+| **Milestone 2** | Personalization & logic | Processes 4–5, Data Stores D3–D5, External Services |
+| **Milestone 3** | Frontend & outputs | UX/UI for portfolio and resume customization, deeper use of P5 and D4 |
 
 ---
 
