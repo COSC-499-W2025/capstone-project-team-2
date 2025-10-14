@@ -7,7 +7,27 @@ from pathlib import Path
 
 
 class TestUserConfigStore(unittest.TestCase):
+
+    """
+    This is Test unit used in testing in terms of
+    user configurations
+
+    """
     def setUp(self):
+
+        """
+        This is a setup function that does the following
+        at the start of this pytest run:
+        - Creates a temporary directory and changes the
+        working directory to that the temporary directory
+        - Generates
+            - JSON test data to save to the system
+            - Valid Json file
+            - Not Valid JSON file
+
+
+        """
+
         self.temp_dir = tempfile.mkdtemp()
         self.original_cwd = os.getcwd()
         self.json_test_data = {
