@@ -81,3 +81,4 @@ class TestUserConfigStore(unittest.TestCase):
         os.chdir(self.original_cwd)
         if os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir)
+            
