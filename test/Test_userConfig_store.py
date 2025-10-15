@@ -55,6 +55,18 @@ class TestUserConfigStore(unittest.TestCase):
         os.chdir(self.temp_dir)
 
     def test_save_config(self):
+
+        """
+        This is a test to check to see
+        if the created json file is saved
+        successfully
+
+        This test verifies the following:
+        - That the sample json is saved successfully
+        to the temp directory
+
+        :return: pass or fail
+        """
         save_path = os.path.join(self.temp_dir, 'test_config.json')
         with open(save_path, "w", encoding='utf-8') as f:
             json.dump(self.json_test_data, f, indent=4)
@@ -62,11 +74,33 @@ class TestUserConfigStore(unittest.TestCase):
         self.assertTrue(os.path.exists(save_path))
 
     def test_invalid_valid_json(self):
+
+        """
+        This test check to see if the stored
+        Json is not valid.
+
+        - This test verifies the following:
+          - That the sample json is a valid one
+
+        :return: pass or fail
+        """
+
         bad_json_text = self.bad_json.read_text(encoding="utf-8")
         with self.assertRaises(json.JSONDecodeError):
             json.loads(bad_json_text)
 
     def test_valid_json(self):
+
+        """
+         This test check to see if the stored
+        Json is not valid.
+
+        - This test verifies the following:
+          - That the sample json is a valid one
+        :return: pass or fail
+        """
+
+
         try:
             with open(self.good_json, "r", encoding='utf-8') as f:
                 data = json.load(f)
@@ -78,7 +112,16 @@ class TestUserConfigStore(unittest.TestCase):
         self.assertEqual(data['FirstName'],"Jane")
 
     def tearDown(self):
+        """
+         This function cleans up after the test is complete.
+
+        Does the following:
+        -Returns to the original working directory.
+        -Removes the temporary folder and its associated
+        content.
+        """
+
         os.chdir(self.original_cwd)
         if os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir)
-            
+
