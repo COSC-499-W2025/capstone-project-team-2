@@ -170,7 +170,7 @@ Looking back at **Week 4**, our team developed a better understanding of each me
 
 ## 📊 Peer Evaluation  
 
-
+![alt text](image.png)
 
 
 ---
@@ -203,17 +203,16 @@ Looking back at **Week 4**, our team developed a better understanding of each me
 
 ---
 
-## 🧠 Reflection on Current Cycle (Week 7)
+## 🧠 Reflection on Current Cycle (Week 6)
+This week, we began updating both our DFD graph and our System Architecture Design to incorporate the newly introduced project requirements for Milestone 1. We began populating our GitHub Kanban board with the associated issues in Milestone 1. Additionally, this week marks the actual start of the project, because we began coding some of the problems. For example, in my case, I worked on the initial development of the file extraction system, where I focused on extracting components (taking a zip file and extracting its contents). At the same time, I worked on creating the pytest file to test the functionality of my extraction file. In addition, I made the requirements.txt file consisting of the possible Python libraries that we can use in our project, where we discuss these libraries and Additionally, considering that my overall team's Python skill level is minimal, I need to ensure that the chosen libraries are easy to pick up.
 
+Overall, this week we did not encounter any significant issues with each other, and we also introduced the proposed system to help prevent miscommunication, specifically duplicate code and tasks.
 
 
 ---
 
-## 🧠 Reflection on Past Cycle (Week 6)
-For week 6 I was working on the issue which I assigned myself to do for that week which was the **extraction of zip file** and export its contents to a temporay diectory for file mapping, while at the same time creating tests. I will note this week was rough because this is my first time on trying to create test using python **unitest framework** in python, which I have not done before which was challenge but also interested. In additon it was our first time reviewing each other codes and having meaningfully conversation about what we should add and in my case more edge case. Overall week 6 was interested week in terms of learning the **unittest python framework** and reviewing other team members code and providing improvement/suggestions 
-
-
-
+## 🧠 Reflection on Past Cycle (Week 5)
+For week 5, I began to notice that our team structure has become more organized, unlike last week, which was unorganized, but overall week 5 has nothing to report in terms of team structure and general stuff
 
 ---
 
@@ -245,26 +244,21 @@ For week 6 I was working on the issue which I assigned myself to do for that wee
 | Task/Issue | Status |
 |------------|--------|
 | **Creation of test pyton file for the saving of user configuration** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
-
+|                      |
 
 ## 🎯 Next Week’s Goals  
 - To contiune working on the [storing user configuration ](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/36) intergating the actual coding part of this issue 
 
 ---
 
-## 🧠 Reflection on Current Cycle (Week 6)
-This week, we began updating both our **DFD graph** and our **System Architecture Design** to incorporate the newly introduced project requirements for Milestone 1. We began populating our **GitHub Kanban board** with the associated issues in the milestone 1. Additionally, this week marks the actual start of the project, because we began coding some of the problems. For example, in my case, I worked on the initial development of the **file extraction system**, where I focused on extracting components (taking a zip file and extracting its contents). At the same time, I worked on creating the **pytest file** to test the functionality of my extraction file. In addition, I created the **requirements.txt** file consisting of the possible Python libraries that we can use  in our project, where we discuss these libraries and
-Additionally, considering that my overall team's Python skill level is minimal, I need to ensure that the chosen libraries are easy to pick up.
-
-
-Overall, this week we did not encounter any significant issues with each other, and we also introduced the proposed system to help prevent miscommunication, specifically duplicate code and tasks.
+## 🧠 Reflection on Current Cycle (Week 7)
 
 
 
 
 ---
 
-## 🧠 Reflection on Past Cycle (Week 5)  
-For week 5 I began to notice that our team structure has become more organized unlike last week which was orgainzied, but overall week 5 has nothing to report in terms of team structure and general sstuff
+## 🧠 Reflection on Past Cycle (Week 6)  
+For week 6 I was working on the issue which I assigned myself to do for that week which was the **extraction of zip file** and export its contents to a temporay diectory for file mapping, while at the same time creating tests. I will note this week was rough because this is my first time on trying to create test using python **unitest framework** in python, which I have not done before which was challenge but also interested. In additon it was our first time reviewing each other codes and having meaningfully conversation about what we should add and in my case more edge case. Overall week 6 was interested week in terms of learning the **unittest python framework** and reviewing other team members code and providing improvement/suggestions 
 
 ---
