@@ -252,7 +252,7 @@ For week 5, I began to notice that our team structure has become more organized,
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 7)
-
+For week 7, I began working on the storing of user's configuration more specfically created the tests for the user's storage where I work on creating the actual system in the following. From week 6 I was able to intergate my gained knolwedge on **pytest unittest framework** into this test called `test_userConfig_store.py`. Overall this week was a vaildation week because I am now after grafting/learning about pytest I was able to easily intergate my new found knowlege into the test case that I have created for this sprint
 
 
 
