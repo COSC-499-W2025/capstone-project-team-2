@@ -63,7 +63,7 @@ def tree(dir_path: Path, prefix: str= ' '):
             created = modified = "N/A"
             size = 0
 
-        # Format display
+        # Formating the tree display to include new meta data
         if path.is_file():
             file_type = path.suffix.lstrip('.') or "FILE"
             metadata = f"[{file_type}] size: {size}B, created: {created}, modified: {modified}, author: {author}"
