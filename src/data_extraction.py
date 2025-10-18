@@ -1,12 +1,27 @@
 import os
 import unittest
+import datetime
+import platform
+import getpass
+
+
 from pathlib import Path
 
 SPACE = '    '
 BRANCH = '|   '
 TEE = '|-- '
 LAST = '`-- '
-TARGET_FILE = Path("TEMP FOLDER PATH HERE")
+TARGET_FILE = Path("C:/Users/cagil/Desktop/Test_Read")
+
+## creating a helper function in preparation of cross platform file checking
+def get_author(path: Path):
+    try:
+        if platform.system() == "Windows":
+            return getpass.getuser()
+        else:
+            return "Author Unknown"
+    except Exception:
+         return "Unknown"
 
 
 
@@ -36,12 +51,31 @@ def tree(dir_path: Path, prefix: str= ' '):
     
     pointers = [TEE] * (len(content) - 1) + [LAST]
 
-    for pointer, path in zip(pointers,content):
-        yield prefix + pointer + path.name
+    for pointer, path in zip(pointers, content):
+        # Get file stats
+        try:
+            stat = path.stat()
+            created = datetime.datetime.fromtimestamp(stat.st_birthtime).strftime('%Y-%m-%d %H:%M:%S')
+            modified = datetime.datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+            size = stat.st_size
+            author = get_author(path)
+        except Exception as e:
+            created = modified = "N/A"
+            size = 0
+
+        # Format display
+        if path.is_file():
+            file_type = path.suffix.lstrip('.') or "FILE"
+            metadata = f"[{file_type}] size: {size}B, created: {created}, modified: {modified}, author: {author}"
+        else:
+            metadata = "[DIR]"
+
+
+        yield prefix + pointer + path.name + ' ' + metadata
+        
         if path.is_dir():
             extension = BRANCH if pointer == TEE else SPACE
             yield from tree(path, prefix= prefix + extension)
-
 
 
 def print_hierarchy(File_Path):
@@ -55,39 +89,3 @@ def main():
 main()
 
 
-"""
-import os
-from treelib import Tree
-from pathlib import Path
-
-
-def list_file_directory(file_path):
-    file_to_read_from=file_path
-    tree = Tree()
-    files_List=[]
-    folders_list=[]
-
-    tree.create_node(tag=file_to_read_from, identifier=str(file_to_read_from))
-
-
-    for root,dirs,files in os.walk(file_to_read_from,topdown=True):
-        for name in files:
-            file_path=os.path.join(root,name)
-            files_List.append(Path(os.path.join(root,name)))
-        for name in dirs:
-            directory_path=os.path.join(root,name)
-            folders_list.append(Path(directory_path))
-
-
-
-    for folder in folders_list:
-        folder_parent=folder.parent
-        tree.create_node(tag=folder.name,parent=str(folder_parent),identifier=str(folder))
-
-    for file in files_List:
-        file_parent=file.parent
-        tree.create_node(tag=file.name,parent=str(file_parent),identifier=str(file))
-
-
-    tree.show()
-    """
