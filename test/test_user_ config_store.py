@@ -32,7 +32,7 @@ class TestUserConfigStore(unittest.TestCase):
         self.original_cwd = os.getcwd()
         self.json_test_data = {
             "id": 1,
-            "First Name": "Jane",
+            "FirstName": "Jane",
             "Student_id": "2003357",
             "last Name": "Doe",
             "Email": "Jane.Doe@gmail.com",
