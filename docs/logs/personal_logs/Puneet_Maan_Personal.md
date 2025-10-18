@@ -1,23 +1,73 @@
-## Sprint Log: (09/15/2025 – 09/21/2025)
+## Sprint Log: (10/06/2025 – 10/12/2025)
 
 ### Peer Evaluation
-<img width="936" height="542" alt="Screenshot 2025-09-21 at 4 52 30 PM" src="https://github.com/user-attachments/assets/00423013-e9e4-48b1-b146-89655ae275ef" />
+![alt text](../peer_eval_screenshots/12-10-2025_PeerEval_Puneet_Maan.png)
 
----
+### Weekly Goals Recap  
+This week, the primary focus was on updating the project documentation to reflect the most current system requirements. This included a major update to the `README.md` file, where we integrated a detailed **Level 1 Data Flow Diagram (DFD)** and added structured visual and tabular representations of system components and processes. These updates were aligned with Milestones 1 through 3.
+
+### Additional Details  
+- **README Updates**:  
+  - Added a visual **Level 1 DFD** (`level1 dfd updated.png`) representing the current architecture.
+  - Included clearly labeled tables for:
+    - External Entities  
+    - Core Processes (P1–P5) with milestone mappings  
+    - Internal Data Stores (D1–D5)  
+  - Created a **Milestone Overview Table** to support development planning.
+- **System Design Alignment**: The updated DFD and tables ensure a consistent understanding of how the system components interact, both internally and externally.
+- **Issue Closures**:  
+  - Closes [#43](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/43) – Edited README to include DFD and architectural details.  
+  - Closes [#25](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/25) – Created new Level 1 DFD based on updated system requirements.
+
+### Plan for the Next Cycle  
+For the week ahead (10/13/2025 – 10/19/2025), we plan to:
+- Ensure every team member has their local environment fully prepared for implementation.
+- Begin setting up **Docker** in local development environments? (not sure yet).
+- Define roles for backend setup as we move closer to implementation.
+- Review and potentially iterate on the updated DFD and milestone mappings.
+
+### Reflection Points  
+
+#### What Went Well  
+- Successfully updated and documented the **Level 1 DFD** with a visual and organized format.
+- Documentation clarity improved significantly, making the system easier to understand for both current and new contributors.
+- Issue tracking and resolution were efficient, with tasks clearly linked and completed as planned.
+
+#### What Didn't Go Well  
+- Encountered a minor issue with GitHub-hosted image linking, requiring multiple uploads.
+- Initial file handling led to confusion about proper resource referencing
+
+This sprint was productive, with a strong focus on aligning documentation with the evolving system design. The updated DFD and milestone breakdowns now offer a clearer roadmap for development going forward.
+
+## ====================================================
+
+## Sprint Log: (09/29/2025 – 10/05/2025)
+
+### Peer Evaluation
+![alt text](../peer_eval_screenshots/05-10-2025_PeerEval_Puneet_Maan.png)
 
 ### Weekly Goals Recap
-We worked on outlining the project’s functional and non-functional requirements based on our current understanding. We created a draft and then got input from three other teams to see where we could make improvements.
-With their feedback, we made some adjustments to ensure the requirements were more specific, measurable, and easier to follow.
-
----
+This week, our main goal was to finalize the Level 1 Data Flow Diagram (DFD) based on the previous sprint’s requirements. We also reviewed the system design to ensure it aligned with the finalized project requirements. The DFD was developed with a focus on accurately representing data flow between backend and frontend, external actors, and system components.
 
 ### Additional Details
-- **Project Requirements Quiz**: Completed successfully.
-- **Discord Server**: Joined for team communication.
-- **Individual Weekly Logs**: Documented personal progress.
+- **DFD Design**: Finalized the Level 1 DFD, ensuring all external actors and data flow were accurately represented.
+- **Team Meetings**: Held discussions to finalize the DFD design and review progress on system architecture.
+- **Individual Contributions**: Contributed to the refinement and documentation of the Level 1 DFD, clarifying data flows and external actor interactions.
 
----
-## ============================
+### Plan for the Next Cycle
+In the upcoming week (10/06/2025 – 10/12/2025), we’ll focus on reviewing and finalizing our system requirements, revising the system architecture, and allocating tasks more clearly. Additionally, we’ll begin working with Docker and set up our local environments to integrate it into the project.
+
+### Reflection Points
+#### What Went Well
+We made solid progress in completing the DFD Level 1, which greatly clarified the system’s data flow. Team collaboration was smooth, and the weekly meetings ensured that everyone stayed on track with their tasks. We’ve also improved our understanding of the system design and how the components interact, making the project clearer overall.
+
+#### What Didn't Go Well
+There were no major issues this week. The team worked efficiently, and communication was strong, allowing us to stay on schedule.
+
+This week was effective, with meaningful progress on the DFD and overall system design. The team’s dynamics continue to improve, and we’re well on track for the next phase of the project.
+
+
+## ====================================================
 
 ## Sprint Log: (09/22/2025 – 09/28/2025)
 
@@ -43,3 +93,25 @@ Our team collaborated effectively, with strong communication through regular Dis
 We encountered no significant issues this week, though minor delays in gathering reference materials slightly extended our research phase.
 
 This week was effective, with solid progress on the project proposal and clear use cases supported by UML diagrams. Suggestions from other teams and the professor helped us spot and fix design gaps. Our team's strong rapport led to smooth conversations and prompt updates, keeping the group in sync.
+
+## ====================================================
+
+## Sprint Log: (09/15/2025 – 09/21/2025)
+
+### Peer Evaluation
+<img width="936" height="542" alt="Screenshot 2025-09-21 at 4 52 30 PM" src="https://github.com/user-attachments/assets/00423013-e9e4-48b1-b146-89655ae275ef" />
+
+---
+
+### Weekly Goals Recap
+We worked on outlining the project’s functional and non-functional requirements based on our current understanding. We created a draft and then got input from three other teams to see where we could make improvements.
+With their feedback, we made some adjustments to ensure the requirements were more specific, measurable, and easier to follow.
+
+---
+
+### Additional Details
+- **Project Requirements Quiz**: Completed successfully.
+- **Discord Server**: Joined for team communication.
+- **Individual Weekly Logs**: Documented personal progress.
+
+---

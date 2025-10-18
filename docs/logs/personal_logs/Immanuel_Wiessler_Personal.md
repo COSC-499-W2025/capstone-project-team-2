@@ -169,6 +169,7 @@ Looking back at **Week 4**, our team developed a better understanding of each me
 # 📝 Personal Log – Week 6 (10/06/2025 – 10/09/2025)
 
 ## 📊 Peer Evaluation  
+<img width="1221" height="939" alt="image" src="https://github.com/user-attachments/assets/654c8f44-ebf0-4b91-bccb-e5afc29a6104" />
 
 ![alt text](image.png)
 
@@ -204,7 +205,9 @@ Looking back at **Week 4**, our team developed a better understanding of each me
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 6)
-This week, we began updating both our DFD graph and our System Architecture Design to incorporate the newly introduced project requirements for Milestone 1. We began populating our GitHub Kanban board with the associated issues in Milestone 1. Additionally, this week marks the actual start of the project, because we began coding some of the problems. For example, in my case, I worked on the initial development of the file extraction system, where I focused on extracting components (taking a zip file and extracting its contents). At the same time, I worked on creating the pytest file to test the functionality of my extraction file. In addition, I made the requirements.txt file consisting of the possible Python libraries that we can use in our project, where we discuss these libraries and Additionally, considering that my overall team's Python skill level is minimal, I need to ensure that the chosen libraries are easy to pick up.
+This week, we began updating both our **DFD graph** and our **System Architecture Design** to incorporate the newly introduced project requirements for Milestone 1. We began populating our GitHub Kanban board with the associated issues in Milestone 1. Additionally, this week marks the actual start of the project, because we began coding some of the problems. For example, in my case, I worked on the initial development of the **file extraction system**, where I focused on extracting components (taking a zip file and extracting its contents). At the same time, I worked on creating the **pytest file** to test the functionality of my extraction file. In addition, I made the **requirements.txt** file consisting of the possible Python libraries that we can use in our project, where we discuss these libraries and
+Additionally, considering that my overall team's Python skill level is minimal, I need to ensure that the chosen libraries are easy to pick up.
+
 
 Overall, this week we did not encounter any significant issues with each other, and we also introduced the proposed system to help prevent miscommunication, specifically duplicate code and tasks.
 
@@ -240,6 +243,9 @@ For week 5, I began to notice that our team structure has become more organized,
 
 ## 📌 Associated Tasks from Project Board  
 - [Tests for storing user configuration #61](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/61)
+- 
+## 🧠 Reflection on Past Cycle (Week 5)  
+For week 5, I began to notice that our team structure has become more organized, unlike last week, which was unorganized, but overall week 5 has nothing to report in terms of team structure and general sstuff
 
 ---
 
