@@ -11,7 +11,7 @@ SPACE = '    '
 BRANCH = '|   '
 TEE = '|-- '
 LAST = '`-- '
-TARGET_FILE = Path("C:/Users/cagil/Desktop/Test_Read")
+TARGET_FILE = Path("FILE DIRECTORY HERE")
 
 ## creating a helper function in preparation of cross platform file checking
 def get_author(path: Path):
@@ -69,7 +69,6 @@ def tree(dir_path: Path, prefix: str= ' '):
             metadata = f"[{file_type}] size: {size}B, created: {created}, modified: {modified}, author: {author}"
         else:
             metadata = "[DIR]"
-
 
         yield prefix + pointer + path.name + ' ' + metadata
         
