@@ -223,7 +223,7 @@ For week 5, I began to notice that our team structure has become more organized,
 # 📝 Personal Log – Week 7 (10/12/2025 – 10/18/2025)
 
 ## 📊 Peer Evaluation  
-![Peer Evaluation Screenshot](../Immanuel_Peer_sceenshots\10-17-2025.png)
+![Peer Evaluation Screenshot](docs/logs/peer_eval_screenshots/Immanuel_Peer_sceenshots/10-17-2025.png)
 
 
 
