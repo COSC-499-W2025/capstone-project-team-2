@@ -262,13 +262,13 @@ For week 5, I began to notice that our team structure has become more organized,
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 7)
-For week 7, I began working on the storing of user's configuration more specfically created the tests for the user's storage where I work on creating the actual system in the following. From week 6 I was able to intergate my gained knolwedge on **pytest unittest framework** into this test called `test_userConfig_store.py`. Overall this week was a vaildation week because I am now after grafting/learning about pytest I was able to easily intergate my new found knowlege into the test case that I have created for this sprint
+For **week 7**, I began working on the storing of user's configuration more specfically created the tests for the user's storage where I work on creating the actual system in the following. From week 6 I was able to intergate my gained knolwedge on **pytest unittest framework** into this test called `test_userConfig_store.py`. Overall this week was a vaildation week because I am now after grafting/learning about pytest I was able to easily intergate my new found knowlege into the test case that I have created for this sprint
 
 
 
 ---
 
 ## 🧠 Reflection on Past Cycle (Week 6)  
-For week 6, I was working on the issue that I assigned myself for that week, which was the extraction of a zip file and exporting its contents to a temporary directory for file mapping, while creating tests at the same time. This week was rough because this is my first time trying to create a test using Python **unittest framework** in Python, which I have not done before, which was a challenge but also interesting. In addition, it was our first time reviewing each other's code and having meaningful conversations about what we should add, and in my case, more edge cases. Overall, week 6 was interesting in terms of learning the **unittest python framework** and reviewing other team members' code and providing improvement/suggestions. 
+For **week 6**, I was working on the issue that I assigned myself for that week, which was the extraction of a zip file and exporting its contents to a temporary directory for file mapping, while creating tests at the same time. This week was rough because this is my first time trying to create a test using Python **unittest framework** in Python, which I have not done before, which was a challenge but also interesting. In addition, it was our first time reviewing each other's code and having meaningful conversations about what we should add, and in my case, more edge cases. Overall, week 6 was interesting in terms of learning the **unittest python framework** and reviewing other team members' code and providing improvement/suggestions. 
 
 ---
