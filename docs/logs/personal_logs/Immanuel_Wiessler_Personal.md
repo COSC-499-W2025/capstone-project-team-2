@@ -171,7 +171,7 @@ Looking back at **Week 4**, our team developed a better understanding of each me
 ## 📊 Peer Evaluation  
 <img width="1221" height="939" alt="image" src="https://github.com/user-attachments/assets/654c8f44-ebf0-4b91-bccb-e5afc29a6104" />
 
-
+![alt text](image.png)
 
 
 ---
@@ -212,12 +212,63 @@ Additionally, considering that my overall team's Python skill level is minimal, 
 Overall, this week we did not encounter any significant issues with each other, and we also introduced the proposed system to help prevent miscommunication, specifically duplicate code and tasks.
 
 
+---
+
+## 🧠 Reflection on Past Cycle (Week 5)
+For week 5, I began to notice that our team structure has become more organized, unlike last week, which was unorganized, but overall week 5 has nothing to report in terms of team structure and general stuff
+
+---
+
+
+
+
+
+# 📝 Personal Log – Week 7 (10/12/2025 – 10/18/2025)
+
+## 📊 Peer Evaluation  
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/10-17-2025.png)
+
+
+
+
+
 
 
 ---
 
+## 🚀 Features Worked On  
+-  Worked on the testing function for the saving of the users configuration(`Test_userConfig_store.py`)
+
+---
+
+## 📌 Associated Tasks from Project Board  
+- [Tests for storing user configuration #61](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/61)
+- 
 ## 🧠 Reflection on Past Cycle (Week 5)  
 For week 5, I began to notice that our team structure has become more organized, unlike last week, which was unorganized, but overall week 5 has nothing to report in terms of team structure and general sstuff
 
 ---
 
+## 📈 Progress Update (since 10/12/2025)  
+
+| Task/Issue | Status |
+|------------|--------|
+| **Creation of test pyton file for the saving of user configuration** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+|                      |
+
+## 🎯 Next Week’s Goals  
+- To contiune working on the [storing user configuration ](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/36) intergating the actual coding part of this issue 
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 7)
+For **week 7**, I began working on the storing of user's configuration more specfically created the tests for the user's storage where I work on creating the actual system in the following. From week 6 I was able to intergate my gained knolwedge on **pytest unittest framework** into this test called `test_userConfig_store.py`. Overall this week was a vaildation week because I am now after grafting/learning about pytest I was able to easily intergate my new found knowlege into the test case that I have created for this sprint
+
+
+
+---
+
+## 🧠 Reflection on Past Cycle (Week 6)  
+For **week 6**, I was working on the issue that I assigned myself for that week, which was the extraction of a zip file and exporting its contents to a temporary directory for file mapping, while creating tests at the same time. This week was rough because this is my first time trying to create a test using Python **unittest framework** in Python, which I have not done before, which was a challenge but also interesting. In addition, it was our first time reviewing each other's code and having meaningful conversations about what we should add, and in my case, more edge cases. Overall, week 6 was interesting in terms of learning the **unittest python framework** and reviewing other team members' code and providing improvement/suggestions. 
+
+---
