@@ -1,5 +1,6 @@
 import json
 import os
+import orjson
 
 
 class configuration_for_users:
@@ -8,8 +9,18 @@ class configuration_for_users:
         #os.makedirs("UserConfigs", exist_ok=True)
 
         #save_path = os.path.join("UserConfigs", "UserConfig.json")
-        with open("UserConfigs.json", "w", encoding="utf-8") as f:
-            json.dump(jsonfile, f, indent=4)
+        with open("UserConfigs.json", "wb") as f:
+            f.write(orjson.dumps(jsonfile,option=orjson.OPT_INDENT_2))
+
+
+
+
+
+
+
+
+
+
 
 
 

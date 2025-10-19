@@ -5,3 +5,4 @@ FreeSimpleGUI
 matplotlib
 zipfile 
 click
+orjson
