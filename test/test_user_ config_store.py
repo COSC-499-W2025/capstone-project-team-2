@@ -4,6 +4,7 @@ import shutil
 import unittest
 import json
 from pathlib import Path
+from src.Configuration import configuration_for_users
 
 
 class TestUserConfigStore(unittest.TestCase):
@@ -53,8 +54,10 @@ class TestUserConfigStore(unittest.TestCase):
         
         """, encoding="utf-8")
         os.chdir(self.temp_dir)
+        self.instance=configuration_for_users()
 
     def test_save_config(self):
+
 
         """
         This is a test to check to see
@@ -67,11 +70,12 @@ class TestUserConfigStore(unittest.TestCase):
 
         :return: pass or fail
         """
-        save_path = os.path.join(self.temp_dir, 'test_config.json')
-        with open(save_path, "w", encoding='utf-8') as f:
-            json.dump(self.json_test_data, f, indent=4)
 
-        self.assertTrue(os.path.exists(save_path))
+        self.instance.save_config(self.json_test_data)
+
+
+
+        self.assertTrue(os.path.exists("UserConfigs.json"))
 
     def test_invalid_valid_json(self):
 
