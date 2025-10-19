@@ -1,3 +1,43 @@
+## Dates of Sprint: (10/13/2025 – 10/19/2025)
+
+### Peer Eval Screenshot:
+
+<img width="1092" height="626" alt="image" src="https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Cameron-Personal-Logs/docs/logs/peer_eval_screenshots/PL-CameronG-10-19-25.png" />
+
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: Refinement of the File Directory Scanner
+  * #2 Integrating MetaData Extraction into the Scanner
+  * #2: code review
+
+
+## Associated Tasks from Project Board:
+
+| Description        | Status   |
+| ------------------ | -------- |
+| [Refinement of the File Directory Scanner]  | [Complete] |
+| [Integrating MetaData Extraction into the Scanner]  | [Complete] |
+| [Code Review]  | [Complete] |
+
+
+---
+## Next week goals
+The goals for Week 6:
+- Discuss issues on Kanban board for next steps
+- Identification of group/individual projects
+
+---
+
+### Extra Details:
+
+<details>
+The primary goal for me this week was the finalize the overall system of my directory scanner and then provide integration regarding the extraction of types of meta data contained with in the files. As of completion it can extract the author, creation/modification date, size, as well as the types of files it pulls. I ultimately want to give a big thank you to Samantha for her insight and assistance with my code review this week since unfortunately I made some rather large errors with it in the previous sprint that I have now fully corrected. This has been an huge learning experience for myself as a whole with python programming. My hope for next week is that I can tackle the identification of group/individual projects in the upcoming week and apply the learning I have gained this week to the project going forward.
+
+</details>
+
+
+
+
 ## Dates of Sprint: (10/6/2025 – 10/11/2025)
 
 ### Peer Eval Screenshot:
