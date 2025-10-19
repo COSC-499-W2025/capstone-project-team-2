@@ -5,7 +5,7 @@ from pathlib import Path
 from io import StringIO
 from unittest.mock import patch
 
-from src.data_extraction import file_heirarchy, tree, print_hierarchy
+from src.data_extraction import FileMetadataExtractor
 
 class TestDataExtract(unittest.TestCase):
 
@@ -15,9 +15,11 @@ class TestDataExtract(unittest.TestCase):
         temp_dir = Path("temp")
         temp_dir.mkdir(exist_ok=True)
         test_file = temp_dir / "file.txt"
+        test_file.touch()
 
         try:
-            result = list(tree(temp_dir))
+            extractor = FileMetadataExtractor(temp_dir)
+            result = list(extractor.tree(temp_dir))
             self.assertIn("`-- file.txt", result[-1])
         finally:
             # if files and directory exist remove them after test
@@ -31,7 +33,8 @@ class TestDataExtract(unittest.TestCase):
         temp_dir.mkdir(exist_ok=True)
 
         try:
-            result = list(tree(temp_dir))
+            extractor = FileMetadataExtractor(temp_dir)
+            result = list(extractor.tree(temp_dir))
             self.assertEqual(result, [" Empty"])
         finally:
             # if directory exist remove them after test
@@ -42,23 +45,26 @@ class TestDataExtract(unittest.TestCase):
     def test_file_hierarchy_nonexistent_path(self):
         # creates a bad dummy path
         test_path = Path("does_not_exist")
+        extractor = FileMetadataExtractor(test_path)
 
         with patch("sys.stdout", new=StringIO()) as test_out:
-            file_heirarchy(test_path)
+            extractor.file_hierarchy()
             output = test_out.getvalue()
 
-        self.assertIn("Error: File path not found", output)
+        self.assertIn("Error: Filepath not found", output)
 
     def test_file_hierarchy_not_a_directory(self):
         temp_file = Path("not_a_dir.txt")
         temp_file.write_text("data")
+        
 
         try:
+            extractor = FileMetadataExtractor(temp_file)
             with patch("sys.stdout", new=StringIO()) as test_out:
-                file_heirarchy(temp_file)
+                extractor.file_hierarchy()
                 output = test_out.getvalue()
 
-            self.assertIn("Error: The path is not a directory", output)
+            self.assertIn("Error: File is not a directory", output)
         finally:
             if temp_file.exists():
                 temp_file.unlink()
