@@ -1,4 +1,45 @@
 
+## Week 7 (10/13/2025- 10/19/2025)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+- <img width="2073" height="1214" alt="image" src="https://github.com/user-attachments/assets/d1a66b04-98af-4762-9a28-3188f9b63790" />
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: Unit tests for initiating user configurations on app startup
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description        | Feature                   | Assigned To | Status   |
+| ------- | ------------------ | ------------------------- | ----------- | -------- |
+| [#37]   | [unit tests]       | [initiating user configs] | [ssmith86]  | [open]   |
+
+### Progress Update (since 10/12/2025) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Create unit tests for initiating user configurations on app startup -->
+        <td>Task A
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+This week we were a bit late assigning tasks due to class being cancelled on Monday and a quiz on Tuesday. It was also very busy for most of us because of midterms, so we tried to make the tasks relatively smaller than usual.
+
+### Tasks for Next Sprint:
+- Write the code for initiating user configurations on app startup
+- Update tests to pull in real code for unit testing
+
+
 ## Dates of Spring (10/06/2025 -10/11/2025)
 
 ### Task Types Worked On (Screenshot from Peer Eval)
