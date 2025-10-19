@@ -12,10 +12,14 @@ class TestExtraction(unittest.TestCase):
     This is a Unit test for extraction.py
     These test cover the following issues:
     
+    For method extractFiles
     -Successful extraction of a valid Zip files
     -Handling of empty zip files
     -Handling of non-existent zip files
     -Handling of invalid or corrupted ZIP files
+
+    For method verifyZIP
+    -
     """
 
 
@@ -119,6 +123,59 @@ class TestExtraction(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             file_not_exist_instance.extractFiles()
 
+    
+    def test_verifyZIP_no_path(self):
+        """
+        Positive Test
+        Test for when file path is invalid
+
+        Verifies that:
+        - Correct error text is returned when file path is invalid
+        """
+    
+        extractInfo_instance = extractInfo(self.does_not_exist_zip)
+        text = extractInfo_instance.verifyZIP()
+        self.assertTrue(extractInfo_instance.PATH_ERROR_TEXT in text)
+
+    def test_verifyZIP_not_zip(self):
+        """
+        Positive Test
+        Test for when file is not a zip
+
+        Verifies that:
+        - Correct error text is returned when file is not zip
+        """
+        path = os.path.join(self.original_cwd, r"test\TestZips\test.txt")
+        extractInfo_instance = extractInfo(path)
+        text = extractInfo_instance.verifyZIP()
+        self.assertTrue(extractInfo_instance.NOT_ZIP_ERROR_TEXT in text)
+
+    def test_verifyZIP_bad_zip(self):
+        """
+        Positive Test
+        Test for when zip file is bad (Corrupted or such)
+
+        Verifies that:
+        - Correct error text is returned when zip file is bad
+        """
+        path = os.path.join(self.original_cwd, r"test\TestZips\TEST.zip")
+        extractInfo_instance = extractInfo(path)
+        text = extractInfo_instance.verifyZIP()
+        print(text)
+        self.assertTrue(extractInfo_instance.BAD_ZIP_ERROR_TEXT in text)
+
+    def test_verifyZIP_not_bad_not_zip(self):
+        """
+        Negative Test
+        Test for when file is not a zip file, that file isn't marked as bad
+
+        Verifies that:
+        - Non-zip file isn't marked as bad zip file
+        """
+        path = os.path.join(self.original_cwd, r"test\TestZips\test.txt")
+        extractInfo_instance = extractInfo(path)
+        text = extractInfo_instance.verifyZIP()
+        self.assertFalse(extractInfo_instance.BAD_ZIP_ERROR_TEXT in text)
 
     def tearDown(self):
 
