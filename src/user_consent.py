@@ -1,6 +1,5 @@
 import sys
 
-# Message constants
 CONSENT_HEADER = "\nData Usage Consent\n" + "-" * 50
 CONSENT_REQUEST = "We need your permission to use the data you will upload in our system.\nThis data will be processed and analyzed as part of our mining system."
 CONSENT_PROMPT = "\nDo you consent to allow us to use your data? (yes/no): "
