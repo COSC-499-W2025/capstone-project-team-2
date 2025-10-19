@@ -28,6 +28,10 @@ class Test_JSON_saving(unittest.TestCase):
         ]
     }
 
+    def setUp(self):
+        if os.path.exists(r"./"+self.test_name+r".json"):
+            os.remove(r"./"+self.test_name+r".json")
+
     def test_json_save(self):
         '''
         Tests that file is saved
