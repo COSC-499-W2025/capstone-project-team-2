@@ -12,7 +12,7 @@
 
 | Task ID | Description        | Feature                   | Assigned To | Status   |
 | ------- | ------------------ | ------------------------- | ----------- | -------- |
-| [#37]   | [unit tests]       | [initiating user configs] | [ssmith86]  | [open]   |
+| [#73]   | [unit tests]       | [initiating user configs] | [ssmith86]  | [open]   |
 
 ### Progress Update (since 10/12/2025) 
 <table>
@@ -23,8 +23,8 @@
         </td>
     </tr>
     <tr>
-        <!-- Create unit tests for initiating user configurations on app startup -->
-        <td>Task A
+        <!-- Task/Issue # -->
+        <td>Create unit tests for initiating user configurations on app startup 
         </td>
         <!-- Status -->
         <td>Complete
