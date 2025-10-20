@@ -96,3 +96,50 @@
 
 ### Extra Details:
 * First week of coding was rough but the momentum has begun
+
+---------------------------------
+
+## Sunday (12/10 - 19/10)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/19-10-25_PeerEval_SamM.PNG)
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: Store project information into a database: Saving individual file analysis in hierarchy
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description        | Feature   | Assigned To | Status   |
+| ------- | ------------------ | --------- | ----------- | -------- |
+| #67   | Store hierarchy analysis of files in a JSON file | Store project information into a database | Samantha Maranda  | In Progress |
+
+### Progress Update (since 6/5/2024) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Store dictionary in JSON file
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Store analysis in JSON file
+        </td>
+        <!-- Status -->
+        <td>Backlog task (Waiting for analysis feature)
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+* Completed a feature that stores dictionaries in JSON files at a specified path. Will likely be used in other features.
+* Cannot continue feature until analysis of files is partially complete, individual file analysis information needed for next step.
