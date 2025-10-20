@@ -1,3 +1,41 @@
+## Sprint Log: (10/13/2025 – 10/19/2025)
+
+### Peer Evaluation
+![alt text](../peer_eval_screenshots/19-10-2025_PeerEval_Puneet_Maan.png)
+
+### Weekly Goals Recap  
+Focused on delivering the **skill insight module** so the system can automatically map detected languages, frameworks, and libraries to résumé-ready skills. Also refreshed the weekly **team log** and reviewed teammates’ PRs to stay aligned with their contributions.
+
+### Additional Details  
+- **Skill Insight Module (#41 / PR #79)**  
+  - Added `project_stack_detection.py` plus `project_skill_insights.py`.  
+  - Created unit suites (`test_project_stack_detection.py`, `test_project_skills.py`) using temporary project fixtures (Python/Flask, React, FastAPI+Vue).  
+  - Verified everything inside the project `venv` with `python -m unittest ...`.  
+- **Team Log (logs branch)**  
+  - Documented week 7 deliverables, Kanban/burn-up placeholders, and linked teammate PRs (#71, #73, #68, #69, #62, #79).  
+- **Cross-team context**  
+  - Read merged PRs to understand JSON storage (Samantha), startup config tests (Sam), hierarchy refinements (Cameron), consent screen (Mahi), and config storage tests (Immanuel).  
+
+### Plan for the Next Cycle  
+- Support backlog analytics tasks: distinguish collaboration vs. individual projects and surface contributor roles.  
+- Pair with Immanuel/Cameron on metadata signals needed for collaboration insights.  
+- Help finalize consent documentation once Mahi has a draft.  
+- Add skill detection outputs into the artifact storage pipeline once JSON schemas are finalized.  
+
+### Reflection Points  
+
+#### What Went Well  
+- TDD approach kept the skill module tight, fixtures caught edge cases across multiple stacks.  
+- Running tests inside the `venv`and avoided “missing dependency” surprises.  
+- Reviewing teammate PRs made it easy to write an accurate team log and identify followup integration work.  
+
+#### What Didn't Go Well  
+- I inadvertently caused a last minute scramble by delaying the final save of the team log and project assets until the submission deadline was imminent. This put undue stress on the team. In the future, I will prioritize and enforce early and frequent saving/committing to ensure the entire team can submit calmly and confidently.
+
+Overall, the week moved us from documentation heavy work into actionable analytics. We now have automated signals describing project skills, and a clear picture of team progress for the sprint report. Next up is turning those insights into collaboration aware summaries.
+
+## ====================================================
+
 ## Sprint Log: (10/06/2025 – 10/12/2025)
 
 ### Peer Evaluation
