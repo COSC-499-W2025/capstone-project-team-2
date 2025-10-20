@@ -4,3 +4,4 @@ matplotlib
 zipfile 
 click
 rich
+orjson
