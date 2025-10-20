@@ -12,63 +12,97 @@ class TestUserConsent(unittest.TestCase):
         """Set up test cases"""
         self.consent_manager = UserConsent()
 
-    def test_default_consent_is_false(self):
-        """Test that consent is False by default"""
-        self.assertFalse(self.consent_manager.has_consent)
+    def test_default_consents_are_false(self):
+        """Test that both consents are False by default"""
+        data_consent, external_consent = self.consent_manager.check_consent()
+        self.assertFalse(data_consent)
+        self.assertFalse(external_consent)
 
-    def test_check_consent_returns_current_state(self):
-        """Test that check_consent returns the current consent state"""
-        self.assertFalse(self.consent_manager.check_consent())
-        self.consent_manager.has_consent = True
-        self.assertTrue(self.consent_manager.check_consent())
+    def test_check_consent_returns_both_states(self):
+        """Test that check_consent returns both consent states"""
+        data_consent, external_consent = self.consent_manager.check_consent()
+        self.assertFalse(data_consent)
+        self.assertFalse(external_consent)
+
+        self.consent_manager.has_data_consent = True
+        self.consent_manager.has_external_consent = True
+        data_consent, external_consent = self.consent_manager.check_consent()
+        self.assertTrue(data_consent)
+        self.assertTrue(external_consent)
 
     def test_revoke_consent(self):
-        """Test that revoking consent sets it to False"""
-        self.consent_manager.has_consent = True
+        """Test that revoking consent sets both to False by default"""
+        self.consent_manager.has_data_consent = True
+        self.consent_manager.has_external_consent = True
         self.consent_manager.revoke_consent()
-        self.assertFalse(self.consent_manager.has_consent)
+        data_consent, external_consent = self.consent_manager.check_consent()
+        self.assertFalse(data_consent)
+        self.assertFalse(external_consent)
 
-    @patch('builtins.input', side_effect=['y'])
-    def test_consent_yes(self, mock_input):
-        """Test that answering 'y' grants consent"""
-        self.assertTrue(self.consent_manager.ask_for_consent())
-        self.assertTrue(self.consent_manager.has_consent)
+    def test_revoke_data_consent_only(self):
+        """Test revoking only data consent"""
+        self.consent_manager.has_data_consent = True
+        self.consent_manager.has_external_consent = True
+        self.consent_manager.revoke_consent(include_external=False)
+        data_consent, external_consent = self.consent_manager.check_consent()
+        self.assertFalse(data_consent)
+        self.assertTrue(external_consent)
 
-    @patch('builtins.input', side_effect=['yes'])
-    def test_consent_full_yes(self, mock_input):
-        """Test that answering 'yes' grants consent"""
+    @patch('builtins.input', side_effect=['y', 'y'])
+    def test_full_consent_flow(self, mock_input):
+        """Test granting both data and external services consent"""
         self.assertTrue(self.consent_manager.ask_for_consent())
-        self.assertTrue(self.consent_manager.has_consent)
+        data_consent, external_consent = self.consent_manager.check_consent()
+        self.assertTrue(data_consent)
+        self.assertTrue(external_consent)
+
+    @patch('builtins.input', side_effect=['y', 'n', 'y'])
+    def test_data_only_consent_flow(self, mock_input):
+        """Test granting data consent but declining external with basic continue"""
+        self.assertTrue(self.consent_manager.ask_for_consent())
+        data_consent, external_consent = self.consent_manager.check_consent()
+        self.assertTrue(data_consent)
+        self.assertFalse(external_consent)
+
+    @patch('builtins.input', side_effect=['y', 'n', 'n'])
+    def test_decline_basic_analysis(self, mock_input):
+        """Test declining to continue with basic analysis"""
+        self.assertFalse(self.consent_manager.ask_for_consent())
+        data_consent, external_consent = self.consent_manager.check_consent()
+        self.assertFalse(data_consent)
+        self.assertFalse(external_consent)
 
     @patch('builtins.input', side_effect=['n', 'y'])
-    def test_consent_no_confirmed(self, mock_input):
-        """Test that answering 'n' and confirming exit denies consent"""
+    def test_initial_data_consent_denied(self, mock_input):
+        """Test denying initial data consent"""
         self.assertFalse(self.consent_manager.ask_for_consent())
-        self.assertFalse(self.consent_manager.has_consent)
+        data_consent, external_consent = self.consent_manager.check_consent()
+        self.assertFalse(data_consent)
+        self.assertFalse(external_consent)
 
-    @patch('builtins.input', side_effect=['no', 'yes'])
-    def test_consent_full_no_confirmed(self, mock_input):
-        """Test that answering 'no' and confirming exit denies consent"""
-        self.assertFalse(self.consent_manager.ask_for_consent())
-        self.assertFalse(self.consent_manager.has_consent)
-
-    @patch('builtins.input', side_effect=['n', 'n', 'y'])
-    def test_consent_no_then_changed_mind(self, mock_input):
-        """Test that answering 'n', not confirming exit, then 'y' grants consent"""
+    @patch('builtins.input', side_effect=['invalid', 'y', 'y'])
+    def test_invalid_data_consent_input(self, mock_input):
+        """Test invalid input for data consent followed by full consent"""
         self.assertTrue(self.consent_manager.ask_for_consent())
-        self.assertTrue(self.consent_manager.has_consent)
+        data_consent, external_consent = self.consent_manager.check_consent()
+        self.assertTrue(data_consent)
+        self.assertTrue(external_consent)
 
-    @patch('builtins.input', side_effect=['invalid', 'y'])
-    def test_invalid_input_then_yes(self, mock_input):
-        """Test that invalid input followed by 'y' eventually grants consent"""
+    @patch('builtins.input', side_effect=['y', 'invalid', 'y'])
+    def test_invalid_external_consent_input(self, mock_input):
+        """Test invalid input for external consent"""
         self.assertTrue(self.consent_manager.ask_for_consent())
-        self.assertTrue(self.consent_manager.has_consent)
+        data_consent, external_consent = self.consent_manager.check_consent()
+        self.assertTrue(data_consent)
+        self.assertTrue(external_consent)
 
-    @patch('builtins.input', side_effect=['n', 'invalid', 'y', 'y'])
-    def test_invalid_confirmation_input(self, mock_input):
-        """Test handling invalid input during exit confirmation"""
-        self.assertFalse(self.consent_manager.ask_for_consent())
-        self.assertFalse(self.consent_manager.has_consent)
+    @patch('builtins.input', side_effect=['y', 'n', 'invalid', 'y'])
+    def test_invalid_basic_analysis_input(self, mock_input):
+        """Test invalid input when asking about basic analysis"""
+        self.assertTrue(self.consent_manager.ask_for_consent())
+        data_consent, external_consent = self.consent_manager.check_consent()
+        self.assertTrue(data_consent)
+        self.assertFalse(external_consent)
 
 
 if __name__ == "__main__":
