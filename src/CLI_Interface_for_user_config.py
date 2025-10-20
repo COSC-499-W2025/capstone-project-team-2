@@ -22,26 +22,36 @@ sample_json={
 #loaded_Json=orjson.loads(sample_json)
 
 while True:
+    print("------------------------")
     for index, (key, value) in enumerate(sample_json.items()):
+
         print(index+1, key, value)
+    print("------------------------")
 
-    setting_to_change=int(input("Please select a which setting you want to change:"))
 
-    if setting_to_change is not None:
-        chosenSetting=list(sample_json.keys())[setting_to_change-1]
-        if chosenSetting=="ID":
-            print("ERROR, you cannot modified your ID")
+    try:
+        setting_to_change = int(input("Please select a which setting you want to change:"))
 
-        else:
-            currentEntry=sample_json.get(chosenSetting)
-            print(f"Current setting for {chosenSetting} are {currentEntry}")
-            modify=str(input("Do want to modify this: (yes or no):"))
-            if modify=='yes':
-                new_update=str(input("what would like to update this with:"))
+        if setting_to_change is not None:
+            chosenSetting = list(sample_json.keys())[setting_to_change - 1]
+            if chosenSetting == "ID":
+                print("[bold red] ERROR:[/bold red], you cannot modified your ID")
 
-                sample_json[chosenSetting]=new_update
-                print(f"{chosenSetting} with {currentEntry} has been changed to {new_update}")
-                json_file.save_config(sample_json)
+            else:
+                currentEntry = sample_json.get(chosenSetting)
+                print(f"Current setting for {chosenSetting} are {currentEntry}")
+                modify = str(input("Do want to modify this: (yes or no):"))
+                if modify == 'yes':
+                    new_update = str(input("what would like to update this with:"))
+
+                    sample_json[chosenSetting] = new_update
+                    print(f"{chosenSetting} with {currentEntry} has been changed to {new_update}")
+                    json_file.save_config(sample_json)
+                else:
+                    print("[bold red] ERROR:[/bold red],Please choose (yes or no)")
+
+    except IndexError:
+        print("[bold red] ERROR:[/bold red],Please select a valid choice")
 
 
 
