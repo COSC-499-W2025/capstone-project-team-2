@@ -193,3 +193,69 @@ Continue working on current issue assigned to me, implementing the user consent 
 
 
 </details>
+
+## Dates of Sprint: (10/13/2025 – 10/19/2025) 
+
+
+### Peer Eval Screenshot: <img width="1073" height="629" alt="MG SS" src="https://github.com/user-attachments/assets/6b326995-0e7b-4d36-ba01-e672d30994e9" />
+
+
+
+
+
+
+---
+
+### Features Worked on this Milestone   
+  * Require the user to give consent for data access before proceeding
+  * Request user permission before using external services (e.g., LLM) and provide implications on data privacy about the user's data
+  * Testing for both the requirements
+
+---
+
+## Associated Tasks from Project Board:
+- https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=134464676
+- https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=132355581
+---
+
+### Progress Update (since 10/06/2025)
+
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong></td>
+        <td><strong>STATUS</strong></td>
+    </tr>
+    <tr>
+        <td>User Consent for Data Access and Usage</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+    <tr>
+    <td>User Consent for using External Services</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+    <tr>
+    <td>Creating unit tests for both consents</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+    <tr>
+    
+    
+</table>
+
+
+---
+## Next week goals
+I will discuss with the team about the tasks that I can take up this week and how I can contribute on Monday.
+
+---
+
+### Extra Details:
+<details>
+    <summary><span style='font-weight:bold'>Click to expand</span> </summary>
+  I worked on creating a CLI-based system to get user consent for using and accessing their data and also for using external services. The system handles all different possibilities or scenarios and presents users with clear and concise data privacy implications. The system handles invalid inputs as well. I have also added tests for both the requirements to make sure the code doesn't break in any situation. 
+    </span>
+
+
+</details>
+
+
