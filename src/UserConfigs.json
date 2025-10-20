@@ -1,0 +1,11 @@
+{
+  "ID": 1,
+  "First Name": "Sam sucks",
+  "Student id": "2003357",
+  "Last Name": "Doe",
+  "Email": "Jane.Doe@gmail.com",
+  "Role": "Student",
+  "Preferences": {
+    "theme": "dark"
+  }
+}
