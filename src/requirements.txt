@@ -1,7 +1,6 @@
 os
-pymdeco
-dearpygui
 FreeSimpleGUI
 matplotlib
 zipfile 
 click
+rich
