@@ -72,7 +72,7 @@ class TestConfigurationCLI(unittest.TestCase):
     def tearDown(self):
         """
         After the test are completed this function cleans up the function  file, which in this case
-        the single json file. 
+        the single json file.
         """
         if os.path.exists("UserConfigs.json"):
             os.remove("UserConfigs.json")
