@@ -272,3 +272,45 @@ For **week 7**, I began working on the storing of user's configuration more spec
 For **week 6**, I was working on the issue that I assigned myself for that week, which was the extraction of a zip file and exporting its contents to a temporary directory for file mapping, while creating tests at the same time. This week was rough because this is my first time trying to create a test using Python **unittest framework** in Python, which I have not done before, which was a challenge but also interesting. In addition, it was our first time reviewing each other's code and having meaningful conversations about what we should add, and in my case, more edge cases. Overall, week 6 was interesting in terms of learning the **unittest python framework** and reviewing other team members' code and providing improvement/suggestions. 
 
 ---
+
+
+# 📝 Personal Log – Week 8 (10/20/2025 – 10/26/2025)
+
+## 📊 Peer Evaluation  
+
+
+
+---
+
+## 🚀 Features Worked On  
+- Worked on the actuall  implemation of storing the user configuration
+- Created an interactive CLI for modifying users configuration 
+
+---
+
+## 📌 Associated Tasks from Project Board  
+- [Create CLI interface for saving user configuration](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/82)
+- [Store a user configuration file](https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=132426853&issue=COSC-499-W2025%7Ccapstone-project-team-2%7C36)
+
+---
+
+## 📈 Progress Update (since 10/22/2025)  
+
+| Task/Issue | Status |
+|------------|--------|
+|**Creation of actual implementation for saving of user configuration** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+|**Creation of user Coniguration CLI**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
+
+## 🎯 Next Week’s Goals  
+- 
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 8)
+
+
+## 🧠 Reflection on Past Cycle (Week 7)  
+
+For **week 7** 
+
+---
