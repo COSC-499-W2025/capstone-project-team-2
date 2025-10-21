@@ -87,7 +87,7 @@ class ConfigurationForUsersUI:
 
 
 
-    def modify_settings(self, chosen_setting, json_class):
+    def modify_settings(self, chosen_setting):
         """
 
         :param setting_json:
@@ -96,12 +96,13 @@ class ConfigurationForUsersUI:
             bool: True if modification was successful, False otherwise
 
         """
+        json_functions = configuration_for_users()
         current_entry = self.Configuration_json.get(chosen_setting)
         new_update = self.confirm_modification(chosen_setting, current_entry)
         if new_update is not None:
             self.Configuration_json[chosen_setting] = new_update
             print(f"{chosen_setting} is now set from {current_entry} to {new_update}")
-            json_class.save_config(self.Configuration_json)
+            json_functions.save_config(self.Configuration_json)
             time.sleep(1.5)
             return True
 
@@ -113,7 +114,7 @@ class ConfigurationForUsersUI:
         Main function to run the configuration CLI
         """
 
-        json_functions = configuration_for_users()
+
 
         while True:
             self.display_settings()
@@ -124,7 +125,7 @@ class ConfigurationForUsersUI:
                     break
 
                 self.validate_modifiable_field(chosen_setting)
-                self.modify_settings(chosen_setting, json_functions)
+                self.modify_settings(chosen_setting)
 
 
 
