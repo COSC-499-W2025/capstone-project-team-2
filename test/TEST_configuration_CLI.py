@@ -39,7 +39,7 @@ class TestConfigurationCLI(unittest.TestCase):
         to be modified are correctly returned and using mocking to simulate a user input which in this
         case is selecting which attribute ti modify based on a number
         """
-        chosen_setting = selwf.instance.get_setting_choice()
+        chosen_setting = self.instance.get_setting_choice()
         self.assertEqual(chosen_setting, 'First Name')
         mock_input.assert_called_once()
 
