@@ -307,36 +307,47 @@ For **week 6**, I was working on the issue that I assigned myself for that week,
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 8)
-**Week 8** was an interesting week for me, because I began working on the actual implementation of **[saving the users configuration](https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=132426853&issue=COSC-499-W2025%7Ccapstone-project-team-2%7C36)** to the local system.  
 
-During this, I discovered a new JSON library called **[orjson](https://pypi.org/project/orjson/)**, which claims to process JSON files **much faster** than Python’s built-in library. After testing it, I integrated `orjson` into my newly implemented user configuration system — which turned out to be very easy to do.
+**Week 8** was an interesting week for me because I began working on the actual implementation of **[saving the user configuration](https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=132426853&issue=COSC-499-W2025%7Ccapstone-project-team-2%7C36)** to the local system.
 
-Next, I began working on the **CLI interface**, allowing users to update their configuration through the terminal. To make it more user-friendly, I used the **[rich](https://pypi.org/project/rich/)** library to enhance the visuals.  
+During this process, I discovered a new JSON library called **[orjson](https://pypi.org/project/orjson/)**, which claims to process JSON files **much faster** than Python’s built-in `json` library. After testing it, I integrated `orjson` into my newly implemented user configuration system — which turned out to be very easy to do.
 
-I also added **error checking** to the system to prevent users from modifying certain fields like **ID**. If they attempt to do so, a **custom exception** is raised to display the message:  
+Next, I began working on the **CLI interface**, which allows users to update their configuration through the terminal.
+
+I also added **error checking** to prevent users from modifying certain fields, such as **ID**. If they attempt to do so, a **custom exception** is raised to display the message:
+
 > “You cannot modify this — please choose something else.”
 
 Additionally, I implemented an **exit system** that allows users to quit and return to the main application cleanly.
 
+After completing the feature, I focused on **testing**. I used Python’s built-in `unittest` framework — specifically **mock inputs**, **patching**, and **mock print** — to simulate real user interaction with the CLI system.
 
-After the feature was complete, I focused on **testing**. I used Python’s built-in `unittest` library — more specifically **mock inputs** and **patching** — to simulate real user interaction with the CLI.  
+Lastly, I want to thank **@Puneet-Maan** for identifying an error in `test_configuration_CLI.py` that caused an **infinite loop**, which I quickly found, and depolyed a fix for.
 
-👉 **Example test from `test_configuration_CLI.py`**:
+---
+
+### 🧪 Example Test from `test_configuration_CLI.py`
 
 ```python
-from unittest.mock import patch
+import unittest
+from unittest.mock import patch, call
 
-@patch('builtins.input', return_value='2')
-def test_select_first_choice(self, mock_input):
-    """
-    This test validates that the function returns the right object in the sample JSON
-    to be modified. It uses mocking to simulate a user input, which in this
-    case is selecting which attribute to modify based on a number.
-    """
-    chosen_setting = self.instance.get_setting_choice()
-    self.assertEqual(chosen_setting, 'First Name')
-    mock_input.assert_called_once()
-```
+class TestConfigurationCLI(unittest.TestCase):
+
+    @patch('builtins.input', side_effect=["2", "fdfd", "n"])
+    @patch('builtins.print')
+    def test_invalid_input(self, mock_print, mock_input):
+        """
+        Test that when the user enters an invalid input (not 'y' or 'n'),
+        an appropriate error message is printed and the method returns False.
+        """
+        chosen_setting = self.instance.get_setting_choice()
+        self.instance.validate_modifiable_field(chosen_setting)
+        result = self.instance.modify_settings(chosen_setting)
+
+        mock_print.assert_any_call("ERROR: Please choose(y/n):")
+        self.assertFalse(result)
+
 
 
 
