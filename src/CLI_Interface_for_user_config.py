@@ -81,6 +81,7 @@ class ConfigurationForUsersUI:
                 return True
             elif new_value.lower() in ('false', '0', 'no'):
                 return False
+            return new_value
 
         if isinstance(original_value, int):
             try:
