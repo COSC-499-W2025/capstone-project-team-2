@@ -42,6 +42,15 @@ class TestConfigurationCLI(unittest.TestCase):
         self.assertEqual(chosen_setting, 'First Name')
         mock_input.assert_called_once()
 
+
+    @patch('builtins.input', return_value="-1")
+    def test_select_last_choice(self, mock_input):
+        with self.assertRaises(IndexError) as context:
+            chosen_setting = self.instance.get_setting_choice()
+
+
+
+
     @patch('builtins.input', return_value='1')
     def test_invalid_pick_ID(self, mock_input):
         """
@@ -104,7 +113,6 @@ class TestConfigurationCLI(unittest.TestCase):
         self.instance.validate_modifiable_field(chosen_setting)
         self.instance.modify_settings(chosen_setting)
         self.assertTrue(os.path.exists("UserConfigs.json"))
-
         self.assertEqual(mock_input.call_count, 3)
 
     def tearDown(self):
@@ -114,6 +122,4 @@ class TestConfigurationCLI(unittest.TestCase):
         """
         if os.path.exists("UserConfigs.json"):
             os.remove("UserConfigs.json")
-
-
 
