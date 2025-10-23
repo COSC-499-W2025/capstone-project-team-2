@@ -351,7 +351,7 @@ class TestConfigurationCLI(unittest.TestCase):
 
 ## 🧠 Reflection on Past Cycle (Week 7)  
 
-**week 7** was a bit challenging week because in addition to writing my tests for the storing the user configuration, we encouter a massive issue where I did not notice a massive glaring issues in one of teams members had in their coding contributions was test were not passing and also that the code iteslf was not propely defined in a class strcuture, which when I was reiewing did not catch and approved it, which might have lead to bigger issues if **samantha** did not catch this and brought to our attention. Moving forward I am going to make sure that all test run scucessfully and carefully anaylzes the code to make sure that the agreed upon structure is implemented in the code
+**week 7** was a bit challenging week because in addition to writing my tests for the storing the user configuration, we encouter a massive issue where I did not notice a glaring issues in one of teams members had in their coding contributions was test were not passing and also that the code iteslf was not propely defined in a class strcuture, which when I was reiewing did not catch and approved it, which might have lead to bigger issues if **samantha** did not see this and brought to our attention. From now on, I will ensure that all test runs succeed and carefully analyze the code to confirm that the agreed-upon structure is implemented in the coming weeks.
 
 
 
