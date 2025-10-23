@@ -7,12 +7,30 @@ import getpass
 
 from pathlib import Path
 
+# will only import on windows
+try:
+    if platform.system() == "Windows":
+        import win32security
+    else:
+        win32security = None
+except ImportError:
+        win32security = None
+
 SPACE = '    '
 BRANCH = '|   '
 TEE = '|-- '
 LAST = '`-- '
 
 class FileMetadataExtractor:
+
+
+    """
+    This is a helper class that takes in a file mapping the directory and collect file metadata
+    pertaining to size, creation/modification time, and author (file owner on Windows).
+
+    Attributes:
+        dir_path (Path): The root directory path to extract metadata from.
+    """
     def __init__(self, dir_path: str | Path):
         self.dir_path = Path(dir_path)
         
