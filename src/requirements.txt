@@ -1,8 +1,8 @@
 os
-pymdeco
-dearpygui
 FreeSimpleGUI
 matplotlib
 zipfile 
 click
 win32security
+rich
+orjson
