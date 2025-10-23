@@ -1,5 +1,4 @@
 import unittest
-from ast import Index
 from unittest.mock import patch, MagicMock, call
 from src.CLI_Interface_for_user_config import ConfigurationForUsersUI
 
