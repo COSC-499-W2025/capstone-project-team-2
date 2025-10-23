@@ -1,4 +1,5 @@
 import unittest
+from ast import Index
 from unittest.mock import patch, MagicMock, call
 from src.CLI_Interface_for_user_config import ConfigurationForUsersUI
 
@@ -61,14 +62,41 @@ class TestConfigurationCLI(unittest.TestCase):
 
     @patch('builtins.input', side_effect=["2", "fdfd", "n"])
     @patch('builtins.print')
-    def test_invalid_pick(self, mock_print, mock_input):
+    def test_invalid_input(self, mock_print, mock_input):
+        """
+        Test that when the user enters an invalid input (not 'y' or 'n'),
+        an appropriate error message is printed and the method returns False.
+        """
+
+
         chosen_setting = self.instance.get_setting_choice()
         self.instance.validate_modifiable_field(chosen_setting)
         result = self.instance.modify_settings(chosen_setting)
 
-        mock_print.assert_any_call("ERROR: Please choose(y/n)")
+        mock_print.assert_any_call("ERROR: Please choose(y/n):")
         self.assertFalse(result)
-    
+
+
+    @patch('builtins.input',return_value="20")
+    def test_invalid_index(self, mock_input):
+        """
+         Test that get_setting_choice() raises an IndexError
+         when the user enters an invalid index.
+        """
+        with self.assertRaises(IndexError):
+            chosen_setting = self.instance.get_setting_choice()
+
+
+    @patch('builtins.input', return_value="effdfd")
+    def test_invalid_choice(self,mock_input):
+        """
+        Test that get_setting_choice() raises a ValueError
+        when the user enters an invalid input.
+        """
+        with self.assertRaises(ValueError):
+            chosen_setting = self.instance.get_setting_choice()
+
+
 
 
     @patch('builtins.input', side_effect=['2', 'y', "Immanuel"])

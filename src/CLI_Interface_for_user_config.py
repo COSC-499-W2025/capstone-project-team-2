@@ -81,7 +81,7 @@ class ConfigurationForUsersUI:
                 time.sleep(1.5)
                 return None
             else:
-                print("ERROR: Please choose(y/n)")
+                print("ERROR: Please choose(y/n):")
 
 
 
