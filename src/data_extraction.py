@@ -31,7 +31,14 @@ class FileMetadataExtractor:
     Attributes:
         dir_path (Path): The root directory path to extract metadata from.
     """
+
     def __init__(self, dir_path: str | Path):
+        """
+        Initialize the FileMetadataExtractor.
+
+        Args:
+            dir_path (str | Path): The directory path to scan for file hierarchy and metadata.
+        """
         self.dir_path = Path(dir_path)
         
 ## creating a helper function in preparation of cross platform file checking
@@ -48,6 +55,11 @@ class FileMetadataExtractor:
 
     def file_hierarchy(self):
 
+        """
+        Helps identify, whether or not files or directories exist
+        
+        """
+
         if not os.path.exists(self.dir_path):
             print(f"Error: Filepath not found")
             return
@@ -60,6 +72,18 @@ class FileMetadataExtractor:
 
 
     def tree(self, dir_path: Path, prefix: str= ' '):
+        """
+        systematically runs through the directory pulls the statistics off each file, pulling metadata pertaining to 
+        creation date, modified date, author, file size and file type
+
+        Args:
+            dir_path (Path): The directory to traverse.
+            prefix (str): The prefix used to format tree levels visually.
+
+        Yields:
+            str: A formatted line containing a file or folder name and metadata.
+        
+        """
 
         try:
             content = list(dir_path.iterdir())
@@ -73,8 +97,9 @@ class FileMetadataExtractor:
         pointers = [TEE] * (len(content) - 1) + [LAST]
 
         for pointer, path in zip(pointers, content):
-            # Get file stats
+            
             try:
+                # pulls data off the inputted files
                 stat = path.stat()
                 created = datetime.datetime.fromtimestamp(stat.st_birthtime).strftime('%Y-%m-%d %H:%M:%S')
                 modified = datetime.datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
@@ -84,7 +109,7 @@ class FileMetadataExtractor:
                 created = modified = "N/A"
                 size = 0
 
-            # Formating the tree display to include new meta data
+            # Formating the tree display to include new meta data which is returned to the print function
             if path.is_file():
                 file_type = path.suffix.lstrip('.') or "FILE"
                 metadata = f"[{file_type}] size: {size}B, created: {created}, modified: {modified}, author: {author}"
@@ -99,6 +124,14 @@ class FileMetadataExtractor:
 
 
     def print_hierarchy(self, File_Path):
+
+        """
+        Prints the directory tree and metadata for the given path.
+
+        Args:
+            file_path (Path): The root path to print.
+        """
+        # this is the code that needs to be modified for export to data anylsis
         print(File_Path.resolve())
         for Ftree in self.tree(File_Path):
             print(Ftree)
