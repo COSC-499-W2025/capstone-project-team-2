@@ -312,7 +312,7 @@ For **week 6**, I was working on the issue that I assigned myself for that week,
 
 During this process, I discovered a new JSON library called **[orjson](https://pypi.org/project/orjson/)**, which claims to process JSON files **much faster** than Python’s built-in `json` library. After testing it, I integrated `orjson` into my newly implemented user configuration system — which turned out to be very easy to do.
 
-Next, I began working on the **CLI interface**, which allows users to update their configuration through the terminal.
+Next, I began working on the [**CLI interface**](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/82), which allows users to update their configuration through the terminal.
 
 I also added **error checking** to prevent users from modifying certain fields, such as **ID**. If they attempt to do so, a **custom exception** is raised to display the message:
 
@@ -322,7 +322,7 @@ Additionally, I implemented an **exit system** that allows users to quit and ret
 
 After completing the feature, I focused on **testing**. I used Python’s built-in `unittest` framework — specifically **mock inputs**, **patching**, and **mock print** — to simulate real user interaction with the CLI system.
 
-Lastly, I want to thank **@Puneet-Maan** for identifying an error in `test_configuration_CLI.py` that caused an **infinite loop**, which I quickly found, and depolyed a fix for.
+Lastly, I want to thank **Puneet** for identifying an error in `test_configuration_CLI.py` that caused an **infinite loop**, which I quickly found, and depolyed a fix for.
 
 ---
 
