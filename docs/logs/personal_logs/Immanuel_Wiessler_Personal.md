@@ -347,13 +347,13 @@ class TestConfigurationCLI(unittest.TestCase):
 
         mock_print.assert_any_call("ERROR: Please choose(y/n):")
         self.assertFalse(result)
-
-
-
-
+```
 
 ## 🧠 Reflection on Past Cycle (Week 7)  
 
 **week 7**
+
+
+
 
 ---
