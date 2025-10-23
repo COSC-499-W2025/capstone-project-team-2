@@ -1,5 +1,4 @@
 import time
-
 import orjson
 from src.Configuration import configuration_for_users
 
@@ -114,8 +113,6 @@ class ConfigurationForUsersUI:
             return True
 
 
-
-
         return False
 
 
@@ -140,18 +137,18 @@ class ConfigurationForUsersUI:
 
 
             except IndexError:
-                print("[bold red] ERROR:[/bold red],Please select a valid choice")
+                print("ERROR: Please select a valid choice")
                 time.sleep(1.5)
             except ValueError:
-                print("[bold red] ERROR:[/bold red],Please enter a valid number")
+                print("ERROR: Please enter a valid number")
                 time.sleep(1.5)
 
             except Exception as e:
-                print(f"[bold red] ERROR:[/bold red], {str(e)}")
+                print(f"ERROR: {str(e)}")
                 time.sleep(1.5)
 
             except KeyboardInterrupt:
-                print("\n[bold yellow]Exiting configuration...[/bold yellow]")
+                print("Exiting configuration")
                 break
 
 
@@ -169,4 +166,3 @@ if __name__ == "__main__":
 
     UI=ConfigurationForUsersUI(sample_json)
     UI.run_configuration_cli()
-    #ConfigurationForUsersUI.run_configuration_cli(sample_json)

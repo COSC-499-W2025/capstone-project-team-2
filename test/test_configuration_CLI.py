@@ -3,6 +3,7 @@ from unittest.mock import patch, MagicMock, call
 from src.CLI_Interface_for_user_config import ConfigurationForUsersUI
 
 import os
+import sys
 import shutil
 
 
@@ -56,22 +57,18 @@ class TestConfigurationCLI(unittest.TestCase):
         self.assertIn("ID cannot be modified", str(context.exception))
         mock_input.assert_called_once()
 
+    import sys
 
-    @patch('builtins.input', side_effect=["2","fdfd","n"])
+    @patch('builtins.input', side_effect=["2", "fdfd", "n"])
     @patch('builtins.print')
-    @patch('time.sleep')
-    def test_invalid_pick(self,mock_sleep,mock_print,mock_input):
+    def test_invalid_pick(self, mock_print, mock_input):
         chosen_setting = self.instance.get_setting_choice()
         self.instance.validate_modifiable_field(chosen_setting)
-        result=self.instance.modify_settings(chosen_setting)
-
-        print("\n=== All print calls ===")
-        for i, call in enumerate(mock_print.call_args_list):
-            print(f"Call {i}: {call}")
-        print("======================\n")
+        result = self.instance.modify_settings(chosen_setting)
 
         mock_print.assert_any_call("ERROR: Please choose(y/n)")
-        self.assertIsNone(result)
+        self.assertFalse(result)
+    
 
 
     @patch('builtins.input', side_effect=['2', 'y', "Immanuel"])
