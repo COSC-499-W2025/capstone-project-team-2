@@ -1,7 +1,5 @@
 import time
-
 import orjson
-from rich import print
 from src.Configuration import configuration_for_users
 
 
@@ -73,15 +71,18 @@ class ConfigurationForUsersUI:
         confirmed = False
 
         while not confirmed:
-            modify = str(input("Would you like to modify this setting? (y/n) "))
+            modify = str(input("Would you like to modify this setting? (y/n) ")).lower()
             if modify == "y":
                 confirmed = True
                 new_update = str(input(f"Please enter your new value you want to update {chosen_setting}:"))
                 return new_update
-
             elif modify == "n":
-                print("[bold red] ERROR:[/bold red],Please choose (yes or no)")
+                print("Returning you back to selection screen")
                 time.sleep(1.5)
+                return None
+            else:
+                print("ERROR: Please choose(y/n):")
+
 
 
 
@@ -99,12 +100,18 @@ class ConfigurationForUsersUI:
         json_functions = configuration_for_users()
         current_entry = self.Configuration_json.get(chosen_setting)
         new_update = self.confirm_modification(chosen_setting, current_entry)
+
+        if new_update is None:
+            current_entry  = self.Configuration_json.get(chosen_setting)
+
+
         if new_update is not None:
             self.Configuration_json[chosen_setting] = new_update
             print(f"{chosen_setting} is now set from {current_entry} to {new_update}")
             json_functions.save_config(self.Configuration_json)
             time.sleep(1.5)
             return True
+
 
         return False
 
@@ -130,18 +137,18 @@ class ConfigurationForUsersUI:
 
 
             except IndexError:
-                print("[bold red] ERROR:[/bold red],Please select a valid choice")
+                print("ERROR: Please select a valid choice")
                 time.sleep(1.5)
             except ValueError:
-                print("[bold red] ERROR:[/bold red],Please enter a valid number")
+                print("ERROR: Please enter a valid number")
                 time.sleep(1.5)
 
             except Exception as e:
-                print(f"[bold red] ERROR:[/bold red], {str(e)}")
+                print(f"ERROR: {str(e)}")
                 time.sleep(1.5)
 
             except KeyboardInterrupt:
-                print("\n[bold yellow]Exiting configuration...[/bold yellow]")
+                print("Exiting configuration")
                 break
 
 
@@ -159,4 +166,3 @@ if __name__ == "__main__":
 
     UI=ConfigurationForUsersUI(sample_json)
     UI.run_configuration_cli()
-    #ConfigurationForUsersUI.run_configuration_cli(sample_json)
