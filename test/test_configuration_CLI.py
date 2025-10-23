@@ -44,7 +44,7 @@ class TestConfigurationCLI(unittest.TestCase):
         mock_input.assert_called_once()
 
     @patch('builtins.input', return_value='1')
-    def test_invalid_pick(self, mock_input):
+    def test_invalid_pick_ID(self, mock_input):
         """
         Here we are testing to see when the ID key is selected that the system successfully
         returns an error message telling the user that you cannot modify the ID option
@@ -56,10 +56,28 @@ class TestConfigurationCLI(unittest.TestCase):
         self.assertIn("ID cannot be modified", str(context.exception))
         mock_input.assert_called_once()
 
+
+    @patch('builtins.input', side_effect=["2","fdfd","n"])
+    @patch('builtins.print')
+    @patch('time.sleep')
+    def test_invalid_pick(self,mock_sleep,mock_print,mock_input):
+        chosen_setting = self.instance.get_setting_choice()
+        self.instance.validate_modifiable_field(chosen_setting)
+        result=self.instance.modify_settings(chosen_setting)
+
+        print("\n=== All print calls ===")
+        for i, call in enumerate(mock_print.call_args_list):
+            print(f"Call {i}: {call}")
+        print("======================\n")
+
+        mock_print.assert_any_call("ERROR: Please choose(y/n)")
+        self.assertIsNone(result)
+
+
     @patch('builtins.input', side_effect=['2', 'y', "Immanuel"])
     def test_save_updated_json(self, mock_input):
         """
-        This test validates that the change has been successfully been made to the dictonary and saved to the system
+        This test validates that the change has been successfully been made to the dictionary and saved to the system
         """
         chosen_setting = self.instance.get_setting_choice()
         self.instance.validate_modifiable_field(chosen_setting)

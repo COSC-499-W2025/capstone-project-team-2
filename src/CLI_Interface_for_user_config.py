@@ -1,7 +1,6 @@
 import time
 
 import orjson
-from rich import print
 from src.Configuration import configuration_for_users
 
 
@@ -78,13 +77,13 @@ class ConfigurationForUsersUI:
                 confirmed = True
                 new_update = str(input(f"Please enter your new value you want to update {chosen_setting}:"))
                 return new_update
-
             elif modify == "n":
                 print("Returning you back to selection screen")
                 time.sleep(1.5)
                 return None
             else:
-                print("[bold red] ERROR: [/bold red], Please choose(y/n)")
+                print("ERROR: Please choose(y/n)")
+
 
 
 
