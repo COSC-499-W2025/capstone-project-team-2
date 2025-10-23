@@ -291,6 +291,7 @@ For **week 6**, I was working on the issue that I assigned myself for that week,
 ## 📌 Associated Tasks from Project Board  
 - [Create CLI interface for saving user configuration](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/82)
 - [Store a user configuration file](https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=132426853&issue=COSC-499-W2025%7Ccapstone-project-team-2%7C36)
+- [Infinite loop when selecting ‘n’ in CLI confirm_modification ](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/84)
 
 ---
 
@@ -300,9 +301,12 @@ For **week 6**, I was working on the issue that I assigned myself for that week,
 |------------|--------|
 |**Creation of actual implementation for saving of user configuration** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 |**Creation of user Coniguration CLI**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
+| **Applying fix/patch to infinte loop issue in CLI** |![Complete](https://img.shields.io/badge/Status-Complete-green) |
 
-## 🎯 Next Week’s Goals  
-- 
+
+## 🎯 Next Week’s Goals
+- [Work on Constent doc for users to agreed when prograrm starts](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/32)
+
 
 ---
 
