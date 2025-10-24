@@ -1,6 +1,6 @@
 from pathlib import Path
 import re
-from data_extraction import FileMetadataExtractor
+from src.data_extraction import FileMetadataExtractor
 
 """
 Detect whether a local project folder is 'individual' or 'collaborative'
