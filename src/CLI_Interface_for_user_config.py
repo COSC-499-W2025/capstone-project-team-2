@@ -1,7 +1,5 @@
 import time
-
 import orjson
-from rich import print
 from src.Configuration import configuration_for_users
 
 
@@ -35,12 +33,18 @@ class ConfigurationForUsersUI:
     """
         Setting_to_change = input("Please choose a setting you want to change or type q:")
 
-        if Setting_to_change == "q":
 
+
+        if Setting_to_change == "q":
             return "Quit"
 
+
+
         elif Setting_to_change is not None:
-            chosen_setting = list(self.Configuration_json.keys())[int(Setting_to_change) - 1]
+            choice_index = int(Setting_to_change) - 1
+            if choice_index < 0 or choice_index >= len(self.Configuration_json):
+                raise IndexError()
+            chosen_setting = list(self.Configuration_json.keys())[choice_index]
             return chosen_setting
 
 
@@ -60,6 +64,42 @@ class ConfigurationForUsersUI:
             raise Exception("ID cannot be modified")
 
 
+    def _convert_to_original_type(self, new_value, original_value):
+        """
+                Attempts to convert the new value to match the type of the original value
+
+                :param new_value: The new value as a string from user input
+                :param original_value: The original value with its original type
+                :return: The new value converted to the appropriate type
+                """
+
+        if isinstance(original_value, dict):
+            return new_value
+
+        if isinstance(original_value, bool):
+            if new_value.lower() in ('true', '1', 'yes'):
+                return True
+            elif new_value.lower() in ('false', '0', 'no'):
+                return False
+            return new_value
+
+        if isinstance(original_value, int):
+            try:
+                return int(new_value)
+            except ValueError:
+                return new_value
+
+        if isinstance(original_value,float):
+            try:
+                return float(new_value)
+            except ValueError:
+                return new_value
+
+
+
+        return new_value
+
+
     def confirm_modification(self,chosen_setting, current_value):
         """
         Ask user to confirm modification
@@ -73,40 +113,46 @@ class ConfigurationForUsersUI:
         confirmed = False
 
         while not confirmed:
-            modify = str(input("Would you like to modify this setting? (y/n) "))
+            modify = input("Would you like to modify this setting? (y/n) ").lower()
             if modify == "y":
                 confirmed = True
-                new_update = str(input(f"Please enter your new value you want to update {chosen_setting}:"))
-                return new_update
-
+                new_update = input(f"Please enter your new value you want to update {chosen_setting}:")
+                return self._convert_to_original_type(new_update, current_value)
             elif modify == "n":
-                print("[bold red] ERROR:[/bold red],Please choose (yes or no)")
+                print("Returning you back to selection screen")
                 time.sleep(1.5)
-
-
-
-
+                return None
+            else:
+                print("ERROR: Please choose(y/n):")
 
     def modify_settings(self, chosen_setting):
         """
-
-        :param setting_json:
         :param chosen_setting:
         :return:
             bool: True if modification was successful, False otherwise
-
         """
         json_functions = configuration_for_users()
         current_entry = self.Configuration_json.get(chosen_setting)
         new_update = self.confirm_modification(chosen_setting, current_entry)
-        if new_update is not None:
-            self.Configuration_json[chosen_setting] = new_update
-            print(f"{chosen_setting} is now set from {current_entry} to {new_update}")
-            json_functions.save_config(self.Configuration_json)
-            time.sleep(1.5)
-            return True
 
-        return False
+        if new_update is None:
+            return False
+
+        # Check if the new value is actually different from current value
+        if new_update == current_entry:
+            print("No changes made")
+            time.sleep(1.5)
+            return False
+
+        # Update and save only if value changed
+        self.Configuration_json[chosen_setting] = new_update
+        print(f"{chosen_setting} is now set from {current_entry} to {new_update}")
+        json_functions.save_config(self.Configuration_json)
+        time.sleep(1.5)
+        return True
+
+
+
 
 
     def run_configuration_cli(self):
@@ -130,18 +176,18 @@ class ConfigurationForUsersUI:
 
 
             except IndexError:
-                print("[bold red] ERROR:[/bold red],Please select a valid choice")
+                print("ERROR: Please select a valid choice")
                 time.sleep(1.5)
             except ValueError:
-                print("[bold red] ERROR:[/bold red],Please enter a valid number")
+                print("ERROR: Please enter a valid number")
                 time.sleep(1.5)
 
             except Exception as e:
-                print(f"[bold red] ERROR:[/bold red], {str(e)}")
+                print(f"ERROR: {str(e)}")
                 time.sleep(1.5)
 
             except KeyboardInterrupt:
-                print("\n[bold yellow]Exiting configuration...[/bold yellow]")
+                print("Exiting configuration")
                 break
 
 
@@ -159,4 +205,3 @@ if __name__ == "__main__":
 
     UI=ConfigurationForUsersUI(sample_json)
     UI.run_configuration_cli()
-    #ConfigurationForUsersUI.run_configuration_cli(sample_json)
