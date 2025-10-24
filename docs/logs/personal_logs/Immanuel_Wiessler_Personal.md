@@ -326,7 +326,7 @@ Additionally, I implemented an **exit system** that allows users to quit and ret
 
 After completing the feature, I focused on **testing**. I used Python’s built-in `unittest` framework,specifically **mock inputs**, **patching**, and **mock print** — to simulate real user interaction with the CLI system and also tracking print statements that are returned by the CLI configuration class .
 
-Lastly, I want to thank **Puneet** for identifying an error in `test_configuration_CLI.py` that caused an **infinite loop**, which I quickly found, and depolyed a fix for within the discovering of the issues.
+Lastly, I want to thank **Puneet** for identifying an error in `test_configuration_CLI.py` that caused an **infinite loop**, which I quickly found, and depolyed a fix for within the hour.
 
 ---
 
