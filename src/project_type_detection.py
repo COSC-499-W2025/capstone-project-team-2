@@ -35,29 +35,49 @@ def find_contributor_files(root: Path) -> list[Path]:
 
 
 
-def extract_names_from_text(file_path: Path) -> set[str]:
-    
-    """
-    Extract likely human names (e.g., 'John Doe', 'Anne-Marie O'Connor', 'McLovin', 'John Michael Doe')
-    from a text file.
+from pathlib import Path
+import re
 
-    Handles:
-    - Multi-part names
-    - Apostrophes (O'Connor)
-    - Hyphenated names (Anne-Marie)
-    - Prefixes (McDonald, MacArthur)
+def extract_names_from_text(file_path: Path) -> set[str]:
     """
-    
-    name_pattern = re.compile(
-        r"\b[A-Z][a-z]+(?:[-'][A-Za-z]+)*(?:\s+[A-Z][a-z]+(?:[-'][A-Za-z]+)*)*\b"
-    )
+    Extract names from a text file.
+
+    - Handles multi-part names (John Michael Doe)
+    - Handles hyphens and apostrophes (Anne-Marie, O'Connor, D'Angelo)
+    - Handles CamelCase tokens like McLovin or MacArthur
+    - Processes line-by-line to avoid merging unrelated lines
+    - Normalizes curly apostrophes to straight ones
+    """
     found = set()
     try:
-        text = file_path.read_text(encoding="utf-8", errors="ignore")
-        matches = name_pattern.findall(text)
-        found.update(matches)
+        raw = file_path.read_text(encoding="utf-8", errors="ignore")
+        text = raw.replace("\u2019", "'").replace("\u2018", "'")  # normalize curly quotes
+        
+        token = (
+            r"[A-Z][a-zÀ-ÖØ-öø-ÿ]*"                      # start with capital, allow zero+ lowercase
+            r"(?:[A-Z][a-zÀ-ÖØ-öø-ÿ]+)*"                 # allow internal capital-start fragments
+            r"(?:['-][A-Z][a-zÀ-ÖØ-öø-ÿ]*)*"             # allow - or ' followed by capital-start fragment
+        )
+
+        # name = one or more tokens separated by whitespace on the same line
+        name_re = re.compile(rf"\b{token}(?:\s+{token})*\b")
+
+        for line in text.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+
+            matches = name_re.findall(line)
+            for m in matches:
+                low = m.lower()
+                if low in {"contributors", "contributor", "authors", "author"}:
+                    continue
+                clean = re.sub(r"\s+", " ", m).strip()
+                found.add(clean)
+
     except Exception:
         pass
+
     return found
 
 
