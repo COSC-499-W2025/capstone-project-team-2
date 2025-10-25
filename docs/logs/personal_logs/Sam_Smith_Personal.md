@@ -1,3 +1,53 @@
+## Week 8 (10/27/2025- 11/02/2025)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+- <img width="2113" height="1206" alt="image" src="https://github.com/user-attachments/assets/efeb5236-5090-4dbb-9d53-5fa2aa77f49a" />
+
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: Unit tests for initiating user configurations on app startup
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description                     | Feature                   | Assigned To | Status   |
+| ------- | ------------------------------- | ------------------------- | ----------- | -------- |
+| [#37]   | [code in user_startup_config.py]  | [initiating user configs] | [ssmith86]  | [complete]   |
+| [#37]   | [code in test_startup_pull.py]  | [tests for initiating user configs] | [ssmith86]  | [complete]   |
+
+### Progress Update (since 10/12/2025) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Create code for for initiating user configurations on app startup 
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Update test code code for for initiating user configurations on app startup 
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+This week was a bit hectic due to midterms. Shout out to Immanuel for helping with integrating my code with his interface code.
+
+### Tasks for Next Sprint:
+- ID individual contributions in collaboration projects
+
+
 
 ## Week 7 (10/13/2025- 10/19/2025)
 
