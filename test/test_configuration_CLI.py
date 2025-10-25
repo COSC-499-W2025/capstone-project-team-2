@@ -1,7 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock, call
 from src.CLI_Interface_for_user_config import ConfigurationForUsersUI
-
 import os
 import shutil
 
@@ -43,8 +42,17 @@ class TestConfigurationCLI(unittest.TestCase):
         self.assertEqual(chosen_setting, 'First Name')
         mock_input.assert_called_once()
 
+
+    @patch('builtins.input', return_value="-1")
+    def test_select_last_choice(self, mock_input):
+        with self.assertRaises(IndexError) as context:
+            chosen_setting = self.instance.get_setting_choice()
+
+
+
+
     @patch('builtins.input', return_value='1')
-    def test_invalid_pick(self, mock_input):
+    def test_invalid_pick_ID(self, mock_input):
         """
         Here we are testing to see when the ID key is selected that the system successfully
         returns an error message telling the user that you cannot modify the ID option
@@ -56,16 +64,55 @@ class TestConfigurationCLI(unittest.TestCase):
         self.assertIn("ID cannot be modified", str(context.exception))
         mock_input.assert_called_once()
 
+
+    @patch('builtins.input', side_effect=["2", "fdfd", "n"])
+    @patch('builtins.print')
+    def test_invalid_input(self, mock_print, mock_input):
+        """
+        Test that when the user enters an invalid input (not 'y' or 'n'),
+        an appropriate error message is printed and the method returns False.
+        """
+
+
+        chosen_setting = self.instance.get_setting_choice()
+        self.instance.validate_modifiable_field(chosen_setting)
+        result = self.instance.modify_settings(chosen_setting)
+
+        mock_print.assert_any_call("ERROR: Please choose(y/n):")
+        self.assertFalse(result)
+
+
+    @patch('builtins.input',return_value="20")
+    def test_invalid_index(self, mock_input):
+        """
+         Test that get_setting_choice() raises an IndexError
+         when the user enters an invalid index.
+        """
+        with self.assertRaises(IndexError):
+            chosen_setting = self.instance.get_setting_choice()
+
+
+    @patch('builtins.input', return_value="effdfd")
+    def test_invalid_choice(self,mock_input):
+        """
+        Test that get_setting_choice() raises a ValueError
+        when the user enters an invalid input.
+        """
+        with self.assertRaises(ValueError):
+            chosen_setting = self.instance.get_setting_choice()
+
+
+
+
     @patch('builtins.input', side_effect=['2', 'y', "Immanuel"])
     def test_save_updated_json(self, mock_input):
         """
-        This test validates that the change has been successfully been made to the dictonary and saved to the system
+        This test validates that the change has been successfully been made to the dictionary and saved to the system
         """
         chosen_setting = self.instance.get_setting_choice()
         self.instance.validate_modifiable_field(chosen_setting)
         self.instance.modify_settings(chosen_setting)
         self.assertTrue(os.path.exists("UserConfigs.json"))
-
         self.assertEqual(mock_input.call_count, 3)
 
     def tearDown(self):
@@ -75,6 +122,4 @@ class TestConfigurationCLI(unittest.TestCase):
         """
         if os.path.exists("UserConfigs.json"):
             os.remove("UserConfigs.json")
-
-
 
