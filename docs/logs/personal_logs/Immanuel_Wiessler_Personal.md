@@ -277,6 +277,7 @@ For **week 6**, I was working on the issue that I assigned myself for that week,
 # 📝 Personal Log – Week 8 (10/20/2025 – 10/26/2025)
 
 ## 📊 Peer Evaluation  
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/10-24-2025.png)
 
 
 
