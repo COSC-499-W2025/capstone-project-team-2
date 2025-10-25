@@ -3,11 +3,23 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from typing import Dict, Iterable, List, Mapping, Optional, Set
+from typing import List, Mapping, Optional, Set
 
 from .project_stack_detection import detect_project_stack
 
-# Map dependency/package identifiers to broader skill labels.
+"""
+project_skill_insights.py
+-------------------------
+Builds on the project stack detector to infer higher-level skill categories.
+
+- Converts detected languages/frameworks into general skills
+- Recognizes domain-specific packages (data analysis, ML, testing)
+- Adds DevOps and IaC skills for infrastructure frameworks
+- Provides a list of human-readable skill labels
+"""
+
+# --------------------------- PACKAGE → SKILL MAP ------------------------------
+
 PACKAGE_SKILL_MAP: Mapping[str, str] = {
     "numpy": "Data Analysis",
     "pandas": "Data Analysis",
@@ -27,7 +39,8 @@ PACKAGE_SKILL_MAP: Mapping[str, str] = {
     "cypress": "Testing",
 }
 
-# Frameworks that imply web-development experience.
+# --------------------------- FRAMEWORK GROUPS ---------------------------------
+
 WEB_FRAMEWORKS: Set[str] = {
     "Flask",
     "Django",
@@ -39,13 +52,23 @@ WEB_FRAMEWORKS: Set[str] = {
     "Svelte",
     "Next.js",
     "Nuxt.js",
+    "Express",
+    "NestJS",
+    "Koa",
 }
 
-# Frameworks that imply data-visualization skills.
 VISUALIZATION_FRAMEWORKS: Set[str] = {
     "Dash",
     "Streamlit",
 }
+
+INFRA_TO_SKILL: Mapping[str, str] = {
+    "Docker": "DevOps",
+    "Docker Compose": "DevOps",
+    "Terraform": "Infrastructure as Code",
+}
+
+# --------------------------- MAIN API FUNCTION -------------------------------
 
 
 def identify_skills(project_root: Path | str) -> List[str]:
@@ -71,6 +94,10 @@ def identify_skills(project_root: Path | str) -> List[str]:
         skills.add("Web Development")
     if detected_frameworks & VISUALIZATION_FRAMEWORKS:
         skills.add("Data Visualization")
+
+    # Infrastructure → DevOps/IaC
+    for framework in detected_frameworks & set(INFRA_TO_SKILL.keys()):
+        skills.add(INFRA_TO_SKILL[framework])
 
     skills.update(_scan_additional_skills(root))
 

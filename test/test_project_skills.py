@@ -80,6 +80,18 @@ class TestProjectSkillInsights(unittest.TestCase):
             ["FastAPI", "Python", "TypeScript", "Vue.js", "Web Development"],
         )
 
+    def test_infers_devops_skills_from_infrastructure(self):
+        (self.project_root / "Dockerfile").write_text("FROM node:20", encoding="utf-8")
+        infra = self.project_root / "infra"
+        infra.mkdir()
+        (infra / "main.tf").write_text("# terraform config", encoding="utf-8")
+
+        skills = project_skill_insights.identify_skills(self.project_root)
+
+        self.assertEqual(
+            skills, ["DevOps", "Docker", "Infrastructure as Code", "Terraform"]
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
