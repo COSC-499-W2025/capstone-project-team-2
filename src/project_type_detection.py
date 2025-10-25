@@ -95,8 +95,8 @@ def detect_collaboration_by_text(files: list[Path]) -> bool:
 def detect_project_type(project_path: str | Path) -> dict:
     
     """
-    Determine whether the project is 'individual' or 'collaborative'.
-
+   Determine whether the project is 'individual', 'collaborative', or 'unknown'.
+   
     Args:
         project_path (str | Path): path to the local project folder
 
@@ -116,5 +116,8 @@ def detect_project_type(project_path: str | Path) -> dict:
 
     if detect_collaboration_by_text(contributor_files):
         return {"project_type": "collaborative"}
+    
+    if not authors and not contributor_files:
+        return {"project_type": "unknown"}
 
     return {"project_type": "individual"}
