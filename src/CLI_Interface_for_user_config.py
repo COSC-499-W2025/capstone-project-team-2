@@ -147,7 +147,7 @@ class ConfigurationForUsersUI:
         # Update and save only if value changed
         self.Configuration_json[chosen_setting] = new_update
         print(f"{chosen_setting} is now set from {current_entry} to {new_update}")
-        json_functions.save_config(self.Configuration_json)
+        json_functions.save_config()
         time.sleep(1.5)
         return True
 
