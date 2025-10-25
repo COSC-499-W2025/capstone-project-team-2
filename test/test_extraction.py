@@ -177,6 +177,78 @@ class TestExtraction(unittest.TestCase):
         text = extractInfo_instance.verifyZIP()
         self.assertFalse(extractInfo_instance.BAD_ZIP_ERROR_TEXT in text)
 
+    def test_runExtraction_no_path(self):
+        """
+        Positive Test
+        Test for when file path is invalid
+
+        Verifies that:
+        - Correct error text is returned when file path is invalid
+        """
+    
+        extractInfo_instance = extractInfo(self.does_not_exist_zip)
+        text = extractInfo_instance.runExtraction()
+        self.assertTrue(extractInfo_instance.PATH_ERROR_TEXT in text)
+
+    def test_runExtraction_not_zip(self):
+        """
+        Positive Test
+        Test for when file is not a zip
+
+        Verifies that:
+        - Correct error text is returned when file is not zip
+        """
+        path = os.path.join(self.original_cwd, r"test\TestZips\test.txt")
+        extractInfo_instance = extractInfo(path)
+        text = extractInfo_instance.runExtraction()
+        self.assertTrue(extractInfo_instance.NOT_ZIP_ERROR_TEXT in text)
+
+    def test_runExtraction_bad_zip(self):
+        """
+        Positive Test
+        Test for when zip file is bad (Corrupted or such)
+
+        Verifies that:
+        - Correct error text is returned when zip file is bad
+        """
+        path = os.path.join(self.original_cwd, r"test\TestZips\TEST.zip")
+        extractInfo_instance = extractInfo(path)
+        text = extractInfo_instance.runExtraction()
+        print(text)
+        self.assertTrue(extractInfo_instance.BAD_ZIP_ERROR_TEXT in text)
+
+    def test_runExtraction_empty_zip(self):
+        """
+        This test checks to see if the uploaded zip file after
+        extraction is empty.
+
+
+        This test verifies the following:
+        - That the given the zip file content is empty.
+
+        """
+
+        empty_zip_path=extractInfo(self.empty_zip_path)
+        empty_zip_path.runExtraction()
+        self.assertEqual(os.listdir(self.temp_path),[])
+
+    def test_runExtraction_extract_all_files(self):
+
+        """
+        Test the extraction of vaild zip file.
+
+        Verifies the following:
+        - All files in the given zip are successfully extracted.
+        - Each expected file that is predefined in the setup function
+          is in the extraction folder when extraction is complete.
+
+
+        """
+        self.instance.runExtraction()
+        for file in os.listdir(self.temp_path):
+            file_path = os.path.join(self.temp_path, file)
+            self.assertTrue(os.path.exists(file_path))
+
     def tearDown(self):
 
         """
