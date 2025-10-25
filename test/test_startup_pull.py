@@ -11,8 +11,7 @@ from src.user_startup_config import ConfigLoader
 class TestStartupConfigPull(unittest.TestCase):
     """
     Tests the ability to pull settings from configuration files at startup,
-    without changing the original test bodies/intent. We adapt calls to your
-    real ConfigLoader through a small in-test UserConfig adapter.
+
     """
 
     def setUp(self):
@@ -54,8 +53,8 @@ class TestStartupConfigPull(unittest.TestCase):
     def _import_user_config(self):
         """
         Provide a UserConfig adapter that stages files in the temp dir and
-        delegates to the real ConfigLoader. This preserves the original tests'
-        API and expectations without changing each test method.
+        delegates to the real ConfigLoader. 
+        
         """
         temp_root = Path(self.temp_dir)
         user_path = temp_root / "UserConfigs.json"

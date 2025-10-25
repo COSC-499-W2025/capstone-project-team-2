@@ -23,7 +23,7 @@ class ConfigLoader:
         """
         This method takes a file path, opens it in binary mode, 
         reads its contents, and uses orjson to convert that 
-        JSON data into a Python dictionary (or list).
+        JSON data into a Python dictionary
         """
         with path.open("rb") as f:  # orjson expects bytes
             return orjson.loads(f.read())
