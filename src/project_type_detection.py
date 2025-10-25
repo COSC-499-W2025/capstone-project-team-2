@@ -37,9 +37,20 @@ def find_contributor_files(root: Path) -> list[Path]:
 
 def extract_names_from_text(file_path: Path) -> set[str]:
     
-    """Extract simple 'First Last' names from a text file."""
+    """
+    Extract likely human names (e.g., 'John Doe', 'Anne-Marie O'Connor', 'McLovin', 'John Michael Doe')
+    from a text file.
+
+    Handles:
+    - Multi-part names
+    - Apostrophes (O'Connor)
+    - Hyphenated names (Anne-Marie)
+    - Prefixes (McDonald, MacArthur)
+    """
     
-    name_pattern = re.compile(r"\b[A-Z][a-z]+ [A-Z][a-z]+\b")
+    name_pattern = re.compile(
+        r"\b[A-Z][a-z]+(?:[-'][A-Za-z]+)*(?:\s+[A-Z][a-z]+(?:[-'][A-Za-z]+)*)*\b"
+    )
     found = set()
     try:
         text = file_path.read_text(encoding="utf-8", errors="ignore")
@@ -70,7 +81,7 @@ def detect_collaboration_by_text(files: list[Path]) -> bool:
 def detect_project_type(project_path: str | Path) -> dict:
     
     """
-    Determine whether the project is 'individual' or 'collaborative'.
+    Determine whether the project is 'individual', 'collaborative', or 'unknown'.
 
     Args:
         project_path (str | Path): path to the local project folder
@@ -92,4 +103,8 @@ def detect_project_type(project_path: str | Path) -> dict:
     if detect_collaboration_by_text(contributor_files):
         return {"project_type": "collaborative"}
 
+    if not authors and not contributor_files:
+        return {"project_type": "unknown"}
+
     return {"project_type": "individual"}
+
