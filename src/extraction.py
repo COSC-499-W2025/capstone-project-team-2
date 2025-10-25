@@ -32,6 +32,18 @@ class extractInfo:
 
         self.zipfilePath = zipfilePath
 
+    def runExtraction(self) -> str:
+        """
+        Method that runs all extraction protocols
+
+        Returns any errors encountered, otherwise returns the path for the temp folder that files were extracted to
+        """
+        error = self.verifyZIP()
+        if error != None:
+            return error
+        self.extractFiles()
+        return os.path.join(os.getcwd(), "temp")
+
     def extractFiles(self):
         """
         Extracts the contents of the defined ZIP file/archive
