@@ -272,3 +272,96 @@ For **week 7**, I began working on the storing of user's configuration more spec
 For **week 6**, I was working on the issue that I assigned myself for that week, which was the extraction of a zip file and exporting its contents to a temporary directory for file mapping, while creating tests at the same time. This week was rough because this is my first time trying to create a test using Python **unittest framework** in Python, which I have not done before, which was a challenge but also interesting. In addition, it was our first time reviewing each other's code and having meaningful conversations about what we should add, and in my case, more edge cases. Overall, week 6 was interesting in terms of learning the **unittest python framework** and reviewing other team members' code and providing improvement/suggestions. 
 
 ---
+
+
+# 📝 Personal Log – Week 8 (10/20/2025 – 10/26/2025)
+
+## 📊 Peer Evaluation  
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/10-24-2025.png)
+
+
+
+---
+
+## 🚀 Features Worked On  
+- Worked on the actual implemation of storing and refienment of user configuration
+- Created an interactive CLI for modifying users configuration
+
+---
+
+## 📌 Associated Tasks from Project Board  
+- [Create CLI interface for saving user configuration](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/82)
+- [Store a user configuration file](https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=132426853&issue=COSC-499-W2025%7Ccapstone-project-team-2%7C36)
+- [Infinite loop when selecting ‘n’ in CLI confirm_modification ](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/84)
+
+---
+
+## 📈 Progress Update (since 10/22/2025)  
+
+| Task/Issue | Status |
+|------------|--------|
+|**Creation of actual implementation for saving of user configuration and refinement** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+|**Creation of user Coniguration CLI**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
+| **Applying fix/patch to infinte loop issue in CLI** |![Complete](https://img.shields.io/badge/Status-Complete-green) |
+
+
+## 🎯 Next Week’s Goals
+- [Work on Constent doc for users to agreed when prograrm starts](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/32)
+- Continue working implemented our Code into a CLI for end of term showcase(**Milestone 1 showcase**)
+
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 8)
+
+**Week 8** was an interesting week for me because I began working on the actual implementation of **[saving the user configuration](https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=132426853&issue=COSC-499-W2025%7Ccapstone-project-team-2%7C36)** to the local system.
+
+During this process, I discovered a new JSON library called **[orjson](https://pypi.org/project/orjson/)**, which claims to process JSON files **much faster** than Python’s built-in `json` library. After testing it, I integrated `orjson` into my newly implemented user configuration system — which turned out to be very easy to do.
+
+Next, I began working on the [**CLI interface**](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/82), which allows users to update their configuration through the terminal.
+
+I also added **error checking** to prevent users from modifying certain fields, such as **ID**. If they attempt to do so, a **custom exception** is raised to display the message:
+
+> “You cannot modify this — please choose something else.”
+
+Additionally, I implemented an **exit system** that allows users to quit and return to the main application cleanly.
+
+> “Returning you back to main page”
+
+After completing the feature, I focused on **testing**. I used Python’s built-in `unittest` framework,specifically **mock inputs**, **patching**, and **mock print** — to simulate real user interaction with the CLI system and also tracking print statements that are returned by the CLI configuration class so that the test can vaildate the right print statements are being returned .
+
+Lastly, I want to thank **Puneet** for identifying an error in `test_configuration_CLI.py` that caused an **infinite loop**, which I quickly found, and depolyed a fix for within the hour.
+
+---
+
+### 🧪 Example Test from `test_configuration_CLI.py`
+
+```python
+import unittest
+from unittest.mock import patch, call
+
+class TestConfigurationCLI(unittest.TestCase):
+
+    @patch('builtins.input', side_effect=["2", "fdfd", "n"])
+    @patch('builtins.print')
+    def test_invalid_input(self, mock_print, mock_input):
+        """
+        Test that when the user enters an invalid input (not 'y' or 'n'),
+        an appropriate error message is printed and the method returns False.
+        """
+        chosen_setting = self.instance.get_setting_choice()
+        self.instance.validate_modifiable_field(chosen_setting)
+        result = self.instance.modify_settings(chosen_setting)
+
+        mock_print.assert_any_call("ERROR: Please choose(y/n):")
+        self.assertFalse(result)
+```
+
+## 🧠 Reflection on Past Cycle (Week 7)  
+
+**week 7** was a bit challenging week because in addition to writing my tests for the storing the user configuration, we encouter a massive issue where I did not notice a glaring issues in one of teams members had in their coding contributions was test were not passing and also that the code iteslf was not propely defined in a class strcuture, which when I was reiewing did not catch and approved it, which might have lead to bigger issues if **samantha** did not see this and brought to our attention. From now on, I will ensure that all test runs succeed and carefully analyze the code to confirm that the agreed-upon structure is implemented in the coming weeks.
+
+
+
+
+---
