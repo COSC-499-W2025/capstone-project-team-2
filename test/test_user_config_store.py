@@ -54,7 +54,7 @@ class TestUserConfigStore(unittest.TestCase):
         
         """, encoding="utf-8")
         os.chdir(self.temp_dir)
-        self.instance=configuration_for_users()
+        self.instance=configuration_for_users(self.json_test_data)
 
     def test_save_config(self):
 
@@ -71,7 +71,7 @@ class TestUserConfigStore(unittest.TestCase):
         :return: pass or fail
         """
 
-        self.instance.save_config(self.json_test_data)
+        self.instance.save_config()
 
 
 

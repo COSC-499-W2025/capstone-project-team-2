@@ -111,8 +111,8 @@ class TestConfigurationCLI(unittest.TestCase):
         """
         chosen_setting = self.instance.get_setting_choice()
         self.instance.validate_modifiable_field(chosen_setting)
-        self.instance.modify_settings(chosen_setting)
-        self.assertTrue(os.path.exists("UserConfigs.json"))
+        save_success=self.instance.modify_settings(chosen_setting)
+        self.assertTrue(save_success)
         self.assertEqual(mock_input.call_count, 3)
 
     def tearDown(self):

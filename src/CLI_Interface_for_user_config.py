@@ -131,7 +131,7 @@ class ConfigurationForUsersUI:
         :return:
             bool: True if modification was successful, False otherwise
         """
-        json_functions = configuration_for_users()
+        json_functions = configuration_for_users(self.Configuration_json)
         current_entry = self.Configuration_json.get(chosen_setting)
         new_update = self.confirm_modification(chosen_setting, current_entry)
 
@@ -147,7 +147,7 @@ class ConfigurationForUsersUI:
         # Update and save only if value changed
         self.Configuration_json[chosen_setting] = new_update
         print(f"{chosen_setting} is now set from {current_entry} to {new_update}")
-        json_functions.save_config(self.Configuration_json)
+        json_functions.save_config()
         time.sleep(1.5)
         return True
 
