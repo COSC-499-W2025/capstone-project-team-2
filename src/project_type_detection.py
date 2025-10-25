@@ -89,6 +89,9 @@ def find_contributor_files(root: Path) -> list[Path]:
 
 
 
+from pathlib import Path
+import re
+
 def extract_names_from_text(file_path: Path) -> set[str]:
     """
     Extract names from a text file.
@@ -127,6 +130,7 @@ def extract_names_from_text(file_path: Path) -> set[str]:
 
     except Exception:
         pass
+
 
     return found
 
