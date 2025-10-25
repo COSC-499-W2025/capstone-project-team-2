@@ -283,8 +283,8 @@ For **week 6**, I was working on the issue that I assigned myself for that week,
 ---
 
 ## 🚀 Features Worked On  
-- Worked on the actuall  implemation of storing the user configuration
-- Created an interactive CLI for modifying users configuration 
+- Worked on the actual implemation of storing and refienment of user configuration
+- Created an interactive CLI for modifying users configuration
 
 ---
 
