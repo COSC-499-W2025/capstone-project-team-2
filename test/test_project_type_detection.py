@@ -24,6 +24,19 @@ class TestProjectTypeDetection(unittest.TestCase):
         path.write_text(content, encoding="utf-8")
         return path
 
+    def test_extract_names_simplified(self):
+    text = """
+    Contributors:
+    John Michael Doe
+    Anne-Marie O'Connor
+    McLovin
+    D’Angelo
+    """
+    temp_file = self._write("AUTHORS", text)
+    names = project_type_detection.extract_names_from_text(temp_file)
+    expected = {"John Michael Doe", "Anne-Marie O'Connor", "McLovin", "D'Angelo"}
+    self.assertTrue(expected.issubset(names))
+
     def test_individual_project_no_indicators(self):
         """A project with one file and default author should be 'individual'."""
         self._write("main.py", "print('Hello')")
