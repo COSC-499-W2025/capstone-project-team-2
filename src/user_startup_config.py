@@ -52,6 +52,3 @@ class ConfigLoader:
                 f"Default configuration file {self.default_config_path} is invalid: {e}"
             )
         
-# if __name__ == "__main__":
-#     cfg = ConfigLoader().load()
-#     print(cfg)

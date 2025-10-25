@@ -4,12 +4,15 @@ import shutil
 import unittest
 import json
 from pathlib import Path
+import orjson 
+from src.user_startup_config import ConfigLoader
 
 
 class TestStartupConfigPull(unittest.TestCase):
     """
-    This is a test unit used in testing ability to 
-    pull settings from a configuration file at startup
+    Tests the ability to pull settings from configuration files at startup,
+    without changing the original test bodies/intent. We adapt calls to your
+    real ConfigLoader through a small in-test UserConfig adapter.
     """
 
     def setUp(self):
@@ -17,7 +20,6 @@ class TestStartupConfigPull(unittest.TestCase):
         - Creates a temporary directory
         - Writes an invalid JSON file (bad.json)
         - Writes a full configuration json file
-        
         """
         self.temp_dir = tempfile.mkdtemp()
         self.original_cwd = os.getcwd()
@@ -39,49 +41,82 @@ class TestStartupConfigPull(unittest.TestCase):
         }
 
         # Writing test configuration to disk
-        self.full_json = Path(os.path.join(self.temp_dir, "full_config.json"))
+        self.full_json = Path(self.temp_dir) / "full_config.json"
         self.full_json.write_text(json.dumps(self.json_test_data), encoding="utf-8")
 
-        # Invalid JSON 
-        self.bad_json = Path(os.path.join(self.temp_dir, "bad.json"))
+        # Invalid JSON
+        self.bad_json = Path(self.temp_dir) / "bad.json"
         self.bad_json.write_text('{"id": 1, "name": "Jane",}', encoding="utf-8")
 
         # Work from the temp directory
         os.chdir(self.temp_dir)
 
-
     def _import_user_config(self):
         """
-        Try to import UserConfig.
-        If not found, skip the test suite gracefully (for now).
-        TODO: once startup configuration code is written, swap in correct file
-        import
-
+        Provide a UserConfig adapter that stages files in the temp dir and
+        delegates to the real ConfigLoader. This preserves the original tests'
+        API and expectations without changing each test method.
         """
-        try:
-            # Preferred: src/config.py
-            from src.config import UserConfig
-            return UserConfig
-        except Exception:
-            pass
-        try:
-            # Fallback: config.py alongside tests
-            from config import UserConfig
-            return UserConfig
-        except Exception:
-            pass
+        temp_root = Path(self.temp_dir)
+        user_path = temp_root / "UserConfigs.json"
+        default_path = temp_root / "default_user_configuration.json"
 
-        self.skipTest(
-            "UserConfig not implemented yet or import path not found. "
-            "Create src/config.py (or config.py) with class UserConfig."
-        )
+        class UserConfig:
+            def __init__(self, defaults=None):
+                self._defaults = defaults or {}
+
+            def _write_defaults_file(self):
+                # Write defaults dict as the default config file (bytes for orjson)
+                default_path.write_bytes(orjson.dumps(self._defaults))
+
+            def _reset_stage(self):
+                # Ensure a clean slate for each load() call
+                for p in (user_path, default_path):
+                    if p.exists():
+                        p.unlink()
+
+            def load(self, path=None):
+                # Always use the real ConfigLoader, but point it at the temp root
+                loader = ConfigLoader()
+                loader.project_root = temp_root
+                loader.user_config_path = user_path
+                loader.default_config_path = default_path
+
+                self._reset_stage()
+
+                # If caller passed a path, stage it as the "user" file case
+                if path is not None:
+                    p = Path(path)
+                    if not p.exists():
+                        # No user file: write defaults as the default file
+                        self._write_defaults_file()
+                        return loader.load()
+
+                    raw = p.read_bytes()
+                    # Check if it's valid JSON; if yes, treat as user file
+                    try:
+                        orjson.loads(raw)  # validation only
+                        user_path.write_bytes(raw)
+                        # Also stage defaults (mirrors real layout; not strictly required)
+                        self._write_defaults_file()
+                        return loader.load()
+                    except orjson.JSONDecodeError:
+                        # Invalid user JSON -> fall back to default file
+                        user_path.write_bytes(raw)   # keep the invalid user file
+                        self._write_defaults_file()  # provide a valid default
+                        return loader.load()
+
+                # No path provided: create only the default file from provided defaults
+                self._write_defaults_file()
+                return loader.load()
+
+        return UserConfig
 
     def test_uses_defaults_when_no_config_file(self):
         """
         If no config file is found, defaults should be returned.
-        TODO: once startup configuration code is written, 
-        load in real defuaults
-
+        (Here: we emulate "defaults" by writing them to the default file and
+        letting ConfigLoader load it.)
         """
         UserConfig = self._import_user_config()
 
@@ -127,11 +162,9 @@ class TestStartupConfigPull(unittest.TestCase):
         # Ensure it didn't just return the defaults when a good file exists
         self.assertNotEqual(result, defaults)
 
-
     def test_loaded_preferences_are_present(self):
         """
         Ensure nested preferences from the file are present and intact.
-
         """
         UserConfig = self._import_user_config()
 
@@ -155,7 +188,7 @@ class TestStartupConfigPull(unittest.TestCase):
     def test_invalid_json_falls_back_to_defaults(self):
         """
         If the JSON is invalid, implementation should fall back to defaults.
-        
+        (We stage the invalid user file and a valid default file.)
         """
         UserConfig = self._import_user_config()
 
