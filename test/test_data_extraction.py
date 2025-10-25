@@ -1,6 +1,8 @@
 import os
 import sys
 import unittest
+import getpass
+
 from pathlib import Path
 from io import StringIO
 from unittest.mock import patch
@@ -68,6 +70,32 @@ class TestDataExtract(unittest.TestCase):
         finally:
             if temp_file.exists():
                 temp_file.unlink()
+
+    @patch("platform.system", return_value="Windows")
+    @patch("win32security.LookupAccountSid")
+    @patch("win32security.GetFileSecurity")
+    def test_win32(self, moc_get_sec, mock_lookup, mock_system):
+        # creating a mock file author and testing the return with win32
+        mock_lookup.return_value = ("John", "DESKTOP-12345", 1)
+        extractor = FileMetadataExtractor("test/path")
+        author = extractor.get_author(Path("file.txt"))
+        self.assertEqual(author, "John")
+
+    @patch("platform.system", return_value="Windows")
+    def test_no_win32(self, mock_system):
+        # Testing system output when Win32 is not installed
+        with patch("src.data_extraction.win32security", None):
+            with patch("getpass.getuser", return_value="FallbackUser"):
+                extractor = FileMetadataExtractor("test/path")
+                author = extractor.get_author(Path("file.txt"))
+                # tests for the fallback user (computer owner)
+                self.assertEqual(author, "FallbackUser")
+
+    @patch("platform.system", return_value="Darwin")
+    def test_MacOs(self, mock_system):
+            extractor = FileMetadataExtractor("test/path")
+            author = extractor.get_author(Path("file.txt"))
+            self.assertEqual(author, getpass.getuser())
 
 
 if __name__ == "__main__":
