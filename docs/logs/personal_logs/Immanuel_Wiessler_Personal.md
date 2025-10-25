@@ -299,7 +299,7 @@ For **week 6**, I was working on the issue that I assigned myself for that week,
 
 | Task/Issue | Status |
 |------------|--------|
-|**Creation of actual implementation for saving of user configuration** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+|**Creation of actual implementation for saving of user configuration and refinement** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 |**Creation of user Coniguration CLI**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
 | **Applying fix/patch to infinte loop issue in CLI** |![Complete](https://img.shields.io/badge/Status-Complete-green) |
 
@@ -324,7 +324,9 @@ I also added **error checking** to prevent users from modifying certain fields, 
 
 Additionally, I implemented an **exit system** that allows users to quit and return to the main application cleanly.
 
-After completing the feature, I focused on **testing**. I used Python’s built-in `unittest` framework,specifically **mock inputs**, **patching**, and **mock print** — to simulate real user interaction with the CLI system and also tracking print statements that are returned by the CLI configuration class .
+> “Returning you back to main page”
+
+After completing the feature, I focused on **testing**. I used Python’s built-in `unittest` framework,specifically **mock inputs**, **patching**, and **mock print** — to simulate real user interaction with the CLI system and also tracking print statements that are returned by the CLI configuration class so that the test can vaildate the right print statements are being returned .
 
 Lastly, I want to thank **Puneet** for identifying an error in `test_configuration_CLI.py` that caused an **infinite loop**, which I quickly found, and depolyed a fix for within the hour.
 
