@@ -44,10 +44,20 @@ class FileMetadataExtractor:
 ## creating a helper function in preparation of cross platform file checking
     def get_author(self, path: Path):
         try:
-            if platform.system() == "Windows":
-                return getpass.getuser()
-            else:
-                return "Author Unknown"
+            #checks for a windows system and an installation of winsecurity
+            if platform.system() == "Windows" and win32security:
+                try:
+                    # pulls the windows security descriptor from the file
+                    SecDesc = win32security.GetFileSecurity(str(path), win32security.OWNER_SECURITY_INFORMATION)
+                    owner_sid = SecDesc.GetSecurityDescriptorOwner()
+                    #only pulls the name of the file author
+                    name, _, _ = win32security.LookupAccountSid(None, owner_sid)
+                    return name
+                except Exception:
+                 return getpass.getuser()
+        
+            # this returns the current logged in user for the system if not window
+            return getpass.getuser()
         except Exception:
             return "Unknown"
 
