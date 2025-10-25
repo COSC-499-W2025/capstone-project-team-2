@@ -1,6 +1,7 @@
 import time
 import orjson
 from src.Configuration import configuration_for_users
+from src.user_startup_config import ConfigLoader
 
 
 class ConfigurationForUsersUI:
@@ -192,16 +193,9 @@ class ConfigurationForUsersUI:
 
 
 if __name__ == "__main__":
-    sample_json = {
-        "ID": 1,
-        "First Name": "Jane",
-        "Student id": "2003357",
-        "Last Name": "Doe",
-        "Email": "Jane.Doe@gmail.com",
-        "Role": "Student",
-        "Preferences": {
-            "theme": "dark"
-        }}
 
-    UI=ConfigurationForUsersUI(sample_json)
+
+    Original_config_data=ConfigLoader().load()
+
+    UI=ConfigurationForUsersUI(Original_config_data)
     UI.run_configuration_cli()
