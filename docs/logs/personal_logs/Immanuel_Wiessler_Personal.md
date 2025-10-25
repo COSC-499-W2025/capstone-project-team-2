@@ -307,6 +307,7 @@ For **week 6**, I was working on the issue that I assigned myself for that week,
 
 ## 🎯 Next Week’s Goals
 - [Work on Constent doc for users to agreed when prograrm starts](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/32)
+- Continue working implemented our Code into a CLI for end of term showcase(**Milestone 1 showcase**)
 
 
 ---
