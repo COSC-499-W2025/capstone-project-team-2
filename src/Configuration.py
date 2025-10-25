@@ -10,18 +10,19 @@ class configuration_for_users:
     and save locally
 
     """
-
     def __init__(self,jsonfile):
         """
-        :param jsonfile: 
+        :param jsonfile: User Configuration **json file**
         """
         self.jsonfile = jsonfile
 
     def save_config(self):
         """
-        This saves the json file to the user's system
-        :return: bool
-        """
+           Saves the JSON configuration file to the user's system.
+
+           :return:
+               bool: True if the file was saved successfully, False otherwise.
+           """
         with open("UserConfigs.json", "wb") as f:
             f.write(orjson.dumps(self.jsonfile,option=orjson.OPT_INDENT_2))
 
