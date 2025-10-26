@@ -3,6 +3,7 @@ import unittest
 import datetime
 import platform
 import getpass
+import json
 
 
 from pathlib import Path
@@ -70,13 +71,12 @@ class FileMetadataExtractor:
         
         """
 
-        if not os.path.exists(self.dir_path):
-            print(f"Error: Filepath not found")
-            return
-    
-        if not os.path.isdir(self.dir_path):
-            print(f"Error: File is not a directory")
-            return
+        if not self.dir_path.exists():
+            print("Error: Filepath not found")
+            return None
+        if not self.dir_path.is_dir():
+            print("Error: File is not a directory")
+            return None
 
         self.print_hierarchy(self.dir_path)
 
@@ -94,44 +94,61 @@ class FileMetadataExtractor:
             str: A formatted line containing a file or folder name and metadata.
         
         """
-
+        node = {"name": dir_path.name, "type": "DIR", "children": []}
         try:
             content = list(dir_path.iterdir())
         except PermissionError:
-            yield prefix + "No Access"
-            return
+            node["children"].append({"name": "No Access"})
+            return node
         if not content:
-            yield prefix + "Empty"
-            return
-    
-        pointers = [TEE] * (len(content) - 1) + [LAST]
+            node["children"].append({"name": "Empty"})
+            return node
 
-        for pointer, path in zip(pointers, content):
+        for path in content:
             
             try:
-                # pulls data off the inputted files
+                # pulls required data off the inputted files
                 stat = path.stat()
                 created = datetime.datetime.fromtimestamp(stat.st_birthtime).strftime('%Y-%m-%d %H:%M:%S')
                 modified = datetime.datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
                 size = stat.st_size
                 author = self.get_author(path)
-            except Exception as e:
+            except Exception:
                 created = modified = "N/A"
                 size = 0
-
-            # Formating the tree display to include new meta data which is returned to the print function
-            if path.is_file():
-                file_type = path.suffix.lstrip('.') or "FILE"
-                metadata = f"[{file_type}] size: {size}B, created: {created}, modified: {modified}, author: {author}"
-            else:
-                metadata = "[DIR]"
-
-            yield prefix + pointer + path.name + ' ' + metadata
-        
+                author = "Unknown"
+                # recursivily builds the dictionary of all data elements from the file
             if path.is_dir():
-                extension = BRANCH if pointer == TEE else SPACE
-                yield from self.tree(path, prefix= prefix + extension)
+                node["children"].append(self._tree_dict(path))
+            else:
+                node["children"].append({
+                    "name": path.name,
+                    "type": path.suffix.lstrip('.') or "FILE",
+                    "size": size,
+                    "created": created,
+                    "modified": modified,
+                    "author": author
+                })
 
+        return node
+
+    def print_tree(self, node, prefix = " "):
+        """
+        Run through the tree nodes and reformats them in to a readable formatt
+        """
+        if node["type"] == "DIR":
+            print(prefix + node["name"] + " [DIR]")
+        else:
+            print(prefix + node["name"] + f" [{node['type']}] size: {node['size']}B, created: {node['created']}, modified: {node['modified']}, author: {node['author']}")
+
+        if node.get("children"):
+            for i, child in enumerate(node["children"]):
+                # Determine pointer style
+                pointer = TEE if i < len(node["children"]) - 1 else LAST
+                cprefix = prefix + pointer
+                # Use BRANCH spacing for nested items
+                nprefix = prefix + (BRANCH if pointer == TEE else SPACE)
+                self.print_tree(child, nprefix)
 
     def print_hierarchy(self, File_Path):
 
@@ -141,7 +158,7 @@ class FileMetadataExtractor:
         Args:
             file_path (Path): The root path to print.
         """
-        # this is the code that needs to be modified for export to data anylsis
-        print(File_Path.resolve())
-        for Ftree in self.tree(File_Path):
-            print(Ftree)
+        #outputs code in the same readable format as before
+        tree_data = self.file_hierarchy()
+        if tree_data:
+            self.print_tree(tree_data)

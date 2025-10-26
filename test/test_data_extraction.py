@@ -21,8 +21,13 @@ class TestDataExtract(unittest.TestCase):
 
         try:
             extractor = FileMetadataExtractor(temp_dir)
-            result = list(extractor.tree(temp_dir))
-            self.assertIn("`-- file.txt", result[-1])
+            tree_data = extractor.file_hierarchy()
+
+            # Get all file names in root directory
+            file_names = [child["name"] for child in tree_data.get("children", []) if child["type"] != "DIR"]
+
+            # Assert that "file.txt" exists
+            self.assertIn("file.txt", file_names)
         finally:
             # if files and directory exist remove them after test
             if test_file.exists():
@@ -36,8 +41,12 @@ class TestDataExtract(unittest.TestCase):
 
         try:
             extractor = FileMetadataExtractor(temp_dir)
-            result = list(extractor.tree(temp_dir))
-            self.assertEqual(result, [" Empty"])
+            tree_data = extractor.file_hierarchy()
+            children = tree_data.get("children", [])
+
+            # Expect a single child with name "Empty"
+            self.assertEqual(len(children), 1)
+            self.assertEqual(children[0]["name"], "Empty")
         finally:
             # if directory exist remove them after test
             if temp_dir.exists():
