@@ -64,7 +64,7 @@ class FileMetadataExtractor:
 
 
 
-    def file_hierarchy(self):
+    def file_hierarchy(self, dir_path: Path | None = None):
 
         """
         Helps identify, whether or not files or directories exist
@@ -78,10 +78,10 @@ class FileMetadataExtractor:
             print("Error: File is not a directory")
             return None
 
-        self.print_hierarchy(self.dir_path)
+        return self.print_hierarchy(self.dir_path)
 
 
-    def tree(self, dir_path: Path, prefix: str= ' '):
+    def tree(self, dir_path: Path):
         """
         systematically runs through the directory pulls the statistics off each file, pulling metadata pertaining to 
         creation date, modified date, author, file size and file type
@@ -98,10 +98,10 @@ class FileMetadataExtractor:
         try:
             content = list(dir_path.iterdir())
         except PermissionError:
-            node["children"].append({"name": "No Access"})
+            node["children"].append({"name": "No Access", "type": "DIR", "children": []})
             return node
         if not content:
-            node["children"].append({"name": "Empty"})
+            node["children"].append({"name": "Empty", "type": "DIR", "children": []})
             return node
 
         for path in content:
@@ -119,7 +119,7 @@ class FileMetadataExtractor:
                 author = "Unknown"
                 # recursivily builds the dictionary of all data elements from the file
             if path.is_dir():
-                node["children"].append(self._tree_dict(path))
+                node["children"].append(self.tree(path))
             else:
                 node["children"].append({
                     "name": path.name,
@@ -159,6 +159,6 @@ class FileMetadataExtractor:
             file_path (Path): The root path to print.
         """
         #outputs code in the same readable format as before
-        tree_data = self.file_hierarchy()
+        tree_data = self.tree(self.dir_path)
         if tree_data:
             self.print_tree(tree_data)
