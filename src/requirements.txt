@@ -3,6 +3,4 @@ FreeSimpleGUI
 matplotlib
 zipfile 
 click
-win32security
-rich
-orjson
+gitpython
