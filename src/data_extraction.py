@@ -73,12 +73,12 @@ class FileMetadataExtractor:
 
         if not self.dir_path.exists():
             print("Error: Filepath not found")
-            return None
+            return {"name": self.dir_path.name, "type": "DIR", "children": [{"name": "Not Found", "type": "DIR", "children": []}]}
         if not self.dir_path.is_dir():
             print("Error: File is not a directory")
-            return None
+            return {"name": self.dir_path.name, "type": "DIR", "children": [{"name": "Not a Directory", "type": "DIR", "children": []}]}
 
-        return self.print_hierarchy(self.dir_path)
+        return self.tree(self.dir_path)
 
 
     def tree(self, dir_path: Path):
@@ -90,24 +90,36 @@ class FileMetadataExtractor:
             dir_path (Path): The directory to traverse.
             prefix (str): The prefix used to format tree levels visually.
 
-        Yields:
-            str: A formatted line containing a file or folder name and metadata.
+        Returns:
+            dict: A dictionary representing the directory and its children with metadata.
         
         """
         node = {"name": dir_path.name, "type": "DIR", "children": []}
+
+        if not dir_path.exists():
+            node["children"].append({"name": "Not Found", "type": "DIR", "children": []})
+            return node
+        if not dir_path.is_dir():
+            node["children"].append({"name": "Not a Directory", "type": "DIR", "children": []})
+            return node
+        
+
         try:
             content = list(dir_path.iterdir())
         except PermissionError:
             node["children"].append({"name": "No Access", "type": "DIR", "children": []})
             return node
+        except Exception:
+            node["children"].append({"name": "Error accessing folder", "type": "DIR", "children": []})
+            return node
+
         if not content:
             node["children"].append({"name": "Empty", "type": "DIR", "children": []})
             return node
 
+
         for path in content:
-            
             try:
-                # pulls required data off the inputted files
                 stat = path.stat()
                 created = datetime.datetime.fromtimestamp(stat.st_birthtime).strftime('%Y-%m-%d %H:%M:%S')
                 modified = datetime.datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
@@ -117,9 +129,10 @@ class FileMetadataExtractor:
                 created = modified = "N/A"
                 size = 0
                 author = "Unknown"
-                # recursivily builds the dictionary of all data elements from the file
+
             if path.is_dir():
                 node["children"].append(self.tree(path))
+
             else:
                 node["children"].append({
                     "name": path.name,
@@ -127,7 +140,8 @@ class FileMetadataExtractor:
                     "size": size,
                     "created": created,
                     "modified": modified,
-                    "author": author
+                    "author": author,
+                    "children": []
                 })
 
         return node
@@ -136,19 +150,22 @@ class FileMetadataExtractor:
         """
         Run through the tree nodes and reformats them in to a readable formatt
         """
+        if node is None:
+            return
+        
         if node["type"] == "DIR":
             print(prefix + node["name"] + " [DIR]")
         else:
             print(prefix + node["name"] + f" [{node['type']}] size: {node['size']}B, created: {node['created']}, modified: {node['modified']}, author: {node['author']}")
 
-        if node.get("children"):
-            for i, child in enumerate(node["children"]):
-                # Determine pointer style
-                pointer = TEE if i < len(node["children"]) - 1 else LAST
-                cprefix = prefix + pointer
-                # Use BRANCH spacing for nested items
-                nprefix = prefix + (BRANCH if pointer == TEE else SPACE)
-                self.print_tree(child, nprefix)
+        
+        for i, child in enumerate(node["children"]):
+            # Determine pointer style
+            pointer = TEE if i < len(node["children"]) - 1 else LAST
+            cprefix = prefix + pointer
+            # Use BRANCH spacing for nested items
+            nprefix = prefix + (BRANCH if pointer == TEE else SPACE)
+            self.print_tree(child, nprefix)
 
     def print_hierarchy(self, File_Path):
 

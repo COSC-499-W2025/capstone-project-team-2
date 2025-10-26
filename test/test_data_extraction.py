@@ -24,10 +24,11 @@ class TestDataExtract(unittest.TestCase):
             tree_data = extractor.file_hierarchy()
 
             # Get all file names in root directory
-            file_names = [child["name"] for child in tree_data.get("children", []) if child["type"] != "DIR"]
+            children_names = [c["name"] for c in tree_data.get("children", [])]
+
 
             # Assert that "file.txt" exists
-            self.assertIn("file.txt", file_names)
+            self.assertIn("file.txt", children_names)
         finally:
             # if files and directory exist remove them after test
             if test_file.exists():
@@ -45,6 +46,7 @@ class TestDataExtract(unittest.TestCase):
             children = tree_data.get("children", [])
 
             # Expect a single child with name "Empty"
+            children = tree_data.get("children", [])
             self.assertEqual(len(children), 1)
             self.assertEqual(children[0]["name"], "Empty")
         finally:
