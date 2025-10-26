@@ -131,7 +131,7 @@ def detect_project_stack(
         if any(part in IGNORED_DIRS for part in path.parts):
             continue
 
-        rel_path = str(path.relative_to(root))
+        rel_path = path.relative_to(root).as_posix()
         ext = path.suffix.lower()
         filename = path.name.lower()
 
