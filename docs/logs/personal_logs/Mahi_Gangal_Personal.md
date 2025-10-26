@@ -258,4 +258,63 @@ I will discuss with the team about the tasks that I can take up this week and ho
 
 </details>
 
+## Dates of Sprint: (10/20/2025 – 10/26/2025) 
+
+
+### Peer Eval Screenshot: <img width="1059" height="621" alt="MG" src="https://github.com/user-attachments/assets/6f7b771b-66cf-40f0-807c-c69ff3e60d1f" />
+
+
+---
+
+### Features Worked on this Milestone   
+  * Distinguish between individual projects and collaboration projects for GitHub-based repositories using commit author metadata.
+  * Distinguish between individual projects and collaboration projects for non-GitHub-based submissions using locally stored metadata.
+  * Created and executed unit tests for both implementations to ensure correctness, scalability, and consistency with project structure.
+
+---
+
+## Associated Tasks from Project Board:
+- https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=134464676
+- https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=132355581
+---
+### Progress Update (since 10/06/2025)
+
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong></td>
+        <td><strong>STATUS</strong></td>
+    </tr>
+    <tr>
+        <td>Distinction between individual and Collaborative Projects for non-GitHub repo projects</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+    <tr>
+    <td>Distinction between individual and Collaborative Projects for GitHub projects</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+    <tr>
+    <td>Creating and validating unit tests for both features</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+    <tr>
+    
+    
+</table>
+
+
+---
+## Next week goals
+
+Collaborate with the team to plan next sprint tasks and identify project improvements.
+
+---
+
+### Extra Details:
+<details>
+    <summary><span style='font-weight:bold'>Click to expand</span> </summary>
+  I focused on completing the core functionality for distinguishing between individual and collaborative projects across both GitHub-based and non-GitHub-based submissions. For GitHub repositories, I implemented logic to analyze commit histories and author metadata to accurately determine whether a project involved multiple contributors. For non-GitHub submissions, I extended similar logic using project metadata to classify the project type, even when repository data was unavailable. I also developed and executed comprehensive unit tests to validate both implementations and ensure that the detection logic handled various edge cases—such as missing metadata, single-author repos, and projects with multiple contributors. During integration, I encountered and resolved merge conflicts while reverting and merging commits in the project_type_detection branch. I resolved these issues successfully using git revert, manual conflict resolution, and cleanup of modified files to maintain a stable and consistent codebase. Overall, this week’s work finalized the project type detection feature and ensured its reliability through testing, integration, and conflict resolution.
+    </span>
+
+
+</details>
 
