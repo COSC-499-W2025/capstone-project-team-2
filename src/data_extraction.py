@@ -44,6 +44,22 @@ class FileMetadataExtractor:
         
 ## creating a helper function in preparation of cross platform file checking
     def get_author(self, path: Path):
+
+        """
+        Retrieve the author (owner) of a file.
+
+        On Windows systems:
+            utilizes Win32Security to get the file owner(true author)
+
+        On non-Windows systems:
+         Traces the file UID to a local user
+
+        Args:
+            path (Path): The file path for which to determine the author.
+
+        Returns:
+            str: The detected author/owner of the file, or the current system user if a file owner cannot be determined.
+        """
         try:
             #checks for a windows system and an installation of winsecurity
             if platform.system() == "Windows" and win32security:
@@ -55,12 +71,19 @@ class FileMetadataExtractor:
                     name, _, _ = win32security.LookupAccountSid(None, owner_sid)
                     return name
                 except Exception:
-                 return getpass.getuser()
+                  pass
+
+            if platform.system("Darwin", "Linux"):
+                try:
+                    import pwd
+                    return pwd.getpwuid(path.stat().st_uid).pw_name
+                except Exception:
+                    pass
+        except Exception:
+            pass
         
             # this returns the current logged in user for the system if not window
-            return getpass.getuser()
-        except Exception:
-            return "Unknown"
+        return getpass.getuser()
 
 
 
