@@ -143,3 +143,50 @@
 ### Extra Details:
 * Completed a feature that stores dictionaries in JSON files at a specified path. Will likely be used in other features.
 * Cannot continue feature until analysis of files is partially complete, individual file analysis information needed for next step.
+
+---------------------------------
+
+## Sunday (19/10 - 26/10)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/25-10-25_PeerEval_SamM.PNG)
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: Extract files from ZIP file: Method for running all extraction protocols
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description        | Feature   | Assigned To | Status   |
+| ------- | ------------------ | --------- | ----------- | -------- |
+| #89   | Extraction interaction methods for usage in CLI | Extract files from ZIP file | Samantha Maranda  | Completed |
+
+### Progress Update (since 19/10/2025) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Extraction method for usage by CLI
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Store analysis in JSON file
+        </td>
+        <!-- Status -->
+        <td>Backlog task (Waiting for analysis feature)
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+* Planning on designing data analyis structure during team meeting on Monday.
+* Will work on data analysis next sprint. Component I will work on TBD.
