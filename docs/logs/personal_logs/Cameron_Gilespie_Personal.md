@@ -1,3 +1,41 @@
+## Dates of Sprint: (10/19/2025 – 10/25/2025)
+
+### Peer Eval Screenshot:
+
+<img width="1092" height="626" alt="image" src= "https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Cameron-Personal-Logs/docs/logs/peer_eval_screenshots/PL_CameronG_10_25_25.png" />
+
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: add file ownership input
+  * #2 refactor the Data extractor to output a dictionary 
+  * #2: research Docker integration
+
+
+## Associated Tasks from Project Board:
+
+| Description        | Status   |
+| ------------------ | -------- |
+| [add file ownership input]  | [Complete] |
+| [refactor the Data extractor to output a dictionary]  | [Complete] |
+| [research Docker integration]  | [Complete] |
+
+
+---
+## Next week goals
+The goals for Week 6:
+- Discuss docker integration
+- possibly add Json file output for data
+- discuss exploring new tasks
+---
+
+### Extra Details:
+
+<details>
+So the primary goal of mine was to hop onto a new coding task this week however, that did not occur this week unfortunately due to a miscommunication between myself and a team member. So i continued finalizing the metadata extractor so that way it continues evolving with our current archetecture since it originally just outputted a string of values. now it should be outputting a full dictonary which we can utilize and transpose into a savable json file. I really hope to hop onto a different coding task to continue trying to learn python as a whole. I would also like to reflect on the fact that I did get alittle sick this week on wednesday and while already aiming to make up for just adapting the same bit of code week after week I am hoping to reach further and do more in the coming weeks.
+
+</details>
+
+
 ## Dates of Sprint: (10/13/2025 – 10/19/2025)
 
 ### Peer Eval Screenshot:
