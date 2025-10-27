@@ -1,3 +1,67 @@
+# Sprint Log: (10/20/2025 – 10/26/2025)
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/26-10-2025_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Goals Recap
+
+This week, I focused on advancing the **Stack and Skill Detection v2** feature to expand our system’s ability to recognize technologies and frameworks, as well as supporting the review and maintenance of teammates’ pull requests. I also helped merge key configuration and collaboration-related updates to ensure the CLI and local project detection components remained aligned with our backend logic.
+
+- Created an issue **#84** to fix infinite loop when selecting 'n' in CLI confirm modification from PR **#83**.
+- Completed task **#30** – Implemented detection for programming language and framework used in a coding project.
+
+---
+
+## Additional Details
+
+### Stack Detector Updates
+- Now works with C/C++ files in addition to `.mjs` and `.cjs`.
+- Can find Dockerfiles, Docker Compose files, and Terraform modules, and shows which files were found.
+- Ignores folders like `node_modules` and `.git` to make scans faster.
+- Keeps track of where each framework was discovered using a new `framework_sources` list.
+
+### Skill Insight Module
+- Connects new infrastructure tools (like Docker and Terraform) to DevOps and Infrastructure-as-Code (IaC) skills.
+- Groups Express, NestJS, and Koa under the main Web Development skill category.
+
+---
+
+## Code Review & Maintenance
+- **Reviewer on PR #92** – Refactored CLI configuration save flow with validation and tests.  
+- **Reviewer on PR #86** – Infinite loop when selecting 'n' in CLI confirm modification (fix).  
+- **Reviewer on PR #87** – Added detection for individual vs. collaborative projects on local (non-repo) files.
+
+---
+
+## Plan for the Next Cycle
+*(To be finalized on Oct 27, Monday)*
+
+- Ship a CLI wrapper so teammates can run from the terminal and view the report.  
+- Coordinate with the metadata team to surface infrastructure signals inside project summaries.
+
+---
+
+## Reflection Points
+
+### What Went Well
+- Expanded the project’s detection logic substantially to include infrastructure and multi-language signals.  
+- Merging teammates’ PRs helped maintain workflow momentum and keep the codebase stable.  
+- The code review cycle helped identify minor reliability issues before integration.  
+
+### What Didn't Go Well
+- Encountered a couple of failing tests after initial merges; this was due to system variation between different OSs.  
+- Balancing both review duties and feature development was challenging.
+
+---
+
+Overall, this sprint had strong technical progress with broader detection coverage and improved collaboration signals. The next step is ensuring those new modules integrate seamlessly and pass all test cases for stable deployment.
+
+## ====================================================
+
 ## Sprint Log: (10/13/2025 – 10/19/2025)
 
 ### Peer Evaluation
@@ -6,7 +70,7 @@
 ### Weekly Goals Recap  
 Focused on delivering the **skill insight module** so the system can automatically map detected languages, frameworks, and libraries to résumé-ready skills. Also refreshed the weekly **team log** and reviewed teammates’ PRs to stay aligned with their contributions.
 
-### Additional Details  
+### Additional Details
 - **Skill Insight Module (#41 / PR #79)**  
   - Added `project_stack_detection.py` plus `project_skill_insights.py`.  
   - Created unit suites (`test_project_stack_detection.py`, `test_project_skills.py`) using temporary project fixtures (Python/Flask, React, FastAPI+Vue).  
@@ -16,14 +80,13 @@ Focused on delivering the **skill insight module** so the system can automatical
 - **Cross-team context**  
   - Read merged PRs to understand JSON storage (Samantha), startup config tests (Sam), hierarchy refinements (Cameron), consent screen (Mahi), and config storage tests (Immanuel).  
 
-### Plan for the Next Cycle  
+### Plan for the Next Cycle
 - Support backlog analytics tasks: distinguish collaboration vs. individual projects and surface contributor roles.  
 - Pair with Immanuel/Cameron on metadata signals needed for collaboration insights.  
 - Help finalize consent documentation once Mahi has a draft.  
 - Add skill detection outputs into the artifact storage pipeline once JSON schemas are finalized.  
 
-### Reflection Points  
-
+### Reflection Points
 #### What Went Well  
 - TDD approach kept the skill module tight, fixtures caught edge cases across multiple stacks.  
 - Running tests inside the `venv`and avoided “missing dependency” surprises.  
