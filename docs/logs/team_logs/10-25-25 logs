@@ -1,0 +1,94 @@
+# Weekly Team Log  
+---
+## Date Range for this sprint:
+- [10/20/2025] - [10/26/2025]  
+
+---
+
+## Features in the Project Plan Cycle:
+- Implemented distinction between individual and collaborative projects for both GitHub-based and non-GitHub-based project files
+- Created a CLI interface for saving and updating user configuration, with refactored configuration class
+- Enhanced file hierarchy formatting for improved skill and stack analysis, and improved author metadata parsing for both Windows and non-Windows systems
+- Released Stack & Skill Detection v2 with Infra, DevOps, and extended language coverage
+- Updated startup configuration loader and integrated it with the new CLI interface for user settings
+- Added a unified data extraction orchestrator function that executes all extraction routines and returns detailed success or error feedback
+
+---
+
+## Associated Tasks / Pull Requests:
+- [#96 Distinction between individual and collaborative projects for Git-repo files](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/96)
+- [#100 File hierarchy formatting + Metadata Author Reading](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/100)
+- [#87 Distinction between individual and collaborative projects for non-repo files](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/87)
+- [#94 Stack & Skill Detection v2 (Infra, DevOps, and extended languages)](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/94)
+- [#88 Startup Configuration Loader Integration](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/88)
+- [#92 CLI interface for User Configuration + Refactor](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/92)
+- [#95 Unified data extraction orchestrator function](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/95)
+
+---
+
+### Screenshot from Kanban board
+![Kanban board snapshot](screenshots/kanban_board/Kanban%20Board%20(10-26-25).png)
+
+
+---
+
+## Burn-up Chart (Velocity):
+![Burn-up chart](screenshots/Burn_up_charts/Burn%20up%20Chart%20(10-26-25).png)
+
+---
+
+## Team Members  
+
+| Name              | Role/Title           | GitHub Username                                    | Focus this cycle |
+|-------------------|----------------------|----------------------------------------------------|------------------|
+| Immanuel Wiessler | Full Stack Developer | [@ThunderIW](https://github.com/ThunderIW)         | CLI interface for user configuration and configuration refactor |
+| Samantha Maranda  | Full Stack Developer | [@Weebtrain](https://github.com/Weebtrain)         | Unified extraction function and error-handling improvements |
+| Cameron Gillespie | Full Stack Developer | [@Graves067](https://github.com/Graves067)         | File hierarchy enhancement, metadata author parsing, Docker research |
+| Puneet Maan       | Full Stack Developer | [@Puneet-Maan](https://github.com/Puneet-Maan)     | Stack & Skill Detection v2 (Infra, DevOps, extended language coverage) |
+| Sam Smith         | Full Stack Developer | [@ssmith86](https://github.com/ssmith86)           | Startup user configuration loader integration with CLI |
+| Mahi Gangal       | Full Stack Developer | [@mahigangal](https://github.com/mahigangal)       | Individual vs Collaborative project detection and team logs |
+
+---
+
+## Completed Tasks:
+
+| Task / PR | Description                                                                 | Completed By    |
+|-----------|-----------------------------------------------------------------------------|------------------|
+| #95       | Unified extraction orchestrator handling all extraction protocols           | Samantha Maranda |
+| #88       | Startup configuration loader integrated with CLI interface                  | Sam Smith        |
+| #100      | File hierarchy formatting enhancements and metadata author parsing          | Cameron Gillespie|
+| #96, #87  | Distinguish between individual and collaborative projects (repo & non-repo) | Mahi Gangal      |
+| #92       | CLI interface for user configuration and configuration class refactor       | Immanuel Wiessler|
+| #94       | Stack & Skill Detection v2 (Infra, DevOps, extended language coverage)      | Puneet Maan      |
+
+---
+
+## In Progress Tasks / To Do :
+
+| Task | Description                                                    | Assigned To         |
+|------|----------------------------------------------------------------|---------------------|
+| Backlog | Docker Setup                                                | Cameron Gillespie |
+| Backlog | Identify individual contributions in collaboration projects | Team analysis pairing |
+| Backlog | Refactoring Tests for #96 for multiple OS systems           | Mahi Gangal         |
+
+---
+
+## Test Report / Testing Status:
+| Task / PR | Test description / command                                    | Successful |
+|-----------|---------------------------------------------------------------|------------|
+| #96, #87      | `python3 -m unittest discover -s test -p test_project_type_detection.py"` | ✅ |
+| #95       | `python3 -m unittest discover -s test -p test_extraction.py"` | ✅ |
+| #88       | `pytest -q test/test_startup_pull.py` | ✅ |
+| #100       |  `python3 -m unittest discover -s test -p test_data_extraction.py"` | ✅ |
+| #92       | `python3 -m unittest discover -s test -p test_configuration_CLI.py"` | ✅ |
+| #92       | `python3 -m unittest discover -s test -p test_user_config_store.py"` | ✅ |
+| #94       | `python3 -m unittest discover -s test -p "test_project_stack_detection.py"` | ✅ |
+| #94       | `python3 -m unittest discover -s test -p "test_project_skills.py"`  | ✅ |
+
+---
+
+## Overview:
+This sprint marked significant functional growth in the analysis and configuration modules. Mahi successfully implemented the logic to distinguish between individual and collaborative projects for both GitHub and non-repository sources, supported by comprehensive unit testing. Immanuel introduced a refined CLI interface for saving and updating user configurations, simplifying the configuration workflow. Cameron enhanced file hierarchy parsing and ensured author metadata was extracted consistently across platforms, while continuing Docker environment research.
+Puneet extended the stack and skill detection module to include Infrastructure and DevOps categories, broadening insight coverage. Sam completed the integration of the startup configuration loader with the CLI interface, ensuring user preferences are loaded automatically at runtime. Samantha built a unified data extraction orchestrator that runs all extraction protocols in sequence, improving modularity and error reporting.
+
+Next sprint will focus on collaboration analytics and performance optimization — specifically, tracking contribution ratios within collaborative repositories, refining the unified extraction flow, and expanding cross-platform metadata handling.
