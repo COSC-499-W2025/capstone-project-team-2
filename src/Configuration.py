@@ -26,7 +26,7 @@ class configuration_for_users:
 
     def save_with_consent(self, external_consent:bool=False,data_consent:bool=False):
         """
-        Adds a new entry to the json file with consent preferences
+        Adds a new entry to the json file with consent preferences 
 
        :param external_consent: (bool) Whether user consents to external data sharing (default: False)
        :param data_consent: (bool) Whether user consents to data collection (default: False)
