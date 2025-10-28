@@ -16,17 +16,18 @@ class configuration_for_users:
     and save locally
 
     """
-    def __init__(self,jsonfile):
+    def __init__(self,jsonfile,loc_to_save='User_config_files'):
         """
         :param jsonfile: User Configuration **json file**
         """
         self.jsonfile = jsonfile
         self.project_Root = pa.Path(__file__).parent.parent
+        self.loc_to_save=pa.Path(os.path.join(self.project_Root,loc_to_save,"UserConfigs.json"))
 
 
     def save_with_consent(self, external_consent:bool=False,data_consent:bool=False):
         """
-        Adds a new entry to the json file with consent preferences 
+        Adds a new entry to the json file with consent preferences
 
        :param external_consent: (bool) Whether user consents to external data sharing (default: False)
        :param data_consent: (bool) Whether user consents to data collection (default: False)
@@ -46,9 +47,9 @@ class configuration_for_users:
            :return:
                bool: True if the file was saved successfully, False otherwise.
            """
-        user_config_save_loc=pa.Path(os.path.join(self.project_Root,"User_config_files","UserConfigs.json"))
 
-        with open(user_config_save_loc, "wb") as f:
+
+        with open(self.loc_to_save, "wb") as f:
             print("HIT")
             f.write(orjson.dumps(self.jsonfile,option=orjson.OPT_INDENT_2))
 
