@@ -16,8 +16,8 @@ class ConfigLoader:
         self.project_root = Path(__file__).resolve().parents[1]
 
         # config file paths (located directly in root)
-        self.user_config_path = self.project_root / "UserConfigs.json"
-        self.default_config_path = self.project_root / "default_user_configuration.json"
+        self.user_config_path = self.project_root /"User_config_files"/ "UserConfigs.json"
+        self.default_config_path = self.project_root /"User_config_files"/ "default_user_configuration.json"
 
     def _load_file(self, path: Path) -> Dict[str, Any]:
         """

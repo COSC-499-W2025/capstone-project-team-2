@@ -194,8 +194,6 @@ class ConfigurationForUsersUI:
 
 if __name__ == "__main__":
 
-
     Original_config_data=ConfigLoader().load()
-
     UI=ConfigurationForUsersUI(Original_config_data)
     UI.run_configuration_cli()

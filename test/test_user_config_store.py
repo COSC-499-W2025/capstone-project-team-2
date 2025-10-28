@@ -93,6 +93,9 @@ class TestUserConfigStore(unittest.TestCase):
         with self.assertRaises(json.JSONDecodeError):
             json.loads(bad_json_text)
 
+
+
+
     def test_valid_json(self):
 
         """
