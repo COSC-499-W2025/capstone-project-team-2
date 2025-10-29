@@ -3,7 +3,6 @@ import os
 import pathlib as pa
 
 import orjson
-from platformdirs import user_config_path
 
 
 
