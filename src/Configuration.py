@@ -4,7 +4,6 @@ import pathlib as pa
 
 import orjson
 from platformdirs import user_config_path
-from watchfiles.cli import import_exit
 
 
 
