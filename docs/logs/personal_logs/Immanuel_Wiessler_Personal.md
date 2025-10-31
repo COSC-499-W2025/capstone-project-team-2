@@ -390,12 +390,12 @@ class TestConfigurationCLI(unittest.TestCase):
 
 | Task/Issue | Status |
 |------------|--------|
-|**Creating a system to save the user costent to data** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+|**Creation a system to save the user costent to data** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 |**Refactored configuration to reflected changes made to internal system**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
 
 
 ## 🎯 Next Week’s Goals
-- Begin working on the file anylsis aspect of the system 
+- Begin working on the file analysis aspect of the system. 
 
 
 ---
