@@ -187,13 +187,16 @@ def detect_project_type(project_path: str | Path) -> dict:
     authors = collect_authors(root)
     contributor_files = find_contributor_files(root)
 
-    metadata_result = detect_collaboration_by_metadata(authors)
-    if metadata_result["project_type"] != "unknown":
-        return metadata_result
-
     text_result = detect_collaboration_by_text(contributor_files)
-    if text_result["project_type"] != "unknown":
-        return text_result
+    metadata_result = detect_collaboration_by_metadata(authors)
 
-    # No signals at all
+    # Priority 1: Collaborative if ANY signal says collaborative
+    if text_result["project_type"] == "collaborative" or metadata_result["project_type"] == "collaborative":
+        return {"project_type": "collaborative", "mode": "local"}
+
+    # Priority 2: Individual if no collaborative signals, but at least one individual signal
+    if text_result["project_type"] == "individual" or metadata_result["project_type"] == "individual":
+        return {"project_type": "individual", "mode": "local"}
+
+    # Priority 3: Unknown otherwise
     return {"project_type": "unknown", "mode": "local"}
