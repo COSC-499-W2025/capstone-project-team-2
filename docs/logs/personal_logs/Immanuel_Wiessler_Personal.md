@@ -365,3 +365,45 @@ class TestConfigurationCLI(unittest.TestCase):
 
 
 ---
+
+
+# 📝 Personal Log – Week 9 (10/27/2025 – 10/30/2025)
+
+## 📊 Peer Evaluation  
+![Immanuel Wiessler Peer Screenshot]()
+
+
+
+---
+
+## 🚀 Features Worked On  
+- Worked updating the user configuration so that it now stores the user costent to the use of data in the system which includes **External** or **Internal**
+- Refactored my `Configuration.py` to reflect the changes I made to the internal stucture of the system, which includes introduction a new folder(**UserConfigs**) to store both the template and also strored the user actual configs when they use the system.In addition I added `__init__` to my `configuration.py` so that I can get the the correct file path to my new folder with any system
+
+---
+
+## 📌 Associated Tasks from Project Board  
+- [Create CLI interface for saving user configuration](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/119)
+---
+
+## 📈 Progress Update (since 10/22/2025)  
+
+| Task/Issue | Status |
+|------------|--------|
+|**Creating a system to save the user costent to data** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+|**Refactored configuration to reflected changes made to internal system**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
+
+
+## 🎯 Next Week’s Goals
+- Begin working on the file anylsis aspect of the system 
+
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 9)
+
+**Week 9** 
+
+## 🧠 Reflection on Past Cycle (Week 8)  
+
+**week 8** 
