@@ -1,5 +1,6 @@
 import sys
-
+from src.Configuration import configuration_for_users
+from src.user_startup_config import ConfigLoader
 # Data consent messages
 CONSENT_HEADER = "\nData Usage Consent\n" + "-" * 50
 CONSENT_REQUEST = """We need your permission to use the data you will upload in our system.
@@ -165,7 +166,18 @@ if __name__ == "__main__":
     
     # Get final consent status
     data_consent, external_consent = consent_manager.check_consent()
-    
+
+    """
+    Here I am using the return values from the consent_manager 
+    to see if the data consent is granted or not for both external(LLM)
+    and data_consent.
+    """
+    data = ConfigLoader().load()
+    #Loading the currently available json data
+    configure_json_data = configuration_for_users(data) #Here I am initializing the configuration class
+    configure_json_data.save_with_consent(external_consent,data_consent) #Here I am using the method to store the External consent, and data_Consent state
+    configure_json_data.save_config() #Here I am saving the updated Json file with the consent added to the user configuration
+
     # Show appropriate message based on consent levels
     if external_consent:
         print("\nProceeding with system operations using external services...")

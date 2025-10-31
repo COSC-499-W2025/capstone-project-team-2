@@ -3,6 +3,9 @@ from unittest.mock import patch, MagicMock, call
 from src.CLI_Interface_for_user_config import ConfigurationForUsersUI
 import os
 import shutil
+from pathlib import Path
+import tempfile
+
 
 
 class TestConfigurationCLI(unittest.TestCase):
@@ -28,6 +31,8 @@ class TestConfigurationCLI(unittest.TestCase):
                 "theme": "dark"
             }
         }
+
+        self.loc_to_file=os.path.join(Path(__file__).parent.parent,"User_config_files","UserConfigs.json")
         self.instance = ConfigurationForUsersUI(self.sample_json)
 
 
@@ -120,6 +125,6 @@ class TestConfigurationCLI(unittest.TestCase):
         After the test are completed this function cleans up the function  file, which in this case
         the single json file.
         """
-        if os.path.exists("UserConfigs.json"):
-            os.remove("UserConfigs.json")
+        if os.path.exists(self.loc_to_file):
+            os.remove(self.loc_to_file)
 

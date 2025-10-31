@@ -55,6 +55,8 @@ class TestUserConfigStore(unittest.TestCase):
         """, encoding="utf-8")
         os.chdir(self.temp_dir)
         self.instance=configuration_for_users(self.json_test_data)
+        self.test_temp_file_path=Path(self.temp_dir).joinpath("UserConfigs.json")
+        self.instance.loc_to_save = self.test_temp_file_path
 
     def test_save_config(self):
 
@@ -75,7 +77,7 @@ class TestUserConfigStore(unittest.TestCase):
 
 
 
-        self.assertTrue(os.path.exists("UserConfigs.json"))
+        self.assertTrue(os.path.exists(self.test_temp_file_path))
 
     def test_invalid_valid_json(self):
 
@@ -92,6 +94,9 @@ class TestUserConfigStore(unittest.TestCase):
         bad_json_text = self.bad_json.read_text(encoding="utf-8")
         with self.assertRaises(json.JSONDecodeError):
             json.loads(bad_json_text)
+
+
+
 
     def test_valid_json(self):
 
