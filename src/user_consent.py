@@ -173,9 +173,10 @@ if __name__ == "__main__":
     and data_consent.
     """
     data = ConfigLoader().load()
-    configure_json_data = configuration_for_users(data)
-    configure_json_data.save_with_consent(external_consent,data_consent)
-    configure_json_data.save_config()
+    #Loading the currently available json data
+    configure_json_data = configuration_for_users(data) #Here I am initializing the configuration class
+    configure_json_data.save_with_consent(external_consent,data_consent) #Here I am using the method to store the External consent, and data_Consent state
+    configure_json_data.save_config() #Here I am saving the updated Json file with the consent added to the user configuration
 
     # Show appropriate message based on consent levels
     if external_consent:
