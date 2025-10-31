@@ -403,6 +403,7 @@ class TestConfigurationCLI(unittest.TestCase):
 ## 🧠 Reflection on Current Cycle (Week 9)
 
 **Week 9** 
+This week was very uneventful, because this week I decided to take on lighter workload, because this week I was hammered with midterms so I took the task of modifying my current `configuration.py` adding a new function called `save_with_consent` which has the job of taking the current json and adding a new **key, value pair** based on the return values in the `user_cosent.py`. I also introduced a new folder for stroring userconfigs, which required to make further changes to may configuration class to refelct these changes. In other words I had to introduced a new file pathing system to get the location of the folder so taht my system could save the json docs in the right folder.
 
 ## 🧠 Reflection on Past Cycle (Week 8)  
 
