@@ -365,3 +365,82 @@ class TestConfigurationCLI(unittest.TestCase):
 
 
 ---
+
+
+# 📝 Personal Log – Week 9 (10/27/2025 – 10/30/2025)
+
+## 📊 Peer Evaluation  
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/10-31-2025.png)
+
+
+
+---
+
+## 🚀 Features Worked On  
+- Worked updating the user configuration so that it now stores the user costent to the use of data in the system which includes **External** or **Internal**
+- Refactored my `Configuration.py` to reflect the changes I made to the internal stucture of the system, which includes introduction a new folder(**UserConfigs**) to store both the template and also strored the user actual configs when they use the system.In addition I added `__init__` to my `configuration.py` so that I can get the the correct file path to my new folder with any system
+
+---
+
+## 📌 Associated Tasks from Project Board  
+- [Create CLI interface for saving user configuration](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/119)
+---
+
+## 📈 Progress Update (since 10/22/2025)  
+
+| Task/Issue | Status |
+|------------|--------|
+|**Creation a system to save the user costent to data** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+|**Refactored configuration to reflected changes made to internal system**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
+
+
+## 🎯 Next Week’s Goals
+
+- Begin working on the file analysis aspect of the system. 
+
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 9)
+
+**Week 9**
+This week was very uneventful, because this week I decided to take on **lighter workload**, due to the fact I had a  prepare and  study  with midterms so I took the task of modifying my current `configuration.py` adding a new function called `save_with_consent` which has the job of bringing the current json and adding a new **key, value pair** based on the return values in the `user_cosent.py`. I also introduced a new folder for storing user configs, which required me to make further changes to my configuration class to reflect these changes. In other words, I had to introduce a new file pathing system to retrieve the location of the folder so that my system could save the JSON files in the right folder—an example of this approach is shown below.
+
+```python
+ def __init__(self,jsonfile,loc_to_save='User_config_files'):
+        """
+        Initializes the Configuration class instance
+
+        This constructor sets up the user configuration file, determines the
+        root directory of the project, and defines the path where configuration file("UserConfigs.json")
+        will be stored
+
+        :param jsonfile: User Configuration **json file**
+        """
+        self.jsonfile = jsonfile
+        self.project_Root = pa.Path(__file__).parent.parent #Here I am assigning the project root to variable called project Root
+        self.loc_to_save=pa.Path(os.path.join(self.project_Root,loc_to_save,"UserConfigs.json"))# Here I am creating the location path by combing the project root, the classes loc_save and file name itself
+
+
+def save_config(self):
+
+        """
+           Saves the JSON configuration file to the user's system.
+
+           :return:
+               bool: True if the file was saved successfully, False otherwise.
+           """
+
+
+        with open(self.loc_to_save, "wb") as f: #Reading the json_file
+            print("HIT")
+            f.write(orjson.dumps(self.jsonfile,option=orjson.OPT_INDENT_2)) #dumping the data it to be saved using the orjson library
+
+        return os.path.exists(self.loc_to_save)
+        #Returns bool state to see if the actually file exists and created successfully
+
+```
+
+After making these modifications I moved towards making the test to check to see if the user configuration  gets updated correctly with the correct user constent data. In addition I manually tested the code to see if the data does get updated when using `user_cosent.py` interface, which to my joy it sucessfully does. One last thing to mention me and Puneet Maan worked on fixing an issue that was discovered by me and Cameron on Mahi code, which was fixed by Puneet and tested by me to ensure that the test run sucessfully with no issues at all.
+Overall this is what I did for this current spirnt.
+
