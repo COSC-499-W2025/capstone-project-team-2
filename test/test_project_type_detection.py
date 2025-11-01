@@ -1,3 +1,5 @@
+import gc
+import time
 import tempfile
 import unittest
 from pathlib import Path
@@ -8,20 +10,26 @@ from git import Repo, Actor
 sys.path.append(str(Path(__file__).parent.parent))
 import src.project_type_detection as project_type_detection
 
+
 class TestProjectTypeDetection(unittest.TestCase):
     def setUp(self):
-        self.temp_dir = tempfile.TemporaryDirectory()
+        # Windows-safe: allow cleanup even if a background process briefly holds a handle.
+        # Explicit repo.close() + GC + small sleep should make this unnecessary, but it guards CI machines.
+        self.temp_dir = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
         self.project_root = Path(self.temp_dir.name)
 
     def tearDown(self):
+        # Help Windows release file handles deterministically
+        gc.collect()
+        time.sleep(0.05)
         self.temp_dir.cleanup()
-  
+
     def _write(self, relative_path: str, content: str = "") -> Path:
         path = self.project_root / relative_path
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
         return path
-    
+
     def test_extract_names_patterns(self):
         """Test that extract_names_from_text catches complex name patterns."""
         text = """
@@ -94,25 +102,29 @@ class TestProjectTypeDetection(unittest.TestCase):
         invalid_path = self.project_root / "nonexistent"
         result = project_type_detection.detect_project_type(invalid_path)
         self.assertEqual(result, {"project_type": "unknown", "mode": "local"})
-        
+
     def test_git_repo_individual(self):
         """Detect 'individual' from Git repo with one unique author."""
         repo = Repo.init(self.project_root)
-        file_path = self._write("main.py", "print('hello')")
+        # Ensure repo is closed on Windows (even if assertion fails)
+        self.addCleanup(repo.close)
 
-        # Add relative path (required by GitPython)
+        file_path = self._write("main.py", "print('hello')")
         relative_path = file_path.relative_to(self.project_root)
         repo.index.add([str(relative_path)])
 
         author = Actor("Alice", "alice@example.com")
         repo.index.commit("Initial commit", author=author, committer=author)
 
+        # Run detection (which opens & closes its own Repo instance)
         result = project_type_detection.detect_project_type(self.project_root)
         self.assertEqual(result, {"project_type": "individual", "mode": "git"})
-        
+
     def test_git_repo_collaborative(self):
         """Detect 'collaborative' when multiple unique author names exist in Git repo."""
         repo = Repo.init(self.project_root)
+        self.addCleanup(repo.close)
+
         file_path = self._write("main.py", "print('v1')")
         relative_path = file_path.relative_to(self.project_root)
         repo.index.add([str(relative_path)])
@@ -130,7 +142,9 @@ class TestProjectTypeDetection(unittest.TestCase):
 
     def test_git_repo_empty(self):
         """Detect 'unknown' for empty Git repo (no commits)."""
-        Repo.init(self.project_root)
+        repo = Repo.init(self.project_root)
+        self.addCleanup(repo.close)
+
         result = project_type_detection.detect_project_type(self.project_root)
         self.assertEqual(result, {"project_type": "unknown", "mode": "git"})
 
@@ -140,8 +154,6 @@ class TestProjectTypeDetection(unittest.TestCase):
         result = project_type_detection.detect_project_type(self.project_root)
         self.assertEqual(result["mode"], "local")
         self.assertIn(result["project_type"], ("individual", "collaborative", "unknown"))
-    
-
 
 
 if __name__ == "__main__":
