@@ -395,6 +395,7 @@ class TestConfigurationCLI(unittest.TestCase):
 
 
 ## 🎯 Next Week’s Goals
+
 - Begin working on the file analysis aspect of the system. 
 
 
@@ -402,9 +403,41 @@ class TestConfigurationCLI(unittest.TestCase):
 
 ## 🧠 Reflection on Current Cycle (Week 9)
 
-**Week 9** 
-This week was very uneventful, because this week I decided to take on lighter workload, because this week I was hammered with midterms so I took the task of modifying my current `configuration.py` adding a new function called `save_with_consent` which has the job of taking the current json and adding a new **key, value pair** based on the return values in the `user_cosent.py`. I also introduced a new folder for stroring userconfigs, which required to make further changes to may configuration class to refelct these changes. In other words I had to introduced a new file pathing system to get the location of the folder so taht my system could save the json docs in the right folder.
+**Week 9**
+This week was very uneventful, because this week I decided to take on **lighter workload**, due to the fact I had a  prepare and  study  with midterms so I took the task of modifying my current `configuration.py` adding a new function called `save_with_consent` which has the job of bringing the current json and adding a new **key, value pair** based on the return values in the `user_cosent.py`. I also introduced a new folder for storing user configs, which required me to make further changes to my configuration class to reflect these changes. In other words, I had to introduce a new file pathing system to retrieve the location of the folder so that my system could save the JSON files in the right folder—an example of this approach is shown below.
 
-## 🧠 Reflection on Past Cycle (Week 8)  
+```python
+ def __init__(self,jsonfile,loc_to_save='User_config_files'):
+        """
+        Initializes the Configuration class instance
 
-**week 8** 
+        This constructor sets up the user configuration file, determines the
+        root directory of the project, and defines the path where configuration file("UserConfigs.json")
+        will be stored
+
+        :param jsonfile: User Configuration **json file**
+        """
+        self.jsonfile = jsonfile
+        self.project_Root = pa.Path(__file__).parent.parent #Here I am assigning the project root to variable called project Root
+        self.loc_to_save=pa.Path(os.path.join(self.project_Root,loc_to_save,"UserConfigs.json"))# Here I am creating the location path by combing the project root, the classes loc_save and file name itself
+
+
+def save_config(self):
+
+        """
+           Saves the JSON configuration file to the user's system.
+
+           :return:
+               bool: True if the file was saved successfully, False otherwise.
+           """
+
+
+        with open(self.loc_to_save, "wb") as f: #Reading the json_file
+            print("HIT")
+            f.write(orjson.dumps(self.jsonfile,option=orjson.OPT_INDENT_2)) #dumping the data it to be saved using the orjson library
+
+        return os.path.exists(self.loc_to_save)
+        #Returns bool state to see if the actually file exists and created successfully
+
+```
+
