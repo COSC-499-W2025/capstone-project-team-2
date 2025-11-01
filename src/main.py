@@ -33,7 +33,7 @@ app_database  | 2025-11-01 23:26:45.761 UTC [27] LOG:  checkpoint complete: wrot
 
 once we create the data base and wish to set up actual credentials
 
-update the python code as well as lines 26-29 and run:
+update the python code as well as lines 28-33 and run:
 
 docker-compose down -v  # -v removes old data
 docker-compose up db
