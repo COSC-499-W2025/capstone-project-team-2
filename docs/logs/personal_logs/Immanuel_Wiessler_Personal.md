@@ -441,5 +441,6 @@ def save_config(self):
 
 ```
 
-After making these modifications I moved towards making the test to check to see if the user configuration  gets updated correctly with the correct user constent data. In addition I manually tested the code to see if the data does get updated when using `user_cosent.py` interface, which to my joy it sucessfully does. Overall this is what I did for this current spirnt.
+After making these modifications I moved towards making the test to check to see if the user configuration  gets updated correctly with the correct user constent data. In addition I manually tested the code to see if the data does get updated when using `user_cosent.py` interface, which to my joy it sucessfully does. One last thing to mention me and Puneet Maan worked on fixing an issue that was discovered by me and Cameron on Mahi code, which was fixed by Puneet and tested by me to ensure that the test run sucessfully with no issues at all.
+Overall this is what I did for this current spirnt.
 
