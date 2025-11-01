@@ -1,12 +1,14 @@
 import sys
 from src.Configuration import configuration_for_users
 from src.user_startup_config import ConfigLoader
+import os
+
 # Data consent messages
 CONSENT_HEADER = "\nData Usage Consent\n" + "-" * 50
 CONSENT_REQUEST = """We need your permission to use the data you will upload in our system.
 This data will be processed and analyzed as part of our mining system.
 """
-CONSENT_PROMPT = "\nDo you consent to allow us to use your data? (yes/no): "
+CONSENT_PROMPT = "\nDo you consent to allow us to use your data? (yes/no/view): "
 CONSENT_GRANTED = "\n✓ Thank you! Consent granted for data usage."
 
 # External services consent messages
@@ -18,19 +20,32 @@ Privacy Implications:
 - Enhanced analysis capabilities
 - Strict data handling protocols followed
 - External processing is optional"""
-EXTERNAL_PROMPT = "\nDo you consent to allow external services processing? (yes/no): "
+EXTERNAL_PROMPT = "\nDo you consent to allow external services processing? (yes/no/view): "
 EXTERNAL_GRANTED = "\n✓ Thank you! Your data will be processed with enhanced external services."
 EXTERNAL_DENIED = "\nYou've chosen to proceed without external services. Analysis will be limited to local processing only."
-EXTERNAL_DENIED_CONFIRM = "\nDo you want to continue with basic analysis (without external services)? (yes/no): "
+EXTERNAL_DENIED_CONFIRM = "\nDo you want to continue with basic analysis (without external services)? (yes/no/view): "
 
 # General messages
 CONSENT_DENIED_WARNING = "\n⚠️  Without consent, we cannot proceed with data processing."
-CONFIRM_EXIT_PROMPT = "Are you sure you want to exit? (yes/no): "
+CONFIRM_EXIT_PROMPT = "Are you sure you want to exit? (yes/no/view): "
 EXIT_MESSAGE = "\nThank you for your time. Exiting system."
 RETRY_MESSAGE = "\nReturning to consent question..."
-INVALID_INPUT = "\nInvalid input. Please answer with 'yes' or 'no'."
+INVALID_INPUT = "\nInvalid input. Please answer with 'yes', 'no', or 'view'."
 CONSENT_REVOKED = "\n⚠️  Consent has been revoked. Data access is now restricted."
+VIEW_CONSENT_FORM = "\n Type 'view' to read the full consent document."
 
+def show_consent_file():
+    # Get project root (folder above /src)
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    consent_path = os.path.join(project_root, "consent_document.md")
+
+    try:
+        with open(consent_path, "r", encoding="utf-8") as f:
+            print("\n" + "=" * 70)
+            print(f.read())
+            print("=" * 70 + "\n")
+    except FileNotFoundError:
+        print("\nConsent file not found. Make sure consent_document.md exists.\n")
 
 class UserConsent:
     def __init__(self):
@@ -46,6 +61,7 @@ class UserConsent:
         Returns:
             bool: True if user gave at least data consent, False if user denied completely
         """
+
         # First ask for data consent
         if not self._ask_for_data_consent():
             return False
@@ -66,7 +82,12 @@ class UserConsent:
         while True:
             print(CONSENT_HEADER)
             print(CONSENT_REQUEST)
+            print(VIEW_CONSENT_FORM)
             consent_answer = input(CONSENT_PROMPT).lower().strip()
+
+            if consent_answer in ['view', 'v']: 
+                show_consent_file()
+                continue
 
             if consent_answer in ['yes', 'y']:
                 self.has_data_consent = True
@@ -77,7 +98,9 @@ class UserConsent:
                 while True:
                     print(CONSENT_DENIED_WARNING)
                     confirm_exit = input(CONFIRM_EXIT_PROMPT).lower().strip()
-
+                    if confirm_exit in ['view', 'v']:
+                        show_consent_file()
+                        continue
                     if confirm_exit in ['yes', 'y']:
                         self.has_data_consent = False
                         print(EXIT_MESSAGE)
@@ -104,9 +127,15 @@ class UserConsent:
         """
         print(EXTERNAL_HEADER)
         print(EXTERNAL_REQUEST)
+        print(VIEW_CONSENT_FORM)
         
         while True:
             external_answer = input(EXTERNAL_PROMPT).lower().strip()
+
+            # Allow user to view consent doc again
+            if external_answer in ['view', 'v']: 
+                show_consent_file()
+                continue
 
             if external_answer in ['yes', 'y']:
                 self.has_external_consent = True
@@ -119,7 +148,11 @@ class UserConsent:
                 
                 while True:
                     continue_answer = input(EXTERNAL_DENIED_CONFIRM).lower().strip()
-                    
+                        # User wants to check the full conditions
+                    if continue_answer in ['view', 'v']:
+                        show_consent_file()
+                        continue
+
                     if continue_answer in ['yes', 'y']:
                         # User wants to continue with basic analysis
                         return True
