@@ -318,3 +318,68 @@ Collaborate with the team to plan next sprint tasks and identify project improve
 
 </details>
 
+## Dates of Sprint: (10/27/2025 – 11/2/2025) 
+
+
+### Peer Eval Screenshot: <img width="1082" height="608" alt="mg1" src="https://github.com/user-attachments/assets/0e98cd1c-7ba0-4535-b381-8c0218f05025" />
+
+
+
+---
+
+### Features Worked on this Milestone   
+  * Fixed code and test failures caused by recent refactoring in related modules.
+  * Implemented logic to extrapolate individual contributions from non-Git collaborative projects using file metadata, contributor files, and filename heuristics.
+  * Developed and executed comprehensive unit tests for the new individual contribution detection feature to ensure correctness and consistency across project types.
+
+---
+
+## Associated Tasks from Project Board:
+- https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=134464676
+- https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=132355581
+---
+### Progress Update (since 10/06/2025)
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong></td>
+        <td><strong>STATUS</strong></td>
+    </tr>
+    <tr>
+        <td>Fix compatibility bugs and failing tests after refactor</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+    <tr>
+    <td>Implement individual contribution detection for non-Git collaborative projects</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+    <tr>
+    <td>Develop and validate corresponding test cases</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+    <tr>
+    <td>Implement individual contribution detection for Git collaborative projects</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Ongoing</span></td >
+    </tr>
+    
+    
+</table>
+
+
+---
+## Next week goals
+
+- Extend contribution extrapolation logic to Git-based collaborative projects.
+- Collaborate with teammates on integration and validation of the system.
+
+---
+
+### Extra Details:
+<details>
+    <summary><span style='font-weight:bold'>Click to expand</span> </summary>
+  This week, I focused on debugging and stabilizing the project type detection and contribution analysis modules after a teammate’s code refactor introduced integration issues. With Puneet’s help, a key bug caused by inconsistent path handling between different operating systems was resolved. I then worked on implementing the new feature for extrapolating individual contributions from non-Git collaborative projects, allowing the system to attribute work to contributors using file metadata, contributor files, and name-based heuristics. I also created robust unit tests to validate this logic under various edge cases, ensuring that both the feature and tests are platform-agnostic and maintainable. Overall, this week’s work focused on stabilization, refinement, and extending our contribution analysis capabilities. Next week, I plan to extend contribution extrapolation logic to Git-based collaborative projects after doing the required research.
+    </span>
+
+
+</details>
+
+
