@@ -383,7 +383,7 @@ class TestConfigurationCLI(unittest.TestCase):
 ---
 
 ## 📌 Associated Tasks from Project Board  
-- [Create CLI interface for saving user configuration](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/119)
+- [Save consent status](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/119)
 ---
 
 ## 📈 Progress Update (since 10/22/2025)  
