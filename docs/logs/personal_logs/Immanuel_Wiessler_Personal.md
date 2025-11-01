@@ -370,7 +370,7 @@ class TestConfigurationCLI(unittest.TestCase):
 # 📝 Personal Log – Week 9 (10/27/2025 – 10/30/2025)
 
 ## 📊 Peer Evaluation  
-![Immanuel Wiessler Peer Screenshot]()
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/10-31-2025.png)
 
 
 
