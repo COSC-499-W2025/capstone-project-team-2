@@ -104,6 +104,48 @@ class TestUserConsent(unittest.TestCase):
         self.assertTrue(data_consent)
         self.assertFalse(external_consent)
 
+    @patch('src.user_consent.show_consent_file')  
+    @patch('builtins.input', side_effect=['view', 'y', 'y'])  
+    def test_view_then_full_consent(self, mock_input, mock_show):
+        """
+        User views policy at data-consent prompt, then grants both consents.
+        """
+        uc = UserConsent()
+        ok = uc.ask_for_consent()
+        self.assertTrue(ok)
+        dc, ec = uc.check_consent()
+        self.assertTrue(dc)
+        self.assertTrue(ec)
+        mock_show.assert_called()
+
+    @patch('src.user_consent.show_consent_file')
+    @patch('builtins.input', side_effect=['y', 'view', 'y'])
+    def test_view_at_external_prompt_then_yes(self, mock_input, mock_show):
+        """
+        User grants data consent, views policy at external prompt, then accepts external.
+        """
+        uc = UserConsent()
+        ok = uc.ask_for_consent()
+        self.assertTrue(ok)
+        dc, ec = uc.check_consent()
+        self.assertTrue(dc)
+        self.assertTrue(ec)
+        mock_show.assert_called()
+
+    @patch('src.user_consent.show_consent_file')
+    @patch('builtins.input', side_effect=['y', 'n', 'view', 'y'])
+    def test_view_at_basic_confirm_then_continue_locally(self, mock_input, mock_show):
+        """
+        User declines external, views policy at the confirm prompt, then continues with local-only.
+        """
+        uc = UserConsent()
+        ok = uc.ask_for_consent()
+        self.assertTrue(ok)
+        dc, ec = uc.check_consent()
+        self.assertTrue(dc)
+        self.assertFalse(ec)
+        mock_show.assert_called()
+
 
 if __name__ == "__main__":
     unittest.main()
