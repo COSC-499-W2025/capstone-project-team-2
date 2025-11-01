@@ -1,4 +1,65 @@
-## Week 8 (10/27/2025- 11/02/2025)
+## Week 9 (10/27/2025- 11/02/2025)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+<img width="2079" height="1195" alt="image" src="https://github.com/user-attachments/assets/a12f20ee-ae4f-4699-bf58-f8869027808b" />
+
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: Terms and Conditions .md document
+  * #2: Added code in user_consent.py so users can view terms and conditions document
+  * #3: Added unit tests to test_user_consent.py
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description                     | Feature                   | Assigned To | Status   |
+| ------- | ------------------------------- | ------------------------- | ----------- | -------- |
+| [#32]   | [Terms and Conditions .md doc]  | [Create doc             ] | [ssmith86]  | [complete]   |
+| [#32]   | [add 'view' feature in user_consent.py]   | [allows user to view terms and conditions] | [ssmith86]  | [complete]   |
+| [#32]   | [add 'view' tests in test_user_consent.py]   | [tests 'view' feature] | [ssmith86]  | [complete]   |
+
+### Progress Update (since 10/26/2025) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Create terms and conditions document
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Update user_consent.py to allow user to view terms and conditions
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Update test_user_consent.py with tests for 'view' feature
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+I took on a slightly lighter task this week because I had a difficult midterm on Thursday. Shoutout to Mahi for having nice code already in the user_consent.py file. It made it relatively simple to add the 'view' feature for the terms and conditions document.
+
+### Tasks for Next Sprint:
+- Issue # 113: Store chronological list of projects
+
+
+## Week 8 (10/20/2025- 10/26/2025)
 
 ### Task Types Worked On (Screenshot from Peer Eval)
 
