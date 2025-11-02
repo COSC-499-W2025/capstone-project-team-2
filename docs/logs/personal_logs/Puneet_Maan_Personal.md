@@ -1,3 +1,65 @@
+# Sprint Log: (27/10/2025 – 02/11/2025)
+
+---
+
+##  Peer Evaluation
+![alt text](../peer_eval_screenshots/02-11-2025_PeerEval_Puneet_Maan.png)
+
+---
+
+##  Weekly Goals Recap
+
+This week, I focused on delivering the first half of the resume automation system and supporting teammates in maintaining cross platform reliability in our collaboration detection pipeline.  
+I shipped the **Resume Item Generator** with full test coverage and reviewed / assisted on contribution-related logic fixes.  
+I also opened and helped resolve a bug around contributor file precedence in project type detection.
+
+---
+
+## Key Accomplishments
+-  Shipped **PR #111 :** Resume Item Generator + tests  
+-  Created **Issue #120** – Project type detection bug (contributors should override metadata)  
+-  Helped resolve Windows Git handle + test stability issues during contribution detection PR review  
+-  Supported teammate PR review and test debugging (**Mahi’s PR**)  
+
+---
+
+##  Deliverables Completed
+
+## **Resume Item Generator**
+- Implemented `ResumeItem` dataclass and generation pipeline  
+- Added stack, collaboration, and skills summary logic  
+- Integrated Git based collaboration inference signals  
+- Deterministic list ordering + predictable output format  
+
+---
+
+##  Code Review & Collaboration
+- Reviewed and tested teammate’s Individual Contribution PR  
+- Provided fix guidance for unattributed bucket edge case  
+- Reviewed project type / Windows Git handle PR  
+
+---
+
+##  Plan for Next Cycle
+- Submit PR for **Resume Exporter + CLI**  
+- Add JSON schema snapshots + CLI integration tests  
+- Support contributor insights integration into resume output  
+
+---
+
+##  Reflection Points
+
+##  What Went Well
+- Delivered core resume feature with deterministic tests  
+- Strong collaboration while reviewing PRs & diagnosing cross-platform issues  
+- Scoped PR responsibly by splitting generator and exporter work  
+
+##  What I Can Improve
+- Continue breaking large features into staged PRs (good start this week)  
+- Increase automation confidence by running cross platform tests earlier
+
+## ====================================================
+
 # Sprint Log: (10/20/2025 – 10/26/2025)
 
 ---
