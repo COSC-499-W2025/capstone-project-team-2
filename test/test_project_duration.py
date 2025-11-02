@@ -28,6 +28,11 @@ class TestDurationEstimator(unittest.TestCase):
         }]
     }
 
+    no_file_dic = { #Intended for a no file test
+        "type": "DIR",
+        "children": []
+    }
+
     correct_end_date = datetime.datetime(2025, 11, 22) #Correct latest last modified date of mock dictionary
     correct_start_date = datetime.datetime(2000, 1, 1)  #Correct earliest creation date of mock dictionary
     correct_duration = correct_end_date - correct_start_date    #Correct project duration of mock dictionary
@@ -58,6 +63,14 @@ class TestDurationEstimator(unittest.TestCase):
         Tests that the duration estimate is correct for the mock dictionary.
         '''
         self.assertEqual(self.Duration_Estimator.get_duration(), self.correct_duration)
+
+    def test_no_files(self):
+        '''
+        Negative Test.
+        Tests that exception is raised that no files are present for estimation
+        '''
+        with self.assertRaises(Exception):
+            no_files = Project_Duration_Estimator(self.no_file_dic)
 
 if __name__== "__main__":
     unittest.main()
