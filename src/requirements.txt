@@ -1,6 +1,5 @@
-os
 FreeSimpleGUI
 matplotlib
-zipfile 
 click
 gitpython
+psycopg2-binary
