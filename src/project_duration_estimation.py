@@ -50,8 +50,7 @@ class Project_Duration_Estimator:
 
     def __find_duration(self):
         '''
-        Takes a list of creation dates and last modified dates of files to determine an estimate of project length.
-        Also stores the earliest creation date and latest last modified date in case of user input changes.
+        Takes a list of creation dates and last modified dates of files, finding the earliest creation date and latest last modified date for the use of estimating project length.
         '''
         start_estimate = self.created_dates[0]  #Starter for earliest creation date
         end_estimate = self.mod_dates[0]    #Starter for latest last modified date
@@ -65,11 +64,10 @@ class Project_Duration_Estimator:
 
         self.start_estimate = start_estimate
         self.end_estimate = end_estimate
-        self.duration_estiamte = end_estimate - start_estimate  #Gives the estimated project duration in datetime.timedelta format (The result of taking a difference of datetimes)
 
     def get_duration(self) -> datetime.timedelta:
         '''
         Returns a datetime.timedelta showing the project duration estimate.
         '''
-        return self.duration_estiamte
+        return self.end_estimate - self.start_estimate
 
