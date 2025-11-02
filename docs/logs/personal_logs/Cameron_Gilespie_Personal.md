@@ -1,3 +1,36 @@
+## Dates of Sprint: (10/26/2025 – 11/1/2025)
+
+### Peer Eval Screenshot:
+
+<img width="1092" height="626" alt="image" src= "https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Cameron-Personal-Logs/docs/logs/peer_eval_screenshots/PL_CameronG_11_1_25.png" />
+
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: Add the foundation for Docker integration for the database and app containerization
+
+
+## Associated Tasks from Project Board:
+
+| Description        | Status   |
+| ------------------ | -------- |
+| [Add the foundation for Docker integration for the database and app containerization]  | [Complete] |
+
+
+
+---
+## Next week goals
+The goals for Week 6:
+- Expand the docker integration for database launch/ creation
+- start putting together our application
+---
+
+### Extra Details:
+
+<details>
+The main goal of this week was to set the foundation for docker continering our application as well as laying the foundation for establishing our database. I didnt do much this week the the grandscheme of things due to still being in exam season. Now that all exams are resolved I plan on planning out our next stages for app containerization as possibly setting up the database that we require. I also hope we start planning out the entry point as well as assembling all our code to create the demo
+
+</details>
+
 ## Dates of Sprint: (10/19/2025 – 10/25/2025)
 
 ### Peer Eval Screenshot:
