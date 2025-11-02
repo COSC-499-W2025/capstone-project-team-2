@@ -128,7 +128,8 @@ def build_canonical(metadata_owners: Iterable[str], contribs: Iterable[str]) -> 
 def detect_individual_contributions_local(
     project_root: Path,
     *,
-    extractor: Optional[FileMetadataExtractor] = None
+    extractor: Optional[FileMetadataExtractor] = None,
+    include_unattributed: bool = True
 ) -> Dict[str, Dict]:
     
     """
