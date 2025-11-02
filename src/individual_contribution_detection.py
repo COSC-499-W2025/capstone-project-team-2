@@ -128,8 +128,7 @@ def build_canonical(metadata_owners: Iterable[str], contribs: Iterable[str]) -> 
 def detect_individual_contributions_local(
     project_root: Path,
     *,
-    extractor: Optional[FileMetadataExtractor] = None,
-    include_unattributed: bool = True,
+    extractor: Optional[FileMetadataExtractor] = None
 ) -> Dict[str, Dict]:
     
     """
@@ -149,12 +148,15 @@ def detect_individual_contributions_local(
     owners = [v for v in set(file_map.values()) if v is not None]
     owner_to_canon, contrib_to_canon = build_canonical(owners, contrib_names)
 
-    # Initialize contributor buckets
+    # Initialize contributor buckets (always include <unattributed> to avoid KeyError)
     buckets: Dict[str, Dict[str, List[str]]] = {}
+
+    # Create a bucket for every canonical contributor
     for c in set(owner_to_canon.values()) | set(contrib_to_canon.values()):
         buckets[c] = {"files_owned": [], "files_from_metadata": [], "files_from_text": []}
-    if include_unattributed:
-        buckets[UNATTRIBUTED] = {"files_owned": [], "files_from_metadata": [], "files_from_text": []}
+
+    # Always include <unattributed> bucket (safe even if empty)
+    buckets[UNATTRIBUTED] = {"files_owned": [], "files_from_metadata": [], "files_from_text": []}
 
     # Assign metadata-owned files
     for rel, owner in file_map.items():
