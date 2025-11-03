@@ -16,7 +16,7 @@ I also opened and helped resolve a bug around contributor file precedence in pro
 ---
 
 ## Key Accomplishments
--  Shipped **PR #111 :** Resume Item Generator + tests  
+-  Worked on **PR #111 :** Resume Item Generator + tests  
 -  Created **Issue #120** – Project type detection bug (contributors should override metadata)  
 -  Helped resolve Windows Git handle + test stability issues during contribution detection PR review  
 -  Supported teammate PR review and test debugging (**Mahi’s PR**)  
