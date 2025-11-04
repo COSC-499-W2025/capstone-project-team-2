@@ -254,16 +254,25 @@ class TestExtraction(unittest.TestCase):
             file_path = os.path.join(self.temp_path, file)
             self.assertTrue(os.path.exists(file_path))
 
+
+
+
+
     @patch('src.CLI_interface_for_file_extraction.extractInfo')
     @patch('src.CLI_interface_for_file_extraction.input')
     @patch('builtins.print')
     def test_valid_zip_file_extraction_cli(self,mock_print, mock_input, mock_extract_Info):
+        """
+        Here we are simulating the user interaction with the extraction cli
+        when the user uploads a valid zip file, returning a success message
+        """
         test_file_name=Path(self.test_zip_file_path).name
         mock_input.return_value = self.test_zip_file_path
         mock_instance=MagicMock()
         mock_extract_Info.return_value = mock_instance
 
         cli=zipExtractionCLI()
+        #Here I am instantiating the zipExtreactionCLI class
         cli.run_cli()
         mock_extract_Info.assert_called_once_with(self.test_zip_file_path)
         mock_instance.runExtraction.assert_called_once()
@@ -273,7 +282,10 @@ class TestExtraction(unittest.TestCase):
     @patch('src.CLI_interface_for_file_extraction.input')
     @patch('builtins.print')
     def test_invalid_zip_file_extraction_cli(self, mock_print, mock_input, mock_extract_Info):
-        test_file_name = Path(self.not_zip_file_path).name
+        """
+        Here we are simulating the user interaction with the extraction cli
+        when they upload a invalid zip file, returning an error message
+        """
         mock_input.return_value = self.not_zip_file_path
         mock_instance = MagicMock()
         mock_instance.runExtraction.return_value = "Error! Zip file is bad!"
