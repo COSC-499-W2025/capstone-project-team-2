@@ -190,3 +190,41 @@
 ### Extra Details:
 * Planning on designing data analyis structure during team meeting on Monday.
 * Will work on data analysis next sprint. Component I will work on TBD.
+
+---------------------------
+
+## Sunday (26/10 - 02/11)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/03-11-25_PeerEval_SamM.PNG)
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: Estimate Duration of Project
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description        | Feature   | Assigned To | Status   |
+| ------- | ------------------ | --------- | ----------- | -------- |
+| #109   | Estimating project duration using metadata | Estimate Project Duration | Samantha Maranda  | Completed |
+
+### Progress Update (since 19/10/2025) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Estimate project duration
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+* Planning on saving project duration and pulling a list of files with metadata from dictionary for better access in systems.
