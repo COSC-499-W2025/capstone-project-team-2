@@ -4,7 +4,12 @@ import tempfile
 import zipfile
 
 import unittest
+from pathlib import Path
+
 from src.extraction import extractInfo
+from src.CLI_interface_for_file_extraction import zipExtractionCLI
+from unittest.mock import patch, MagicMock, call
+
 
 class TestExtraction(unittest.TestCase):
 
@@ -248,6 +253,37 @@ class TestExtraction(unittest.TestCase):
         for file in os.listdir(self.temp_path):
             file_path = os.path.join(self.temp_path, file)
             self.assertTrue(os.path.exists(file_path))
+
+    @patch('src.CLI_interface_for_file_extraction.extractInfo')
+    @patch('src.CLI_interface_for_file_extraction.input')
+    @patch('builtins.print')
+    def test_valid_zip_file_extraction_cli(self,mock_print, mock_input, mock_extract_Info):
+        test_file_name=Path(self.test_zip_file_path).name
+        mock_input.return_value = self.test_zip_file_path
+        mock_instance=MagicMock()
+        mock_extract_Info.return_value = mock_instance
+
+        cli=zipExtractionCLI()
+        cli.run_cli()
+        mock_extract_Info.assert_called_once_with(self.test_zip_file_path)
+        mock_instance.runExtraction.assert_called_once()
+        mock_print.assert_any_call(f"{test_file_name} has been extracted successfully")
+
+    @patch('src.CLI_interface_for_file_extraction.extractInfo')
+    @patch('src.CLI_interface_for_file_extraction.input')
+    @patch('builtins.print')
+    def test_invalid_zip_file_extraction_cli(self, mock_print, mock_input, mock_extract_Info):
+        test_file_name = Path(self.not_zip_file_path).name
+        mock_input.return_value = self.not_zip_file_path
+        mock_instance = MagicMock()
+        mock_instance.runExtraction.return_value = "Error! Zip file is bad!"
+        mock_extract_Info.return_value = mock_instance
+
+        cli = zipExtractionCLI()
+        cli.run_cli(max_retries=1)
+
+
+        mock_print.assert_any_call("Error! Zip file is bad!")
 
     def tearDown(self):
 

@@ -69,7 +69,6 @@ class TestConfigurationCLI(unittest.TestCase):
         self.assertIn("ID cannot be modified", str(context.exception))
         mock_input.assert_called_once()
 
-
     @patch('builtins.input', side_effect=["2", "fdfd", "n"])
     @patch('builtins.print')
     def test_invalid_input(self, mock_print, mock_input):
