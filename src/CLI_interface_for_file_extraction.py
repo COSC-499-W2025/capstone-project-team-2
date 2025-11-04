@@ -17,7 +17,6 @@ class  zipExtractionCLI():
     """
 
     def run_cli(self,max_retries=3):
-        flag=True
         retires=1
         while retires <= max_retries:
             print(f'try: {retires}/{max_retries}')
@@ -29,7 +28,6 @@ class  zipExtractionCLI():
             # Here I am running the extraction class
 
             if file_path_to_extract=='q':
-                flag = False
                 break
 
             if "Error!" in messages:
@@ -41,8 +39,6 @@ class  zipExtractionCLI():
                 print("Returning you back to main screen")
                 break
 
-            else:
-                flag=False
 
         if retires>=max_retries:
             print("Too many invalid attempts. Exiting...")

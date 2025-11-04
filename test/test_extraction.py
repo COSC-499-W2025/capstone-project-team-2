@@ -285,6 +285,37 @@ class TestExtraction(unittest.TestCase):
 
         mock_print.assert_any_call("Error! Zip file is bad!")
 
+    @patch('src.CLI_interface_for_file_extraction.extractInfo')
+    @patch('src.CLI_interface_for_file_extraction.input')
+    @patch('builtins.print')
+    def test_invalid_zip_file_extraction_minimum_retries(self, mock_print, mock_input, mock_extract_Info):
+        """
+        Ensure the CLI runs extraction multiple times for invalid ZIP files.
+        Checks that both extractInfo() and runExtraction() are called
+        at least twice before exiting.
+        """
+
+        mock_input.return_value = self.not_zip_file_path
+
+        mock_instance = MagicMock()
+        mock_instance.runExtraction.return_value = extractInfo.BAD_ZIP_ERROR_TEXT
+        mock_extract_Info.return_value = mock_instance
+
+        cli = zipExtractionCLI()
+        cli.run_cli(max_retries=3)
+
+
+        assert mock_extract_Info.call_count >= 2, (
+            f"Expected extractInfo() to be called multiple times, got {mock_extract_Info.call_count}"
+        )
+        assert mock_instance.runExtraction.call_count >= 2, (
+            f"Expected runExtraction() to be called multiple times, got {mock_instance.runExtraction.call_count}"
+        )
+
+
+        mock_print.assert_any_call(extractInfo.BAD_ZIP_ERROR_TEXT)
+        mock_print.assert_any_call("Too many invalid attempts. Exiting...")
+
     def tearDown(self):
 
         """
