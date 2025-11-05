@@ -321,7 +321,7 @@ class TestExtraction(unittest.TestCase):
     @patch('src.CLI_interface_for_file_extraction.extractInfo')
     @patch('src.CLI_interface_for_file_extraction.input')
     @patch('builtins.print')
-    def test_invalid_zip_file_extraction_minimum_retries(self, mock_print, mock_input, mock_extract_Info):
+    def test_invalid_zip_file_extraction_minimum_retries_CLI(self, mock_print, mock_input, mock_extract_Info):
         """
         Ensure the CLI runs extraction multiple times for invalid ZIP files.
         Checks that both extractInfo() and runExtraction() are called
