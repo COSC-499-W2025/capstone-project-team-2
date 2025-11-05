@@ -3,6 +3,9 @@ from pathlib import Path
 from src.extraction import extractInfo
 import zipfile
 import os
+#Todo:
+# - Have the ability for user to upload multiple zip files at once (Optional)
+# - TimeOut feature for user input (Optional)
 
 
 class  zipExtractionCLI():
@@ -15,7 +18,36 @@ class  zipExtractionCLI():
     successfully extracted.
 
     """
+    def __init__(self):
+        self.retires = 1
 
+
+    def run_zip_interface(self):
+        file_path_to_extract = input("Please upload the project folder or type q to exit:")
+        # Asking the users for the file p
+        doc = Path(file_path_to_extract).name
+        # Finding the uploaded zips file name
+        messages = extractInfo(file_path_to_extract).runExtraction()
+        # Here I am running the extraction class
+
+        if file_path_to_extract == 'q':
+            print("Exiting zip Extraction Returning you back to main screen")
+            return "Exit"
+
+            # Here when the user types q,the program breaks out of the loop
+
+        if "Error!" in messages:
+            print(messages)
+            print("Please try again")
+            self.retires += 1
+
+
+        if "Error!" not in messages:
+            print(f"{doc} has been extracted successfully")
+            print("Returning you back to main screen")
+            return "extraction_successful"
+
+        return None
 
     def run_cli(self,max_retries=3):
         """
@@ -23,32 +55,20 @@ class  zipExtractionCLI():
         :param max_retries: This is the number of times to retry that a user can do
         :return:
         """
-        retires=1
-        while retires <= max_retries:
-            print(f'try: {retires}/{max_retries}')
-            file_path_to_extract=input("Please upload the project folder or type q to exit:")
-            #Asking the users for the file p
-            doc=Path(file_path_to_extract).name
-            #Finding the uploaded zips file name
-            messages=extractInfo(file_path_to_extract).runExtraction()
-            # Here I am running the extraction class
 
-            if file_path_to_extract=='q':
-                print("Exiting zip Extraction Returning you back to main screen")
+        while self.retires <= max_retries:
+            print(f'try: {self.retires}/{max_retries}')
+            result = self.run_zip_interface()
+
+            if result == "extraction_successful":
                 break
-                #Here when the user types q,the program breaks out of the loop
 
-            if "Error!" in messages:
-                print(messages)
-                retires += 1
-
-            if "Error!" not in messages:
-                print(f"{doc} has been extracted successfully")
-                print("Returning you back to main screen")
+            if result == "Exit":
                 break
 
 
-        if retires>=max_retries:
+
+        if self.retires>=max_retries:
             print("Too many invalid attempts. Exiting...")
 
 
