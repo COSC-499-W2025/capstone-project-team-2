@@ -299,7 +299,15 @@ class TestExtraction(unittest.TestCase):
 
     @patch('builtins.input', return_value='q')
     @patch('builtins.print')
-    def test_successfully_exit(self,mock_print,mock_input):
+    def test_successfully_exit_cli(self,mock_print,mock_input):
+        """
+        Tests that the CLI exits when the user types 'q'
+
+        This test simulates a user entering 'q' to exit/quit the zip extraction CLI
+        through verifying that the program displays exit message "Exiting zip Extraction Returning you back to main screen"."
+
+
+        """
         cli = zipExtractionCLI()
         cli.run_cli()
         mock_print.assert_any_call("Exiting zip Extraction Returning you back to main screen")
