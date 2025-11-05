@@ -297,6 +297,15 @@ class TestExtraction(unittest.TestCase):
 
         mock_print.assert_any_call("Error! Zip file is bad!")
 
+    @patch('builtins.input', return_value='q')
+    @patch('builtins.print')
+    def test_successfully_exit(self,mock_print,mock_input):
+        cli = zipExtractionCLI()
+        cli.run_cli()
+        mock_print.assert_any_call("Exiting zip Extraction Returning you back to main screen")
+
+
+
     @patch('src.CLI_interface_for_file_extraction.extractInfo')
     @patch('src.CLI_interface_for_file_extraction.input')
     @patch('builtins.print')
