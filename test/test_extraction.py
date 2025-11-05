@@ -25,6 +25,10 @@ class TestExtraction(unittest.TestCase):
 
     For method verifyZIP
     -
+    For method CLI
+    - Simulate typing q to exit the program
+    - Returning successfully message and exit the program when the user uploads a valid zip file
+    - Exits the program after the number of tries have been met
     """
 
 
