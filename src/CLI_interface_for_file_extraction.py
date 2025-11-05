@@ -16,7 +16,13 @@ class  zipExtractionCLI():
 
     """
 
+
     def run_cli(self,max_retries=3):
+        """
+
+        :param max_retries: This is the number of times to retry that a user can do
+        :return:
+        """
         retires=1
         while retires <= max_retries:
             print(f'try: {retires}/{max_retries}')
@@ -30,6 +36,7 @@ class  zipExtractionCLI():
             if file_path_to_extract=='q':
                 print("Exiting zip Extraction Returning you back to main screen")
                 break
+                #Here when the user types q  the program breaks out of the loop
 
             if "Error!" in messages:
                 print(messages)
