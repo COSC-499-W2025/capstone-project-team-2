@@ -36,7 +36,7 @@ class  zipExtractionCLI():
             if file_path_to_extract=='q':
                 print("Exiting zip Extraction Returning you back to main screen")
                 break
-                #Here when the user types q  the program breaks out of the loop
+                #Here when the user types q,the program breaks out of the loop
 
             if "Error!" in messages:
                 print(messages)
