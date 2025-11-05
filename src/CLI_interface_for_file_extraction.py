@@ -28,6 +28,7 @@ class  zipExtractionCLI():
             # Here I am running the extraction class
 
             if file_path_to_extract=='q':
+                print("Exiting zip Extraction Returning you back to main screen")
                 break
 
             if "Error!" in messages:
