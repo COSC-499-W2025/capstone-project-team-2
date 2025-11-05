@@ -285,7 +285,7 @@ class TestExtraction(unittest.TestCase):
     @patch('src.CLI_interface_for_file_extraction.extractInfo')
     @patch('src.CLI_interface_for_file_extraction.input')
     @patch('builtins.print')
-    def test_invalid_zip_file_extraction_cli(self, mock_print, mock_input, mock_extract_Info):
+    def test_invalid_zip_file_extraction_CLI(self, mock_print, mock_input, mock_extract_Info):
         """
         Here we are simulating the user interaction with the extraction cli
         when they upload a invalid zip file, returning an error message
@@ -303,7 +303,7 @@ class TestExtraction(unittest.TestCase):
 
     @patch('builtins.input', return_value='q')
     @patch('builtins.print')
-    def test_successfully_exit_cli(self,mock_print,mock_input):
+    def test_successfully_exit_CLI(self,mock_print,mock_input):
         """
         Tests that the CLI exits when the user types 'q'
 
