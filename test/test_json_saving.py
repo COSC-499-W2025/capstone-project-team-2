@@ -36,14 +36,16 @@ class Test_JSON_saving(unittest.TestCase):
         '''
         Tests that file is saved
         '''
-        SaveFileAnalysisAsJSON.saveAnalysis(self.test_name, self.test_dict, r"./")
+        analysisSaver = SaveFileAnalysisAsJSON()
+        analysisSaver.saveAnalysis(self.test_name, self.test_dict, r"./")
         self.assertTrue(os.path.exists(r"./"+self.test_name+r".json"))
 
     def test_json_integrity(self):
         '''
         Tests that file is saved with correct data, fails if file was not saved successfully
         '''
-        SaveFileAnalysisAsJSON.saveAnalysis(self.test_name, self.test_dict, r"./")
+        analysisSaver = SaveFileAnalysisAsJSON()
+        analysisSaver.saveAnalysis(self.test_name, self.test_dict, r"./")
         if not os.path.exists(r"./"+self.test_name+r".json"):
             assert False
         with open(r"./"+self.test_name+r".json", 'r') as file:
