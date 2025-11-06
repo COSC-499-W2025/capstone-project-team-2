@@ -146,7 +146,7 @@ class TestExtraction(unittest.TestCase):
         - Correct error text is returned when file is not zip
         """
         path = os.path.join(self.original_cwd, "test")
-        path = os.path.join(path, "TestZips")
+        path = os.path.join(path, "TestZIPs")
         path = os.path.join(path, "test.txt")
         extractInfo_instance = extractInfo(path)
         text = extractInfo_instance.verifyZIP()
@@ -161,7 +161,7 @@ class TestExtraction(unittest.TestCase):
         - Correct error text is returned when zip file is bad
         """
         path = os.path.join(self.original_cwd, "test")
-        path = os.path.join(path, "TestZips")
+        path = os.path.join(path, "TestZIPs")
         path = os.path.join(path, "TEST.zip")
         extractInfo_instance = extractInfo(path)
         text = extractInfo_instance.verifyZIP()
@@ -177,7 +177,7 @@ class TestExtraction(unittest.TestCase):
         - Non-zip file isn't marked as bad zip file
         """
         path = os.path.join(self.original_cwd, "test")
-        path = os.path.join(path, "TestZips")
+        path = os.path.join(path, "TestZIPs")
         path = os.path.join(path, "test.txt")
         extractInfo_instance = extractInfo(path)
         text = extractInfo_instance.verifyZIP()
@@ -205,7 +205,7 @@ class TestExtraction(unittest.TestCase):
         - Correct error text is returned when file is not zip
         """
         path = os.path.join(self.original_cwd, "test")
-        path = os.path.join(path, "TestZips")
+        path = os.path.join(path, "TestZIPs")
         path = os.path.join(path, "test.txt")
         extractInfo_instance = extractInfo(path)
         text = extractInfo_instance.runExtraction()
@@ -220,7 +220,7 @@ class TestExtraction(unittest.TestCase):
         - Correct error text is returned when zip file is bad
         """
         path = os.path.join(self.original_cwd, "test")
-        path = os.path.join(path, "TestZips")
+        path = os.path.join(path, "TestZIPs")
         path = os.path.join(path, "TEST.zip")
         extractInfo_instance = extractInfo(path)
         text = extractInfo_instance.runExtraction()
