@@ -145,7 +145,9 @@ class TestExtraction(unittest.TestCase):
         Verifies that:
         - Correct error text is returned when file is not zip
         """
-        path = os.path.join(self.original_cwd, r"test\TestZips\test.txt")
+        path = os.path.join(self.original_cwd, "test")
+        path = os.path.join(path, "TestZips")
+        path = os.path.join(path, "test.txt")
         extractInfo_instance = extractInfo(path)
         text = extractInfo_instance.verifyZIP()
         self.assertTrue(extractInfo_instance.NOT_ZIP_ERROR_TEXT in text)
@@ -158,7 +160,9 @@ class TestExtraction(unittest.TestCase):
         Verifies that:
         - Correct error text is returned when zip file is bad
         """
-        path = os.path.join(self.original_cwd, r"test\TestZips\TEST.zip")
+        path = os.path.join(self.original_cwd, "test")
+        path = os.path.join(path, "TestZips")
+        path = os.path.join(path, "TEST.zip")
         extractInfo_instance = extractInfo(path)
         text = extractInfo_instance.verifyZIP()
         print(text)
@@ -172,7 +176,9 @@ class TestExtraction(unittest.TestCase):
         Verifies that:
         - Non-zip file isn't marked as bad zip file
         """
-        path = os.path.join(self.original_cwd, r"test\TestZips\test.txt")
+        path = os.path.join(self.original_cwd, "test")
+        path = os.path.join(path, "TestZips")
+        path = os.path.join(path, "test.txt")
         extractInfo_instance = extractInfo(path)
         text = extractInfo_instance.verifyZIP()
         self.assertFalse(extractInfo_instance.BAD_ZIP_ERROR_TEXT in text)
@@ -198,7 +204,9 @@ class TestExtraction(unittest.TestCase):
         Verifies that:
         - Correct error text is returned when file is not zip
         """
-        path = os.path.join(self.original_cwd, r"test\TestZips\test.txt")
+        path = os.path.join(self.original_cwd, "test")
+        path = os.path.join(path, "TestZips")
+        path = os.path.join(path, "test.txt")
         extractInfo_instance = extractInfo(path)
         text = extractInfo_instance.runExtraction()
         self.assertTrue(extractInfo_instance.NOT_ZIP_ERROR_TEXT in text)
@@ -211,7 +219,9 @@ class TestExtraction(unittest.TestCase):
         Verifies that:
         - Correct error text is returned when zip file is bad
         """
-        path = os.path.join(self.original_cwd, r"test\TestZips\TEST.zip")
+        path = os.path.join(self.original_cwd, "test")
+        path = os.path.join(path, "TestZips")
+        path = os.path.join(path, "TEST.zip")
         extractInfo_instance = extractInfo(path)
         text = extractInfo_instance.runExtraction()
         print(text)
