@@ -1,3 +1,4 @@
+import datetime
 import os
 import json
 
@@ -52,6 +53,34 @@ class Test_JSON_saving(unittest.TestCase):
             file_text = file.read()
         json_text = json.loads(file_text)
         self.assertTrue(json_text == self.test_dict)
+
+    def test_hierarchy_to_project(self):
+        '''
+        Positive Test.
+        Tests that hierarchyToProject correctly returns a dict with the hierarchy placed with the correct index name
+        '''
+        analysisSaver = SaveFileAnalysisAsJSON()
+        project_dict = analysisSaver.hierarchyToProject(self.test_dict)
+        self.assertTrue(project_dict["project_files"] == self.test_dict)
+    
+    def test_hierarchy_to_project_none(self):
+        '''
+        Positive Test.
+        Tests that hierarchyToProject correctly returns a dict with the hierarchy placed with the correct index name using an empty dictionary
+        '''
+        analysisSaver = SaveFileAnalysisAsJSON()
+        project_dict = analysisSaver.hierarchyToProject({})
+        self.assertTrue(project_dict["project_files"] == {})
+
+    def test_add_project_dur(self):
+        '''
+        Positive Test
+        Tests that addProjectDuration correctly returns a dictionary with a datetime.timedelta indexed as "duration"
+        '''
+        analysisSaver = SaveFileAnalysisAsJSON()
+        time = datetime.timedelta(days=2)
+        project_dict = analysisSaver.addProjectDuration({}, time)
+        self.assertTrue(project_dict["duration"] == time)
 
     def tearDown(self):
         '''
