@@ -1,5 +1,5 @@
 import json
-import os
+import os, datetime
 
 '''
 
@@ -68,4 +68,13 @@ class SaveFileAnalysisAsJSON:
         project_dict = {
             "project_files": hierarchy_analysis
         }
+        return project_dict
+
+    def addProjectDuration(self, project_dict: dict, duration: datetime.timedelta) -> dict:
+        '''
+        Adds the project duration as a datetime.timedelta to the project dictionary
+
+        Returns the dictionary with the project duration added as "duration"
+        '''
+        project_dict["duration"] = duration
         return project_dict
