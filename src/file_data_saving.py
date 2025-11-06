@@ -38,22 +38,34 @@ class SaveFileAnalysisAsJSON:
     Saves those files in JSON format
     '''
 
-    def convertAnalysisToJSON(hierarchy_analysis: dict) -> str:
+    def convertAnalysisToJSON(self, project_dict: dict) -> str:
         '''
         Takes a dictionary and converts it to JSON string format
 
         For use only within SaveFileAnalysisAsJSON
         '''
-        hierarchy_analysis_json  = json.dumps(hierarchy_analysis, indent=4)
-        return hierarchy_analysis_json
+        project_json  = json.dumps(project_dict, indent=4)
+        return project_json
     
-    def saveAnalysis(project_name: str , hierarchy_analysis: dict, folder_path: str):
+    def saveAnalysis(self, project_name: str , project_dict: dict, folder_path: str):
         '''
         Saves a dictionary to a JSON file in the directory "folder_path"
 
         Saves as "project_name.json"
         '''
-        json_analysis = SaveFileAnalysisAsJSON.convertAnalysisToJSON(hierarchy_analysis)
+        json_project = self.convertAnalysisToJSON(project_dict)
         write_file = os.path.join(folder_path, project_name + r".json")
         with open(write_file, 'w') as file:
-            file.write(json_analysis)
+            file.write(json_project)
+
+    def hierarchyToProject(self, hierarchy_analysis: dict) -> dict:
+        '''
+        Places a hierarchy of files inside a dictionary.
+        Intended to be used before adding overall project details to dictionary for saving.
+
+        Returns a dictionary with hierarchy stored as "project_files"
+        '''
+        project_dict = {
+            "project_files": hierarchy_analysis
+        }
+        return project_dict
