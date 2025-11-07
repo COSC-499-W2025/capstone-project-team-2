@@ -444,3 +444,41 @@ def save_config(self):
 After making these modifications I moved towards making the test to check to see if the user configuration  gets updated correctly with the correct user constent data. In addition I manually tested the code to see if the data does get updated when using `user_cosent.py` interface, which to my joy it sucessfully does. One last thing to mention me and Puneet Maan worked on fixing an issue that was discovered by me and Cameron on Mahi code, which was fixed by Puneet and tested by me to ensure that the test run sucessfully with no issues at all.
 Overall this is what I did for this current spirnt.
 
+
+
+
+# 📝 Personal Log – Week 10 (11/3/2025 – 10/7/2025)
+
+## 📊 Peer Evaluation  
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/)
+
+
+
+---
+
+## 🚀 Features Worked On  
+- Worked updating the user configuration so that it now stores the user costent to the use of data in the system which includes **External** or **Internal**
+- Refactored my `Configuration.py` to reflect the changes I made to the internal stucture of the system, which includes introduction a new folder(**UserConfigs**) to store both the template and also strored the user actual configs when they use the system.In addition I added `__init__` to my `configuration.py` so that I can get the the correct file path to my new folder with any system
+
+---
+
+## 📌 Associated Tasks from Project Board  
+- [Save consent status](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/119)
+---
+
+## 📈 Progress Update (since 10/22/2025)  
+
+| Task/Issue | Status |
+|------------|--------|
+|**Creation a system to save the user costent to data** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+|**Refactored configuration to reflected changes made to internal system**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
+
+
+## 🎯 Next Week’s Goals
+
+- Begin working on the file analysis aspect of the system. 
+
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 9)
