@@ -20,7 +20,7 @@ class  zipExtractionCLI():
     """
     def __init__(self):
         # Initializing the retries counter to 1 ant the start of the program
-        self.retires = 1
+        self.retries = 1
 
 
     def run_zip_interface(self):
@@ -28,12 +28,26 @@ class  zipExtractionCLI():
         Runs the main CLI interface for ZIP file extraction.
         """
         file_path_to_extract = input("Please upload the project folder or type q to exit:")
-        # Asking the users for the file p
-        doc = Path(file_path_to_extract).name
-        # Finding the uploaded zips file name
-        messages = extractInfo(file_path_to_extract).runExtraction()
-        # Here I am running the extraction class to extract the zip file and also getting an
-        #Error message if there is any
+
+        if file_path_to_extract != "q":
+            # Asking the users for the file p
+            doc = Path(file_path_to_extract).name
+            # Finding the uploaded zips file name
+            messages = extractInfo(file_path_to_extract).runExtraction()
+            # Here I am running the extraction class to extract the zip file and also getting an
+            #Error message if there is any
+
+            if "Error!" in messages:
+                print(messages)
+                print("Please try again")
+                self.retries += 1
+            # Here, if there is an error message, it prints it out and also increments the retries counter
+
+            if "Error!" not in messages:
+                print(f"{doc} has been extracted successfully")
+                print("Returning you back to main screen")
+                return "extraction_successful"
+            # Here is there is no error message it prints out a success message then returns A successful extraction message
 
         if file_path_to_extract == 'q':
             print("Exiting zip Extraction Returning you back to main screen")
@@ -41,17 +55,7 @@ class  zipExtractionCLI():
 
             # Here when the user types q,the program breaks out of the loop
 
-        if "Error!" in messages:
-            print(messages)
-            print("Please try again")
-            self.retires += 1
-        #Here, if there is an error message, it prints it out and also increments the retries counter
 
-        if "Error!" not in messages:
-            print(f"{doc} has been extracted successfully")
-            print("Returning you back to main screen")
-            return "extraction_successful"
-        #Here is there is no error message it prints out a success message then returns A successful extraction message
 
         return None
 
@@ -64,8 +68,8 @@ class  zipExtractionCLI():
         :return:
         """
 
-        while self.retires <= max_retries: # Loop until a valid ZIP file is extracted or max retries reached which is 3 by default
-            print(f'try: {self.retires}/{max_retries}')
+        while self.retries <= max_retries: # Loop until a valid ZIP file is extracted or max retries reached which is 3 by default
+            print(f'try: {self.retries}/{max_retries}')
             result = self.run_zip_interface()
             # Here I am calling the run_zip_interface method to start the zip extraction process and storing return messages
 
@@ -79,7 +83,7 @@ class  zipExtractionCLI():
          Here, if the user exceeds the maximum number of retries, it prints an exit message 
          returns the user back to the main screen
         """
-        if self.retires>=max_retries:
+        if self.retries>=max_retries:
             print("Too many invalid attempts. Exiting...")
 
 
