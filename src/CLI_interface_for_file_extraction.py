@@ -1,8 +1,7 @@
 from pathlib import Path
 
 from src.extraction import extractInfo
-import zipfile
-import os
+
 #Todo:
 # - Have the ability for user to upload multiple zip files at once (Optional)
 # - TimeOut feature for user input (Optional)
