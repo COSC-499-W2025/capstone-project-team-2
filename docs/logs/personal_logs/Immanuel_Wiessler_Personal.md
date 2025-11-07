@@ -463,7 +463,7 @@ Overall this is what I did for this current spirnt.
 ---
 
 ## 📌 Associated Tasks from Project Board  
-- [Zip file extraction CLI](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/138)
+- [Zip file extraction CLI](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/)
 ---
 
 ## 📈 Progress Update (since 10/22/2025)  
@@ -471,7 +471,7 @@ Overall this is what I did for this current spirnt.
 | Task/Issue | Status |
 |------------|--------|
 |**Creation of CLI interface for zip extraction** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
-|****|![Complete](https://img.shields.io/badge/Status-Complete-green)|
+|**Added new pytest test**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
 
 
 ## 🎯 Next Week’s Goals
@@ -482,4 +482,43 @@ Overall this is what I did for this current spirnt.
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 10)
-For
+For **week 10** I began working on implementing a CLI interface for zip extraction, allowing user to input a **filepath** into the system and upload the data to the system to be used in the file anaylsis system, where I used the pervious implemented class
+`extraction.py` to be used in CLI itself for actually unzipping and extraction of the uploaded zip file. Additonally I also added the ability for user if by mistake enter this cli to exit any time they want through typing q, which was really fun to create, Additonally thanks to samathan pervuious implemented a builtin verfication process with assocaoted return errors for the zip file it made it really easy to implemented into my CLI interface so that if user for example loads problematic zip file the class will return the associated error message, which in this case is `Zip file is bad` something like this, additonally I also added a parameter called `max_retries` which after a set amount of failed attempts it will return the user to the main screen, also this parameter can be future adjusted, but the default currently set at 3.
+
+
+The thing I was very proud of this week was introducing a full mocking test in my tests which you can see down below.
+
+
+
+The thing I was very proud about this week was introducing a full mocking test in my tests which you can see down below
+
+```python
+   @patch('src.CLI_interface_for_file_extraction.extractInfo')
+    @patch('src.CLI_interface_for_file_extraction.input')
+    @patch('builtins.print')
+    def test_valid_zip_file_extraction_cli(self,mock_print, mock_input, mock_extract_Info):
+        """
+        Here we are simulating the user interaction with the extraction cli
+        when the user uploads a valid zip file, returning a success message
+        """
+        test_file_name=Path(self.test_zip_file_path).name
+        mock_input.return_value = self.test_zip_file_path
+        mock_instance=MagicMock()
+        mock_extract_Info.return_value = mock_instance
+
+        cli=zipExtractionCLI()
+        #Here I am instantiating the zipExtreactionCLI class
+        cli.run_cli()
+        mock_extract_Info.assert_called_once_with(self.test_zip_file_path)
+        mock_instance.runExtraction.assert_called_once()
+        mock_print.assert_any_call(f"{test_file_name} has been extracted successfully")
+```
+This is a very huge achievement for me because now I am able to take the knowledge gained from previous mock tests and, through my own research, create a full-on mock test which, in the three tests, simulates the user interaction with the system like typing the file path to their zip file, exiting the system when the user types q.
+
+One last thing to mention is that thanks to sam smith for identifying a key error which is that past implenation had a bug where even after the user pressing q that the extraction would still run, which was quickly solved be encapsualted the extraction method/class into an if statement while keeping the user input display outside as means to prevent the system from running when the user types q to exit the program.
+
+My goal for the following weeks is to add some optional features to the CLI, which include an idle feature and the option to upload multiple files. Another goal is to start creating the actual LLM integration to pull data from the code files.
+
+
+
+
