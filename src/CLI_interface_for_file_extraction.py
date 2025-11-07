@@ -48,7 +48,7 @@ class  zipExtractionCLI():
                 return "extraction_successful"
             # Here is there is no error message it prints out a success message then returns A successful extraction message
 
-        if file_path_to_extract == 'q':
+        else:
             print("Exiting zip Extraction Returning you back to main screen")
             return "Exit"
 
