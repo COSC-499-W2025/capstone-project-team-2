@@ -447,7 +447,7 @@ Overall this is what I did for this current spirnt.
 
 
 
-# 📝 Personal Log – Week 10 (11/3/2025 – 10/7/2025)
+# 📝 Personal Log – Week 10 (11/3/2025 – 11/7/2025)
 
 ## 📊 Peer Evaluation  
 ![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/)
@@ -457,28 +457,29 @@ Overall this is what I did for this current spirnt.
 ---
 
 ## 🚀 Features Worked On  
-- Worked updating the user configuration so that it now stores the user costent to the use of data in the system which includes **External** or **Internal**
-- Refactored my `Configuration.py` to reflect the changes I made to the internal stucture of the system, which includes introduction a new folder(**UserConfigs**) to store both the template and also strored the user actual configs when they use the system.In addition I added `__init__` to my `configuration.py` so that I can get the the correct file path to my new folder with any system
+- Worked on implementing on file extraction CLI interface
+- Added 3 new test to `configuration.py` to test if the CLI that I have implemented have no issue
 
 ---
 
 ## 📌 Associated Tasks from Project Board  
-- [Save consent status](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/119)
+- [Zip file extraction CLI](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/138)
 ---
 
 ## 📈 Progress Update (since 10/22/2025)  
 
 | Task/Issue | Status |
 |------------|--------|
-|**Creation a system to save the user costent to data** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
-|**Refactored configuration to reflected changes made to internal system**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
+|**Creation of CLI interface for zip extraction** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+|****|![Complete](https://img.shields.io/badge/Status-Complete-green)|
 
 
 ## 🎯 Next Week’s Goals
 
-- Begin working on the file analysis aspect of the system. 
-
-
+- Add some of the optional features as per my to do list in `CLI_interface_for_file_extraction.py‎
+`
+- Work on stuff on the backlog of our kanban board
 ---
 
-## 🧠 Reflection on Current Cycle (Week 9)
+## 🧠 Reflection on Current Cycle (Week 10)
+For
