@@ -4,11 +4,16 @@ from mysql.connector import Error
 
 conn = mysql.connector.connect(
         host="localhost",          # matches the service name in docker-compose.yml
-        port=3306,
+        port=3307,
         database="appdb",
         user="appuser",
         password="apppassword"
     )
+
+print("✅ Connected to MySQL successfully!")
+conn.close()
+
+
 
 ''' if you are to run a test for this code run: 
 
