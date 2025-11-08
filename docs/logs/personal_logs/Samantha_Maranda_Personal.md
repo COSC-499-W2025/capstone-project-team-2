@@ -103,7 +103,7 @@
 
 ### Task Types Worked On (Screenshot from Peer Eval)
 
-- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/19-10-25_PeerEval_SamM.PNG)
+- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/19-10-2025_PeerEval_SamM.PNG)
 
 ### Features Worked on this Milestone (Provide sufficient detail)
   * #1: Store project information into a database: Saving individual file analysis in hierarchy
@@ -150,7 +150,7 @@
 
 ### Task Types Worked On (Screenshot from Peer Eval)
 
-- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/25-10-25_PeerEval_SamM.PNG)
+- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/25-10-2025_PeerEval_SamM.PNG)
 
 ### Features Worked on this Milestone (Provide sufficient detail)
   * #1: Extract files from ZIP file: Method for running all extraction protocols
@@ -197,7 +197,7 @@
 
 ### Task Types Worked On (Screenshot from Peer Eval)
 
-- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/03-11-25_PeerEval_SamM.PNG)
+- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/03-11-2025_PeerEval_SamM.PNG)
 
 ### Features Worked on this Milestone (Provide sufficient detail)
   * #1: Estimate Duration of Project
@@ -228,3 +228,49 @@
 
 ### Extra Details:
 * Planning on saving project duration and pulling a list of files with metadata from dictionary for better access in systems.
+---------------------------
+
+## Sunday (02/11 - 09/11)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/08-11-2025_PeerEval_SamM.jpg)
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: Save Project Duration
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description        | Feature   | Assigned To | Status   |
+| ------- | ------------------ | --------- | ----------- | -------- |
+| #109   | Saving project duration to JSON file with hierarchy | Save Project Duration | Samantha Maranda  | Completed |
+
+### Progress Update (since 02/11/2025) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Save Project Duration
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Pathing bug fix on non-Windows systems
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+* Fixed an issue with pathing in a test file on linux systems that I now use.
+* Next sprint I intend on saving more project details, specifics to be determined.
