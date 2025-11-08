@@ -3,7 +3,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict,Optional
 
 # Local module Imports
 from src.CLI_Interface_for_user_config import ConfigurationForUsersUI
@@ -60,7 +60,7 @@ docker-compose up db
 DEFAULT_SAVE_DIR = Path("User_config_files")
 
 
-def _input_path(prompt: str, allow_blank: bool = False) -> Optional[Path]:
+def _input_path(prompt: str, allow_blank: bool = False)->Optional[Path] :
     """
     prompt user for a path and loop until it exists
     returns path or none 
