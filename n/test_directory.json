@@ -1,0 +1,78 @@
+{
+    "project_root": "C:\\Users\\sam_s\\OneDrive\\Documents\\GitHub\\capstone-project-team-2\\test\\test_directory",
+    "hierarchy": {
+        "name": "test_directory",
+        "type": "DIR",
+        "children": [
+            {
+                "name": "Folder_1",
+                "type": "DIR",
+                "children": [
+                    {
+                        "name": "TXT_1.txt",
+                        "type": "txt",
+                        "size": 0,
+                        "created": "2025-10-20 10:57:38",
+                        "modified": "2025-10-20 10:57:38",
+                        "author": "sam_s",
+                        "children": []
+                    },
+                    {
+                        "name": "TXT_2.txt",
+                        "type": "txt",
+                        "size": 0,
+                        "created": "2025-10-20 10:57:38",
+                        "modified": "2025-10-20 10:57:38",
+                        "author": "sam_s",
+                        "children": []
+                    }
+                ]
+            },
+            {
+                "name": "Folder_3",
+                "type": "DIR",
+                "children": [
+                    {
+                        "name": "Folder_3_1",
+                        "type": "DIR",
+                        "children": [
+                            {
+                                "name": "TXT_3_1.txt",
+                                "type": "txt",
+                                "size": 0,
+                                "created": "2025-10-20 10:57:38",
+                                "modified": "2025-10-20 10:57:38",
+                                "author": "sam_s",
+                                "children": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "duration_estimate": "unavailable (unsupported operand type(s) for -: 'str' and 'str')",
+    "project_type": {
+        "project_type": "individual",
+        "mode": "local"
+    },
+    "stack": {
+        "languages": [],
+        "frameworks": [],
+        "framework_sources": {}
+    },
+    "skills": [],
+    "resume_item": {
+        "project_name": "test_directory",
+        "summary": "Built test_directory.",
+        "highlights": [
+            "Documented project insights ready for r\u00e9sum\u00e9 inclusion."
+        ],
+        "project_type": "individual",
+        "detection_mode": "local",
+        "languages": [],
+        "frameworks": [],
+        "skills": [],
+        "framework_sources": {}
+    }
+}
