@@ -470,14 +470,14 @@ Overall this is what I did for this current spirnt.
 | Task/Issue | Status |
 |------------|--------|
 |**Creation of CLI interface for zip extraction** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
-|**Added new pytest test**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
+|**Added new 3 pytest test to `test_extraction.py`**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
 
 
 ## 🎯 Next Week’s Goals
 
-- Add some of the optional features as per my to do list in `CLI_interface_for_file_extraction.py‎
-`
+- Add some of the optional features as per my to do list in `CLI_interface_for_file_extraction.py`
 - Work on stuff on the backlog of our kanban board
+- begin to work on intergating an LLM into our system either using **Ollama** or **ChatGPT**
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 10)
