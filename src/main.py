@@ -1,4 +1,4 @@
-# import psycopg2   for Docker
+
 import argparse
 import json
 import sys
@@ -17,15 +17,19 @@ from src.project_type_detection import detect_project_type
 from src.resume_item_generator import generate_resume_item
 from src.user_startup_config import ConfigLoader
 from src.file_data_saving import SaveFileAnalysisAsJSON
+#import mysql.connector
+#from mysql.connector import Error
 
-# Docker setup
-# conn = psycopg2.connect(
-#     host="localhost",
-#     port=5432,
-#     database="appdb",
-#     user="appuser",
-#     password="apppassword"
-# )
+# Example connection code for MySQL Docker container
+"""
+conn = mysql.connector.connect(
+        host="localhost",          # matches the service name in docker-compose.yml
+        port=3306,
+        database="appdb",
+        user="appuser",
+        password="apppassword"
+    )
+"""
 
 ''' if you are to run a test for this code run: 
 

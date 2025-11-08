@@ -2,4 +2,5 @@ FreeSimpleGUI
 matplotlib
 click
 gitpython
-psycopg2-binary
+mysql.connector
+win32security
