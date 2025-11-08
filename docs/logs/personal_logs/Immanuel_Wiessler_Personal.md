@@ -450,8 +450,7 @@ Overall this is what I did for this current spirnt.
 # 📝 Personal Log – Week 10 (11/3/2025 – 11/7/2025)
 
 ## 📊 Peer Evaluation  
-![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/)
-
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/11-7-2025.png)
 
 
 ---
