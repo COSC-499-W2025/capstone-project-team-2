@@ -3,7 +3,7 @@ import mysql.connector
 from mysql.connector import Error
 
 conn = mysql.connector.connect(
-        host="db",          # matches the service name in docker-compose.yml
+        host="localhost",          # matches the service name in docker-compose.yml
         port=3306,
         database="appdb",
         user="appuser",
