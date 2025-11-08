@@ -4,7 +4,12 @@ import tempfile
 import zipfile
 
 import unittest
+from pathlib import Path
+
 from src.extraction import extractInfo
+from src.CLI_interface_for_file_extraction import zipExtractionCLI
+from unittest.mock import patch, MagicMock, call
+
 
 class TestExtraction(unittest.TestCase):
 
@@ -20,6 +25,10 @@ class TestExtraction(unittest.TestCase):
 
     For method verifyZIP
     -
+    For method CLI
+    - Simulate typing q to exit the program
+    - Returning successfully message and exit the program when the user uploads a valid zip file
+    - Exits the program after the number of tries have been met
     """
 
 
@@ -248,6 +257,97 @@ class TestExtraction(unittest.TestCase):
         for file in os.listdir(self.temp_path):
             file_path = os.path.join(self.temp_path, file)
             self.assertTrue(os.path.exists(file_path))
+
+
+
+
+
+    @patch('src.CLI_interface_for_file_extraction.extractInfo')
+    @patch('src.CLI_interface_for_file_extraction.input')
+    @patch('builtins.print')
+    def test_valid_zip_file_extraction_cli(self,mock_print, mock_input, mock_extract_Info):
+        """
+        Here we are simulating the user interaction with the extraction cli
+        when the user uploads a valid zip file, returning a success message
+        """
+        test_file_name=Path(self.test_zip_file_path).name
+        mock_input.return_value = self.test_zip_file_path
+        mock_instance=MagicMock()
+        mock_extract_Info.return_value = mock_instance
+
+        cli=zipExtractionCLI()
+        #Here I am instantiating the zipExtreactionCLI class
+        cli.run_cli()
+        mock_extract_Info.assert_called_once_with(self.test_zip_file_path)
+        mock_instance.runExtraction.assert_called_once()
+        mock_print.assert_any_call(f"{test_file_name} has been extracted successfully")
+
+    @patch('src.CLI_interface_for_file_extraction.extractInfo')
+    @patch('src.CLI_interface_for_file_extraction.input')
+    @patch('builtins.print')
+    def test_invalid_zip_file_extraction_CLI(self, mock_print, mock_input, mock_extract_Info):
+        """
+        Here we are simulating the user interaction with the extraction cli
+        when they upload a invalid zip file, returning an error message
+        """
+        mock_input.return_value = self.not_zip_file_path
+        mock_instance = MagicMock()
+        mock_instance.runExtraction.return_value = "Error! Zip file is bad!"
+        mock_extract_Info.return_value = mock_instance
+
+        cli = zipExtractionCLI()
+        cli.run_cli(max_retries=1)
+
+
+        mock_print.assert_any_call("Error! Zip file is bad!")
+
+    @patch('builtins.input', return_value='q')
+    @patch('builtins.print')
+    def test_successfully_exit_CLI(self,mock_print,mock_input):
+        """
+        Tests that the CLI exits when the user types 'q'
+
+        This test simulates a user entering 'q' to exit/quit the zip extraction CLI
+        through verifying that the program displays exit message "Exiting zip Extraction Returning you back to main screen"."
+
+
+        """
+        cli = zipExtractionCLI()
+        cli.run_cli()
+        mock_print.assert_any_call("Exiting zip Extraction Returning you back to main screen")
+
+
+
+    @patch('src.CLI_interface_for_file_extraction.extractInfo')
+    @patch('src.CLI_interface_for_file_extraction.input')
+    @patch('builtins.print')
+    def test_invalid_zip_file_extraction_minimum_retries_CLI(self, mock_print, mock_input, mock_extract_Info):
+        """
+        Ensure the CLI runs extraction multiple times for invalid ZIP files.
+        Checks that both extractInfo() and runExtraction() are called
+        at least twice before exiting.
+        """
+
+        mock_input.return_value = self.not_zip_file_path
+
+        mock_instance = MagicMock()
+        mock_instance.runExtraction.return_value = extractInfo.BAD_ZIP_ERROR_TEXT
+        mock_extract_Info.return_value = mock_instance
+
+        cli = zipExtractionCLI()
+        cli.run_cli(max_retries=3)
+
+
+        assert mock_extract_Info.call_count >= 2, (
+            f"Expected extractInfo() to be called multiple times, got {mock_extract_Info.call_count}"
+        )
+        assert mock_instance.runExtraction.call_count >= 2, (
+            f"Expected runExtraction() to be called multiple times, got {mock_instance.runExtraction.call_count}"
+        )
+
+
+        mock_print.assert_any_call(extractInfo.BAD_ZIP_ERROR_TEXT)
+        mock_print.assert_any_call("Too many invalid attempts. Exiting...")
 
     def tearDown(self):
 

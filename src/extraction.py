@@ -5,8 +5,6 @@ from pathlib import Path
 
 
 
-
-
 class extractInfo:
     """
     This is a helper class that is for extracting the
