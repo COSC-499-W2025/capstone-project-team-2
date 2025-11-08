@@ -26,10 +26,11 @@ class  zipExtractionCLI():
         """
         Runs the main CLI interface for ZIP file extraction.
         """
-        file_path_to_extract = input("Please upload the project folder or type q to exit:")
+        file_path_to_extract = input("Please upload the project folder or type q to exit:").strip()
 
-        if file_path_to_extract != "q":
+        if file_path_to_extract != "q" and file_path_to_extract != "Q":
             # Asking the users for the file p
+            # Adding check for case-insensitive for all system(window,Linux,Mac)
             doc = Path(file_path_to_extract).name
             # Finding the uploaded zips file name
             messages = extractInfo(file_path_to_extract).runExtraction()
