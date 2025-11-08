@@ -101,7 +101,7 @@ def estimate_duration(hierarchy: Dict[str, Any]) -> str:
 def analyze_project(root: Path) -> None:
     """ 
     Takes in the path for the a project folder
-    Returns an print analysis of the file including the file hierarchy, duration of the project,
+    Returns a print analysis of the file including the file hierarchy, duration of the project,
     summary, type, language, framework etc.
     Can also output a json file for saving
     """
@@ -141,10 +141,9 @@ def analyze_project(root: Path) -> None:
 def export_json(project_name: str, analysis: Dict[str, Any]) -> None:
     """
     saves an analyzed project as a json file
-    TODO: once safe data feature is implemented fix this so it actually saves somewhere
     """
 
-    ans = (input("Save JSON report? (y/n) [n]: ").strip().lower() or "n")
+    ans = (input("Save JSON report? (y/n): ").strip().lower() or "n")
     if ans.startswith("y"):
         out_dir_str = input(f"Output directory [{DEFAULT_SAVE_DIR}]: ").strip()
         out_dir = Path(out_dir_str or DEFAULT_SAVE_DIR).expanduser().resolve()
@@ -155,8 +154,6 @@ def export_json(project_name: str, analysis: Dict[str, Any]) -> None:
 def list_saved_projects(folder: Path) -> list[Path]:
     """
     Takes in a folder and returns a list of the files that folder
-    TODO: Once we have the save feature finished, this should automatically look where they get saved
-    and/or should open the users file structure so they can select a folder from their local machine
     """
 
     if not folder.exists():
@@ -205,12 +202,11 @@ def settings_menu() -> None:
     cfg = ConfigLoader().load()
     ConfigurationForUsersUI(cfg).run_configuration_cli()
 
-def analyze_project_menu() -> Path:
+def analyze_project_menu() -> None:
     """
     asks user if their project is in a directory or zip file
-    if zip project uses extract_if_zip to send for extraction
-    if directory, will send for directory processing, but this part isn't dont yet
-    TODO: once directory processing code is finished change else function to send directory path for processing
+    if zip project uses extract_if_zip to send for extraction and then to analyze_project() for processing
+    if directory, will send directly to analyze_project() for processing
     """
     while True:
         print("\n=== Analyze Project Menu ===")
@@ -225,7 +221,7 @@ def analyze_project_menu() -> Path:
         try:
             if choice == "1":
                 dir = _input_path("Enter path to project directory: ")
-                return dir
+                return analyze_project(dir)
             elif choice == "2":
                 zip = _input_path("Enter path to ZIP: ")
                 return analyze_project(extract_if_zip(zip))
@@ -235,7 +231,7 @@ def analyze_project_menu() -> Path:
                 print("Please choose a valid option (0–2).")
         except KeyboardInterrupt:
             print("\n[Interrupted] Returning to menu.")
-            return none
+            return None
         except Exception as e:
             print(f"[ERROR] {e}")
 
