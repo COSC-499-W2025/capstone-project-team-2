@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
     libxrender1 \
     libsm6 \
     libice6 \
-    && rm -rf /var/lib/apt/lists/*
+    default-libmysqlclient-dev \  # <-- ensures MySQL client libraries exist && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements.txt
 COPY requirements.txt .
@@ -25,6 +25,7 @@ COPY . .
 
 # Set environment variable (for GUI)
 ENV DISPLAY=:0
+ENV PYTHONUNBUFFERED=1
 
 # Command to run your application (change 'main.py' to your entry point)
 CMD ["python", "main.py"]
