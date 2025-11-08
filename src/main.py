@@ -211,11 +211,11 @@ def analyze_project_menu() -> None:
     while True:
         print("\n=== Analyze Project Menu ===")
         print("\nChoose input type:")
-        
+
         print("  1) Directory")
         print("  2) ZIP file")
         print("  0) Exit to Main Menu")
-        
+
         choice = input("Select an option: ").strip()
 
         try:
@@ -226,7 +226,7 @@ def analyze_project_menu() -> None:
                 zip = _input_path("Enter path to ZIP: ")
                 return analyze_project(extract_if_zip(zip))
             elif choice == "0":
-                return
+                return None
             else:
                 print("Please choose a valid option (0–2).")
         except KeyboardInterrupt:

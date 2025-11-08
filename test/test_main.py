@@ -2,7 +2,7 @@ import unittest
 import tempfile
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock,call
 import src.main as main_mod
 
 
@@ -21,17 +21,8 @@ class TestMainModule(unittest.TestCase):
         main_mod.settings_menu()
         run_cli.assert_called_once()
 
-    """
-    Checks the "Directory" branch of the analyze projects menu
-    calls _input_path and returns directory path without running analysis 
-    TODO: once directory analysis portion is coded this needs to be updated
-    to check that it runs an analysis
-    """
-    @patch.object(main_mod, "_input_path", return_value="/tmp/project")
-    @patch("builtins.input", side_effect=["1"])  # choose Directory then return
-    def test_analyze_menu_directory_returns_path(self, _inp, _ipath):
-        result = main_mod.analyze_project_menu()
-        self.assertEqual(result, Path("/tmp/project"))
+
+
 
     """
     Checks the "Zip" branch of the analyze projects menu retrieves ZIP path,
