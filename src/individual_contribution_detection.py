@@ -226,8 +226,8 @@ def canonical_for_git(name: Optional[str], email: Optional[str], contribs: List[
                 return canon
         
         #4: No CONTRIBUTORS match - use email to keep them separate
-        # Use full local part (with + decorator) to distinguish chris+one from chris+two
-        return local.replace(".", " ").replace("_", " ").title()
+        # Use clean_local (without + decorator) so chris+one and chris+two merge to "Chris"
+        return clean_local.replace(".", " ").replace("_", " ").title()
     
     #5: No email - use name as-is
     if name:
@@ -337,33 +337,35 @@ def detect_individual_contributions_git(project_root: Path, *, repo: Optional[Re
     }
 
 def detect_individual_contributions(project_path: str | Path, *, extractor: Optional[FileMetadataExtractor] = None) -> Dict:
-   
+
     """
     Entry point: detect individual contributions for collaborative projects.
 
     Raises ValueError if:
-      - path is invalid
-      - project is not marked as collaborative
+        path is invalid
+        project is not marked as collaborative
     """
-    
+
     root = Path(project_path)
     if not root.exists() or not root.is_dir():
         raise ValueError(f"Project path does not exist or is not a directory: {project_path}")
 
     pt = detect_project_type(root)
     if pt.get("project_type") != "collaborative":
-        raise ValueError("Project is not collaborative")
+            raise ValueError("Project is not collaborative")
 
     mode = pt.get("mode", "local")
     if mode == "git":
+        repo=None
         try:
-            repo = Repo(root)
-        except Exception:
-            # fallback to local detection if repo cannot be opened
-            contributors = detect_individual_contributions_local(root, extractor=extractor)
-            return {"is_collaborative": True, "mode": "local", "contributors": contributors}
-        contributors = detect_individual_contributions_git(root, repo=repo)
-        return {"is_collaborative": True, "mode": "git", "contributors": contributors}
+            repo=Repo(root)
+            contributors = detect_individual_contributions_git(root)
+            return {"is_collaborative": True, "mode": "git", "contributors": contributors}
+        except Exception as e:
+            pass
+        finally:
+            if repo is not None:
+                repo.close() #for Windows error
 
     # local mode (or fallback)
     contributors = detect_individual_contributions_local(root, extractor=extractor)

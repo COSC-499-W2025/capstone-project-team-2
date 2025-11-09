@@ -247,11 +247,10 @@ class TestIndividualContributionDetection(unittest.TestCase):
 
 
     @patch('src.individual_contribution_detection.detect_project_type')
-    def test_git_same_name_different_emails_treated_separately(self, mock_detect):
+    def test_git_same_email_base_with_decorators_merged(self, mock_detect):
         """
-        If the commit author uses the same display name but different emails,
-        the implementation currently treats them as separate contributors (by email).
-        This test asserts that behavior explicitly.
+        Email decorators (+ aliases like chris+one, chris+two) should be stripped,
+        merging commits from the same base email address into one contributor.
         """
         mock_detect.return_value = {"project_type": "collaborative", "mode": "git"}
 
@@ -259,21 +258,24 @@ class TestIndividualContributionDetection(unittest.TestCase):
 
         f1 = self._write("x1.py", "print('1')")
         repo.index.add([str(f1.relative_to(self.project_root))])
-        # same display name but email A
+        # same display name with email decorator +one
         a1 = Actor("Chris", "chris+one@example.com")
         repo.index.commit("c1", author=a1, committer=a1)
 
         f2 = self._write("x2.py", "print('2')")
         repo.index.add([str(f2.relative_to(self.project_root))])
-        # same display name but email B
+        # same display name with email decorator +two
         a2 = Actor("Chris", "chris+two@example.com")
         repo.index.commit("c2", author=a2, committer=a2)
 
         result = contribution_detection.detect_individual_contributions(self.project_root)
         contributors = result["contributors"]
         non_unat = [k for k in contributors.keys() if k != "<unattributed>"]
-        # By default we expect two contributors because the code groups by email first
-        self.assertEqual(len(non_unat), 2)
+        # Should merge to 1 contributor since base email is the same (chris)
+        self.assertEqual(len(non_unat), 1)
+        canon = non_unat[0]
+        self.assertIn("x1.py", contributors[canon]["files_owned"])
+        self.assertIn("x2.py", contributors[canon]["files_owned"])
 
 
     @patch('src.individual_contribution_detection.detect_project_type')
