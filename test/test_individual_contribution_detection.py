@@ -310,6 +310,20 @@ class TestIndividualContributionDetection(unittest.TestCase):
         canon = non_unat[0]
         self.assertIn("a.py", contributors[canon]["files_owned"])
         self.assertIn("b.py", contributors[canon]["files_owned"])
+        
+    def test_name_matching_logic(self):
+        """Test that name matching avoids false positives."""
+        
+        # Should match
+        assert contribution_detection.name_matches("Sam", "Sam Example")
+        assert contribution_detection.name_matches("Sam Example", "Sam")
+        assert contribution_detection.name_matches("John William Smith", "John Smith")
+        assert contribution_detection.name_matches("Alice Johnson", "A Johnson")
+        
+        # Should NOT match (avoid false positives)
+        assert not contribution_detection.name_matches("John Smith", "Sarah Smith")
+        assert not contribution_detection.name_matches("Alice Johnson", "Bob Johnson")
+        assert not contribution_detection.name_matches("Bob", "Robert")  # Too short and different
 
 if __name__ == "__main__":
     unittest.main()

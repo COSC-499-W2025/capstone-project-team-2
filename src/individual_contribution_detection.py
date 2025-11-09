@@ -33,10 +33,13 @@ def name_matches(a: str, b: str) -> bool:
     """
     Return True if two names likely refer to the same person.
 
-    Matching rules:
-      - Exact normalized match
-      - Same last name and same first name or first initial
-      - Any shared word longer than 3 characters
+    Matching rules (in priority order):
+      1. Exact normalized match
+      2. Same last name + matching first name or first initial
+      3. At least 2 shared words (each > 3 chars)
+      4. Single name matches multi-word name (e.g., "Sam" matches "Sam Example")
+    
+    This avoids false positives like "John Smith" matching "Sarah Smith".
     """
     
     na, nb = normalize(a), normalize(b)
@@ -49,12 +52,32 @@ def name_matches(a: str, b: str) -> bool:
     if not ta or not tb:
         return False
 
-    # Match by last name + first name or first initial
-    if ta[-1] == tb[-1] and ta[0] and tb[0]:
-        if ta[0] == tb[0] or ta[0][0] == tb[0][0]:
-            return True
-    # Match by any long token
-    return any(len(t) > 3 and t in tb for t in ta)
+    #2: Match by last name + first name or first initial
+    # This handles "Sam Example" -> "Sam E Example" or "Sam" with last name match
+    if len(ta) > 1 and len(tb) > 1:
+        if ta[-1] == tb[-1] and ta[0] and tb[0]:
+            if ta[0] == tb[0] or (len(ta[0]) > 0 and len(tb[0]) > 0 and ta[0][0] == tb[0][0]):
+                return True
+
+    #3: At least 2 shared words (each > 3 chars)
+    # This handles "John William Smith" -> "John Smith" but not "John Smith" -> "Sarah Smith"
+    long_tokens_a = [t for t in ta if len(t) > 3]
+    long_tokens_b = [t for t in tb if len(t) > 3]
+    shared = set(long_tokens_a) & set(long_tokens_b)
+    if len(shared) >= 2:
+        return True
+
+    #4: Single name matches multi-word name if the single name is contained
+    # This handles "Sam" -> "Sam Example" (when last name check didn't apply)
+    if len(ta) == 1 and len(tb) > 1:
+        # Single token from 'a' must match a token in 'b' (and be > 3 chars to be meaningful)
+        return len(ta[0]) >= 3 and ta[0] in tb
+    if len(tb) == 1 and len(ta) > 1:
+        # Single token from 'b' must match a token in 'a'
+        return len(tb[0]) >= 3 and tb[0] in ta
+
+    return False
+
 
 def contributor_names_from_files(root: Path) -> List[str]:
     
@@ -356,16 +379,16 @@ def detect_individual_contributions(project_path: str | Path, *, extractor: Opti
 
     mode = pt.get("mode", "local")
     if mode == "git":
-        repo=None
+        repo = None
         try:
-            repo=Repo(root)
+            repo = Repo(root)
             contributors = detect_individual_contributions_git(root)
             return {"is_collaborative": True, "mode": "git", "contributors": contributors}
         except Exception as e:
             pass
         finally:
             if repo is not None:
-                repo.close() #for Windows error
+                repo.close() # for Windows Permission error
 
     # local mode (or fallback)
     contributors = detect_individual_contributions_local(root, extractor=extractor)
