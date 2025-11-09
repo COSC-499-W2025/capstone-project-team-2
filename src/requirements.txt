@@ -3,3 +3,4 @@ matplotlib
 click
 gitpython
 mysql.connector
+orjson

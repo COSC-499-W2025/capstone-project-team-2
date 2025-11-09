@@ -17,11 +17,13 @@ from src.project_type_detection import detect_project_type
 from src.resume_item_generator import generate_resume_item
 from src.user_startup_config import ConfigLoader
 from src.file_data_saving import SaveFileAnalysisAsJSON
-#import mysql.connector
-#from mysql.connector import Error
+import mysql.connector
+from mysql.connector import Error
 
 # Example connection code for MySQL Docker container
-"""
+
+
+
 conn = mysql.connector.connect(
         host="app_database",          # matches the service name in docker-compose.yml
         port=3306,
@@ -29,7 +31,8 @@ conn = mysql.connector.connect(
         user="appuser",
         password="apppassword"
     )
-"""
+
+
 
 print("✅ Connected to MySQL successfully!")
 conn.close()
