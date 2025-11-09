@@ -1,4 +1,4 @@
-## Dates of Sprint: (10/26/2025 – 11/1/2025)
+## Dates of Sprint: (11/2/2025 – 11/8/2025)
 
 ### Peer Eval Screenshot:
 
