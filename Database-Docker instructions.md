@@ -42,7 +42,7 @@ USE appdb
 
 Show Tables
 
-Describe project data 
+Describe project_data 
 
 +-------------+--------------+------+-----+-------------------+-------------------+
 | Field       | Type         | Null | Key | Default           | Extra             |
