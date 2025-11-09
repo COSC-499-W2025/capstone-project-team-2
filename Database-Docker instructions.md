@@ -13,7 +13,7 @@ FOR SQL:
 
 download mySQL at: https://dev.mysql.com/downloads/installer (use version 8.0.44 just what im using)
 
-run through the installer and make sure PORT IS 3308
+run through the installer and make sure PORT IS 3308 (this was an issue on my machine)
 
 you can verify the server is running with 
 
