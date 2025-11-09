@@ -360,7 +360,6 @@ def detect_individual_contributions_git(project_root: Path, *, repo: Optional[Re
     }
 
 def detect_individual_contributions(project_path: str | Path, *, extractor: Optional[FileMetadataExtractor] = None) -> Dict:
-
     """
     Entry point: detect individual contributions for collaborative projects.
 
@@ -368,27 +367,24 @@ def detect_individual_contributions(project_path: str | Path, *, extractor: Opti
         path is invalid
         project is not marked as collaborative
     """
-
+    
     root = Path(project_path)
     if not root.exists() or not root.is_dir():
         raise ValueError(f"Project path does not exist or is not a directory: {project_path}")
 
     pt = detect_project_type(root)
     if pt.get("project_type") != "collaborative":
-            raise ValueError("Project is not collaborative")
+        raise ValueError("Project is not collaborative")
 
     mode = pt.get("mode", "local")
     if mode == "git":
-        repo = None
         try:
-            repo = Repo(root)
-            contributors = detect_individual_contributions_git(root)
-            return {"is_collaborative": True, "mode": "git", "contributors": contributors}
-        except Exception as e:
+            with Repo(root) as repo:
+                contributors = detect_individual_contributions_git(root, repo=repo)
+                return {"is_collaborative": True, "mode": "git", "contributors": contributors}
+        except Exception:
+            # Fallback to local mode if Git operations fail
             pass
-        finally:
-            if repo is not None:
-                repo.close() # for Windows Permission error
 
     # local mode (or fallback)
     contributors = detect_individual_contributions_local(root, extractor=extractor)
