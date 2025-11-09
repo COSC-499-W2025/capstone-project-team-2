@@ -3,4 +3,3 @@ matplotlib
 click
 gitpython
 mysql.connector
-win32security
