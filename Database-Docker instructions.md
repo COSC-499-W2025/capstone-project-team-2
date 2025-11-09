@@ -1,21 +1,6 @@
-# setting this file up for an initial entry point for docker set up.
-import mysql.connector
-from mysql.connector import Error
+Database/docker instructions
 
-conn = mysql.connector.connect(
-        host="db",          # matches the service name in docker-compose.yml
-        port=33060,
-        database="appdb",
-        user="appuser",
-        password="apppassword"
-    )
-
-print("✅ Connected to MySQL successfully!")
-conn.close()
-
-
-
-''' for docker set up run:
+ for docker set up run:
 
 docker-compose up db 
 
@@ -65,4 +50,4 @@ Describe project data
 | content     | json         | NO   |     | NULL              |                   |
 | uploaded_at | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED |
 +-------------+--------------+------+-----+-------------------+-------------------+
- '''
+ 
