@@ -2,5 +2,5 @@ FreeSimpleGUI
 matplotlib
 click
 gitpython
-mysql.connector
-win32security
+mysql-connector-python
+orjson
