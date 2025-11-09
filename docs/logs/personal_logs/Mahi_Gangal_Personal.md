@@ -366,6 +366,7 @@ Collaborate with the team to plan next sprint tasks and identify project improve
 
 
 ---
+
 ## Next week goals
 
 - Extend contribution extrapolation logic to Git-based collaborative projects.
@@ -381,5 +382,52 @@ Collaborate with the team to plan next sprint tasks and identify project improve
 
 
 </details>
+
+## Dates of Sprint: (11/3/2025 – 11/9/2025) 
+
+### Peer Eval Screenshot: <img width="1081" height="628" alt="MG1" src="https://github.com/user-attachments/assets/492f3a09-5e54-4bb5-be06-6f17c64d7ed4" />
+---
+
+### Features Worked on this Milestone   
+  * Implemented logic to extrapolate individual contributions from Git collaborative projects using commit author metadata.
+  * Developed and refined unit tests for Git repositories, covering multiple authors, subdirectory commits, untracked files, and alias merging.
+---
+
+## Associated Tasks from Project Board:
+- https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=134464676
+---
+### Progress Update (since 10/06/2025)
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong></td>
+        <td><strong>STATUS</strong></td>
+    </tr>
+    <tr>
+    <td>Implement individual contribution detection for Git collaborative projects</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+    <tr>
+    <td>Develop and validate corresponding test cases</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+</table>
+
+---
+
+### Next week goals
+
+- Collaborate with teammates on integration and validation of the system.
+
+---
+
+### Extra Details:
+<details>
+    <summary><span style='font-weight:bold'>Click to expand</span> </summary>
+  This week, I finalized and tested the logic for extrapolating individual contributions from Git-based collaborative projects. Building on the non-Git logic from last week, this new implementation analyzes Git commit histories to identify and attribute files to contributors, merging multiple identities through canonical name detection. I also handled complex edge cases such as different author emails, missing contributor files, and untracked files. To improve robustness, I added the `_collapse_buckets` function to merge duplicate contributor entries and maintain clean outputs. I wrote and executed several unit tests to verify Git attribution under diverse conditions — including subdirectory commits, variant author names, and canonical merging via CONTRIBUTORS files. Minor fixes also had to be made to handle POSIX-relative paths across macOS and Windows, ensuring consistency. Overall, this week marked the completion of Git contribution detection and its integration into the unified contribution analysis system. Next week, I plan to collaborate with the team on integration and validation of the system, for Milestone 1.
+    </span>
+
+
+</details>
+
 
 
