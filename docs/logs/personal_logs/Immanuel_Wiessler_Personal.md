@@ -514,9 +514,10 @@ The thing I was very proud about this week was introducing a full mocking test i
 ```
 This is a very huge achievement for me because now I am able to take the knowledge gained from previous mock tests and, through my own research, create a full-on mock test which, in the three tests, simulates the user interaction with the system like typing the file path to their zip file, exiting the system when the user types q.
 
-One last thing to mention is that thanks to sam smith for identifying a key error where the pervious implenation had a bug where even after the user pressing q that the extraction would still run, which was quickly solved be encapsualted the extraction method/class into an if statement while keeping the user input display outside as means to prevent the system from running when the user types q to exit the program.
+One last thing to mention is that thanks to sam smith for identifying a key error where the pervious implenation had a bug where even after the user pressing q that the extraction would still run, which was quickly solved be encapsualted the extraction method/class into an if statement while keeping the user input display outside as means to prevent the system from running when the user types q to exit the program. In addition, note I worked with Sam and Cameron to fix the bug issue in Sam's code, which led to us performing coding pairing to identify the problem, while at the same time refactoring Cameron's tests `test_data_extraction` to run smoothly with no issue. 
 
-My goal for the following weeks is to add some optional features to the CLI, which include an idle feature and the option to upload multiple files. Another goal is to start creating the actual LLM integration to pull data from the code files.
+
+My goal for the following weeks is to add some optional features to the CLI, which include an idle feature and the option to upload multiple files. Another goal is to start creating the actual LLM integration to pull data from the code files and perform analysis on the code to pull info such as the stucture of the code, what the runtime it performs and so on. 
 
 
 
