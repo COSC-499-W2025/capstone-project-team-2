@@ -1,7 +1,9 @@
 import os
+import shutil
 import sys
 import unittest
 import getpass
+import tempfile
 
 from pathlib import Path
 from io import StringIO
@@ -11,16 +13,27 @@ from src.data_extraction import FileMetadataExtractor
 
 class TestDataExtract(unittest.TestCase):
 
+
+    def setUp(self):
+        self.temp_dir = Path(tempfile.mkdtemp())
+
+
     def test_tree(self):
 
         # create temporary files and directory for testing
+        file_path=self.temp_dir / "file.txt"
+        file_path.write_text("This is a test file")
+
+
+        """
         temp_dir = Path("temp")
         temp_dir.mkdir(exist_ok=True)
         test_file = temp_dir / "file.txt"
         test_file.touch()
+        """
 
         try:
-            extractor = FileMetadataExtractor(temp_dir)
+            extractor = FileMetadataExtractor(self.temp_dir)
             tree_data = extractor.file_hierarchy()
 
             # Get all file names in root directory
@@ -31,10 +44,10 @@ class TestDataExtract(unittest.TestCase):
             self.assertIn("file.txt", children_names)
         finally:
             # if files and directory exist remove them after test
-            if test_file.exists():
-                test_file.unlink()
-            if temp_dir.exists():
-                temp_dir.rmdir()
+            if os.path.exists(self.temp_dir):
+                shutil.rmtree(self.temp_dir)
+
+
 
     def test_tree_empty(self):
         temp_dir = Path("empty_temp")
