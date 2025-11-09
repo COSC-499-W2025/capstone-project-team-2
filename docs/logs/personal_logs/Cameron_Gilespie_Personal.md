@@ -2,6 +2,40 @@
 
 ### Peer Eval Screenshot:
 
+<img width="1092" height="626" alt="image" src= "https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Cameron-Personal-Logs/docs/logs/peer_eval_screenshots/PL-CameronG-11-8-25.png" />
+
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: Create Database
+
+
+## Associated Tasks from Project Board:
+
+| Description        | Status   |
+| ------------------ | -------- |
+| [Create Database]  | [Complete] |
+
+
+
+---
+## Next week goals
+The goals for Week 6:
+- Expand the database some more
+- dig deeper into docker
+- add helper functions so we can load and pull documents from db easier
+---
+
+### Extra Details:
+
+<details>
+So I set out this week to set up the database and edit the functions i set up last week to properly use mysql. Of which i completed and now can create the database and all appropriate tables. I really wanted to set up helper functions so that way we can just call those methods and it pulls data types, uploads the files,etc this week but i struggled with two things. the Delay in my inital PR this week being merged as well as struggling with the mysql connection. I struggled particularily hard with getting the connection up and going between verision mismatches, ports and then docker set up changing a bit due to the win32 security import when it is built. after solving these issues I managed to get the task done. but i will be working hard over the reading break to ensure i get everything i want done and then some to make up for the unfortunate trouble shooting that i needed to do with SQL and Docker
+
+</details>
+
+## Dates of Sprint: (10/26/2025 – 11/1/2025)
+
+### Peer Eval Screenshot:
+
 <img width="1092" height="626" alt="image" src= "https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Cameron-Personal-Logs/docs/logs/peer_eval_screenshots/PL_CameronG_11_1_25.png" />
 
 
