@@ -9,6 +9,8 @@ docker-compose down -v  # -v removes old data
 docker-compose up db
 
 
+
+
 FOR SQL:
 
 download mySQL at: https://dev.mysql.com/downloads/installer (use version 8.0.44 just what im using)
@@ -51,3 +53,10 @@ Describe project data
 | uploaded_at | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED |
 +-------------+--------------+------+-----+-------------------+-------------------+
  
+TO RUN SET UP:
+
+run these 3 commands in terminal:
+
+docker compose down -v
+docker compose build --no-cache
+docker compose up
