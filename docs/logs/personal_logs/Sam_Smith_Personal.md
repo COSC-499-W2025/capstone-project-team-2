@@ -1,3 +1,53 @@
+## Week 10 (11/03/2025- 11/09/2025)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+<<img width="1030" height="607" alt="image" src="https://github.com/user-attachments/assets/39723266-cdad-4ae2-9806-da30dff2032c" />
+ />
+
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: The code in main.py that does all the CLI integration (everything but the code that runs docker)
+  * #2: Tests for main.py CLI integration
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description                     | Feature                   | Assigned To | Status   |
+| ------- | ------------------------------- | ------------------------- | ----------- | -------- |
+| [#140]   | [CLI integration in main.py]   | [runs CLI UI system]      | [ssmith86]  | [complete]   |
+| [#140]   | [tests for main.py CLI integration]   | [unittests] | [ssmith86]  | [complete]   |
+
+### Progress Update (since 10/26/2025) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Create CLI integration in main.py
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>tests for CLI integration in test_main.py
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+I took on a heavier task this week because my last exam before reading week finished early in the week. Shout outs to Immanuel and Cameron who helped debug my tests
+### Tasks for Next Sprint:
+- Issue # 116: Add summaries of top ranked projects
+
 ## Week 9 (10/27/2025- 11/02/2025)
 
 ### Task Types Worked On (Screenshot from Peer Eval)
