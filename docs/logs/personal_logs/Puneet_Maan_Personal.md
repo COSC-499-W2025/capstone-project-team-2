@@ -1,3 +1,71 @@
+# Sprint Log: (03/11/2025 – 09/11/2025)
+
+---
+
+##  Peer Evaluation
+![alt text](../peer_eval_screenshots/09-11-2025_PeerEval_Puneet_Maan.png)
+
+---
+
+##  Weekly Goals Recap
+
+This week, I focused on completing the Resume Exporter, it is the second half of the resume automation system. Building on last week’s ResumeItem generator, I implemented a full export pipeline capable of discovering project directories, generating structured resume data for each, and writing deterministic JSON output with CLI support. I also wrote comprehensive automated tests to ensure stable export behavior, deterministic JSON generation, and CLI compatibility.
+
+---
+
+## Key Accomplishments
+- Implemented Resume Exporter module and test suites
+- Added new CLI entry point for exporting rseume data via command line
+- Developed full test coverage for exporter logic, JSON payload validation, and CLI output
+- Integrated timezone aware timestamps and project ordering
+- Ensured compatibility with ResumeItem dataclass and prior generator outputs
+- Supported teammate PR review and test debugging (**Mahi, Samantha, and Cameron's PR**)  
+
+---
+
+##  Deliverables Completed
+
+## Resume Exporter Module
+- Implemented resume_exporter.py for automated JSON export
+- Added discover_projects, build_resume_items, and export_resume_items functions
+- Deterministic export structure with ISO8601 timestamps
+
+---
+
+## Testing & Validation
+- test_resume_exporter.py: Functional test suite for project discovery and JSON writing
+- test_resume_exporter_json_validation.py: Validation suite for JSON structure, determinism, CLI invocation, and optional schema checking
+
+##  Code Review & Collaboration
+Reviewed teammate PRs related to:
+- Individual contributions in git collaborative projects #154 (Mahi)
+- Save project duration json #146 (Samantha)
+- Database development #152 (Cameron)
+- Discussed future integration between resume exporter output and contributor insights
+
+---
+
+##  Plan for Next Cycle
+- Yet to be discussed. I will work to get some bonus marks during the reading break.
+
+---
+
+##  Reflection Points
+
+##  What Went Well
+- Successfully completed the second core component of resume automation
+- Maintained deterministic behavior and clean, well tested output
+- Improved cross module consistency between generator and exporter
+- Addressed reviewer feedback proactively with validation updates
+
+
+##  What I Can Improve
+- Could introduce early stage error handling to handle failed project builds more gracefully
+- Plan test execution across different OS environments (Mac vs Windows) earlier to catch path related issues
+- Continue to collaborate closely during review cycles to align export format expectations
+
+## ====================================================
+
 # Sprint Log: (27/10/2025 – 02/11/2025)
 
 ---
