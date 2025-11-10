@@ -80,6 +80,11 @@ def export_resume_items(
         Path to the written JSON file.
     """
     root_path = Path(root).resolve()
+
+    #new validation block
+    if not root_path.exists() or not root_path.is_dir():
+        raise ValueError(f"Invalid root path: {root_path}. Must be an existing directory.")
+    
     if destination is None:
         destination_path = root_path / "resume_items.json"
     else:
