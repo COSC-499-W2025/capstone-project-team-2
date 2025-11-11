@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from src.extraction import extractInfo
+import asyncio
 
 #Todo:
 # - Have the ability for user to upload multiple zip files at once (Optional)
@@ -20,46 +21,48 @@ class  zipExtractionCLI():
     def __init__(self):
         # Initializing the retries counter to 1 ant the start of the program
         self.retries = 1
+        self.timeout = 10
 
+    async def timeout_input(self, prompt:str, timeout:int):
+        try:
+            return await asyncio.wait_for(asyncio.to_thread(input,prompt),timeout)
 
-    def run_zip_interface(self):
+        except asyncio.TimeoutError:
+            print(f"\nInput timed out after {timeout} seconds. Returning you back to main menu.\nPress enter to continue...")
+            return None
+
+    async def run_zip_interface(self):
         """
-        Runs the main CLI interface for ZIP file extraction.
-        """
-        file_path_to_extract = input("Please upload the project folder or type q to exit:").strip()
+         Runs the main CLI interface for ZIP file extraction.
+         """
+        file_path_to_extract = await self.timeout_input(""
+                                                        "Please enter the path to the ZIP file you want to extract (or type 'q' to quit): ",self.timeout)
+        if file_path_to_extract is None:
+            return "Timeout"
 
-        if file_path_to_extract != "q" and file_path_to_extract != "Q":
-            # Asking the users for the file p
-            # Adding check for case-insensitive for all system(window,Linux,Mac)
-            doc = Path(file_path_to_extract).name
-            # Finding the uploaded zips file name
-            messages = extractInfo(file_path_to_extract).runExtraction()
-            # Here I am running the extraction class to extract the zip file and also getting an
-            #Error message if there is any
+        file_path_to_extract = file_path_to_extract.strip()
 
+        if file_path_to_extract!='q' and file_path_to_extract!="Q":
+            doc=Path(file_path_to_extract).name
+            messages=extractInfo(file_path_to_extract).runExtraction()
             if "Error!" in messages:
                 print(messages)
                 print("Please try again")
                 self.retries += 1
-            # Here, if there is an error message, it prints it out and also increments the retries counter
+                # No explicit return -> None, run_cli will loop again
+                return None
 
-            if "Error!" not in messages:
-                print(f"{doc} has been extracted successfully")
-                print("Returning you back to main screen")
-                return "extraction_successful"
-            # Here is there is no error message it prints out a success message then returns A successful extraction message
+                # No error in messages → success
+            print(f"{doc} has been extracted successfully")
+            print("Returning you back to main screen")
+            return "extraction_successful"
 
         else:
-            print("Exiting zip Extraction Returning you back to main screen")
+            print("Exiting zip Extraction. Returning you back to main screen")
             return "Exit"
 
-            # Here when the user types q,the program breaks out of the loop
 
-
-
-        return None
-
-    def run_cli(self,max_retries=3):
+    async def run_cli(self,max_retries=3):
         """
         Here is where the main CLI loop runs until a valid ZIP file is extracted
         or the user decides to exit.
@@ -70,13 +73,13 @@ class  zipExtractionCLI():
 
         while self.retries <= max_retries: # Loop until a valid ZIP file is extracted or max retries reached which is 3 by default
             print(f'try: {self.retries}/{max_retries}')
-            result = self.run_zip_interface()
+            result = await self.run_zip_interface()
             # Here I am calling the run_zip_interface method to start the zip extraction process and storing return messages
 
             if result == "extraction_successful":
                 break
 
-            if result == "Exit":
+            if result == "Exit" or result == "Timeout":
                 break
 
         """
@@ -91,4 +94,4 @@ if __name__ == "__main__":
     # Only runs when you execute this file directly:
     # python -m src.CLI_interface_for_file_extraction
     cli = zipExtractionCLI()
-    cli.run_cli()
+    asyncio.run(cli.run_cli())

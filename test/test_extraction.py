@@ -9,6 +9,7 @@ from pathlib import Path
 from src.extraction import extractInfo
 from src.CLI_interface_for_file_extraction import zipExtractionCLI
 from unittest.mock import patch, MagicMock, call
+import asyncio
 
 
 class TestExtraction(unittest.TestCase):
@@ -69,6 +70,7 @@ class TestExtraction(unittest.TestCase):
 
 
         self.instance = extractInfo(self.test_zip_file_path)
+        self.cli_instance=zipExtractionCLI()
 
 
     def test_empty_zip(self):
@@ -275,9 +277,9 @@ class TestExtraction(unittest.TestCase):
         mock_instance=MagicMock()
         mock_extract_Info.return_value = mock_instance
 
-        cli=zipExtractionCLI()
+
         #Here I am instantiating the zipExtreactionCLI class
-        cli.run_cli()
+        asyncio.run(self.cli_instance.run_cli())
         mock_extract_Info.assert_called_once_with(self.test_zip_file_path)
         mock_instance.runExtraction.assert_called_once()
         mock_print.assert_any_call(f"{test_file_name} has been extracted successfully")
@@ -294,9 +296,8 @@ class TestExtraction(unittest.TestCase):
         mock_instance = MagicMock()
         mock_instance.runExtraction.return_value = "Error! Zip file is bad!"
         mock_extract_Info.return_value = mock_instance
+        asyncio.run(self.cli_instance.run_cli(max_retries=1))
 
-        cli = zipExtractionCLI()
-        cli.run_cli(max_retries=1)
 
 
         mock_print.assert_any_call("Error! Zip file is bad!")
@@ -312,9 +313,8 @@ class TestExtraction(unittest.TestCase):
 
 
         """
-        cli = zipExtractionCLI()
-        cli.run_cli()
-        mock_print.assert_any_call("Exiting zip Extraction Returning you back to main screen")
+        asyncio.run(self.cli_instance.run_cli())
+        mock_print.assert_any_call("Exiting zip Extraction. Returning you back to main screen")
 
 
 
@@ -334,8 +334,7 @@ class TestExtraction(unittest.TestCase):
         mock_instance.runExtraction.return_value = extractInfo.BAD_ZIP_ERROR_TEXT
         mock_extract_Info.return_value = mock_instance
 
-        cli = zipExtractionCLI()
-        cli.run_cli(max_retries=3)
+        asyncio.run(self.cli_instance.run_cli(max_retries=3))
 
 
         assert mock_extract_Info.call_count >= 2, (
