@@ -20,7 +20,7 @@ from src.file_data_saving import SaveFileAnalysisAsJSON
 import mysql.connector
 from mysql.connector import Error
 
-# Example connection code for MySQL Docker container
+# Connection code for MySQL Docker container
 
 for attempt in range(5):
     try:
