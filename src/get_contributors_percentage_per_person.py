@@ -37,11 +37,11 @@ class get_contributors_percentages_git:
             - Prepares Counter for tracking author commits
 
         """
+        self.local_contributors = None
         self.project_info = None
         load_dotenv()
         self.token = os.getenv("GITHUB_TOKEN")
         self.final_url = None
-        self.project_Collab=False
         self.repo_name=None
         self.total_commits=0
         self.file_path=file_path
@@ -53,14 +53,19 @@ class get_contributors_percentages_git:
 
     def get_repo_link(self):
         try:
-            repo = Repo(self.file_path)
-
+            local_repo = Repo(self.file_path)
+            counter=Counter()
             # Method 1: Get the origin URL (most common)
-            origin_url = (str(repo.remotes.origin.url).split("/"))
+            origin_url = (str(local_repo.remotes.origin.url).split("/"))
             repo_name = origin_url[-1].split(".")[0]
             repo_owner = origin_url[-2]
             self.final_url = f"{repo_owner}/{repo_name}"
-            repo.close()
+            for commit in local_repo.iter_commits():
+                author_name= commit.author.name
+                counter[author_name] += 1
+
+            self.local_contributors = len(counter)
+            local_repo.close()
 
         except InvalidGitRepositoryError:
             self.final_url = None
@@ -93,16 +98,25 @@ class get_contributors_percentages_git:
         if self.final_url is not None:
             repo = g.get_repo(self.final_url)
             #author_count = Counter()
-            contributors = repo.get_contributors().totalCount
+            #remote_repo_contributors=repo.get_contributors().totalCount
 
-            self.project_Collab = (True if contributors > 1 else False)
+            #if self.local_contributors != remote_repo_contributors:
+                #contributors = self.local_contributors
+
+            #else:
+            #    contributors=remote_repo_contributors
+
+
+
+
+            #self.project_Collab = (True if contributors > 1 else False)
             self.repo_name=repo.full_name
             seen_shas=set()
 
 
             for pos,branch in enumerate(repo.get_branches()):
                 branch_name = branch.name
-                print(f"Collecting data on {pos} {branch_name} ")
+                #print(f"Collecting data on {pos+1} {branch_name} ")
                 for commit in repo.get_commits(sha=branch_name):
 
                     sha=commit.sha
@@ -133,7 +147,7 @@ class get_contributors_percentages_git:
 
         if self.state_1 != "Not a git repository" and self.state_2 != "Data unsuccessfully collected":
 
-            self.project_info= {"is_collaborative": self.project_Collab, "project_name": self.repo_name,
+            self.project_info= {"is_collaborative": False, "project_name": self.repo_name,
                             "total_commits": self.total_commits, "contributors": {}}
 
             for login,count in self.author_count.most_common():
@@ -143,12 +157,18 @@ class get_contributors_percentages_git:
                     "percentage":f"{pct:.2f}%",
                 }
 
+            num_of_contributors=len(self.project_info.get("contributors").keys())
+            if num_of_contributors>1:
+                self.project_info["is_collaborative"]=True
+
+
             return self.project_info
-        return None
+        return "Data unsuccessfully collected"
 
 
-test=get_contributors_percentages_git(r"D:\UBCO\capstone-project-team-2")
-print(test.output_result())
+#test=get_contributors_percentages_git(r"D:\UBCO\COSC_305_project-management")
+#print(test.output_result())
+#print(test.state_1,test.state_2)
 
 
 
