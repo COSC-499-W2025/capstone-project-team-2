@@ -22,20 +22,26 @@ from mysql.connector import Error
 
 # Example connection code for MySQL Docker container
 
+for attempt in range(5):
+    try:
+        conn = mysql.connector.connect(
+            host="app_database",          # matches the service name in docker-compose.yml
+            port=3306,
+            database="appdb",
+            user="appuser",
+            password="apppassword"
+        )
+
+        if conn.is_connected():
+            print("✅ Connected to MySQL successfully!")
+            break
+    except Error as e:
+        print(f"MySQL not ready yet: {e}")
+
+if conn is None or not conn.is_connected():
+    raise Exception("❌ Could not connect to MySQL after 5 attempts.")
 
 
-conn = mysql.connector.connect(
-        host="app_database",          # matches the service name in docker-compose.yml
-        port=3306,
-        database="appdb",
-        user="appuser",
-        password="apppassword"
-    )
-
-
-
-print("✅ Connected to MySQL successfully!")
-conn.close()
 
 
 DEFAULT_SAVE_DIR = Path("User_config_files")
@@ -279,3 +285,7 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+
+conn.close()
