@@ -69,6 +69,9 @@ class get_contributors_percentages_git:
 
 
 
+
+
+
     def get_repo_info(self):
         """
         Here I am I
@@ -76,6 +79,16 @@ class get_contributors_percentages_git:
         """
         auth = Auth.Token(self.token)
         g = Github(auth=auth)
+        """
+        rate_limit = g.get_rate_limit()
+        core = rate_limit.rate
+
+        print(f"Rate Limit: {core.limit}")
+        print(f"Remaining: {core.remaining}")
+        print(f"Resets at: {core.reset}")
+        """
+
+
 
         if self.final_url is not None:
             repo = g.get_repo(self.final_url)
@@ -84,21 +97,34 @@ class get_contributors_percentages_git:
 
             self.project_Collab = (True if contributors > 1 else False)
             self.repo_name=repo.full_name
+            seen_shas=set()
 
 
-            for commit in repo.get_commits():
-                author = commit.author
-                if author is None:
-                    author_login = "Unknown"
-                else:
-                    author_login = author.login or "Unknown"
+            for pos,branch in enumerate(repo.get_branches()):
+                branch_name = branch.name
+                print(f"Collecting data on {pos} {branch_name} ")
+                for commit in repo.get_commits(sha=branch_name):
 
-                self.author_count[author_login]+=1
-                self.total_commits=sum(self.author_count.values())
+                    sha=commit.sha
+                    if sha in seen_shas:
+                        continue
+                    seen_shas.add(sha)
+                    author = commit.author
+                    if author is None:
+                        author_login = "Unknown"
+                    else:
+                        author_login = author.login or "Unknown"
 
-                g.close()
-                return "Data successfully collected"
+                    self.author_count[author_login] += 1
+                    self.total_commits += 1
+
+
+            g.close()
+            return "Data successfully collected"
+
         return "Data unsuccessfully collected"
+
+
 
     def output_result(self):
         self.state_1=self.get_repo_link()
@@ -121,7 +147,10 @@ class get_contributors_percentages_git:
         return None
 
 
-test=get_contributors_percentages_git(r"D:\UBCO\New folder")
+test=get_contributors_percentages_git(r"D:\UBCO\capstone-project-team-2")
+print(test.output_result())
+
+
 
 
 
