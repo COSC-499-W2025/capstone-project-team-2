@@ -20,6 +20,8 @@ from src.file_data_saving import SaveFileAnalysisAsJSON
 import mysql.connector
 from mysql.connector import Error
 
+from db_helper_function import HelperFunct
+
 # Connection code for MySQL Docker container
 
 for attempt in range(5):
@@ -41,6 +43,8 @@ for attempt in range(5):
 if conn is None or not conn.is_connected():
     raise Exception("❌ Could not connect to MySQL after 5 attempts.")
 
+
+store = HelperFunct(conn)
 
 
 
