@@ -65,7 +65,7 @@ class get_contributors_percentages_git:
         except InvalidGitRepositoryError:
             self.final_url = None
             return "Not a git repository"
-        return "Successfully created url"
+        return "Successfully  created repo url"
 
 
 
