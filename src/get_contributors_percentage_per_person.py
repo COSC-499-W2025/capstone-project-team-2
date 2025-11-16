@@ -1,9 +1,10 @@
+from pathlib import Path
+
 from github import Github, Auth
 from git import Actor, Repo, InvalidGitRepositoryError
-from collections import Counter
+from collections import Counter, defaultdict
 import os
 from dotenv import load_dotenv
-
 
 
 class get_contributors_percentages_git:
@@ -48,6 +49,8 @@ class get_contributors_percentages_git:
         self.author_count=Counter()
         self.state_1=None
         self.state_2=None
+        self.contributors_set=set()
+        self.auth = Auth.Token(self.token)
 
 
 
@@ -82,8 +85,8 @@ class get_contributors_percentages_git:
         Here I am I
 
         """
-        auth = Auth.Token(self.token)
-        g = Github(auth=auth)
+
+        g = Github(auth=self.auth)
         """
         rate_limit = g.get_rate_limit()
         core = rate_limit.rate
@@ -139,6 +142,66 @@ class get_contributors_percentages_git:
         return "Data unsuccessfully collected"
 
 
+    def get_files_by_author(self):
+        self.get_repo_link()
+        #contributors = set()
+        g = Github(auth=self.auth)
+        Remote_repo=g.get_repo(self.final_url)
+
+        self.contributors_set={c.login for c in Remote_repo.get_contributors()}
+        author_stats=defaultdict(
+            lambda: defaultdict(lambda:{
+                "fileType": None,
+                "additions":0,
+                "deletions":0,
+                "changes":0,
+            }),
+        )
+
+
+        seen_shas=set()
+        for branch in Remote_repo.get_branches():
+            branch_name = branch.name
+            print(branch_name)
+            for author in self.contributors_set:
+                commits = Remote_repo.get_commits(author=author,sha=branch_name)
+                for commit in commits:
+                    if commit.sha in seen_shas:
+                        continue
+                    seen_shas.add(commit.sha)
+
+                    detailed_info=Remote_repo.get_commit(commit.sha)
+                    for file in detailed_info.files:
+                        if not file.patch:
+                            continue
+
+                        suffix=Path(file.filename).suffix.lower()
+
+
+
+                        stats=author_stats[author][file.filename]
+
+
+
+
+                        stats.setdefault("fileType",suffix)
+                        stats["additions"] += file.additions or 0
+                        stats["deletions"] += file.deletions or 0
+                        stats["changes"] += file.changes or 0
+
+
+
+        return {
+            author: dict(files)
+            for author, files in author_stats.items()
+            }
+
+
+
+
+
+
+
 
     def output_result(self):
         self.state_1=self.get_repo_link()
@@ -166,7 +229,9 @@ class get_contributors_percentages_git:
         return "Data unsuccessfully collected"
 
 
-#test=get_contributors_percentages_git(r"D:\UBCO\COSC_305_project-management")
+test=get_contributors_percentages_git(r"D:\UBCO\COSC_344")
+file=test.get_files_by_author()
+print(file)
 #print(test.output_result())
 #print(test.state_1,test.state_2)
 
