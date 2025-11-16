@@ -17,25 +17,35 @@ from src.project_type_detection import detect_project_type
 from src.resume_item_generator import generate_resume_item
 from src.user_startup_config import ConfigLoader
 from src.file_data_saving import SaveFileAnalysisAsJSON
+from src.db_helper_function import HelperFunct
+
 import mysql.connector
 from mysql.connector import Error
 
-# Example connection code for MySQL Docker container
+# Connection code for MySQL Docker container
+
+for attempt in range(5):
+    try:
+        conn = mysql.connector.connect(
+            host="app_database",          # matches the service name in docker-compose.yml
+            port=3306,
+            database="appdb",
+            user="appuser",
+            password="apppassword"
+        )
+
+        if conn.is_connected():
+            print("✅ Connected to MySQL successfully!")
+            break
+    except Error as e:
+        print(f"MySQL not ready yet: {e}")
+
+if conn is None or not conn.is_connected():
+    raise Exception("❌ Could not connect to MySQL after 5 attempts.")
 
 
+store = HelperFunct(conn)
 
-conn = mysql.connector.connect(
-        host="app_database",          # matches the service name in docker-compose.yml
-        port=3306,
-        database="appdb",
-        user="appuser",
-        password="apppassword"
-    )
-
-
-
-print("✅ Connected to MySQL successfully!")
-conn.close()
 
 
 DEFAULT_SAVE_DIR = Path("User_config_files")
@@ -279,3 +289,7 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+
+conn.close()
