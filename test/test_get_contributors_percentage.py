@@ -91,6 +91,11 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
 
 
     def test_two_contributors_equal_commits(self):
+        """
+        Checks to see if there are two commits in the repo that the PCT(percentage contributions)
+        are 50%
+        :return:
+        """
         result = get_contributors_percentages_git(self.repo_path).output_result()
         self.assertIsNotNone(result, "Result should not be None")
         self.assertTrue(result['is_collaborative'], "Should be collaborative with 2 contributors")
@@ -102,6 +107,10 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
             self.assertEqual(stats['percentage'], '50.00%', f"{name} should have 50.00%")
 
     def test_output_result_structure(self):
+        """
+        This test is checking to see if the return structure of the system is correct
+        :return:
+        """
         result = get_contributors_percentages_git(self.repo_path).output_result()
         self.assertIn('is_collaborative', result)
         self.assertIn('project_name', result)
@@ -121,6 +130,10 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
             self.assertTrue(stats['percentage'].endswith('%'))
 
     def test_individual_repos(self):
+        """
+        Here we are testing to see if the individual repos return dictionary is correct
+        :return:
+        """
         result = get_contributors_percentages_git(self.repo_path_2).output_result()
         self.assertFalse(result['is_collaborative'])
         self.assertIn('is_collaborative', result)
@@ -131,6 +144,10 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
 
 
     def test_percentage_add_to_100(self):
+        """
+        Here we are checking to see if the percentage contributions add up to 100%
+        :return:
+        """
         total_percentage = 0
         result = get_contributors_percentages_git(self.repo_path).output_result()
         for name, stats in result['contributors'].items():

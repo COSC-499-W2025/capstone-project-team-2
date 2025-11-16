@@ -120,7 +120,7 @@ class get_contributors_percentages_git:
             #here we start collecting data about the GitHub Repository
             for pos,branch in enumerate(repo.get_branches()): #Getting the remote branches names
                 branch_name = branch.name
-                #print(f"Collecting data on {pos+1} {branch_name} ")
+                print(f"Collecting data on {pos+1} {branch_name} ")
                 for commit in repo.get_commits(sha=branch_name):
                     sha=commit.sha
                     if sha in seen_shas:
@@ -170,7 +170,7 @@ class get_contributors_percentages_git:
         seen_shas=set()
         for branch in Remote_repo.get_branches():
             branch_name = branch.name
-            print(branch_name)
+            #print(branch_name)
             for author in self.contributors_set:
                 commits = Remote_repo.get_commits(author=author,sha=branch_name)
                 for commit in commits:
@@ -246,11 +246,3 @@ class get_contributors_percentages_git:
                 self.project_info["files_change"]=files
             return self.project_info
         return "Data unsuccessfully collected"
-
-
-
-
-
-
-
-
