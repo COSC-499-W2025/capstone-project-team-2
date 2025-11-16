@@ -16,7 +16,6 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
     def setUpClass(cls):
         """
         Runs ONCE for the whole class.
-        Creates 2 local repos + 2 GitHub repos and pushes to them.
         """
         load_dotenv()
         token = os.getenv("GITHUB_TOKEN")
@@ -41,22 +40,21 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
         with open(file_path_2, "w") as f:
             f.write("Hello 2")
 
-        # repo_2: 1 commit by Bob
         cls.repo_2.git.add(A=True)
         cls.repo_2.index.commit("Commit 1", author=Actor("Bob", "Bob@example.com"))
 
-        # repo: Commit A (Alice)
+
         cls.repo.git.add(A=True)
         cls.repo.index.commit("Commit A", author=Actor("Alice", "alice@example.com"))
 
-        # modify file and Commit B (Bob)
+
         with open(file_path, "a") as f:
             f.write("Hello 2")
 
         cls.repo.git.add(A=True)
         cls.repo.index.commit("Commit B", author=Actor("Bob", "bob@example.com"))
 
-        # --- GitHub setup (once) ---
+
         auth = Auth.Token(cls.token)
         cls.gh = Github(auth=auth)
         user = cls.gh.get_user()
@@ -90,7 +88,7 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
         branch_2 = cls.repo_2.active_branch.name
         cls.repo_2.git.push("--set-upstream", "origin", branch_2)
 
-    # ----------------- tests -----------------
+
 
     def test_two_contributors_equal_commits(self):
         result = get_contributors_percentages_git(self.repo_path).output_result()
@@ -127,6 +125,7 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
         self.assertIn('is_collaborative', result)
         self.assertFalse(result['is_collaborative'], "Should not be collaborative")
         self.assertIsInstance(result["files_change"], dict)
+        self.assertIn(result,result['files_change'])
 
     def test_percentage_add_to_100(self):
         total_percentage = 0
@@ -147,51 +146,31 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
     def tearDownClass(cls):
         """
         Runs ONCE after all tests.
-        Clean up GitHub repos + local temp dirs.
+        Cleans up GitHub repos + local temp dirs
+        prevents GitHub repo leak in other words
+
         """
         # Delete remote GitHub repos
-        if hasattr(cls, "remote_repo"):
-            try:
-                cls.remote_repo.delete()
-                print("Deleted remote_repo")
-            except Exception as e:
-                print("Failed to delete remote_repo:", e)
 
-        if hasattr(cls, "remote_repo_2"):
-            try:
-                cls.remote_repo_2.delete()
-                print("Deleted remote_repo_2")
-            except Exception as e:
-                print("Failed to delete remote_repo_2:", e)
+        cls.remote_repo.delete()
+        cls.remote_repo_2.delete()
+        cls.gh.close()
 
-        # Close GitHub client
-        if hasattr(cls, "gh"):
-            try:
-                cls.gh.close()
-            except Exception as e:
-                print("Failed to close GitHub client:", e)
 
         # Close repos
-        if hasattr(cls, "repo"):
+        if hasattr(cls, "repo") and hasattr(cls, "repo_2"):
             try:
                 cls.repo.close()
+                cls.repo_2.close()
             except Exception as e:
                 print("Failed to close repo:", e)
 
-        if hasattr(cls, "repo_2"):
-            try:
-                cls.repo_2.close()
-            except Exception as e:
-                print("Failed to close repo_2:", e)
+        if os.path.exists(cls.repo_path):
+            shutil.rmtree(cls.repo_path, ignore_errors=True)
+            if os.path.exists(cls.repo_path_2):
+                shutil.rmtree(cls.repo_path_2, ignore_errors=True)
 
-        # Remove temp directories
-        for path in (
-            getattr(cls, "repo_path", None),
-            getattr(cls, "repo_path_2", None),
-        ):
-            if path and os.path.exists(path):
-                shutil.rmtree(path, ignore_errors=True)
-                print("Deleted local directory:", path)
+
 
 
 if __name__ == "__main__":
