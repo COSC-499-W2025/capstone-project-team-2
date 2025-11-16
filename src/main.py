@@ -17,10 +17,10 @@ from src.project_type_detection import detect_project_type
 from src.resume_item_generator import generate_resume_item
 from src.user_startup_config import ConfigLoader
 from src.file_data_saving import SaveFileAnalysisAsJSON
+from src.db_helper_function import HelperFunct
+
 import mysql.connector
 from mysql.connector import Error
-
-from db_helper_function import HelperFunct
 
 # Connection code for MySQL Docker container
 

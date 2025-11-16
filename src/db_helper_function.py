@@ -16,29 +16,18 @@ class HelperFunct:
         self.conn = connection
 
 
-    def insert_json(self, filepath:str) -> int:
+    def insert_json(self, filename: str, data: dict, raw_bytes: bytes = None) -> int:
         """
-        Insert a JSON file into the database, storing both:
-        1. The dictionary content in the 'content' column.
-        2. The raw file bytes in the 'file_blob' column.
-        """ 
-        # Load JSON content as dictionary 
-        with open(filepath, "r") as f:
-            data_dict = json.load(f)
+        Insert JSON data into DB, storing both content and blob.
+        """
+        if raw_bytes is None:
+            raw_bytes = json.dumps(data).encode("utf-8")
 
-        # Read raw bytes of the same file
-        with open(filepath, "rb") as f:
-            file_bytes = f.read()
-
-        # Extract only the filename
-        filename = filepath.split("/")[-1]
-
-        # Insert into database
         cursor = self.conn.cursor()
         try:
             cursor.execute(
-                "INSERT INTO project_data (filename, content, file_blob) VALUES (%s, %s, %s)",
-                (filename, json.dumps(data_dict), file_bytes)
+            "INSERT INTO project_data (filename, content, file_blob) VALUES (%s, %s, %s)",
+            (filename, json.dumps(data), raw_bytes)
             )
             self.conn.commit()
             return cursor.lastrowid
