@@ -122,10 +122,13 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
 
     def test_individual_repos(self):
         result = get_contributors_percentages_git(self.repo_path_2).output_result()
+        self.assertFalse(result['is_collaborative'])
         self.assertIn('is_collaborative', result)
-        self.assertFalse(result['is_collaborative'], "Should not be collaborative")
-        self.assertIsInstance(result["files_change"], dict)
-        self.assertIn(result,result['files_change'])
+        self.assertIn('files_change', result)
+        self.assertIsInstance(result['files_change'], dict)
+        #self.assertFalse(result['is_collaborative'], "Should not be collaborative")
+
+
 
     def test_percentage_add_to_100(self):
         total_percentage = 0
