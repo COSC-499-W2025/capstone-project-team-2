@@ -12,7 +12,21 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from src.db_helper_function import HelperFunct
 
 
+"""
+For testing output should reflect the following 
+
+time="2025-11-15T17:18:48-08:00" level=warning msg="The \"DISPLAY\" variable is not set. Defaulting to a blank string." 
+[+] Running 1/1 ✔ Container app_database Started 0.6s ...... 
+---------------------------------------------------------------------- 
+Ran 6 tests in 0.302s v View in Docker Desktop o View Config w Enable Watch 
+OK
+
+"""
+
+
 class TestHelperFunct(unittest.TestCase):
+
+    
 
     @classmethod
     def setUpClass(cls):
