@@ -1,6 +1,8 @@
 import json
 import mysql.connector
 from mysql.connector import Error
+from typing import Union
+
 
 class HelperFunct:
     """
@@ -77,17 +79,44 @@ class HelperFunct:
             cursor.close()
 
         # Update, update all content and json file info
-    def update(self, row_id: int, new_content: dict) -> bool:
+    def update(self, row_id: int, input: Union[dict, bytes], filename: str = None) -> bool:
+        """
+        Update both content and file_blob so they always match.
+
+        Args:
+            input: Python dict or raw JSON bytes.
+            filename: Optional new filename.
+
+        Returns:
+            True if row updated, False otherwise.
+        """
+        if isinstance(input, dict):
+            content = input
+            blob = json.dumps(input).encode("utf-8")
+        elif isinstance(input, bytes):
+            blob = input
+            content = json.loads(input.decode("utf-8"))
+        else:
+            raise ValueError("new_input must be a dict or bytes")
+
+        sql = "UPDATE project_data SET content=%s, file_blob=%s"
+        params = [json.dumps(content), blob]
+
+        if filename is not None:
+            sql += ", filename=%s"
+            params.append(filename)
+
+        sql += " WHERE id=%s"
+        params.append(row_id)
+
         cursor = self.conn.cursor()
         try:
-            cursor.execute(
-                "UPDATE project_data SET content = %s WHERE id = %s",
-                (json.dumps(new_content), row_id)
-            )
+            cursor.execute(sql, tuple(params))
             self.conn.commit()
             return cursor.rowcount > 0
         finally:
             cursor.close()
+
 
         # Delete
     def delete(self, row_id: int) -> bool:

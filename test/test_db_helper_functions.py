@@ -72,7 +72,7 @@ class TestHelperFunct(unittest.TestCase):
 
     def test_update_content(self):
         row_id = self.store.insert_json("up.json", {"before": True})
-        updated = self.store.update_content(row_id, {"after": True})
+        updated = self.store.update(row_id, {"after": True})
         self.assertTrue(updated)
         pulled = self.store.fetch_by_id(row_id)
         self.assertEqual(pulled, {"after": True})
