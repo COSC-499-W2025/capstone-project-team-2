@@ -43,6 +43,10 @@ class get_contributors_percentages_git:
         self.project_info = None
         load_dotenv()
         self.token = os.getenv("GITHUB_TOKEN")
+        if not self.token:
+            raise RuntimeError(
+                "GITHUB_TOKEN is not set. Please add it to your .env file."
+            )
         self.final_url = None
         self.repo_name=None
         self.total_commits=0
@@ -52,6 +56,26 @@ class get_contributors_percentages_git:
         self.state_2=None
         self.contributors_set=set()
         self.auth = Auth.Token(self.token)
+        self.g= Github(auth=self.auth)
+
+        self._remote_repo = None
+
+
+    def _ensure_repo(self):
+        if self.final_url is None:
+            self.get_repo_link()
+
+        if self.final_url is None:
+            raise RuntimeError(
+                "Could not determine remote GitHub repository URL from local repo."
+            )
+
+        if self._remote_repo is None:
+            self._remote_repo = self.g.get_repo(self.final_url)
+        return self._remote_repo
+
+
+
 
 
 
@@ -98,7 +122,6 @@ class get_contributors_percentages_git:
 
         """
 
-        g = Github(auth=self.auth)
         """
         rate_limit = g.get_rate_limit()
         core = rate_limit.rate
@@ -111,7 +134,8 @@ class get_contributors_percentages_git:
 
 
         if self.final_url is not None:
-            repo = g.get_repo(self.final_url)
+            #repo = self.g.get_repo(self.final_url)
+            repo=self._ensure_repo()
             #Here I am Initialing the repo to be used by the GitHub API
 
             self.repo_name=repo.full_name #Here we are retrieving the full name of the repo
@@ -136,7 +160,6 @@ class get_contributors_percentages_git:
                     self.total_commits += 1 #Here we add to the total commits done throughout the project/Repo
 
 
-            g.close()
             return "Data successfully collected"
 
         return "Data unsuccessfully collected"
@@ -150,13 +173,10 @@ class get_contributors_percentages_git:
 
         """
 
-
-        self.get_repo_link()
         total_changes=0
         #contributors = set()
-        g = Github(auth=self.auth)
-        Remote_repo=g.get_repo(self.final_url) #Initalzes the repo
 
+        Remote_repo=self._ensure_repo()
         self.contributors_set={c.login for c in Remote_repo.get_contributors()}
         author_stats=defaultdict(
             lambda: defaultdict(lambda:{
@@ -194,7 +214,6 @@ class get_contributors_percentages_git:
                         stats["changes"] += file.changes or 0
 
             final_dict = {}
-            g.close()
             for author, files in author_stats.items():
                 files_dict = dict(files)
                 total_changes = sum(s["changes"] for s in files_dict.values())
@@ -244,5 +263,7 @@ class get_contributors_percentages_git:
 
             if not self.collab_project: #Here I am seeing if the project is collaborative if it's not than I add the files change dictionary to the project_info
                 self.project_info["files_change"]=files
+
+            self.g.close()
             return self.project_info
         return "Data unsuccessfully collected"
