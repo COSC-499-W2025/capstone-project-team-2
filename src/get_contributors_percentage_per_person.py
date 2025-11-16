@@ -38,6 +38,7 @@ class get_contributors_percentages_git:
             - Prepares Counter for tracking author commits
 
         """
+        self.collab_project = False
         self.local_contributors = None
         self.project_info = None
         load_dotenv()
@@ -56,7 +57,7 @@ class get_contributors_percentages_git:
 
     def get_repo_link(self):
         try:
-            local_repo = Repo(self.file_path)
+            local_repo = Repo(self.file_path) # Here I am using the gitpython library to initialize the repo
             counter=Counter()
             # Method 1: Get the origin URL (most common)
             origin_url = (str(local_repo.remotes.origin.url).split("/"))
@@ -82,7 +83,18 @@ class get_contributors_percentages_git:
 
     def get_repo_info(self):
         """
-        Here I am I
+        Here we are connecting to the GitHub API
+        to retrieve metadata about a GitHub repository,
+        which includes the number of commits per author across
+        all branches in the repository.
+
+        This method connects to the GitHub API  using the stored
+        authentication token (`self.auth`), retrieving the repository infromation
+        from self.final_url, and iterates through each branch and commits to build up
+        contributor statistics
+
+
+
 
         """
 
@@ -100,28 +112,16 @@ class get_contributors_percentages_git:
 
         if self.final_url is not None:
             repo = g.get_repo(self.final_url)
-            #author_count = Counter()
-            #remote_repo_contributors=repo.get_contributors().totalCount
+            #Here I am Initialing the repo to be used by the GitHub API
 
-            #if self.local_contributors != remote_repo_contributors:
-                #contributors = self.local_contributors
-
-            #else:
-            #    contributors=remote_repo_contributors
-
-
-
-
-            #self.project_Collab = (True if contributors > 1 else False)
-            self.repo_name=repo.full_name
+            self.repo_name=repo.full_name #Here we are retrieving the full name of the repo
             seen_shas=set()
 
-
-            for pos,branch in enumerate(repo.get_branches()):
+            #here we start collecting data about the GitHub Repository
+            for pos,branch in enumerate(repo.get_branches()): #Getting the remote branches names
                 branch_name = branch.name
                 #print(f"Collecting data on {pos+1} {branch_name} ")
                 for commit in repo.get_commits(sha=branch_name):
-
                     sha=commit.sha
                     if sha in seen_shas:
                         continue
@@ -132,8 +132,8 @@ class get_contributors_percentages_git:
                     else:
                         author_login = author.login or "Unknown"
 
-                    self.author_count[author_login] += 1
-                    self.total_commits += 1
+                    self.author_count[author_login] += 1 #here we add the user logins information to the collection Object
+                    self.total_commits += 1 #Here we add to the total commits done throughout the project/Repo
 
 
             g.close()
@@ -143,15 +143,23 @@ class get_contributors_percentages_git:
 
 
     def get_files_by_author(self):
+
+        """
+        Retrieve per-author file modification statistics from a GitHub repository.
+
+
+        """
+
+
         self.get_repo_link()
+        total_changes=0
         #contributors = set()
         g = Github(auth=self.auth)
-        Remote_repo=g.get_repo(self.final_url)
+        Remote_repo=g.get_repo(self.final_url) #Initalzes the repo
 
         self.contributors_set={c.login for c in Remote_repo.get_contributors()}
         author_stats=defaultdict(
             lambda: defaultdict(lambda:{
-                "fileType": None,
                 "additions":0,
                 "deletions":0,
                 "changes":0,
@@ -180,21 +188,23 @@ class get_contributors_percentages_git:
 
 
                         stats=author_stats[author][file.filename]
-
-
-
-
                         stats.setdefault("fileType",suffix)
                         stats["additions"] += file.additions or 0
                         stats["deletions"] += file.deletions or 0
                         stats["changes"] += file.changes or 0
 
+            final_dict = {}
+            g.close()
+            for author, files in author_stats.items():
+                files_dict = dict(files)
+                total_changes = sum(s["changes"] for s in files_dict.values())
 
+                final_dict[author] = {
+                    "files": files_dict,
+                    "total_changes": total_changes,
+                }
 
-        return {
-            author: dict(files)
-            for author, files in author_stats.items()
-            }
+            return final_dict
 
 
 
@@ -204,8 +214,14 @@ class get_contributors_percentages_git:
 
 
     def output_result(self):
+        """
+        Here we are talking the metadata we received and then output in dictionary format to be used
+        in other parts of the program
+        :return:
+        """
         self.state_1=self.get_repo_link()
         self.state_2=self.get_repo_info()
+        files=self.get_files_by_author()
 
 
         if self.state_1 != "Not a git repository" and self.state_2 != "Data unsuccessfully collected":
@@ -214,26 +230,24 @@ class get_contributors_percentages_git:
                             "total_commits": self.total_commits, "contributors": {}}
 
             for login,count in self.author_count.most_common():
-                pct=(count/self.total_commits)*100 if self.total_commits>0 else 0
+                pct=(count/self.total_commits)*100 if self.total_commits>0 else 0 #Here I am calculating the percentage contribution for each person
                 self.project_info["contributors"][login]={
                     "commit_count":count,
                     "percentage":f"{pct:.2f}%",
-                }
+                } #Here we are getting the percentage of the work done by each person and storting this in the dictionary per person
 
-            num_of_contributors=len(self.project_info.get("contributors").keys())
-            if num_of_contributors>1:
+            num_of_contributors=len(self.project_info.get("contributors").keys()) #Here I am seeing if project is either a collabartive here
+            if num_of_contributors>1:# if its greater one, I set the dictionary flag to True
+                self.collab_project=True
                 self.project_info["is_collaborative"]=True
 
 
+            if not self.collab_project: #Here I am seeing if the project is collaborative if it's not than I add the files change dictionary to the project_info
+                self.project_info["files_change"]=files
             return self.project_info
         return "Data unsuccessfully collected"
 
 
-test=get_contributors_percentages_git(r"D:\UBCO\COSC_344")
-file=test.get_files_by_author()
-print(file)
-#print(test.output_result())
-#print(test.state_1,test.state_2)
 
 
 
