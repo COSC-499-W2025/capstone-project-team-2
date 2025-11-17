@@ -106,8 +106,8 @@ def get_skills_for_file_subset(root: Path, files: List[str]) -> List[str]:
         # Run existing skill detection on the filtered project
         try:
             skills = identify_skills(temp_root) or []
-        except Exception:
-            logger.exception("identify_skills failed for temp contribution set")
+        except Exception as exc:
+            logger.exception("identify_skills failed for temp contribution set: %s", exc)
             skills = []
 
     skills = stable_unique_sorted(skills)

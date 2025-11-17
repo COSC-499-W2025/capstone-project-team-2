@@ -2,7 +2,8 @@ import tempfile
 import unittest
 from pathlib import Path
 import sys
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+import logging
 
 # Add the src directory to the Python path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -20,10 +21,12 @@ class TestContributionSkills(unittest.TestCase):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.project_root = Path(self.temp_dir.name)
         clear_skills_cache()
+        logging.disable(logging.CRITICAL)  
 
     def tearDown(self):
         self.temp_dir.cleanup()
         clear_skills_cache()
+        logging.disable(logging.NOTSET)
 
     def _write(self, relative_path: str, content: str = "") -> Path:
         """Helper to create files in the test project."""
