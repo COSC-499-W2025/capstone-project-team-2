@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS project_data (
     id INT AUTO_INCREMENT PRIMARY KEY,
     filename VARCHAR(255) NOT NULL,
     content JSON NOT NULL,
+    file_blob LONGBLOB,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
