@@ -28,7 +28,13 @@ DEFAULT_STORAGE = Path("User_config_files/project_insights.json")
 
 def _now_iso(ts: Optional[datetime] = None) -> str:
     """Return an ISO 8601 timestamp in UTC."""
-    ts = ts or datetime.now(tz=timezone.utc)
+    if ts is None:
+        ts = datetime.now(timezone.utc)
+
+    # Ensure timestamp is timezone-aware and in UTC
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=timezone.utc)
+
     return ts.astimezone(timezone.utc).isoformat()
 
 
