@@ -1,10 +1,24 @@
+import os
 from pathlib import Path
-
+import orjson
 from langchain_core.prompts import PromptTemplate
 from langchain_ollama import OllamaLLM
-
+import re
 
 class code_analysis_AI():
+    """
+    This a code analysis engine which deploys the use of
+    recursive to scan a project directory, and identify
+    the supporting programming languages by file extension,
+    which is later send to an LLM(Qwen) using the Ollama system
+    returning a structured analysis of the code
+
+    :parameter
+    - folderPath: Path
+        project root folder
+
+
+    """
     def __init__(self, folderPath):
         self.folderPath = Path(folderPath)
         self.qwen_languages_with_suffixes = {
@@ -164,7 +178,7 @@ class code_analysis_AI():
             for suffix in suffixes:
                 self.suffix_to_languages.setdefault(suffix, set()).add(lang)
 
-        self.model = OllamaLLM(model="qwen2.5-coder:7b")
+        self.model = OllamaLLM(model="qwen2.5-coder:7b") #Here we are defining what ollama model to use
         self.prompt = PromptTemplate(
             input_variables=["language", "filepath", "code"],
             template="""
@@ -172,18 +186,22 @@ class code_analysis_AI():
 
         ❗ ABSOLUTE RULES:
         - Do NOT include ```json or ``` in your answer.
-        - Do NOT include markdown.
-        - Do NOT include explanations.
+        - Do NOT include any markdown.
+        - Do NOT include explanations outside the JSON.
         - Do NOT include comments.
         - Output MUST be PURE JSON.
         - Violating these rules will break the parser.
-        
+
         You MUST determine and report algorithmic time and space complexity for the code
         (based on loops, recursion, data structures, etc.). If needed, infer reasonable
-        complexity from the structure of the code otherwise say that the time complexity
-        cannot be determined and give the following reasons.
-        
-        
+        complexity from the structure of the code; otherwise say that the time complexity
+        cannot be determined and give the reasons in the `complexity_comments` field.
+
+        All fields in the JSON MUST contain meaningful, descriptive content:
+        - Do NOT leave any string field as an empty string.
+        - Do NOT leave any list field empty; if nothing is present, explain that explicitly
+          (e.g., ["No significant data structures used"]).
+        - If a concept does not apply, say so explicitly in that field instead of leaving it blank.
 
         Here is the required JSON structure:
 
@@ -198,6 +216,12 @@ class code_analysis_AI():
           "data_structures_and_algorithms": {{
             "structures_used": [],
             "algorithmic_insights": "",
+            "time_complexity": {{
+              "best_case": "",
+              "average_case": "",
+              "worst_case": ""
+            }},
+            "space_complexity": "",
             "complexity_comments": ""
           }},
           "control_flow_and_error_handling": {{
@@ -236,20 +260,44 @@ class code_analysis_AI():
     def _is_ignored(self, path: Path) -> bool:
         return any(part in self.ignore_dirs for part in path.parts)
 
-    def read_code_file(self):
-        for file_path in self.folderPath.rglob("*"):
-            if not file_path.is_file():
-                continue
+    def _clean_model_output(self,text:str)->str:
 
-            if any(ignored in file_path.parts for ignored in self.ignore_dirs):
-                continue
+        if not text:
+            return text
+        cleaned=text.strip()
+        fence_pattern=re.compile(r"```(?:json|python)?\s*([\s\S]*?)```", re.IGNORECASE)
+        match=fence_pattern.search(cleaned)
+        if match:
+            cleaned=match.group(1).strip()
+        else:
+            if cleaned.startswith("```") and cleaned.endswith("```"):
+                cleaned=cleaned[3:-3].strip()
+        json_match = re.search(r"\{[\s\S]*\}", cleaned)
+        if json_match:
+            cleaned = json_match.group(0).strip()
 
-            suffix_key = self._get_suffix_key(file_path)
-            if suffix_key in self.suffix_to_languages:
-                languages = self.suffix_to_languages[suffix_key]
-                print(f"{file_path} -> {', '.join(sorted(languages))}")
 
-    def run_analysis(self):
+        return cleaned
+
+
+    def save_all_results(self,results:dict):
+        root_folder=Path(__file__).resolve().parent/"results"
+        os.makedirs(root_folder, exist_ok=True)
+        with open(root_folder/"analysis_result.json","wb") as f:
+            f.write(
+                orjson.dumps(
+                    results,
+                    option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS
+                )
+            )
+        print(f'Analysis result saved to {root_folder}/analysis_result.json')
+
+
+    def run_analysis(self,save_json=False):
+        """
+
+        :return:
+        """
         results = {}
         """Run deep Qwen-based analysis on all supported source files."""
         for file_path in self.folderPath.rglob("*"):
@@ -288,22 +336,36 @@ class code_analysis_AI():
 
             try:
                 response = self.model.invoke(final_prompt)
+                cleaned_response = self._clean_model_output(response)
             except Exception as e:
                 print(f"Error calling model on {file_path}: {e}")
                 continue
 
             print(response)
-            results[str(file_path)] = response
+            try:
+                parsed=orjson.loads(cleaned_response)
+                results[str(file_path)] = parsed
+
+
+            except Exception as e:
+                print(f"❌ JSON parsing failed for {file_path}: {e}")
+                print("Model Output:")
+                print(response)
+                continue
+
+
             print("\n" + "=" * 100 + "\n")
+
+        if save_json:
+            self.save_all_results(results)
+
         return results
 
 
-"""
-test=code_analysis_AI("")
-data=test.run_analysis()
-print(data)
 
-for info in data:
-    print(info)
-    
-"""
+test=code_analysis_AI(r"D:\UBCO\COSC360_final-Project")
+data=test.run_analysis(save_json=True)
+
+
+
+
