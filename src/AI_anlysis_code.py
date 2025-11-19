@@ -181,6 +181,13 @@ class code_analysis_AI():
         - Do NOT include comments.
         - Output MUST be PURE JSON.
         - Violating these rules will break the parser.
+        
+        You MUST determine and report algorithmic time and space complexity for the code
+        (based on loops, recursion, data structures, etc.). If needed, infer reasonable
+        complexity from the structure of the code otherwise say that the time complexity
+        cannot be determined and give the following reasons.
+        
+        
 
         Here is the required JSON structure:
 
@@ -304,11 +311,10 @@ class code_analysis_AI():
 
 
 
-"""
-test=code_analysis_AI("")
+
+test=code_analysis_AI(r"D:\UBCO\COSC_344")
 data=test.run_analysis()
 print(data)
 
 for info in data:
     print(info)
-"""
