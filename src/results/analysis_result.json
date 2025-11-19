@@ -1,0 +1,284 @@
+{
+  "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\condition.py": {
+    "code_quality_and_maintainability": {
+      "readability": "Good. The script is concise and easy to understand.",
+      "technical_debt": "None observed.",
+      "testability": "Good. The logic is straightforward, making it relatively easy to write unit tests for different cases of `x`."
+    },
+    "control_flow_and_error_handling": {
+      "error_handling_quality": "No explicit error handling is present. The script assumes that `x` will always be a number, which could lead to runtime errors if `x` is not defined or is a non-number type.",
+      "patterns": [
+        "if-else"
+      ]
+    },
+    "data_structures_and_algorithms": {
+      "algorithmic_insights": "The algorithm checks a single condition and performs a print operation based on that. It has a constant time complexity as the operations are independent of the input size.",
+      "complexity_comments": "The time and space complexity are constant because the operations do not depend on any input size.",
+      "space_complexity": "O(1)",
+      "structures_used": [
+        "No significant data structures used"
+      ],
+      "time_complexity": {
+        "average_case": "O(1)",
+        "best_case": "O(1)",
+        "worst_case": "O(1)"
+      }
+    },
+    "design_and_architecture": {
+      "analysis": "The script uses a basic conditional statement to determine if a value of `x` is greater than 5. If true, it prints 'x is big'; otherwise, it prints 'x is small'. This demonstrates fundamental control flow in Python.",
+      "concepts_observed": [
+        "Conditional statements",
+        "Control flow"
+      ]
+    },
+    "file": "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\condition.py",
+    "growth_areas": [
+      "Error handling can be added for robustness"
+    ],
+    "inferred_strengths": [
+      "Simple and effective",
+      "Readily testable"
+    ],
+    "language": "Python",
+    "library_and_framework_usage": {
+      "experience_inference": "The script does not use any external libraries or frameworks. It relies solely on Python's built-in functionality.",
+      "libraries_detected": []
+    },
+    "recommended_refactorings": [],
+    "summary": "A simple Python script that checks if a number is greater than 5 and prints the result."
+  },
+  "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\greeting.py": {
+    "code_quality_and_maintainability": {
+      "readability": "Good, the code is simple and easy to understand.",
+      "technical_debt": "Low, but could benefit from adding comments for better maintainability.",
+      "testability": "Poor, there are no tests or assertions to verify its correctness."
+    },
+    "control_flow_and_error_handling": {
+      "error_handling_quality": "",
+      "patterns": []
+    },
+    "data_structures_and_algorithms": {
+      "algorithmic_insights": "",
+      "complexity_comments": "The code does not contain any loops, recursion, or complex data structures.",
+      "space_complexity": "O(1)",
+      "structures_used": [],
+      "time_complexity": {
+        "average_case": "O(1)",
+        "best_case": "O(1)",
+        "worst_case": "O(1)"
+      }
+    },
+    "design_and_architecture": {
+      "analysis": "The script is simple and straightforward, demonstrating basic Python syntax for defining variables and outputting text.",
+      "concepts_observed": [
+        "Variable assignment",
+        "Print function"
+      ]
+    },
+    "file": "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\greeting.py",
+    "growth_areas": [
+      "Unit testing",
+      "Error handling"
+    ],
+    "inferred_strengths": [
+      "Simple syntax",
+      "Easy readability"
+    ],
+    "language": "Python",
+    "library_and_framework_usage": {
+      "experience_inference": "",
+      "libraries_detected": []
+    },
+    "recommended_refactorings": [
+      "Add unit tests to validate the greeting functionality"
+    ],
+    "summary": "This Python script defines a variable `name` with the value 'Immanuel' and prints a greeting message using this name."
+  },
+  "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\hello.py": {
+    "code_quality_and_maintainability": {
+      "readability": "High",
+      "technical_debt": "None",
+      "testability": "Good"
+    },
+    "control_flow_and_error_handling": {
+      "error_handling_quality": "",
+      "patterns": []
+    },
+    "data_structures_and_algorithms": {
+      "algorithmic_insights": "",
+      "complexity_comments": "The script does not involve any data structures or algorithms, so the complexity is constant.",
+      "space_complexity": "O(1)",
+      "structures_used": [],
+      "time_complexity": {
+        "average_case": "O(1)",
+        "best_case": "O(1)",
+        "worst_case": "O(1)"
+      }
+    },
+    "design_and_architecture": {
+      "analysis": "The script uses basic output functionality provided by Python's print function.",
+      "concepts_observed": [
+        "print function"
+      ]
+    },
+    "file": "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\hello.py",
+    "growth_areas": [],
+    "inferred_strengths": [
+      "Simple and clear output"
+    ],
+    "language": "Python",
+    "library_and_framework_usage": {
+      "experience_inference": "",
+      "libraries_detected": []
+    },
+    "recommended_refactorings": [],
+    "summary": "This file contains a simple Python script that prints 'Hello from tiny script!' to the console."
+  },
+  "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\loop_test.py": {
+    "code_quality_and_maintainability": {
+      "readability": "Highly readable, simple and straightforward.",
+      "technical_debt": "None observed; good for learning purposes.",
+      "testability": "Easy to test with unit tests."
+    },
+    "control_flow_and_error_handling": {
+      "error_handling_quality": "Basic script with no error handling.",
+      "patterns": [
+        "sequence iteration"
+      ]
+    },
+    "data_structures_and_algorithms": {
+      "algorithmic_insights": "This is a linear algorithm with a fixed number of iterations determined by the range specified.",
+      "complexity_comments": "The time complexity is O(n) because the number of iterations depends on the range specified. However, since n is constant in this case (3), it can be considered as O(1). The space complexity is O(1) as no additional data structures are used.",
+      "space_complexity": "O(1)",
+      "structures_used": [
+        "range object"
+      ],
+      "time_complexity": {
+        "average_case": "O(n)",
+        "best_case": "O(1)",
+        "worst_case": "O(n)"
+      }
+    },
+    "design_and_architecture": {
+      "analysis": "The script demonstrates a basic use of a for loop in Python, utilizing the range function to iterate over a sequence of numbers and printing each number.",
+      "concepts_observed": [
+        "for loop",
+        "range function",
+        "print statement"
+      ]
+    },
+    "file": "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\loop_test.py",
+    "growth_areas": [
+      "Error handling could be added for robustness",
+      "Use more complex data structures for learning advanced algorithms"
+    ],
+    "inferred_strengths": [
+      "Simple demonstration of Python loops",
+      "Good readability"
+    ],
+    "language": "Python",
+    "library_and_framework_usage": {
+      "experience_inference": "No library or framework is being used in this script, demonstrating basic Python syntax.",
+      "libraries_detected": []
+    },
+    "recommended_refactorings": [],
+    "summary": "A simple Python script that prints a loop counter from 0 to 2."
+  },
+  "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\math_ops.py": {
+    "code_quality_and_maintainability": {
+      "readability": "Good; the function name and parameters clearly indicate its purpose.",
+      "technical_debt": "No obvious technical debt; the code is clean and straightforward.",
+      "testability": "Easy to test with simple unit tests (e.g., checking if add(1, 2) returns 3)."
+    },
+    "control_flow_and_error_handling": {
+      "error_handling_quality": "Basic error handling is not present in this script, as it only calls a simple arithmetic operation.",
+      "patterns": [
+        "Direct method call"
+      ]
+    },
+    "data_structures_and_algorithms": {
+      "algorithmic_insights": "This function performs a constant-time arithmetic operation.",
+      "complexity_comments": "The function does not use any data structures or perform operations that depend on input size.",
+      "space_complexity": "O(1)",
+      "structures_used": [],
+      "time_complexity": {
+        "average_case": "O(1)",
+        "best_case": "O(1)",
+        "worst_case": "O(1)"
+      }
+    },
+    "design_and_architecture": {
+      "analysis": "The script is straightforward, defining a simple addition function and demonstrating its use with sample inputs.",
+      "concepts_observed": [
+        "Function definition",
+        "Arithmetic operation",
+        "Print statement"
+      ]
+    },
+    "file": "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\math_ops.py",
+    "growth_areas": [
+      "Consider adding error handling for potential input types or values"
+    ],
+    "inferred_strengths": [
+      "Simple and effective for adding two numbers",
+      "Readability is good"
+    ],
+    "language": "Python",
+    "library_and_framework_usage": {
+      "experience_inference": "No external libraries or frameworks are used in this script.",
+      "libraries_detected": []
+    },
+    "recommended_refactorings": [
+      "None necessary; the current implementation is optimal for its purpose"
+    ],
+    "summary": "This Python script defines a function to add two numbers and prints the result."
+  },
+  "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\random_pick.py": {
+    "code_quality_and_maintainability": {
+      "readability": "High",
+      "technical_debt": "None",
+      "testability": "Easy"
+    },
+    "control_flow_and_error_handling": {
+      "error_handling_quality": "The script does not explicitly include error handling mechanisms. The `random.choice()` function will raise a `ValueError` if the list is empty, but this is implicitly handled by the Python interpreter.",
+      "patterns": [
+        "Try-except block (implicit)"
+      ]
+    },
+    "data_structures_and_algorithms": {
+      "algorithmic_insights": "The script uses the `random.choice()` function, which internally implements an algorithm to select a random element from the list.",
+      "complexity_comments": "The time complexity is O(1) because the operation of selecting a random element from a list does not depend on the size of the list. The space complexity is O(n), where n is the number of items in the list, due to the storage of the list.",
+      "space_complexity": "O(n)",
+      "structures_used": [
+        "List"
+      ],
+      "time_complexity": {
+        "average_case": "O(1)",
+        "best_case": "O(1)",
+        "worst_case": "O(1)"
+      }
+    },
+    "design_and_architecture": {
+      "analysis": "The script uses a basic design where it initializes a list of items and then selects one randomly using Python's built-in `random.choice()` function. The architecture is straightforward with no complex components.",
+      "concepts_observed": [
+        "Random selection",
+        "List data structure"
+      ]
+    },
+    "file": "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\random_pick.py",
+    "growth_areas": [],
+    "inferred_strengths": [
+      "Simplicity",
+      "Readability"
+    ],
+    "language": "Python",
+    "library_and_framework_usage": {
+      "experience_inference": "The script demonstrates basic usage of Python's built-in `random` library, which indicates that the developer has experience with common Python libraries.",
+      "libraries_detected": [
+        "random"
+      ]
+    },
+    "recommended_refactorings": [],
+    "summary": "This Python script demonstrates a simple function to randomly pick an item from a list and print it."
+  }
+}

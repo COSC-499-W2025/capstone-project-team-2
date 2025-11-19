@@ -363,7 +363,7 @@ class code_analysis_AI():
 
 
 
-test=code_analysis_AI(r"D:\UBCO\COSC360_final-Project")
+test=code_analysis_AI(r"D:\UBCO\capstone-project-team-2\test\tiny_scripts")
 data=test.run_analysis(save_json=True)
 
 
