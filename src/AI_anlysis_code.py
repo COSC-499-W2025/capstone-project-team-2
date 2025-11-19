@@ -1,174 +1,170 @@
-from langchain_ollama import OllamaLLM
-from langchain_core.prompts import PromptTemplate
-import os
 from pathlib import Path
 
-
-
+from langchain_core.prompts import PromptTemplate
+from langchain_ollama import OllamaLLM
 
 
 class code_analysis_AI():
-    def __init__(self,folderPath):
+    def __init__(self, folderPath):
         self.folderPath = Path(folderPath)
         self.qwen_languages_with_suffixes = {
-    # -------------------------
-    # GENERAL PURPOSE
-    # -------------------------
-    "Python": [".py"],
-    "Java": [".java"],
-    "C": [".c", ".h"],
-    "C++": [".cpp", ".cc", ".cxx", ".hpp", ".h"],
-    "C#": [".cs"],
-    "Go": [".go"],
-    "Rust": [".rs"],
-    "Kotlin": [".kt", ".kts"],
-    "Swift": [".swift"],
-    "Dart": [".dart"],
-    "Ruby": [".rb"],
-    "PHP": [".php"],
-    "Zig": [".zig"],
-    "Nim": [".nim"],
-    "Haskell": [".hs"],
-    "OCaml": [".ml", ".mli"],
-    "F#": [".fs", ".fsi", ".fsx"],
-    "Crystal": [".cr"],
+            # -------------------------
+            # GENERAL PURPOSE
+            # -------------------------
+            "Python": [".py"],
+            "Java": [".java"],
+            "C": [".c", ".h"],
+            "C++": [".cpp", ".cc", ".cxx", ".hpp", ".h"],
+            "C#": [".cs"],
+            "Go": [".go"],
+            "Rust": [".rs"],
+            "Kotlin": [".kt", ".kts"],
+            "Swift": [".swift"],
+            "Dart": [".dart"],
+            "Ruby": [".rb"],
+            "PHP": [".php"],
+            "Zig": [".zig"],
+            "Nim": [".nim"],
+            "Haskell": [".hs"],
+            "OCaml": [".ml", ".mli"],
+            "F#": [".fs", ".fsi", ".fsx"],
+            "Crystal": [".cr"],
 
-    # -------------------------
-    # WEB / FRONTEND
-    # -------------------------
-    "JavaScript": [".js", ".mjs", ".cjs"],
-    "TypeScript": [".ts", ".tsx"],
-    "HTML": [".html", ".htm"],
-    "CSS": [".css"],
-    "SCSS": [".scss"],
-    "Less": [".less"],
-    "Vue": [".vue"],
-    "React JSX": [".jsx"],
-    "React TSX": [".tsx"],
-    "Svelte": [".svelte"],
-    "Angular": [".ts", ".html"],
+            # -------------------------
+            # WEB / FRONTEND
+            # -------------------------
+            "JavaScript": [".js", ".mjs", ".cjs"],
+            "TypeScript": [".ts", ".tsx"],
+            "HTML": [".html", ".htm"],
+            "CSS": [".css"],
+            "SCSS": [".scss"],
+            "Less": [".less"],
+            "Vue": [".vue"],
+            "React JSX": [".jsx"],
+            "React TSX": [".tsx"],
+            "Svelte": [".svelte"],
+            "Angular": [".ts", ".html"],
 
-    # -------------------------
-    # BACKEND FRAMEWORKS
-    # -------------------------
-    "Node.js": [".js"],
-    "Express": [".js"],
-    "Spring": [".java", ".kt"],
-    "ASP.NET Core": [".cs"],
-    "Rails": [".rb"],
-    "Laravel": [".php"],
+            # -------------------------
+            # BACKEND FRAMEWORKS
+            # -------------------------
+            "Node.js": [".js"],
+            "Express": [".js"],
+            "Spring": [".java", ".kt"],
+            "ASP.NET Core": [".cs"],
+            "Rails": [".rb"],
+            "Laravel": [".php"],
 
-    # -------------------------
-    # MOBILE
-    # -------------------------
-    "Kotlin (Android)": [".kt"],
-    "Swift (iOS)": [".swift"],
-    "Objective-C": [".m", ".h"],
+            # -------------------------
+            # MOBILE
+            # -------------------------
+            "Kotlin (Android)": [".kt"],
+            "Swift (iOS)": [".swift"],
+            "Objective-C": [".m", ".h"],
 
-    # -------------------------
-    # SCRIPTING LANGUAGES
-    # -------------------------
-    "Bash": [".sh"],
-    "Zsh": [".zsh"],
-    "PowerShell": [".ps1"],
-    "Batch": [".bat", ".cmd"],
-    "Lua": [".lua"],
-    "Perl": [".pl", ".pm"],
+            # -------------------------
+            # SCRIPTING LANGUAGES
+            # -------------------------
+            "Bash": [".sh"],
+            "Zsh": [".zsh"],
+            "PowerShell": [".ps1"],
+            "Batch": [".bat", ".cmd"],
+            "Lua": [".lua"],
+            "Perl": [".pl", ".pm"],
 
-    # -------------------------
-    # DATA / AI / SCIENTIFIC
-    # -------------------------
-    "R": [".r"],
-    "Julia": [".jl"],
-    "MATLAB": [".m"],
-    "Octave": [".m"],
+            # -------------------------
+            # DATA / AI / SCIENTIFIC
+            # -------------------------
+            "R": [".r"],
+            "Julia": [".jl"],
+            "MATLAB": [".m"],
+            "Octave": [".m"],
 
-    # -------------------------
-    # DATABASE / QUERY
-    # -------------------------
-    "SQL": [".sql"],
-    "PostgreSQL": [".sql"],
-    "MySQL": [".sql"],
-    "SQLite": [".sql"],
-    "MariaDB": [".sql"],
-    "T-SQL": [".sql", ".tsql"],
-    "PL/SQL": [".pls", ".pks", ".pkb", ".sql"],
-    "GraphQL": [".graphql", ".gql"],
-    "Cypher": [".cyp", ".cypher"],
-    "CQL (Cassandra)": [".cql"],
-    "HiveQL": [".hql"],
-    "Pig Latin": [".pig"],
+            # -------------------------
+            # DATABASE / QUERY
+            # -------------------------
+            "SQL": [".sql"],
+            "PostgreSQL": [".sql"],
+            "MySQL": [".sql"],
+            "SQLite": [".sql"],
+            "MariaDB": [".sql"],
+            "T-SQL": [".sql", ".tsql"],
+            "PL/SQL": [".pls", ".pks", ".pkb", ".sql"],
+            "GraphQL": [".graphql", ".gql"],
+            "Cypher": [".cyp", ".cypher"],
+            "CQL (Cassandra)": [".cql"],
+            "HiveQL": [".hql"],
+            "Pig Latin": [".pig"],
 
-    # -------------------------
-    # DEVOPS / CLOUD / INFRA
-    # -------------------------
-    "Dockerfile": ["Dockerfile"],
-    "Makefile": ["Makefile"],
-    "Terraform (HCL)": [".tf", ".tfvars"],
-    "CloudFormation": [".yaml", ".yml", ".json"],
-    "Kubernetes": [".yaml", ".yml"],
-    "Ansible": [".yaml", ".yml"],
+            # -------------------------
+            # DEVOPS / CLOUD / INFRA
+            # -------------------------
+            "Dockerfile": ["Dockerfile"],
+            "Makefile": ["Makefile"],
+            "Terraform (HCL)": [".tf", ".tfvars"],
+            "CloudFormation": [".yaml", ".yml", ".json"],
+            "Kubernetes": [".yaml", ".yml"],
+            "Ansible": [".yaml", ".yml"],
 
-    # -------------------------
-    # CONFIG / SERIALIZATION
-    # -------------------------
-    "JSON": [".json"],
-    "YAML": [".yml", ".yaml"],
-    "TOML": [".toml"],
-    "INI": [".ini"],
-    "XML": [".xml"],
+            # -------------------------
+            # CONFIG / SERIALIZATION
+            # -------------------------
+            "JSON": [".json"],
+            "YAML": [".yml", ".yaml"],
+            "TOML": [".toml"],
+            "INI": [".ini"],
+            "XML": [".xml"],
 
-    # -------------------------
-    # GAME DEVELOPMENT
-    # -------------------------
-    "Unity C#": [".cs"],
-    "Unreal C++": [".cpp", ".h"],
-    "GDScript": [".gd"],
-    "GLSL": [".glsl", ".vert", ".frag"],
-    "HLSL": [".hlsl", ".fx"],
-    "ShaderLab": [".shader"],
+            # -------------------------
+            # GAME DEVELOPMENT
+            # -------------------------
+            "Unity C#": [".cs"],
+            "Unreal C++": [".cpp", ".h"],
+            "GDScript": [".gd"],
+            "GLSL": [".glsl", ".vert", ".frag"],
+            "HLSL": [".hlsl", ".fx"],
+            "ShaderLab": [".shader"],
 
-    # -------------------------
-    # SYSTEMS / EMBEDDED / HPC
-    # -------------------------
-    "Assembly": [".asm", ".s"],
-    "ARM Assembly": [".s"],
-    "RISC-V Assembly": [".s"],
-    "CUDA": [".cu", ".cuh"],
-    "OpenCL": [".cl"],
-    "Verilog": [".v"],
-    "SystemVerilog": [".sv"],
-    "VHDL": [".vhd"],
-    "Arduino": [".ino"],
+            # -------------------------
+            # SYSTEMS / EMBEDDED / HPC
+            # -------------------------
+            "Assembly": [".asm", ".s"],
+            "ARM Assembly": [".s"],
+            "RISC-V Assembly": [".s"],
+            "CUDA": [".cu", ".cuh"],
+            "OpenCL": [".cl"],
+            "Verilog": [".v"],
+            "SystemVerilog": [".sv"],
+            "VHDL": [".vhd"],
+            "Arduino": [".ino"],
 
-    # -------------------------
-    # ROBOTICS & INDUSTRIAL
-    # -------------------------
-    "ROS C++": [".cpp", ".h"],
-    "URScript": [".script"],
-    "RAPID (ABB)": [".mod", ".sys"],
-    "KRL (KUKA)": [".src", ".dat"],
+            # -------------------------
+            # ROBOTICS & INDUSTRIAL
+            # -------------------------
+            "ROS C++": [".cpp", ".h"],
+            "URScript": [".script"],
+            "RAPID (ABB)": [".mod", ".sys"],
+            "KRL (KUKA)": [".src", ".dat"],
 
-    # -------------------------
-    # BLOCKCHAIN / SMART CONTRACT
-    # -------------------------
-    "Solidity": [".sol"],
-    "Vyper": [".vy"],
-    "Move": [".move"],
-    "Rust (Solana)": [".rs"]}
+            # -------------------------
+            # BLOCKCHAIN / SMART CONTRACT
+            # -------------------------
+            "Solidity": [".sol"],
+            "Vyper": [".vy"],
+            "Move": [".move"],
+            "Rust (Solana)": [".rs"]}
         self.suffix_to_languages = {}
         self.ignore_dirs = {
             "env", "venv", ".venv", "__pycache__",
             "Lib", "site-packages", "node_modules",
-            "dist", "build",".git",".idea",".vscode",
-            ".pytest_cache",".mypy_cache","__pycache__",
+            "dist", "build", ".git", ".idea", ".vscode",
+            ".pytest_cache", ".mypy_cache", "__pycache__",
         }
         for lang, suffixes in self.qwen_languages_with_suffixes.items():
             for suffix in suffixes:
                 self.suffix_to_languages.setdefault(suffix, set()).add(lang)
 
-
-        self.model=OllamaLLM(model="qwen2.5-coder:7b")
+        self.model = OllamaLLM(model="qwen2.5-coder:7b")
         self.prompt = PromptTemplate(
             input_variables=["language", "filepath", "code"],
             template="""
@@ -229,16 +225,11 @@ class code_analysis_AI():
         """
         )
 
-        self.max_chars_per_file=40_000
+        self.max_chars_per_file = 40_000
 
-
-
-
-    def _get_suffix_key(self,path:Path)->str:
-        if path.name in ("Dockerfile","Makefile"):
+    def _get_suffix_key(self, path: Path) -> str:
+        if path.name in ("Dockerfile", "Makefile"):
             return path.name
-
-
 
         return path.suffix
 
@@ -253,16 +244,13 @@ class code_analysis_AI():
             if any(ignored in file_path.parts for ignored in self.ignore_dirs):
                 continue
 
-            suffix_key=self._get_suffix_key(file_path)
+            suffix_key = self._get_suffix_key(file_path)
             if suffix_key in self.suffix_to_languages:
                 languages = self.suffix_to_languages[suffix_key]
                 print(f"{file_path} -> {', '.join(sorted(languages))}")
 
-
-
-
     def run_analysis(self):
-        results={}
+        results = {}
         """Run deep Qwen-based analysis on all supported source files."""
         for file_path in self.folderPath.rglob("*"):
             if not file_path.is_file():
@@ -310,11 +298,12 @@ class code_analysis_AI():
         return results
 
 
-
-
-test=code_analysis_AI(r"D:\UBCO\COSC_344")
+"""
+test=code_analysis_AI("")
 data=test.run_analysis()
 print(data)
 
 for info in data:
     print(info)
+    
+"""
