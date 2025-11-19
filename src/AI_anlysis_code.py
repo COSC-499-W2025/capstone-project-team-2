@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 
-class code_anlysis_AI():
+class code_analysis_AI():
     def __init__(self,folderPath):
         self.folderPath = Path(folderPath)
         self.qwen_languages_with_suffixes = {
@@ -304,10 +304,11 @@ class code_anlysis_AI():
 
 
 
-
-test=code_anlysis_AI(r"D:\UBCO\COSC_344")
+"""
+test=code_analysis_AI("")
 data=test.run_analysis()
 print(data)
 
 for info in data:
     print(info)
+"""
