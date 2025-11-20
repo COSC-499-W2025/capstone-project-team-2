@@ -5,7 +5,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_ollama import OllamaLLM
 import re
 
-class code_analysis_AI():
+class codeAnalysisAI():
     """
     This a code analysis engine which deploys the use of
     recursive to scan a project directory, and identify
@@ -20,6 +20,12 @@ class code_analysis_AI():
 
     """
     def __init__(self, folderPath):
+
+        """
+        Here is the initiation function which creates a list of supported languages that
+        the LLM supports for code review
+        :param folderPath:
+        """
         self.folderPath = Path(folderPath)
         self.qwen_languages_with_suffixes = {
             # -------------------------
@@ -362,10 +368,11 @@ class code_analysis_AI():
         return results
 
 
-
-test=code_analysis_AI(r"D:\UBCO\capstone-project-team-2\test\tiny_scripts")
-data=test.run_analysis(save_json=True)
-
+""""
+test=code_analysis_AI("")
+data=test.run_analysis()
+print(len(data))
+"""
 
 
 
