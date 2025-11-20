@@ -1,7 +1,6 @@
 import os
 import re
 from pathlib import Path
-
 import orjson
 from langchain_core.prompts import PromptTemplate
 from langchain_ollama import OllamaLLM
@@ -24,7 +23,6 @@ class codeAnalysisAI():
     """
 
     def __init__(self, folderPath):
-
         """
         Here is the initiation function which creates a list of supported languages that
         the LLM supports for code review
@@ -192,7 +190,8 @@ class codeAnalysisAI():
         self.prompt = PromptTemplate(
             input_variables=["language", "filepath", "code"],
             template="""
-        You MUST respond with ONLY valid JSON.
+        You are a professional software engineer and code reviewer. 
+        You have been given a code file to review in depth, and you MUST respond with ONLY valid JSON.
 
         ❗ ABSOLUTE RULES:
         - Do NOT include ```json or ``` in your answer.
@@ -202,10 +201,9 @@ class codeAnalysisAI():
         - Output MUST be PURE JSON.
         - Violating these rules will break the parser.
 
-        You MUST determine and report algorithmic time and space complexity for the code
-        (based on loops, recursion, data structures, etc.). If needed, infer reasonable
-        complexity from the structure of the code; otherwise say that the time complexity
-        cannot be determined and give the reasons in the `complexity_comments` field.
+        You MUST determine and report algorithmic time and space complexity for the code (based on loops, recursion, data structures, etc.). 
+        Use Big-O notation (e.g., "O(n)", "O(n log n)"). If needed, infer reasonable complexity from the structure of the code; otherwise 
+        say that the time complexity cannot be determined and give the reasons in the complexity_comments field.
 
         All fields in the JSON MUST contain meaningful, descriptive content:
         - Do NOT leave any string field as an empty string.
@@ -454,10 +452,3 @@ class codeAnalysisAI():
             self.save_all_results(results)
 
         return results
-
-
-""""
-test=code_analysis_AI("")
-data=test.run_analysis()
-print(len(data))
-"""
