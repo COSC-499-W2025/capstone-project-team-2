@@ -13,7 +13,8 @@ class TestAIOutput(unittest.TestCase):
         "tiny_scripts" directory and running the code analysis
         on it. The result is stored in the "result" class
         variable and additional make so that the run_analysis() method is called 
-        once for entire test suite.
+        once for the entire test suite, preventing it from being called again in other words,
+        The Ollama model is only ran once
         """
         root_folder = Path(__file__).resolve().parent
         cls.folder = root_folder / "tiny_scripts"
