@@ -15,7 +15,7 @@ class DockerFinder:
         self.port_number=None
         self.host_ip=None
 
-    def get_mysql_host_port(self):
+    def get_mysql_host_information(self):
         """
         Attempts to find the host IP and port number associated with the MySQL database container.
 
