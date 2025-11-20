@@ -7,20 +7,28 @@ class TestAIOutput(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Run the analysis once for the entire test class."""
+        
+        """
+        Set up the test class by defining the folder path to the
+        "tiny_scripts" directory and running the code analysis
+        on it. The result is stored in the "result" class
+        variable and additional make so that the run_analysis() method is called 
+        once for entire test suite.
+        """
         root_folder = Path(__file__).resolve().parent
         cls.folder = root_folder / "tiny_scripts"
         cls.instance = codeAnalysisAI(cls.folder)
         cls.result = cls.instance.run_analysis()
 
     def test_analysis_returns_valid_result(self):
-        # The result should not be None
+        """Tests that the result of the code analysis is valid.
+
+        The result should not be None, should be a dictionary, and should not be empty.
+        """
         self.assertIsNotNone(self.result, "Result should not be None")
 
-        # The result should be a dictionary
         self.assertIsInstance(self.result, dict, "Result should be a dictionary")
 
-        # The dictionary should not be empty
         self.assertGreater(
             len(self.result),
             0,
@@ -28,7 +36,24 @@ class TestAIOutput(unittest.TestCase):
         )
 
     def test_output_structure(self):
-        """Test that each result has the correct structure."""
+       
+        """Tests the structure of the output of the code analysis.
+
+        The output should be a dictionary with the following top-level keys:
+            - file: A string representing the file path.
+            - language: A string representing the programming language.
+            - summary: A string representing a summary of the code.
+            - design_and_architecture: A dictionary containing code analysis results related to design and architecture.
+            - data_structures_and_algorithms: A dictionary containing code analysis results related to data structures and algorithms.
+            - control_flow_and_error_handling: A dictionary containing code analysis results related to control flow and error handling.
+            - library_and_framework_usage: A dictionary containing code analysis results related to library and framework usage.
+            - code_quality_and_maintainability: A dictionary containing code analysis results related to code quality and maintainability.
+            - inferred_strengths: A list of strings representing inferred code strengths.
+            - growth_areas: A list of strings representing potential growth areas for the code.
+            - recommended_refactorings: A list of strings representing recommended refactorings for the code.
+
+        The nested dictionaries should also be checked for the correct keys and data types.
+        """
         for key, value in self.result.items():
             # Check that key is a file path string
             self.assertIsInstance(key, str)

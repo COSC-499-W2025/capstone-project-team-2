@@ -1,9 +1,11 @@
 import os
+import re
 from pathlib import Path
+
 import orjson
 from langchain_core.prompts import PromptTemplate
 from langchain_ollama import OllamaLLM
-import re
+
 
 class codeAnalysisAI():
     """
@@ -11,7 +13,8 @@ class codeAnalysisAI():
     recursive to scan a project directory, and identify
     the supporting programming languages by file extension,
     which is later send to an LLM(Qwen) using the Ollama system
-    returning a structured analysis of the code
+    returning a structured analysis of the code to be used in
+    the system
 
     :parameter
     - folderPath: Path
@@ -19,6 +22,7 @@ class codeAnalysisAI():
 
 
     """
+
     def __init__(self, folderPath):
 
         """
@@ -184,7 +188,7 @@ class codeAnalysisAI():
             for suffix in suffixes:
                 self.suffix_to_languages.setdefault(suffix, set()).add(lang)
 
-        self.model = OllamaLLM(model="qwen2.5-coder:7b") #Here we are defining what ollama model to use
+        self.model = OllamaLLM(model="qwen2.5-coder:7b")  # Here we are defining what ollama model to use
         self.prompt = PromptTemplate(
             input_variables=["language", "filepath", "code"],
             template="""
@@ -258,6 +262,12 @@ class codeAnalysisAI():
         self.max_chars_per_file = 40_000
 
     def _get_suffix_key(self, path: Path) -> str:
+        """
+        Returns a key based on the suffix of the given path.
+
+        If the filename is "Dockerfile" or "Makefile", returns the filename.
+        Otherwise, returns the file suffix (e.g. ".txt", ".py", etc.).
+        """
         if path.name in ("Dockerfile", "Makefile"):
             return path.name
 
@@ -266,30 +276,51 @@ class codeAnalysisAI():
     def _is_ignored(self, path: Path) -> bool:
         return any(part in self.ignore_dirs for part in path.parts)
 
-    def _clean_model_output(self,text:str)->str:
+    def _clean_model_output(self, text: str) -> str:
 
+        """
+        Cleans the output of the model by removing any code block fences and
+        returning any JSON found in the output.
+
+        Args:
+            text (str): The output of the model
+
+        Returns:
+            str: The cleaned output of the model
+        """
         if not text:
             return text
-        cleaned=text.strip()
-        fence_pattern=re.compile(r"```(?:json|python)?\s*([\s\S]*?)```", re.IGNORECASE)
-        match=fence_pattern.search(cleaned)
+        cleaned = text.strip()
+        fence_pattern = re.compile(r"```(?:json|python)?\s*([\s\S]*?)```", re.IGNORECASE)
+        match = fence_pattern.search(cleaned)
         if match:
-            cleaned=match.group(1).strip()
+            cleaned = match.group(1).strip()
         else:
             if cleaned.startswith("```") and cleaned.endswith("```"):
-                cleaned=cleaned[3:-3].strip()
+                cleaned = cleaned[3:-3].strip()
         json_match = re.search(r"\{[\s\S]*\}", cleaned)
         if json_match:
             cleaned = json_match.group(0).strip()
 
-
         return cleaned
 
+    def save_all_results(self, results: dict):
+        """
+        Saves the analysis results to a JSON file in the 'results' directory.
+        
+        Parameters
+        ----------
+        results : dict
+            The analysis results to be saved.
+        
+        Returns
+        -------
+        None
+        """
 
-    def save_all_results(self,results:dict):
-        root_folder=Path(__file__).resolve().parent/"results"
+        root_folder = Path(__file__).resolve().parent / "results"
         os.makedirs(root_folder, exist_ok=True)
-        with open(root_folder/"analysis_result.json","wb") as f:
+        with open(root_folder / "analysis_result.json", "wb") as f:
             f.write(
                 orjson.dumps(
                     results,
@@ -298,11 +329,69 @@ class codeAnalysisAI():
             )
         print(f'Analysis result saved to {root_folder}/analysis_result.json')
 
-
-    def run_analysis(self,save_json=False):
+    def run_analysis(self, save_json=False):
         """
+        Run deep Qwen-based analysis on all supported source files.
 
-        :return:
+        Parameters
+        ----------
+        save_json : bool
+            If True, save the analysis results to a JSON file in the 'results' directory.
+
+       Returns
+       -------
+       dict
+       A dictionary mapping file paths to the full AI-generated analysis for each file.
+
+       The dictionary has the structure:
+
+      {
+        "path/to/file.py": {
+            "file": "<absolute file path>",
+            "language": "<Detected programming language>",
+            "summary": "<Short summary of the file>",
+
+            "design_and_architecture": {
+                "concepts_observed": [ ... ],
+                "analysis": "<Explanation of design patterns, structure, and architecture>"
+            },
+
+            "data_structures_and_algorithms": {
+                "structures_used": [ ... ],
+                "algorithmic_insights": "<Description of algorithmic behaviour>",
+                "time_complexity": {
+                    "best_case": "O(?)",
+                    "average_case": "O(?)",
+                    "worst_case": "O(?)"
+                },
+                "space_complexity": "O(?)",
+                "complexity_comments": "<Reasoning for complexity values>"
+            },
+
+            "control_flow_and_error_handling": {
+                "patterns": [ ... ],
+                "error_handling_quality": "<Quality of try/except or lack thereof>"
+            },
+
+            "code_quality_and_maintainability": {
+                "readability": "<Readability score/comment>",
+                "technical_debt": "<Refactoring opportunities>",
+                "testability": "<How easily this code can be tested>"
+            },
+
+            "library_and_framework_usage": {
+                "libraries_detected": [ ... ],
+                "experience_inference": "<Inference of experience based on library use>"
+            },
+
+            "inferred_strengths": [ ... ],
+            "growth_areas": [ ... ],
+            "recommended_refactorings": [ ... ]
+        },
+
+        ...
+
+    }
         """
         results = {}
         """Run deep Qwen-based analysis on all supported source files."""
@@ -349,7 +438,7 @@ class codeAnalysisAI():
 
             print(response)
             try:
-                parsed=orjson.loads(cleaned_response)
+                parsed = orjson.loads(cleaned_response)
                 results[str(file_path)] = parsed
 
 
@@ -358,7 +447,6 @@ class codeAnalysisAI():
                 print("Model Output:")
                 print(response)
                 continue
-
 
             print("\n" + "=" * 100 + "\n")
 
@@ -373,6 +461,3 @@ test=code_analysis_AI("")
 data=test.run_analysis()
 print(len(data))
 """
-
-
-
