@@ -3,14 +3,32 @@ import docker
 import socket
 class DockerFinder:
     def __init__(self):
+        """
+        Initializes the DockerFinder class.
+
+        Sets up the Docker client using from_env() and initializes
+        port_number and host_ip to None.
+
+        :return: None
+        """
         self.client = docker.from_env()
         self.port_number=None
         self.host_ip=None
 
-
-
-
     def get_mysql_host_port(self):
+        """
+        Attempts to find the host IP and port number associated with the MySQL database container.
+
+        Iterates over all running containers and checks if the container's name contains "database".
+        If such a container is found, it retrieves the HostPort and HostIp from the container's ports.
+
+        If the retrieved HostIp is "0.0.0.0", it replaces it with "127.0.0.1" or "localhost".
+
+        Returns a tuple containing the port number and host IP, or raises an exception if it fails to do so.
+
+        :return: tuple containing port number and host IP
+        :rtype: tuple
+        """
         try:
             con=None
             for container in self.client.containers.list():
