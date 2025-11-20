@@ -5,3 +5,4 @@ gitpython
 mysql-connector-python
 orjson
 PyGithub
+docker
