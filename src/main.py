@@ -24,7 +24,7 @@ import mysql.connector
 from mysql.connector import Error
 
 # Connection code for MySQL Docker container
-port_number,host_ip= DockerFinder().get_mysql_host_information
+port_number,host_ip= DockerFinder().get_mysql_host_information()
 for attempt in range(5):
     try:
         conn = mysql.connector.connect(
