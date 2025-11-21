@@ -46,7 +46,7 @@ class DockerFinder:
             if self.host_ip =="0.0.0.0":
                 self.host_ip="127.0.0.1" or "localhost"
 
-        except (DockerException,APIError,AttributeError):
+        except AttributeError:
             self.host_ip="app_database"
             self.port_number="3306"
             pass
