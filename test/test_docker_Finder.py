@@ -6,13 +6,29 @@ import unittest
 
 
 class testDockerFinder(unittest.TestCase):
+    """
+    This is a test class for DockerFinder class
+
+    This class tests the DockerFinder class which is used to find
+    the host IP and port number associated with the MySQL database container.
+    """
 
     def setUp(self):
+        """
+        This method is called before each test method is run.
+        It creates an instance of the DockerFinder class and retrieves
+        the host IP and port number associated with the MySQL database container.
+        """
         self.docker_finder=DockerFinder()
         self.portNumber,self.portHost=self.docker_finder.get_mysql_host_information()
 
 
     def test_connection_database_with_retrieved_info(self):
+        """
+        This test checks if the connection to the MySQL database is successful
+        using the host IP and port number retrieved from the DockerFinder class.
+        """
+
         try:
             conn = mysql.connector.connect(
                     host=self.portHost,
