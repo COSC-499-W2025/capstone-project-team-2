@@ -522,3 +522,48 @@ My goal for the following weeks is to add some optional features to the CLI, whi
 
 
 
+
+
+
+
+
+
+
+
+# 📝 Personal Log – Week 10 + week11 (11/10/2025-11/27/2025
+
+## 📊 Peer Evaluation
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/10-17-2025.png)
+
+
+---
+
+## 🚀 Features Worked On
+
+
+
+---
+
+## 📌 Associated Tasks from Project Board
+- [])
+---
+
+## 📈 Progress Update (since 10/22/2025)
+
+| Task/Issue | Status |
+|------------|--------|
+|**Creation of CLI interface for zip extraction** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+|**Added new 3 pytest test to `test_extraction.py`**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
+
+
+## 🎯 Next Week’s Goals
+
+-
+---
+
+## 🧠 Reflection on Current Cycle (Week 10)
+
+
+
+
+
