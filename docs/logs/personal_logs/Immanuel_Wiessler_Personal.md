@@ -540,31 +540,118 @@ My goal for the following weeks is to add some optional features to the CLI, whi
 
 ## 🚀 Features Worked On
 
-
+- AI integration and Analysis of code
+- Created Automtically docker connection file for both from inside and outside of the container
 
 ---
 
 ## 📌 Associated Tasks from Project Board
-- [])
+- [166 : docker patch/fix(automatically configuration)](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/168)
+- [164 : ai integration ](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/167)
 ---
 
 ## 📈 Progress Update (since 10/22/2025)
 
 | Task/Issue | Status |
 |------------|--------|
-|**Creation of CLI interface for zip extraction** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
-|**Added new 3 pytest test to `test_extraction.py`**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
+|**Creation of Automatically docker connection file** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+|**new Addtion of AI into the system**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
 
 
 ## 🎯 Next Week’s Goals
-
--
+- Start the process of beingining to intergate everything today for our demo
+- Work on video demo
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 12)
+For week 12 I began to work on intergating the AI element into our file anlysis system, which for me is very exciting for me, because I really wanted to get grip on how to use **Ollama** and **langchain** python libaries in the system, during the devlopment of the system I needed to use prompt enginnering to make sure that the AI would understand
+what its function was, so I reserach what makesa good prompt for this particular part, which after developing this can be still further modify to make it more percise. The model that I decided to go with was the [qwen3-coder](https://ollama.com/library/qwen3-coder) line of model in particular the **qwen3-coder:480b-cloud**  partly due to the fact that some of the group members don't have access to powerful hardware to run models locally,In addition this particular LLM model is trained on code and was ranked as one of better model in terms of speed and performance. I made the model return vaild JSON file which can be later be used in a system and one last thing to point is that the output that was returned by the model was not in a formated json file, so I need to create a function to clean the output which was done
+in the following way which you can see down below 
+```py
+def _clean_model_output(self, text: str) -> str:
+
+        """
+        Cleans the output of the model by removing any code block fences and
+        returning any JSON found in the output.
+
+        Args:
+            text (str): The output of the model
+
+        Returns:
+            str: The cleaned output of the model
+        """
+        if not text:
+            return text
+        cleaned = text.strip()
+        fence_pattern = re.compile(r"```(?:json|python)?\s*([\s\S]*?)```", re.IGNORECASE)
+        match = fence_pattern.search(cleaned)
+        if match:
+            cleaned = match.group(1).strip()
+        else:
+            if cleaned.startswith("```") and cleaned.endswith("```"):
+                cleaned = cleaned[3:-3].strip()
+        json_match = re.search(r"\{[\s\S]*\}", cleaned)
+        if json_match:
+            cleaned = json_match.group(0).strip()
+
+        return cleaned
+
+
+```
+
+One issue that was discovered  by one of the team's member was that we needed to manually configure the main.py mysql connection file which you can see down below
+
+```py
+conn = mysql.connector.connect(
+        host="app_database",        
+        port=3306,
+        database="appdb",
+        user="appuser",
+        password="apppassword"
+    )
+
+```
+Therefore after the discover of this issue, I decided to fix this issue so that in the further that we don't have this problem and more, the way that I tackled this problem was making use of the python [docker](https://pypi.org/project/docker/) API libary where I develop two outcome one 1. we connect to the database via the python file  2. from inside of the container, the way this was handle was doing a `try and catch block` where I would try to get the enviorment variables from docker app running if it return an error I would sent the host_name and port number to the one used inside of the container, otherwise it would find the port number and check to see if there was an host_ip and if it return 0.0.0.0 then I would set it to **localhost** or **127.0.0.1** the full implemenation can be seen down below
+```py
+def get_mysql_host_information(self):
+
+        try:
+            con=None
+            for container in self.client.containers.list():
+
+                if "database" in container.name:
+                    con=self.client.containers.get(container.name)
+            for key,value in con.ports.items():
+                if value is not None:
+                    self.port_number=value[0]['HostPort']
+                    self.host_ip=value[0]['HostIp']
+
+            if self.host_ip =="0.0.0.0":
+                self.host_ip="127.0.0.1" or "localhost"
+
+        except AttributeError:
+            self.host_ip="app_database"
+            self.port_number="3306"
+            pass
+
+
+``` 
+After creating these files I began working on the test suite for both the AI anlysis and automtically Docker setup which was  tested to see if the test run successfully with no issues at all, but I want to mention is that I discover that the `def setup(self):` in python's unittest libaray is ran each time for each test case, therefore for the AI system test I decided to make it only run once to prevent the testing from taking too long, where I used a new system which I found 
+
+```py
+   @classmethod
+    def setUpClass(cls):
+        root_folder = Path(__file__).resolve().parent
+        cls.folder = root_folder / "tiny_scripts"
+        cls.instance = codeAnalysisAI(cls.folder)
+        cls.result = cls.instance.run_analysis()
+```
 
 
 ## 🧠 Reflection on pervious Cycle bouns week (Week 11)
+
+For the bouns week I developed two things which were adding a timeout feature to my zip_extraction CLI to allow for system to return back to main menu if the user takes too long to upload a zip file, which was implemented using the **async** libaray
+and also adding a system to calculate the contributor percentage if the uploaded zip is a git repo, which was implemented using the **[PyGithub](https://pypi.org/project/PyGithub/)** and also identify if the project is collab or solo and if it is collab then it will return the percentage of the commits from each member, 
 
 
 
