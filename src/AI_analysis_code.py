@@ -186,7 +186,7 @@ class codeAnalysisAI():
             for suffix in suffixes:
                 self.suffix_to_languages.setdefault(suffix, set()).add(lang)
 
-        self.model = OllamaLLM(model="qwen2.5-coder:7b")  # Here we are defining what ollama model to use
+        self.model = OllamaLLM(model="qwen3-coder:480b-cloud")  # Here we are defining what ollama model to use
         self.prompt = PromptTemplate(
             input_variables=["language", "filepath", "code"],
             template="""
@@ -452,3 +452,6 @@ class codeAnalysisAI():
             self.save_all_results(results)
 
         return results
+
+
+test=codeAnalysisAI(r"D:\UBCO\capstone-project-team-2\test\tiny_scripts").run_analysis(save_json=True)
