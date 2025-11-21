@@ -1,6 +1,5 @@
 
 import docker
-import socket
 class DockerFinder:
     def __init__(self):
         """
@@ -46,6 +45,9 @@ class DockerFinder:
 
             return self.port_number,self.host_ip
         except Exception as e:
-            print(e)
+            print("Please run docker")
+            pass
 
 
+test=DockerFinder()
+test.get_mysql_host_information()
