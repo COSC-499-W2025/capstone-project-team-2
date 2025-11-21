@@ -8,26 +8,23 @@ class StartDockerApp:
         #getting the location of where the docker-compose file is and which folder it's
 
 
-    def setup_app(self):
+
+
+
+    def run_app(self):
         print(self.docker_compose_file_path)
         # step 1 we run   docker compose down -v
         print("\nStep 1: Stopping containers...")
         subprocess.run(['docker', 'compose', 'down', '-v'], cwd=self.docker_compose_file_path,
-                       capture_output=True)
+                                           capture_output=True)
 
         print("\nStep 2: Building images...")
-        # Here we are building the Docker containers
-        building_process=subprocess.run(['docker', 'compose', 'buil                       cwd=self.docker_compose_file_path, capture_output=True)
-        if building_process.returncode == 0:
-ss.returncode == 0:
-            print("successfully built images")
-fully built images")
-            return
+        #Here we are building the Docker containers
+        subprocess.run(['docker', 'compose', 'build', '--no-cache'],
+                                           cwd=self.docker_compose_file_path, capture_output=True)
 
-
-    def run_app(self):
         print("\nStep 3: Starting services...")
-        #Here we run the initialization and run the Docker containers 
+        #Here we run the initialization and run the Docker containers
         step_3_process = subprocess.run(['docker', 'compose', 'up', '-d'], cwd=self.docker_compose_file_path,
                                             capture_output=True)
 
