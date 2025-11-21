@@ -454,4 +454,3 @@ class codeAnalysisAI():
         return results
 
 
-test=codeAnalysisAI(r"D:\UBCO\capstone-project-team-2\test\tiny_scripts").run_analysis(save_json=True)
