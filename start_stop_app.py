@@ -4,7 +4,8 @@ from pathlib import Path
 import sys
 class StartDockerApp:
     def __init__(self):
-        self.docker_compose_file_path = Path(__file__).resolve().parent
+        self.docker_compose_file_path = Path(__file__).resolve().parent 
+        #getting the location of where the docker-compose file is and which folder it's
 
     def run_app(self):
         print(self.docker_compose_file_path)
@@ -14,10 +15,12 @@ class StartDockerApp:
                                            capture_output=True)
 
         print("\nStep 2: Building images...")
+        #Here we are building the Docker containers 
         subprocess.run(['docker', 'compose', 'build', '--no-cache'],
                                            cwd=self.docker_compose_file_path, capture_output=True)
 
         print("\nStep 3: Starting services...")
+        #Here we run the initialization and run the Docker containers 
         step_3_process = subprocess.run(['docker', 'compose', 'up', '-d'], cwd=self.docker_compose_file_path,
                                             capture_output=True)
 
