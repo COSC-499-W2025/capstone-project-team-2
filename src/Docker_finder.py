@@ -1,16 +1,20 @@
 
 import docker
+from docker.errors import DockerException,APIError
 class DockerFinder:
     def __init__(self):
         """
-        Initializes the DockerFinder class.
+        Initialize a DockerFinder instance.
 
-        Sets up the Docker client using from_env() and initializes
-        port_number and host_ip to None.
+        Creates a Docker client using `from_env` method and sets the
+        `port_number` and `host_ip` attributes to None.
 
         :return: None
         """
-        self.client = docker.from_env()
+        try:
+            self.client=docker.from_env()
+        except (DockerException, APIError):
+            self.client=None
         self.port_number=None
         self.host_ip=None
 
@@ -42,12 +46,11 @@ class DockerFinder:
             if self.host_ip =="0.0.0.0":
                 self.host_ip="127.0.0.1" or "localhost"
 
-
-            return self.port_number,self.host_ip
-        except Exception as e:
-            print("Please run docker")
+        except (DockerException,APIError,AttributeError):
+            self.host_ip="app_database"
+            self.port_number="3306"
             pass
 
+        return self.port_number, self.host_ip
 
-test=DockerFinder()
-test.get_mysql_host_information()
+
