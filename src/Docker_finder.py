@@ -52,5 +52,3 @@ class DockerFinder:
             pass
 
         return self.port_number, self.host_ip
-
-

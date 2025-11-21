@@ -28,6 +28,7 @@ class testDockerFinder(unittest.TestCase):
         This test checks if the connection to the MySQL database is successful
         using the host IP and port number retrieved from the DockerFinder class.
         """
+        conn=None
 
         try:
             conn = mysql.connector.connect(
@@ -38,8 +39,12 @@ class testDockerFinder(unittest.TestCase):
                     password="apppassword"
                 )
             self.assertTrue(conn.is_connected())
-        except Error:
+        except mysql.connector.Error as err:
             self.fail("Failed to connect to MySQL database or docker instance is not running")
+
+        finally:
+            if conn is not None and conn.is_connected():
+                conn.close()
 
 
 
