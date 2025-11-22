@@ -190,74 +190,99 @@ class codeAnalysisAI():
         self.prompt = PromptTemplate(
             input_variables=["language", "filepath", "code"],
             template="""
-        You are a professional software engineer and code reviewer. 
-        You have been given a code file to review in depth, and you MUST respond with ONLY valid JSON.
+                You are a professional software engineer and code reviewer. 
+                You have been given a code file to review in depth, and you MUST respond with ONLY valid strict JSON.
 
-        ❗ ABSOLUTE RULES:
-        - Do NOT include ```json or ``` in your answer.
-        - Do NOT include any markdown.
-        - Do NOT include explanations outside the JSON.
-        - Do NOT include comments of ANY kind.
-        - Do NOT include sequences like //, /*, or */ anywhere in the output.
-        - Do NOT explain values after commas or in parentheses.
-        - Every line MUST be valid strict JSON.
-        - Output MUST be PURE JSON only.
-        - Violating these rules will break the parser.
+                ❗ ABSOLUTE RULES:
+                - Do NOT include ```json or ```python or ``` in your answer.
+                - Do NOT include any markdown.
+                - Do NOT include explanations outside the JSON.
+                - Do NOT include comments of ANY kind.
+                - Do NOT use sequences like //, /*, or */ anywhere in the output.
+                - Do NOT explain values after commas or in parentheses.
+                - Every line MUST be valid strict JSON.
+                - Output MUST be PURE JSON only.
+                - Violating these rules will break the parser.
 
-        You MUST determine and report algorithmic time and space complexity for the code (based on loops, recursion, data structures, etc.). 
-        Use Big-O notation (e.g., "O(n)", "O(n log n)"). If needed, infer reasonable complexity from the structure of the code; otherwise 
-        say that the time complexity cannot be determined and give the reasons in the complexity_comments field.
+                You MUST determine and report algorithmic time and space complexity for the code (based on loops, recursion, data structures, etc.). 
+                Use Big-O notation (e.g., "O(n)", "O(n log n)"). If needed, infer reasonable complexity from the structure of the code; otherwise 
+                say that the time or space complexity cannot be determined and give the reasons in the "complexity_comments" field.
 
-        All fields in the JSON MUST contain meaningful, descriptive content:
-        - Do NOT leave any string field as an empty string.
-        - Do NOT leave any list field empty; if nothing is present, explain that explicitly
-          (e.g., ["No significant data structures used"]).
-        - If a concept does not apply, say so explicitly in that field instead of leaving it blank.
+                Any explanation, note, assumption, or clarification that you might normally write as a comment (for example:
+                "Assuming the input file is not empty") MUST be written as plain text INSIDE the "complexity_comments" field.
+                You MUST NOT use comment syntax anywhere.
 
-        Here is the required JSON structure:
+                All fields in the JSON MUST contain meaningful, descriptive content:
+                - Do NOT leave any string field as an empty string; if you have little to say, write a short descriptive sentence.
+                - Do NOT leave any list field empty; if nothing is present, explain that explicitly
+                  (e.g., ["No significant data structures used in this file."]).
+                - If a concept does not apply, say so explicitly in that field instead of leaving it blank.
 
-        {{
-          "file": "{filepath}",
-          "language": "{language}",
-          "summary": "",
-          "design_and_architecture": {{
-            "concepts_observed": [],
-            "analysis": ""
-          }},
-          "data_structures_and_algorithms": {{
-            "structures_used": [],
-            "algorithmic_insights": "",
-            "time_complexity": {{
-              "best_case": "",
-              "average_case": "",
-              "worst_case": ""
-            }},
-            "space_complexity": "",
-            "complexity_comments": ""
-          }},
-          "control_flow_and_error_handling": {{
-            "patterns": [],
-            "error_handling_quality": ""
-          }},
-          "library_and_framework_usage": {{
-            "libraries_detected": [],
-            "experience_inference": ""
-          }},
-          "code_quality_and_maintainability": {{
-            "readability": "",
-            "testability": "",
-            "technical_debt": ""
-          }},
-          "inferred_strengths": [],
-          "growth_areas": [],
-          "recommended_refactorings": []
-        }}
+                The JSON output MUST contain EXACTLY the following top-level keys and NO others:
+                - "file"
+                - "language"
+                - "summary"
+                - "design_and_architecture"
+                - "data_structures_and_algorithms"
+                - "control_flow_and_error_handling"
+                - "library_and_framework_usage"
+                - "code_quality_and_maintainability"
+                - "inferred_strengths"
+                - "growth_areas"
+                - "recommended_refactorings"
 
-        Now analyze this file deeply and return ONLY the JSON:
+                The keys "inferred_strengths", "growth_areas", and "recommended_refactorings" MUST be TOP-LEVEL keys.
+                They MUST NOT be placed inside "code_quality_and_maintainability" or any other nested object.
 
-        Code:
-        {code}
-        """
+                Here is the required JSON structure (you MUST follow this structure exactly, only changing the empty values):
+
+                {{
+                  "file": "{filepath}",
+                  "language": "{language}",
+                  "summary": "",
+                  "design_and_architecture": {{
+                    "concepts_observed": [],
+                    "analysis": ""
+                  }},
+                  "data_structures_and_algorithms": {{
+                    "structures_used": [],
+                    "algorithmic_insights": "",
+                    "time_complexity": {{
+                      "best_case": "",
+                      "average_case": "",
+                      "worst_case": ""
+                    }},
+                    "space_complexity": "",
+                    "complexity_comments": ""
+                  }},
+                  "control_flow_and_error_handling": {{
+                    "patterns": [],
+                    "error_handling_quality": ""
+                  }},
+                  "library_and_framework_usage": {{
+                    "libraries_detected": [],
+                    "experience_inference": ""
+                  }},
+                  "code_quality_and_maintainability": {{
+                    "readability": "",
+                    "testability": "",
+                    "technical_debt": ""
+                  }},
+                  "inferred_strengths": [],
+                  "growth_areas": [],
+                  "recommended_refactorings": []
+                }}
+
+                Notes on content:
+                - "inferred_strengths" MUST be an array of strings describing strengths you infer from the code.
+                - "growth_areas" MUST be an array of strings describing potential improvement areas.
+                - "recommended_refactorings" MUST be an array of strings, each describing a concrete refactoring or improvement.
+
+                Now analyze this file deeply and return ONLY the JSON with all fields filled with meaningful content:
+
+                Code:
+                {code}
+                """
         )
 
         self.max_chars_per_file = 40_000
@@ -469,5 +494,6 @@ class codeAnalysisAI():
         return results
 
 
-data=codeAnalysisAI(r"D:\UBCO\capstone-project-team-2\test\tiny_scripts").run_analysis(save_json=True)
-print(len(data))
+#data=codeAnalysisAI(r"D:\UBCO\capstone-project-team-2\test\tiny_scripts").run_analysis(save_json=True)
+
+
