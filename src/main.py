@@ -1,8 +1,10 @@
+import argparse
 import json
 import sys
 from pathlib import Path
 from typing import Any, Dict,Optional
 
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 # Local module Imports
 from src.CLI_Interface_for_user_config import ConfigurationForUsersUI
 from src.Configuration import configuration_for_users
@@ -187,6 +189,67 @@ def show_saved_summary(path: Path) -> None:
         print(f"Résumé line  : {summary}")
     print()
 
+def delete_analysis(path: Path) -> bool:
+    
+    """
+    Deletes a saved analysis JSON file and attempts to remove it from the database.
+    Returns True if successful, False otherwise.
+    """
+    
+    try:
+        # Confirm deletion
+        confirm = input(f"Are you sure you want to delete '{path.name}'? (y/n): ").strip().lower()
+        if not confirm.startswith("y"):
+            print("[INFO] Deletion cancelled.")
+            return False
+        
+        filename = path.name 
+        
+        # Delete from database first (using filename match)
+        try:
+            db_deleted = delete_from_database_by_filename(filename)
+            if db_deleted:
+                print(f"[INFO] Removed from database")
+            else:
+                print(f"[WARNING] No matching database entry found for '{filename}'")
+        except Exception as db_error:
+            print(f"[WARNING] Could not remove from database: {db_error}")
+        
+        # Delete from filesystem
+        path.unlink()
+        print(f"[INFO] Deleted file: {path.name}")
+        
+        return True
+        
+    except FileNotFoundError:
+        print(f"[ERROR] File not found: {path.name}")
+        return False
+    except Exception as e:
+        print(f"[ERROR] Failed to delete analysis: {e}")
+        return False
+
+def delete_from_database_by_filename(filename: str) -> bool:
+    
+    """
+    Finds and deletes a database record by filename.
+    Returns True if a record was deleted, False otherwise.
+    """
+    
+    cursor = conn.cursor()
+    try:
+        # First, find the ID of the record with matching filename
+        cursor.execute("SELECT id FROM project_data WHERE filename = %s", (filename,))
+        result = cursor.fetchone()
+        
+        if result:
+            record_id = result[0]
+            # Use the helper function's delete method
+            return store.delete(record_id)
+        else:
+            return False
+    finally:
+        cursor.close()
+
 # ---------- Menus ----------
 def settings_menu() -> None:
     cfg = ConfigLoader().load()
@@ -246,7 +309,7 @@ def previous_projects_menu() -> None:
             print(f"{i}) {p.name}")
 
         sel = input("Choose a file to view (or press 0 to exit to main menu): ").strip()
-        if not sel:
+        if not sel or sel == "0":
             return
         try:
             idx = int(sel) - 1
@@ -259,6 +322,58 @@ def previous_projects_menu() -> None:
         except ValueError:
             print("Please enter a number.")
             return
+
+def delete_analysis_menu() -> None:
+    
+    """
+    Menu for deleting saved project analyses.
+    """
+    
+    while True:
+        print("\n=== Delete Analysis Menu ===")
+        folder_str = input(
+            f"Enter folder to scan for saved analyses [{DEFAULT_SAVE_DIR}] or 0 to exit to main menu: "
+        ).strip()
+
+        if folder_str == "0":
+            return
+
+        folder = Path(folder_str or DEFAULT_SAVE_DIR).expanduser().resolve()
+        items = list_saved_projects(folder)
+        
+        if not items:
+            print(f"[INFO] No saved projects in {folder}")
+            return
+
+        print("\nSaved analyses:")
+        for i, p in enumerate(items, start=1):
+            print(f"{i}) {p.name}")
+
+        sel = input("Choose a file to delete (or press 0 to exit to main menu): ").strip()
+        if not sel or sel == "0":
+            return
+        
+        try:
+            idx = int(sel) - 1
+            if idx < 0 or idx >= len(items):
+                print("Invalid selection.")
+                continue
+            
+            if delete_analysis(items[idx]):
+                print("[SUCCESS] Analysis deleted successfully!")
+                # Ask if they want to delete another
+                another = input("Delete another analysis? (y/n): ").strip().lower()
+                if not another.startswith("y"):
+                    return
+            else:
+                return
+                
+        except ValueError:
+            print("Please enter a number.")
+            continue
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            return
                     
 def main() -> int:
     while True:
@@ -266,6 +381,7 @@ def main() -> int:
         print("1) Settings")
         print("2) Analyze project")
         print("3) Saved projects")
+        print("4) Delete analysis")
         print("0) Exit")
         choice = input("Select an option: ").strip()
 
@@ -276,11 +392,13 @@ def main() -> int:
                 analyze_project_menu()
             elif choice == "3":
                 previous_projects_menu()
+            elif choice == "4":
+                delete_analysis_menu()
             elif choice == "0":
                 print("Goodbye!")
                 return 0
             else:
-                print("Please choose a valid option (0–3).")
+                print("Please choose a valid option (0-4).")
         except KeyboardInterrupt:
             print("\n[Interrupted] Returning to menu.")
         except Exception as e:
