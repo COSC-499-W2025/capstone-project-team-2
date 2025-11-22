@@ -6,3 +6,7 @@ mysql-connector-python
 orjson
 PyGithub
 docker
+pytest
+pytest-mock
+pytest-cov
+python-dotenv
