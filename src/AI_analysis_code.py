@@ -493,6 +493,3 @@ class codeAnalysisAI():
 
         return results
 
-
-
-
