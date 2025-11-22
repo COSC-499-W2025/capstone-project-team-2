@@ -533,7 +533,7 @@ My goal for the following weeks is to add some optional features to the CLI, whi
 # 📝 Personal Log – Week 10 + week11 (11/10/2025-11/27/2025
 
 ## 📊 Peer Evaluation
-![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/10-17-2025.png)
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/11-22-2025.png)
 
 
 ---
@@ -561,6 +561,8 @@ My goal for the following weeks is to add some optional features to the CLI, whi
 ## 🎯 Next Week’s Goals
 - Start the process of beingining to intergate everything today for our demo
 - Work on video demo
+- Create Team contract
+- view our milestone one checklist
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 12)
