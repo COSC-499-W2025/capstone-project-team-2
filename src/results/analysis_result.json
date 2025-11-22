@@ -1,0 +1,349 @@
+{
+  "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\Classes.py": {
+    "code_quality_and_maintainability": {
+      "readability": "High",
+      "technical_debt": "Low",
+      "testability": "High"
+    },
+    "control_flow_and_error_handling": {
+      "error_handling_quality": "Good",
+      "patterns": [
+        "Exception handling",
+        "File opening"
+      ]
+    },
+    "data_structures_and_algorithms": {
+      "algorithmic_insights": "",
+      "complexity_comments": "",
+      "space_complexity": "O(1)",
+      "structures_used": [],
+      "time_complexity": {
+        "average_case": "O(n) + O(n) = O(2n) = O(n)",
+        "best_case": "O(1)",
+        "worst_case": "O(n)"
+      }
+    },
+    "design_and_architecture": {
+      "analysis": "",
+      "concepts_observed": [
+        "DataProcessor",
+        "UppercaseProcessor",
+        "WordCountProcessor",
+        "SafeProcessor"
+      ]
+    },
+    "file": "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\Classes.py",
+    "growth_areas": [],
+    "inferred_strengths": [
+      "Modular design",
+      "Exception handling",
+      "File operations"
+    ],
+    "language": "Python",
+    "library_and_framework_usage": {
+      "experience_inference": "",
+      "libraries_detected": []
+    },
+    "recommended_refactorings": [],
+    "summary": ""
+  },
+  "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\Poly.py": {
+    "code_quality_and_maintainability": {
+      "readability": "High, well commented code.",
+      "technical_debt": "Low, the code is clean and follows best practices.",
+      "testability": "Medium, unit tests exist but may be incomplete or less thorough."
+    },
+    "control_flow_and_error_handling": {
+      "error_handling_quality": "",
+      "patterns": []
+    },
+    "data_structures_and_algorithms": {
+      "algorithmic_insights": "",
+      "complexity_comments": "The function `print_shape_info` uses a fixed amount of additional space for the loop index, so it has a linear space complexity.",
+      "space_complexity": "O(n)",
+      "structures_used": [],
+      "time_complexity": {
+        "average_case": "O(n)",
+        "best_case": "O(1)",
+        "worst_case": "O(n)"
+      }
+    },
+    "design_and_architecture": {
+      "analysis": "",
+      "concepts_observed": [
+        "Polymorphism",
+        "Abstract Base Classes (ABC)",
+        "Inheritance"
+      ]
+    },
+    "file": "D:\\UBCO\\capstone-project-team-2\\test\tiny_scripts\\tiny_scripts\\Poly.py",
+    "growth_areas": [
+      "Refactor `print_shape_info` to handle exceptions more gracefully",
+      "Add more unit tests for different shape classes"
+    ],
+    "inferred_strengths": [
+      "Efficient implementation of polymorphism and inheritance",
+      "Good use of abstract methods"
+    ],
+    "language": "Python",
+    "library_and_framework_usage": {
+      "experience_inference": "",
+      "libraries_detected": [
+        "None"
+      ]
+    },
+    "recommended_refactorings": [],
+    "summary": ""
+  },
+  "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\condition.py": {
+    "code_quality_and_maintainability": {
+      "readability": "High",
+      "technical_debt": "Low",
+      "testability": "Medium"
+    },
+    "control_flow_and_error_handling": {
+      "error_handling_quality": "",
+      "patterns": [
+        "if-else statement"
+      ]
+    },
+    "data_structures_and_algorithms": {
+      "algorithmic_insights": "",
+      "complexity_comments": "",
+      "space_complexity": "",
+      "structures_used": [],
+      "time_complexity": {
+        "average_case": "O(1)",
+        "best_case": "O(1)",
+        "worst_case": "O(1)"
+      }
+    },
+    "design_and_architecture": {
+      "analysis": "",
+      "concepts_observed": [
+        "if-else statement",
+        "print function"
+      ]
+    },
+    "file": "D:\\UBCO\\capstone-project-team-2\\test\tiny_scripts\\tiny_scripts\\condition.py",
+    "growth_areas": [],
+    "inferred_strengths": [],
+    "language": "Python",
+    "library_and_framework_usage": {
+      "experience_inference": "",
+      "libraries_detected": []
+    },
+    "recommended_refactorings": [],
+    "summary": ""
+  },
+  "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\greeting.py": {
+    "code_quality_and_maintainability": {
+      "readability": "High",
+      "technical_debt": "Low",
+      "testability": "Good"
+    },
+    "control_flow_and_error_handling": {
+      "error_handling_quality": "",
+      "patterns": [
+        "print"
+      ]
+    },
+    "data_structures_and_algorithms": {
+      "algorithmic_insights": "",
+      "complexity_comments": "",
+      "space_complexity": "O(1)",
+      "structures_used": [],
+      "time_complexity": {
+        "average_case": "O(1)",
+        "best_case": "O(1)",
+        "worst_case": "O(1)"
+      }
+    },
+    "design_and_architecture": {
+      "analysis": "",
+      "concepts_observed": [
+        "print"
+      ]
+    },
+    "file": "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\greeting.py",
+    "growth_areas": [],
+    "inferred_strengths": [],
+    "language": "Python",
+    "library_and_framework_usage": {
+      "experience_inference": "",
+      "libraries_detected": []
+    },
+    "recommended_refactorings": [],
+    "summary": ""
+  },
+  "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\hello.py": {
+    "code_quality_and_maintainability": {
+      "readability": "High",
+      "technical_debt": "None",
+      "testability": "Low"
+    },
+    "control_flow_and_error_handling": {
+      "error_handling_quality": "None",
+      "patterns": [
+        "Print statement"
+      ]
+    },
+    "data_structures_and_algorithms": {
+      "algorithmic_insights": "",
+      "complexity_comments": "",
+      "space_complexity": "O(1)",
+      "structures_used": [],
+      "time_complexity": {
+        "average_case": "O(1)",
+        "best_case": "O(1)",
+        "worst_case": "O(1)"
+      }
+    },
+    "design_and_architecture": {
+      "analysis": "",
+      "concepts_observed": []
+    },
+    "file": "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\hello.py",
+    "growth_areas": [],
+    "inferred_strengths": [
+      "Basic functionality, minimal code"
+    ],
+    "language": "Python",
+    "library_and_framework_usage": {
+      "experience_inference": "",
+      "libraries_detected": []
+    },
+    "recommended_refactorings": [],
+    "summary": ""
+  },
+  "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\loop_test.py": {
+    "code_quality_and_maintainability": {
+      "readability": "High, the code is clear and easy to understand",
+      "technical_debt": "None",
+      "testability": "Good, there are simple tests for each loop statement"
+    },
+    "control_flow_and_error_handling": {
+      "error_handling_quality": "",
+      "patterns": []
+    },
+    "data_structures_and_algorithms": {
+      "algorithmic_insights": "",
+      "complexity_comments": "",
+      "space_complexity": "O(1)",
+      "structures_used": [],
+      "time_complexity": {
+        "average_case": "O(n)",
+        "best_case": "O(1)",
+        "worst_case": "O(n)"
+      }
+    },
+    "design_and_architecture": {
+      "analysis": "",
+      "concepts_observed": [
+        "Loops",
+        "Range Function"
+      ]
+    },
+    "file": "D:\\UBCO\\capstone-project-team-2\\test\tiny_scripts\tiny_scripts\\loop_test.py",
+    "growth_areas": [],
+    "inferred_strengths": [],
+    "language": "Python",
+    "library_and_framework_usage": {
+      "experience_inference": "",
+      "libraries_detected": [
+        "No libraries used"
+      ]
+    },
+    "recommended_refactorings": [],
+    "summary": ""
+  },
+  "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\math_ops.py": {
+    "code_quality_and_maintainability": {
+      "readability": "medium",
+      "technical_debt": "low",
+      "testability": "high"
+    },
+    "control_flow_and_error_handling": {
+      "error_handling_quality": "basic error handling quality",
+      "patterns": [
+        "return statement for basic arithmetic operation"
+      ]
+    },
+    "data_structures_and_algorithms": {
+      "algorithmic_insights": "",
+      "complexity_comments": "",
+      "space_complexity": "O(1)",
+      "structures_used": [
+        "no significant data structures used"
+      ],
+      "time_complexity": {
+        "average_case": "O(1)",
+        "best_case": "O(1)",
+        "worst_case": "O(1)"
+      }
+    },
+    "design_and_architecture": {
+      "analysis": "",
+      "concepts_observed": [
+        "add function",
+        "basic arithmetic operations"
+      ]
+    },
+    "file": "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\math_ops.py",
+    "growth_areas": [],
+    "inferred_strengths": [
+      "simple arithmetic operation",
+      "basic error handling"
+    ],
+    "language": "Python",
+    "library_and_framework_usage": {
+      "experience_inference": "",
+      "libraries_detected": []
+    },
+    "recommended_refactorings": [],
+    "summary": ""
+  },
+  "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\random_pick.py": {
+    "code_quality_and_maintainability": {
+      "readability": "The code is well-structured and easy to read.",
+      "technical_debt": "No significant technical debt has been identified.",
+      "testability": "There are no explicit tests, but the logic of choosing a random item from a list is straightforward."
+    },
+    "control_flow_and_error_handling": {
+      "error_handling_quality": "",
+      "patterns": []
+    },
+    "data_structures_and_algorithms": {
+      "algorithmic_insights": "The choice of `random.choice(items)` is O(n) due to the need to search through all items in the list.",
+      "complexity_comments": "",
+      "space_complexity": "",
+      "structures_used": [
+        "List",
+        "Dictionary"
+      ],
+      "time_complexity": {
+        "average_case": "O(n)",
+        "best_case": "O(1)",
+        "worst_case": "O(n)"
+      }
+    },
+    "design_and_architecture": {
+      "analysis": "",
+      "concepts_observed": []
+    },
+    "file": "D:\\UBCO\\capstone-project-team-2\\test\\tiny_scripts\\tiny_scripts\\random_pick.py",
+    "growth_areas": [],
+    "inferred_strengths": [
+      "The use of `random.choice` makes the code concise and easy to understand."
+    ],
+    "language": "Python",
+    "library_and_framework_usage": {
+      "experience_inference": "",
+      "libraries_detected": [
+        "random"
+      ]
+    },
+    "recommended_refactorings": [],
+    "summary": ""
+  }
+}

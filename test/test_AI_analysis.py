@@ -35,6 +35,11 @@ class TestAIOutput(unittest.TestCase):
             0,
             "Result dictionary should not be empty"
         )
+        self.assertEqual(
+            len(self.result),
+            8,
+            "Result dictionary should have 8 items"
+        )
 
     def test_output_structure(self):
        

@@ -186,7 +186,7 @@ class codeAnalysisAI():
             for suffix in suffixes:
                 self.suffix_to_languages.setdefault(suffix, set()).add(lang)
 
-        self.model = OllamaLLM(model="qwen3-coder:480b-cloud")  # Here we are defining what ollama model to use
+        self.model = OllamaLLM(model="qwen2.5-coder:1.5b")  # Here we are defining what ollama model to use
         self.prompt = PromptTemplate(
             input_variables=["language", "filepath", "code"],
             template="""
@@ -197,8 +197,11 @@ class codeAnalysisAI():
         - Do NOT include ```json or ``` in your answer.
         - Do NOT include any markdown.
         - Do NOT include explanations outside the JSON.
-        - Do NOT include comments.
-        - Output MUST be PURE JSON.
+        - Do NOT include comments of ANY kind.
+        - Do NOT include sequences like //, /*, or */ anywhere in the output.
+        - Do NOT explain values after commas or in parentheses.
+        - Every line MUST be valid strict JSON.
+        - Output MUST be PURE JSON only.
         - Violating these rules will break the parser.
 
         You MUST determine and report algorithmic time and space complexity for the code (based on loops, recursion, data structures, etc.). 
@@ -275,20 +278,19 @@ class codeAnalysisAI():
         return any(part in self.ignore_dirs for part in path.parts)
 
     def _clean_model_output(self, text: str) -> str:
-
         """
-        Cleans the output of the model by removing any code block fences and
-        returning any JSON found in the output.
-
-        Args:
-            text (str): The output of the model
-
-        Returns:
-            str: The cleaned output of the model
+        Cleans the output of the model by:
+        - removing code block fences,
+        - extracting the JSON object,
+        - stripping JS-style comments (// and /* */),
+        - removing trailing commas before } or ] so that json.loads() can parse it.
         """
         if not text:
             return text
+
         cleaned = text.strip()
+
+        # 1. Strip ```json / ```python / ``` fences if present
         fence_pattern = re.compile(r"```(?:json|python)?\s*([\s\S]*?)```", re.IGNORECASE)
         match = fence_pattern.search(cleaned)
         if match:
@@ -296,11 +298,24 @@ class codeAnalysisAI():
         else:
             if cleaned.startswith("```") and cleaned.endswith("```"):
                 cleaned = cleaned[3:-3].strip()
+
+        # 2. Extract the first JSON-looking object if wrapped in extra text
         json_match = re.search(r"\{[\s\S]*\}", cleaned)
         if json_match:
             cleaned = json_match.group(0).strip()
 
-        return cleaned
+        # 3. Remove single-line comments: // ...
+        cleaned = re.sub(r"//.*?$", "", cleaned, flags=re.MULTILINE)
+
+        # 4. Remove block comments: /* ... */
+        cleaned = re.sub(r"/\*[\s\S]*?\*/", "", cleaned)
+
+        # 5. Remove trailing commas before } or ]
+        #    e.g.  "foo": "bar", }  ->  "foo": "bar" }
+        #          [1, 2, 3, ]      ->  [1, 2, 3 ]
+        cleaned = re.sub(r",(\s*[}\]])", r"\1", cleaned)
+
+        return cleaned.strip()
 
     def save_all_results(self, results: dict):
         """
@@ -454,4 +469,5 @@ class codeAnalysisAI():
         return results
 
 
-
+data=codeAnalysisAI(r"D:\UBCO\capstone-project-team-2\test\tiny_scripts").run_analysis(save_json=True)
+print(len(data))
