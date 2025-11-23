@@ -2,12 +2,27 @@ import unittest
 import tempfile
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch, MagicMock,call
+from unittest.mock import patch, MagicMock
+import sys
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 import src.main as main_mod
 
+def make_input_fn(values):
+    """
+    Return a callable suitable for patch(..., side_effect=...) that yields
+    each value from `values` in order, and returns "" for any further calls.
+    """
+    it = iter(values)
+
+    def _fake_input(prompt=""):
+        try:
+            return next(it)
+        except StopIteration:
+            return ""   # default to empty string for extra prompts
+
+    return _fake_input
 
 class TestMainModule(unittest.TestCase):
-
 
     def setUp(self):
         self.tempdir=tempfile.mkdtemp()
@@ -20,9 +35,6 @@ class TestMainModule(unittest.TestCase):
     def test_settings_menu_calls_cli(self, _load, run_cli):
         main_mod.settings_menu()
         run_cli.assert_called_once()
-
-
-
 
     """
     Checks the "Zip" branch of the analyze projects menu retrieves ZIP path,
@@ -46,18 +58,17 @@ class TestMainModule(unittest.TestCase):
     def test_analyze_menu_exit(self, _inp):
         self.assertIsNone(main_mod.analyze_project_menu())
 
-    """
-    checks that previous projects menu correctly enters a folder and selects a 
-    saved JSON file and calls show_saved_summary correctly on the selected file
-    """
     @patch.object(main_mod, "show_saved_summary")
     @patch.object(main_mod, "list_saved_projects", return_value=[Path("/tmp/a.json")])
-    @patch("builtins.input", side_effect=[
-        "C:/some/folder",  # folder prompt
-        "1"                # choose first file
-    ])
-    def test_previous_projects_displays_choice(self, _inp, _list, show):
-        main_mod.previous_projects_menu()
+    @patch("builtins.input", side_effect=make_input_fn([
+        "1",  # choose first file
+    ]))
+    def test_saved_projects_displays_choice(self, _inp, _list, show):
+        """
+        Ensures saved_projects_menu calls show_saved_summary for the chosen file,
+        and that the "Press Enter to continue" prompt is harmless.
+        """
+        main_mod.saved_projects_menu()
         show.assert_called_once_with(Path("/tmp/a.json"))
 
     """
@@ -120,6 +131,67 @@ class TestMainModule(unittest.TestCase):
     @patch("builtins.input", side_effect=["0"])  # choose Exit immediately
     def test_main_returns_zero_on_exit(self, _inp):
         self.assertEqual(main_mod.main(), 0)
+        
+    @patch.object(main_mod, "delete_from_database_by_id", return_value=True)
+    @patch.object(main_mod, "delete_file_from_disk", return_value=True)
+    @patch.object(main_mod, "get_saved_projects_from_db", return_value=[(101, "to_delete.json", "{}", "2025-01-01 12:00")])
+    @patch("builtins.input", side_effect=["1", "y", "n"])
+    def test_delete_analysis_menu_deletes_selected(self, _inp, mock_delete_file, mock_delete_db, _get_projects):
+            #create a fake file in temp dir
+            temp_dir = Path(self.tempdir)
+            temp_file = temp_dir / "to_delete.json"
+            temp_file.write_text("{}")
+
+            with patch.object(main_mod, "DEFAULT_SAVE_DIR", temp_dir):
+                with patch.object(main_mod, "list_saved_projects", return_value=[temp_file]):
+                    main_mod.delete_analysis_menu()
+
+            main_mod.delete_from_database_by_id.assert_called_once_with(101)
+            main_mod.delete_file_from_disk.assert_called_once_with("to_delete.json")
+
+
+    @patch.object(main_mod, "get_saved_projects_from_db", return_value=[(202, "dont_delete.json", "{}", "2025-01-02 12:00:00")])
+    @patch.object(main_mod, "delete_from_database_by_id", return_value=True)
+    @patch.object(main_mod, "delete_file_from_disk", return_value=True)
+    @patch("builtins.input", side_effect=["1", "n", "0"])
+    def test_delete_analysis_menu_cancel_does_not_delete(self, _inp, mock_delete_file, mock_delete_db, _get_projects):
+        """
+        User selects an entry but cancels at confirmation; neither DB nor file delete should be invoked.
+        """
+        main_mod.delete_analysis_menu()
+
+        mock_delete_db.assert_not_called()
+        mock_delete_file.assert_not_called()
+
+    def test_delete_file_from_disk_deletes_existing_file(self):
+        """
+        Ensure delete_file_from_disk removes an actual file in DEFAULT_SAVE_DIR.
+        We patch DEFAULT_SAVE_DIR to a temporary directory from setUp.
+        """
+        # point DEFAULT_SAVE_DIR at the temporary directory created in setUp
+        temp_dir = Path(self.tempdir)
+        filename = "temp_analysis.json"
+        file_path = temp_dir / filename
+
+        # create the file
+        temp_dir.mkdir(parents=True, exist_ok=True)
+        file_path.write_text("{}", encoding="utf-8")
+        self.assertTrue(file_path.exists())
+
+        with patch.object(main_mod, "DEFAULT_SAVE_DIR", temp_dir):
+            deleted = main_mod.delete_file_from_disk(filename)
+
+        self.assertTrue(deleted)
+        self.assertFalse(file_path.exists())
+
+    @patch.object(main_mod.store, "delete", return_value=True)
+    def test_delete_from_database_by_id_calls_store_delete(self, mock_store_delete):
+        """
+        delete_from_database_by_id should call store.delete(record_id) and return its result.
+        """
+        result = main_mod.delete_from_database_by_id(555)
+        mock_store_delete.assert_called_once_with(555)
+        self.assertTrue(result)
 
 
 if __name__ == "__main__":

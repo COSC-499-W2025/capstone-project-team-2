@@ -55,10 +55,8 @@ Describe project data
  
 TO RUN SET UP:
 
-run this series of commands in terminal:
+run these 3 commands in terminal:
 
 docker compose down -v
 docker compose build --no-cache
-docker compose up -d app_database
-docker compose run --rm test
-docker compose run --rm --service-ports app
+docker compose up
