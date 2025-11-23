@@ -317,7 +317,7 @@ def saved_projects_menu() -> None:
             items = list_saved_projects(folder)
             
             if not items:
-                print(f"[INFO] No saved projects in {folder}")
+                print("[INFO] No saved projects")
                 input("Press Enter to return to main menu...")
                 return
 
@@ -357,7 +357,7 @@ def delete_analysis_menu() -> None:
             projects = get_saved_projects_from_db()
             
             if not projects:
-                print("[INFO] No saved projects found in database")
+                print("[INFO] No saved projects.")
                 input("Press Enter to return to main menu...")
                 return
 
