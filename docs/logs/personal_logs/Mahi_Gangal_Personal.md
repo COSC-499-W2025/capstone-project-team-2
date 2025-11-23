@@ -429,5 +429,71 @@ Collaborate with the team to plan next sprint tasks and identify project improve
 
 </details>
 
+## Dates of Sprint: (11/17/2025 – 11/23/2025) 
+
+### Peer Eval Screenshot: <img width="1089" height="618" alt="Mg" src="https://github.com/user-attachments/assets/1e1c7a13-7d51-468d-8cb6-c0030eea1f84" />
+
+---
+
+### Features Worked on this Milestone   
+#### Week 12
+  * Implemented the DELETE functionality so that users can delete previous generated insights, ensuring files that are shared across multiple reports do not get affected. Added tests to make sure everything is working as expected.
+  * Unified deletion workflow that handles menu selection, confirmation prompts, database record scanning and safe filesystem cleanup.
+  * Worked on integrating the various components of our system and debugging in the process.
+      - Added the mandatory privacy consent (external-service (LLM) and local-data-analysis) before the system can run.
+      - Added explicit error handling for robust ZIP extraction validation.
+      - Added clear listing of previously saved analyses.
+      - Fixed issues related to duration of the project.
+#### Week 11 (Bonus Week)
+  * Implemented association of individual contributions in collaborative projects with skills, adding caching for performance.
+  * Added 11 comprehensive test cases to cover all edge cases.
+---
+
+## Associated Tasks from Project Board:
+- https://github.com/orgs/COSC-499-W2025/projects/11?pane=issue&itemId=140914703
+- https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=135820337
+- https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=135819735
+---
+### Progress Update (since 11/10/2025)
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong></td>
+        <td><strong>STATUS</strong></td>
+    </tr>
+    <tr>
+    <td>Implement association of individual contributions in collaborative projects with skills</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+    <tr>
+    <td>Implemented the DELETE functionality so that users can delete previous generated insight</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+   <tr>
+    <td>Develop and validate corresponding test cases</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+  <tr>
+    <td>Integrating several components of our system</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+</table>
+
+---
+
+### Next week goals
+
+- Integrate the remaining components for the demo.
+- Prepare for the Milestone #1 Presentation.
+
+---
+
+### Extra Details:
+<details>
+    <summary><span style='font-weight:bold'>Click to expand</span> </summary>
+This week I focused heavily on core system reliability, especially around delete operations and user-facing workflow consistency. The biggest accomplishment was building the delete functionality, handling dual deletion paths (filesystem + database), matching DB rows to filenames, and implementing safe-delete reference counting. I also added the implemented full consent workflow, now required before the CLI even reaches the main menu. This added crucial privacy compliance as per the requirements. ZIP extraction was rewritten to have explicit validation with actionable error messages, replacing silent or vague failures. To unify user experience, the “Saved Projects” and “Delete Analysis” menus were redesigned to rely solely on the filesystem. This change ensures consistent behavior whether DB or disk is out of sync.
+These changes required updating a some portions of the test suite. I wrote new tests and updated older ones to reflect the new architecture. Overall, this week significantly strengthened the system’s robustness, safety, and user trust and closed multiple previously open system-level integration gaps.
+    </span>
+</details>
+
 
 
