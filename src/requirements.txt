@@ -9,3 +9,7 @@ langchain-community
 langchain
 langchain-ollama
 docker
+pytest
+pytest-mock
+pytest-cov
+python-dotenv
