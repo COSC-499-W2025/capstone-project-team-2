@@ -5,4 +5,7 @@ gitpython
 mysql-connector-python
 orjson
 PyGithub
+langchain-community
+langchain
+langchain-ollama
 docker
