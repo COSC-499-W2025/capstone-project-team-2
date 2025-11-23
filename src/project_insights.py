@@ -6,8 +6,9 @@ Utility helpers for persisting and querying analyzed project insights.
 
 Responsibilities:
 - Append analysis output (hierarchy, resume info, skills, contributors) to a JSON log
-- Provide a chronological listing for projects
-- Rank projects based on contribution signals
+- Store derived file analysis stats alongside each project
+- Provide chronological listings for projects and skill usage
+- Rank projects based on contribution signals and surface top-ranked summaries
 """
 
 from __future__ import annotations
