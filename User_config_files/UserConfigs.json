@@ -4,7 +4,7 @@
   "Student id": "2003357",
   "Last Name": "Doe",
   "Email": "Jane.Doe@gmail.com",
-  "Role": "Student",
+  "Role": "Teacher",
   "Preferences": {
     "theme": "dark"
   }

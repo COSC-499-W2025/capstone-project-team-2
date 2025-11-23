@@ -7,6 +7,20 @@ import sys
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 import src.main as main_mod
 
+def make_input_fn(values):
+    """
+    Return a callable suitable for patch(..., side_effect=...) that yields
+    each value from `values` in order, and returns "" for any further calls.
+    """
+    it = iter(values)
+
+    def _fake_input(prompt=""):
+        try:
+            return next(it)
+        except StopIteration:
+            return ""   # default to empty string for extra prompts
+
+    return _fake_input
 
 class TestMainModule(unittest.TestCase):
 
@@ -22,9 +36,6 @@ class TestMainModule(unittest.TestCase):
     def test_settings_menu_calls_cli(self, _load, run_cli):
         main_mod.settings_menu()
         run_cli.assert_called_once()
-
-
-
 
     """
     Checks the "Zip" branch of the analyze projects menu retrieves ZIP path,
@@ -48,17 +59,16 @@ class TestMainModule(unittest.TestCase):
     def test_analyze_menu_exit(self, _inp):
         self.assertIsNone(main_mod.analyze_project_menu())
 
-    """
-    checks that previous projects menu correctly enters a folder and selects a 
-    saved JSON file and calls show_saved_summary correctly on the selected file
-    """
     @patch.object(main_mod, "show_saved_summary")
     @patch.object(main_mod, "list_saved_projects", return_value=[Path("/tmp/a.json")])
-    @patch("builtins.input", side_effect=[
-        "C:/some/folder",  # folder prompt
-        "1"                # choose first file
-    ])
+    @patch("builtins.input", side_effect=make_input_fn([
+        "1",  # choose first file
+    ]))
     def test_saved_projects_displays_choice(self, _inp, _list, show):
+        """
+        Ensures saved_projects_menu calls show_saved_summary for the chosen file,
+        and that the "Press Enter to continue" prompt is harmless.
+        """
         main_mod.saved_projects_menu()
         show.assert_called_once_with(Path("/tmp/a.json"))
 

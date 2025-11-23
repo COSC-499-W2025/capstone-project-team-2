@@ -2,6 +2,7 @@ import json
 import sys
 from pathlib import Path
 from typing import Any, Dict,Optional
+import datetime
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 # Local module Imports
@@ -128,29 +129,72 @@ def analyze_project(root: Path) -> None:
     print(f"  Duration   : {duration}\n")
 
     export_json(root.name, analysis)
+    
+def convert_datetime_to_string(obj):
+    """
+    Recursively converts datetime objects to strings in a dictionary or list.
+    Also handles timedelta objects.
+    """
+    if isinstance(obj, datetime.datetime):
+        return obj.strftime('%Y-%m-%d %H:%M:%S')
+    elif isinstance(obj, datetime.timedelta):
+        return str(obj)
+    elif isinstance(obj, dict):
+        return {key: convert_datetime_to_string(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_datetime_to_string(item) for item in obj]
+    else:
+        return obj
 
 def export_json(project_name: str, analysis: Dict[str, Any]) -> None:
     """
-    saves an analyzed project as a json file
+    saves an analyzed project as a json file and to the database
+    Always saves to the default directory (User_config_files)
     """
-
     ans = (input("Save JSON report? (y/n): ").strip().lower() or "n")
     if ans.startswith("y"):
-        out_dir_str = input(f"Output directory [{DEFAULT_SAVE_DIR}]: ").strip()
-        out_dir = Path(out_dir_str or DEFAULT_SAVE_DIR).expanduser().resolve()
+        # Always use default directory
+        out_dir = Path(DEFAULT_SAVE_DIR).resolve()
         out_dir.mkdir(parents=True, exist_ok=True)
-        SaveFileAnalysisAsJSON.saveAnalysis(project_name, analysis, str(out_dir))
-        print(f"[INFO] Saved → {out_dir / (project_name + '.json')}")
-
+        
+        filename = project_name + '.json'
+        
+        # Deep copy and convert datetime objects to strings for JSON serialization
+        import copy
+        analysis_copy = copy.deepcopy(analysis)
+        analysis_serializable = convert_datetime_to_string(analysis_copy)
+        
+        # Save to filesystem
+        saver = SaveFileAnalysisAsJSON()
+        saver.saveAnalysis(project_name, analysis_serializable, str(out_dir))
+        file_path = out_dir / filename
+        print(f"[INFO] Saved to filesystem → {file_path}")
+        
+        # Save to database
+        try:
+            record_id = store.insert_json(filename, analysis_serializable)
+            print(f"[INFO] Saved to database (ID: {record_id})")
+        except Exception as e:
+            print(f"[WARNING] Could not save to database: {e}")
+                
 def list_saved_projects(folder: Path) -> list[Path]:
     """
-    Takes in a folder and returns a list of the files that folder
+    Takes in a folder and returns a list of the files in that folder.
+    Filters out config files like UserConfigs.json and default_user_configuration.json.
     """
 
     if not folder.exists():
         return []
-    return sorted(folder.glob("*.json"))
 
+    all_files = sorted(folder.glob("*.json"))
+
+    # Exclude config files
+    filtered = [f for f in all_files if f.name not in {
+    "UserConfigs.json",
+    "default_user_configuration.json"
+    }]
+
+    return filtered
 def show_saved_summary(path: Path) -> None:
     """
     Displays the summary of the saved file
@@ -261,38 +305,45 @@ def analyze_project_menu() -> None:
             print(f"[ERROR] {e}")
 
 def saved_projects_menu() -> None:
+    """
+    Displays all saved projects from the default User_config_files directory.
+    """
     while True:
         print("\n=== Saved Project Menu ===")
-        folder_str = input(
-            f"Enter folder to scan for saved analyses [{DEFAULT_SAVE_DIR}] or 0 to exit to main menu: "
-        ).strip()
-
-        if folder_str == "0":  
-            return
-
-        folder = Path(folder_str or DEFAULT_SAVE_DIR).expanduser().resolve()
-        items = list_saved_projects(folder)
-        if not items:
-            print(f"[INFO] No saved projects in {folder}")
-            return
-
-        print("\nSaved analyses:")
-        for i, p in enumerate(items, start=1):
-            print(f"{i}) {p.name}")
-
-        sel = input("Choose a file to view (or press 0 to exit to main menu): ").strip()
-        if not sel or sel == "0":
-            return
+        
         try:
-            idx = int(sel) - 1
-            if idx < 0 or idx >= len(items):
-                print("Invalid selection.")
+            # Always use default directory
+            folder = Path(DEFAULT_SAVE_DIR).resolve()
+            items = list_saved_projects(folder)
+            
+            if not items:
+                print(f"[INFO] No saved projects in {folder}")
+                input("Press Enter to return to main menu...")
                 return
-            show_saved_summary(items[idx])
-            # after showing, return to main menu
-            return
-        except ValueError:
-            print("Please enter a number.")
+
+            print(f"\nSaved analyses:\n")
+            for i, p in enumerate(items, start=1):
+                print(f"{i}) {p.name}")
+
+            sel = input("\nChoose a file to view (or press 0 to exit to main menu): ").strip()
+            if not sel or sel == "0":
+                return
+            
+            try:
+                idx = int(sel) - 1
+                if idx < 0 or idx >= len(items):
+                    print("Invalid selection.")
+                    continue
+                
+                show_saved_summary(items[idx])
+                input("Press Enter to continue...")
+            except ValueError:
+                print("Please enter a number.")
+                continue
+            
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            input("Press Enter to return to main menu...")
             return
         
 def delete_analysis_menu() -> None:
