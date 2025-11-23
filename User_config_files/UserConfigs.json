@@ -7,5 +7,9 @@
   "Role": "Teacher",
   "Preferences": {
     "theme": "dark"
+  },
+  "consented": {
+    "external": true,
+    "Data consent": true
   }
 }

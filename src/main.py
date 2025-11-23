@@ -3,22 +3,22 @@ import sys
 from pathlib import Path
 from typing import Any, Dict,Optional
 import datetime
+import zipfile
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 # Local module Imports
 from src.CLI_Interface_for_user_config import ConfigurationForUsersUI
-from src.Configuration import configuration_for_users
+from src.user_consent import UserConsent
 from src.data_extraction import FileMetadataExtractor
 from src.extraction import extractInfo
 from src.project_duration_estimation import Project_Duration_Estimator
-from src.project_skill_insights import identify_skills
-from src.project_stack_detection import detect_project_stack
-from src.project_type_detection import detect_project_type
 from src.resume_item_generator import generate_resume_item
 from src.user_startup_config import ConfigLoader
 from src.file_data_saving import SaveFileAnalysisAsJSON
 from src.db_helper_function import HelperFunct
 from src.Docker_finder import DockerFinder
+from src.user_startup_config import ConfigLoader
+from src.Configuration import configuration_for_users
 
 import mysql.connector
 from mysql.connector import Error
@@ -44,13 +44,9 @@ for attempt in range(5):
 if conn is None or not conn.is_connected():
     raise Exception("❌ Could not connect to MySQL after 5 attempts.")
 
-
 store = HelperFunct(conn)
 
-
-
 DEFAULT_SAVE_DIR = Path("User_config_files")
-
 
 def _input_path(prompt: str, allow_blank: bool = False)->Optional[Path] :
     """
@@ -58,7 +54,6 @@ def _input_path(prompt: str, allow_blank: bool = False)->Optional[Path] :
     returns path or none 
 
     """
-
     while True:
         p = input(prompt).strip()
         if not p and allow_blank:
@@ -73,7 +68,6 @@ def extract_if_zip(zip_path: Path) -> Path:
     uses extractInfo.runExtraction() to validate and extract ZIP
     returns .../temp folder
     """
-
     out = extractInfo(str(zip_path)).runExtraction()
     return Path(out)
  
@@ -449,7 +443,22 @@ def main() -> int:
             print(f"[ERROR] {e}")
 
 if __name__ == "__main__":
-    try: 
+    # --- Startup: ask for user consent before doing anything ---
+    try:
+        consent_manager = UserConsent()
+        proceed = consent_manager.ask_for_consent()
+        if not proceed:
+            print('[EXIT] User declined consent. Exiting.')
+            sys.exit(1)
+        # Save consent into user's configuration for future runs
+        try:
+            data = ConfigLoader().load()
+            configure_json = configuration_for_users(data)
+            configure_json.save_with_consent(consent_manager.has_external_consent, consent_manager.has_data_consent)
+            configure_json.save_config()
+        except Exception as e:
+            print(f'[WARN] Failed to persist consent to configuration: {e}')
+        # proceed to main program
         sys.exit(main())
     finally:
         try:
