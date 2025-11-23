@@ -5,6 +5,7 @@ gitpython
 mysql-connector-python
 orjson
 PyGithub
+pandas
 langchain-community
 langchain
 langchain-ollama
