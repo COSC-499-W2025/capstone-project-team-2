@@ -2,7 +2,9 @@ import json
 import sys
 from pathlib import Path
 from typing import Any, Dict,Optional
+import datetime
 
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 # Local module Imports
 from src.CLI_Interface_for_user_config import ConfigurationForUsersUI
 from src.Configuration import configuration_for_users
@@ -127,29 +129,72 @@ def analyze_project(root: Path) -> None:
     print(f"  Duration   : {duration}\n")
 
     export_json(root.name, analysis)
+    
+def convert_datetime_to_string(obj):
+    """
+    Recursively converts datetime objects to strings in a dictionary or list.
+    Also handles timedelta objects.
+    """
+    if isinstance(obj, datetime.datetime):
+        return obj.strftime('%Y-%m-%d %H:%M:%S')
+    elif isinstance(obj, datetime.timedelta):
+        return str(obj)
+    elif isinstance(obj, dict):
+        return {key: convert_datetime_to_string(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_datetime_to_string(item) for item in obj]
+    else:
+        return obj
 
 def export_json(project_name: str, analysis: Dict[str, Any]) -> None:
     """
-    saves an analyzed project as a json file
+    saves an analyzed project as a json file and to the database
+    Always saves to the default directory (User_config_files)
     """
-
     ans = (input("Save JSON report? (y/n): ").strip().lower() or "n")
     if ans.startswith("y"):
-        out_dir_str = input(f"Output directory [{DEFAULT_SAVE_DIR}]: ").strip()
-        out_dir = Path(out_dir_str or DEFAULT_SAVE_DIR).expanduser().resolve()
+        # Always use default directory
+        out_dir = Path(DEFAULT_SAVE_DIR).resolve()
         out_dir.mkdir(parents=True, exist_ok=True)
-        SaveFileAnalysisAsJSON.saveAnalysis(project_name, analysis, str(out_dir))
-        print(f"[INFO] Saved → {out_dir / (project_name + '.json')}")
-
+        
+        filename = project_name + '.json'
+        
+        # Deep copy and convert datetime objects to strings for JSON serialization
+        import copy
+        analysis_copy = copy.deepcopy(analysis)
+        analysis_serializable = convert_datetime_to_string(analysis_copy)
+        
+        # Save to filesystem
+        saver = SaveFileAnalysisAsJSON()
+        saver.saveAnalysis(project_name, analysis_serializable, str(out_dir))
+        file_path = out_dir / filename
+        print(f"[INFO] Saved to filesystem → {file_path}")
+        
+        # Save to database
+        try:
+            record_id = store.insert_json(filename, analysis_serializable)
+            print(f"[INFO] Saved to database (ID: {record_id})")
+        except Exception as e:
+            print(f"[WARNING] Could not save to database: {e}")
+                
 def list_saved_projects(folder: Path) -> list[Path]:
     """
-    Takes in a folder and returns a list of the files that folder
+    Takes in a folder and returns a list of the files in that folder.
+    Filters out config files like UserConfigs.json and default_user_configuration.json.
     """
 
     if not folder.exists():
         return []
-    return sorted(folder.glob("*.json"))
 
+    all_files = sorted(folder.glob("*.json"))
+
+    # Exclude config files
+    filtered = [f for f in all_files if f.name not in {
+    "UserConfigs.json",
+    "default_user_configuration.json"
+    }]
+
+    return filtered
 def show_saved_summary(path: Path) -> None:
     """
     Displays the summary of the saved file
@@ -186,6 +231,40 @@ def show_saved_summary(path: Path) -> None:
     if summary and summary != '—':
         print(f"Résumé line  : {summary}")
     print()
+    
+def get_saved_projects_from_db() -> list[tuple]:
+    """
+    Fetches all saved projects from the database.
+    Returns a list of tuples: (id, filename, content, uploaded_at)
+    """ 
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT id, filename, content, uploaded_at FROM project_data ORDER BY uploaded_at DESC")
+        return cursor.fetchall()
+    finally:
+        cursor.close()
+    
+def delete_from_database_by_id(record_id: int) -> bool:
+    """
+    Deletes a database record by ID.
+    Returns True if a record was deleted, False otherwise.
+    """
+    return store.delete(record_id)
+
+def delete_file_from_disk(filename: str) -> bool:
+    """
+    Deletes a file from the DEFAULT_SAVE_DIR.
+    Returns True if file was deleted, False if it didn't exist or deletion failed.
+    """
+    try:
+        file_path = Path(DEFAULT_SAVE_DIR).expanduser().resolve() / filename
+        if file_path.exists():
+            file_path.unlink()
+            return True
+        return False
+    except Exception as e:
+        print(f"[WARNING] Failed to delete file '{filename}': {e}")
+        return False
 
 # ---------- Menus ----------
 def settings_menu() -> None:
@@ -225,39 +304,119 @@ def analyze_project_menu() -> None:
         except Exception as e:
             print(f"[ERROR] {e}")
 
-def previous_projects_menu() -> None:
+def saved_projects_menu() -> None:
+    """
+    Displays all saved projects from the default User_config_files directory.
+    """
     while True:
-        print("\n=== Previous Project Menu ===")
-        folder_str = input(
-            f"Enter folder to scan for saved analyses [{DEFAULT_SAVE_DIR}] or 0 to exit to main menu: "
-        ).strip()
-
-        if folder_str == "0":  
-            return
-
-        folder = Path(folder_str or DEFAULT_SAVE_DIR).expanduser().resolve()
-        items = list_saved_projects(folder)
-        if not items:
-            print(f"[INFO] No saved projects in {folder}")
-            return
-
-        print("\nSaved analyses:")
-        for i, p in enumerate(items, start=1):
-            print(f"{i}) {p.name}")
-
-        sel = input("Choose a file to view (or press 0 to exit to main menu): ").strip()
-        if not sel:
-            return
+        print("\n=== Saved Project Menu ===")
+        
         try:
-            idx = int(sel) - 1
-            if idx < 0 or idx >= len(items):
-                print("Invalid selection.")
+            # Always use default directory
+            folder = Path(DEFAULT_SAVE_DIR).resolve()
+            items = list_saved_projects(folder)
+            
+            if not items:
+                print("[INFO] No saved projects")
+                input("Press Enter to return to main menu...")
                 return
-            show_saved_summary(items[idx])
-            # after showing, return to main menu
+
+            print(f"\nSaved analyses:\n")
+            for i, p in enumerate(items, start=1):
+                print(f"{i}) {p.name}")
+
+            sel = input("\nChoose a file to view (or press 0 to exit to main menu): ").strip()
+            if not sel or sel == "0":
+                return
+            
+            try:
+                idx = int(sel) - 1
+                if idx < 0 or idx >= len(items):
+                    print("Invalid selection.")
+                    continue
+                
+                show_saved_summary(items[idx])
+                input("Press Enter to continue...")
+            except ValueError:
+                print("Please enter a number.")
+                continue
+            
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            input("Press Enter to return to main menu...")
             return
-        except ValueError:
-            print("Please enter a number.")
+        
+def delete_analysis_menu() -> None:
+    """
+    Menu for deleting saved project analyses from the database.
+    """
+    while True:
+        print("\n=== Delete Analysis Menu ===")
+        
+        try:
+            projects = get_saved_projects_from_db()
+            
+            if not projects:
+                print("[INFO] No saved projects.")
+                input("Press Enter to return to main menu...")
+                return
+
+            print("\nSaved projects:\n")
+            for idx, (record_id, filename, _, uploaded_at) in enumerate(projects, start=1):
+                print(f"{idx}) id={record_id}  {filename}  (uploaded: {uploaded_at})")
+
+            sel = input("\nEnter the number of the project to delete (or 0 to exit): ").strip()
+            if not sel or sel == "0":
+                return
+
+            try:
+                sel_idx = int(sel) - 1
+            except ValueError:
+                print("[ERROR] Please enter a number.")
+                continue
+
+            if sel_idx < 0 or sel_idx >= len(projects):
+                print("[ERROR] Selection out of range.")
+                continue
+
+            record_id, filename,_, uploaded_at = projects[sel_idx]
+            
+            # Confirm deletion
+            confirm = input(f"Are you sure you want to delete '{filename}' (uploaded: {uploaded_at})? (y/n): ").strip().lower()
+            if not confirm.startswith("y"):
+                print("[INFO] Deletion cancelled.")
+                continue
+            
+            # Delete from database
+            db_deleted = delete_from_database_by_id(record_id)
+            file_deleted = delete_file_from_disk(filename)
+            
+            if db_deleted:
+                print(f"[SUCCESS] Deleted '{filename}' from database!")
+            else:
+                print(f"[WARNING] Database record was not deleted")
+            
+            if file_deleted:
+                print(f"[SUCCESS] Deleted '{filename}' from filesystem!")
+            else:
+                file_path = Path(DEFAULT_SAVE_DIR).expanduser().resolve() / filename
+                if not file_path.exists():
+                    print(f"[INFO] No file found at: {file_path}")
+                else:
+                    print(f"[WARNING] File exists but could not be deleted: {file_path}")
+            
+            if db_deleted or file_deleted:
+                # Ask if they want to delete another
+                another = input("\nDelete another analysis? (y/n): ").strip().lower()
+                if not another.startswith("y"):
+                    return
+            else:
+                print(f"[ERROR] Failed to delete '{filename}' from both database and filesystem")
+                input("Press Enter to continue...")
+                
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            input("Press Enter to return to main menu...")
             return
                     
 def main() -> int:
@@ -266,6 +425,7 @@ def main() -> int:
         print("1) Settings")
         print("2) Analyze project")
         print("3) Saved projects")
+        print("4) Delete analysis")
         print("0) Exit")
         choice = input("Select an option: ").strip()
 
@@ -275,20 +435,24 @@ def main() -> int:
             elif choice == "2":
                 analyze_project_menu()
             elif choice == "3":
-                previous_projects_menu()
+                saved_projects_menu()
+            elif choice == "4":
+                delete_analysis_menu()
             elif choice == "0":
                 print("Goodbye!")
                 return 0
             else:
-                print("Please choose a valid option (0–3).")
+                print("Please choose a valid option (0-4).")
         except KeyboardInterrupt:
             print("\n[Interrupted] Returning to menu.")
         except Exception as e:
             print(f"[ERROR] {e}")
 
 if __name__ == "__main__":
-    sys.exit(main())
-
-
-
-conn.close()
+    try: 
+        sys.exit(main())
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass

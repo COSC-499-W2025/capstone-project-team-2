@@ -34,11 +34,11 @@ class ConfigurationForUsersUI:
             ValueError: If choice is not a number
 
     """
-        Setting_to_change = input("Please choose a setting you want to change or type q:")
+        Setting_to_change = input("Please choose a setting you want to change or 0 for main menu:")
 
 
 
-        if Setting_to_change == "q":
+        if Setting_to_change == "0":
             return "Quit"
 
 
