@@ -7,32 +7,40 @@ class StartDockerApp:
         self.docker_compose_file_path = Path(__file__).resolve().parent 
         #getting the location of where the docker-compose file is and which folder it's
 
-
-
-
-
     def run_app(self):
-        print(self.docker_compose_file_path)
-        # step 1 we run   docker compose down -v
+        print(f"Working directory: {self.docker_compose_file_path}")
+
+        # Step 1: Stop containers
         print("\nStep 1: Stopping containers...")
-        subprocess.run(['docker', 'compose', 'down', '-v'], cwd=self.docker_compose_file_path,
-                                           capture_output=True)
+        subprocess.run(['docker', 'compose', 'down', '-v'],
+                       cwd=self.docker_compose_file_path)
 
+        # Step 2: Build images
         print("\nStep 2: Building images...")
-        #Here we are building the Docker containers
         subprocess.run(['docker', 'compose', 'build', '--no-cache'],
-                                           cwd=self.docker_compose_file_path, capture_output=True)
+                       cwd=self.docker_compose_file_path)
 
-        print("\nStep 3: Starting services...")
-        #Here we run the initialization and run the Docker containers
-        step_3_process = subprocess.run(['docker', 'compose', 'up', '-d'], cwd=self.docker_compose_file_path,
-                                            capture_output=True)
+        # Step 3: Start database
+        print("\nStep 3: Starting database...")
+        subprocess.run(['docker', 'compose', 'up', '-d', 'app_database'],
+                       cwd=self.docker_compose_file_path)
 
+        # Step 4: Run tests
+        print("\nStep 4: Running tests...")
+        subprocess.run(['docker', 'compose', 'run', '--rm', 'test'],
+                       cwd=self.docker_compose_file_path)
 
-        if step_3_process.returncode == 0:
-            print("All services up and running")
+        # Step 5: Start main app
+        print("\nStep 5: Starting services...")
+        step_5_process = subprocess.run(
+            ['docker', 'compose', 'run', '--rm', '--service-ports', 'app'],
+            cwd=self.docker_compose_file_path
+        )
+
+        if step_5_process.returncode == 0:
+            print("\n✓ All services completed successfully")
         else:
-            print("Some services failed to start")
+            print("\n✗ Some services failed")
 
 
     def stop_app(self):
