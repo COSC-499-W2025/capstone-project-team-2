@@ -66,10 +66,24 @@ def _input_path(prompt: str, allow_blank: bool = False)->Optional[Path] :
 def extract_if_zip(zip_path: Path) -> Path:
     """
     uses extractInfo.runExtraction() to validate and extract ZIP
-    returns .../temp folder
+    Returns Path to extracted folder on success, or None on error.
     """
     out = extractInfo(str(zip_path)).runExtraction()
-    return Path(out)
+    
+    if not out:
+        print("[ERROR] Extraction returned empty result.")
+        return None
+    
+    if isinstance(out, str) and (out.startswith("Error") or "Error!" in out or out.lower().startswith("error")):
+        print(f"[ERROR] Extraction failed: {out}")
+        return None
+    
+    extracted_path = Path(out)
+    if not extracted_path.exists():
+        print(f"[ERROR] Expected extracted folder not found at: {extracted_path}")
+        return None
+    
+    return extracted_path
  
 def estimate_duration(hierarchy: Dict[str, Any]) -> str:
 
