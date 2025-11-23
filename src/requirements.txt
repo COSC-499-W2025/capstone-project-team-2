@@ -6,3 +6,12 @@ mysql-connector-python
 orjson
 PyGithub
 docker
+pandas
+langchain-community
+langchain
+langchain-ollama
+docker
+pytest
+pytest-mock
+pytest-cov
+python-dotenv
