@@ -5,7 +5,7 @@ project_insights
 Utility helpers for persisting and querying analyzed project insights.
 
 Responsibilities:
-- Append analysis output (hierarchy, résumé info, skills, contributors) to a JSON log
+- Append analysis output (hierarchy, resume info, skills, contributors) to a JSON log
 - Provide a chronological listing for projects
 - Rank projects based on contribution signals
 """
@@ -28,7 +28,10 @@ DEFAULT_STORAGE = Path("User_config_files/project_insights.json")
 
 def _now_iso(ts: Optional[datetime] = None) -> str:
     """Return an ISO 8601 timestamp in UTC."""
-    ts = ts or datetime.now(tz=timezone.utc)
+    if ts is None:
+        ts = datetime.now(timezone.utc)
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=timezone.utc)
     return ts.astimezone(timezone.utc).isoformat()
 
 
@@ -54,7 +57,10 @@ def _read_entries(path: Path) -> List[JsonEntry]:
         return []
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-        return data if isinstance(data, list) else []
+        if isinstance(data, list):
+            return data
+        _stash_corrupted_file(path)
+        return []
     except json.JSONDecodeError:
         _stash_corrupted_file(path)
         return []
@@ -126,6 +132,102 @@ def _parse_analyzed_at(ts: str) -> datetime:
         return datetime.min.replace(tzinfo=timezone.utc)
 
 
+def _flatten_file_nodes(hierarchy: JsonEntry) -> List[JsonEntry]:
+    """
+    Traverse a hierarchy tree emitted by ``FileMetadataExtractor`` and return file nodes.
+    Directory nodes (``type`` == ``DIR``) are ignored.
+    """
+    if not isinstance(hierarchy, dict):
+        return []
+
+    files: List[JsonEntry] = []
+    stack: List[JsonEntry] = [hierarchy]
+
+    while stack:
+        node = stack.pop()
+        if not isinstance(node, dict):
+            continue
+        node_type = str(node.get("type", "")).upper()
+        children = node.get("children") or []
+        if node_type and node_type != "DIR":
+            files.append(node)
+        for child in children:
+            if isinstance(child, dict):
+                stack.append(child)
+
+    return files
+
+
+def _safe_int(value: Any) -> int:
+    try:
+        return int(value)
+    except Exception:
+        return 0
+
+
+def _parse_timestamp(value: Any) -> Optional[datetime]:
+    if not isinstance(value, str):
+        return None
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        try:
+            return datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+        except Exception:
+            return None
+
+
+def _compute_file_analysis(hierarchy: JsonEntry) -> Dict[str, Any]:
+    """Derive file analysis stats to be stored with each insight."""
+    files = _flatten_file_nodes(hierarchy)
+    if not files:
+        return {
+            "file_count": 0,
+            "total_size_bytes": 0,
+            "average_size_bytes": 0,
+            "file_types": {},
+        }
+
+    total_size = 0
+    file_types: Dict[str, int] = {}
+    largest = None
+    newest_ts = None
+    newest_file = None
+
+    for node in files:
+        size = _safe_int(node.get("size", 0))
+        total_size += size
+        ftype = str(node.get("type") or "FILE").upper()
+        file_types[ftype] = file_types.get(ftype, 0) + 1
+        if not largest or size > largest.get("size_bytes", 0):
+            largest = {
+                "name": node.get("name"),
+                "type": ftype,
+                "size_bytes": size,
+            }
+        modified = _parse_timestamp(node.get("modified"))
+        if modified and (newest_ts is None or modified > newest_ts):
+            newest_ts = modified
+            newest_file = {
+                "name": node.get("name"),
+                "type": ftype,
+                "modified": node.get("modified"),
+            }
+
+    file_count = len(files)
+    analysis = {
+        "file_count": file_count,
+        "total_size_bytes": total_size,
+        "average_size_bytes": total_size // file_count if file_count else 0,
+        "file_types": file_types,
+    }
+    if largest:
+        analysis["largest_file"] = largest
+    if newest_file:
+        analysis["newest_file"] = newest_file
+    return analysis
+
+
 @dataclass(frozen=True)
 class ProjectInsight:
     """A single recorded project insight entry stored on disk."""
@@ -142,6 +244,7 @@ class ProjectInsight:
     hierarchy: JsonEntry = field(default_factory=dict)
     contributors: ContributorData = field(default_factory=dict)
     stats: JsonEntry = field(default_factory=dict)
+    file_analysis: JsonEntry = field(default_factory=dict)
 
     def contribution_score(self, contributor: Optional[str] = None) -> int:
         """
@@ -175,8 +278,8 @@ def _entry_to_dataclass(entry: JsonEntry) -> ProjectInsight:
     raw_contributors = entry.get("contributors", {}) or {}
     contributors = _normalize_contributors(raw_contributors)
 
-    # Normalize skills as a list.
-    skills = list(entry.get("skills", []) or [])
+    # Normalize skills as a sorted list to ensure deterministic ordering.
+    skills = sorted(entry.get("skills", []) or [])
 
     # Start from stored stats, but make a copy so we don't mutate the original dict.
     raw_stats = entry.get("stats") or {}
@@ -193,21 +296,26 @@ def _entry_to_dataclass(entry: JsonEntry) -> ProjectInsight:
     stats.setdefault("skill_count", len(skills))
 
     analyzed_at = entry.get("analyzed_at", _now_iso())
+    hierarchy = entry.get("hierarchy", {})
+    file_analysis = entry.get("file_analysis")
+    if not isinstance(file_analysis, dict):
+        file_analysis = _compute_file_analysis(hierarchy)
 
     return ProjectInsight(
         id=entry.get("id", str(uuid.uuid4())),
         project_name=str(entry.get("project_name", "unknown")),
         summary=entry.get("summary", ""),
         analyzed_at=analyzed_at,
-        languages=list(entry.get("languages", []) or []),
-        frameworks=list(entry.get("frameworks", []) or []),
+        languages=sorted(entry.get("languages", []) or []),
+        frameworks=sorted(entry.get("frameworks", []) or []),
         skills=skills,
         project_type=entry.get("project_type", "unknown"),
         detection_mode=entry.get("detection_mode", "local"),
         duration_estimate=str(entry.get("duration_estimate", "unavailable")),
-        hierarchy=entry.get("hierarchy", {}),
+        hierarchy=hierarchy,
         contributors=contributors,
         stats=stats,
+        file_analysis=file_analysis,
     )
 
 
@@ -245,6 +353,7 @@ def record_project_insight(
     normalized = _normalize_contributors(contributors)
     stats = _summarize_contributors(normalized)
     stats["skill_count"] = len(resume.get("skills", []))
+    hierarchy = analysis.get("hierarchy", {})
 
     insight = ProjectInsight(
         id=insight_id or str(uuid.uuid4()),
@@ -257,9 +366,10 @@ def record_project_insight(
         project_type=resume.get("project_type", "unknown"),
         detection_mode=resume.get("detection_mode", "local"),
         duration_estimate=str(analysis.get("duration_estimate", "unavailable")),
-        hierarchy=analysis.get("hierarchy", {}),
+        hierarchy=hierarchy,
         contributors=normalized,
         stats=stats,
+        file_analysis=_compute_file_analysis(hierarchy),
     )
 
     path = Path(storage_path)
@@ -303,9 +413,61 @@ def rank_projects_by_contribution(
     return ranked[:top_n]
 
 
+def list_skill_history(storage_path: PathLike = DEFAULT_STORAGE) -> List[Dict[str, Any]]:
+    """
+    Return a chronological list of the skills demonstrated per project.
+
+    Each entry contains ``project_name``, ``skills``, and ``analyzed_at``.
+    """
+    return [
+        {
+            "project_name": insight.project_name,
+            "skills": list(insight.skills),
+            "analyzed_at": insight.analyzed_at,
+            "skill_count": len(insight.skills),
+        }
+        for insight in list_project_insights(storage_path)
+    ]
+
+
+def summaries_for_top_ranked_projects(
+    *,
+    storage_path: PathLike = DEFAULT_STORAGE,
+    contributor: Optional[str] = None,
+    top_n: int = 3,
+) -> List[Dict[str, Any]]:
+    """
+    Return project summaries for the highest ranked projects.
+
+    Args:
+        contributor: Optional contributor name that influences ranking.
+        top_n: Number of project summaries to include. Defaults to 3.
+    """
+    if top_n <= 0:
+        return []
+    ranked = rank_projects_by_contribution(
+        storage_path=storage_path,
+        contributor=contributor,
+        top_n=top_n,
+    )
+    return [
+        {
+            "project_name": insight.project_name,
+            "summary": insight.summary,
+            "analyzed_at": insight.analyzed_at,
+            "contributors": insight.stats.get("contributors"),
+            "top_contribution_count": insight.stats.get("top_contribution_count"),
+            "score": insight.contribution_score(contributor),
+        }
+        for insight in ranked
+    ]
+
+
 __all__ = [
     "ProjectInsight",
     "record_project_insight",
     "list_project_insights",
     "rank_projects_by_contribution",
+    "list_skill_history",
+    "summaries_for_top_ranked_projects",
 ]
