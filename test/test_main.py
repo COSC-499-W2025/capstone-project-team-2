@@ -24,7 +24,6 @@ def make_input_fn(values):
 
 class TestMainModule(unittest.TestCase):
 
-
     def setUp(self):
         self.tempdir=tempfile.mkdtemp()
 
@@ -133,19 +132,23 @@ class TestMainModule(unittest.TestCase):
     def test_main_returns_zero_on_exit(self, _inp):
         self.assertEqual(main_mod.main(), 0)
         
-    @patch.object(main_mod, "get_saved_projects_from_db", return_value=[(101, "to_delete.json", "{}", "2025-01-01 12:00:00")])
     @patch.object(main_mod, "delete_from_database_by_id", return_value=True)
     @patch.object(main_mod, "delete_file_from_disk", return_value=True)
+    @patch.object(main_mod, "get_saved_projects_from_db", return_value=[(101, "to_delete.json", "{}", "2025-01-01 12:00")])
     @patch("builtins.input", side_effect=["1", "y", "n"])
     def test_delete_analysis_menu_deletes_selected(self, _inp, mock_delete_file, mock_delete_db, _get_projects):
-        """
-        Simulates delete_analysis_menu: user selects the first entry, confirms deletion,
-        and chooses not to delete another. Verifies DB and file deletion helpers called.
-        """
-        main_mod.delete_analysis_menu()
+            #create a fake file in temp dir
+            temp_dir = Path(self.tempdir)
+            temp_file = temp_dir / "to_delete.json"
+            temp_file.write_text("{}")
 
-        mock_delete_db.assert_called_once_with(101)
-        mock_delete_file.assert_called_once_with("to_delete.json")
+            with patch.object(main_mod, "DEFAULT_SAVE_DIR", temp_dir):
+                with patch.object(main_mod, "list_saved_projects", return_value=[temp_file]):
+                    main_mod.delete_analysis_menu()
+
+            main_mod.delete_from_database_by_id.assert_called_once_with(101)
+            main_mod.delete_file_from_disk.assert_called_once_with("to_delete.json")
+
 
     @patch.object(main_mod, "get_saved_projects_from_db", return_value=[(202, "dont_delete.json", "{}", "2025-01-02 12:00:00")])
     @patch.object(main_mod, "delete_from_database_by_id", return_value=True)

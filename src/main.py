@@ -17,7 +17,6 @@ from src.user_startup_config import ConfigLoader
 from src.file_data_saving import SaveFileAnalysisAsJSON
 from src.db_helper_function import HelperFunct
 from src.Docker_finder import DockerFinder
-from src.user_startup_config import ConfigLoader
 from src.Configuration import configuration_for_users
 
 import mysql.connector
@@ -71,17 +70,14 @@ def extract_if_zip(zip_path: Path) -> Path:
     out = extractInfo(str(zip_path)).runExtraction()
     
     if not out:
-        print("[ERROR] Extraction returned empty result.")
-        return None
+        raise RuntimeError("Extraction returned empty result.")
     
     if isinstance(out, str) and (out.startswith("Error") or "Error!" in out or out.lower().startswith("error")):
-        print(f"[ERROR] Extraction failed: {out}")
-        return None
+        raise ValueError(f"Extraction failed: {out}")
     
     extracted_path = Path(out)
     if not extracted_path.exists():
-        print(f"[ERROR] Expected extracted folder not found at: {extracted_path}")
-        return None
+        raise FileNotFoundError(f"Expected extracted folder not found at: {extracted_path}")
     
     return extracted_path
  
@@ -261,15 +257,31 @@ def delete_from_database_by_id(record_id: int) -> bool:
 
 def delete_file_from_disk(filename: str) -> bool:
     """
-    Deletes a file from the DEFAULT_SAVE_DIR.
-    Returns True if file was deleted, False if it didn't exist or deletion failed.
+    Deletes a file only if no remaining DB records reference it.
+    Returns True if deleted, False otherwise.
     """
     try:
         file_path = Path(DEFAULT_SAVE_DIR).expanduser().resolve() / filename
-        if file_path.exists():
-            file_path.unlink()
-            return True
-        return False
+
+        # If file does not exist, nothing to delete
+        if not file_path.exists():
+            return False
+
+        # Check DB references
+        try:
+            refs = store.count_file_references(filename)
+        except Exception as e:
+            print(f"[WARNING] Could not check DB references for '{filename}': {e}")
+            return False
+
+        if refs > 0:
+            print(f"[INFO] File '{filename}' is still referenced by {refs} record(s). Not deleting.")
+            return False
+
+        # Safe to delete
+        file_path.unlink()
+        return True
+
     except Exception as e:
         print(f"[WARNING] Failed to delete file '{filename}': {e}")
         return False
@@ -301,7 +313,11 @@ def analyze_project_menu() -> None:
                 return analyze_project(dir)
             elif choice == "2":
                 zip = _input_path("Enter path to ZIP: ")
-                return analyze_project(extract_if_zip(zip))
+                extracted = extract_if_zip(zip)
+                if not extracted:
+                    print("[ERROR] Could not extract ZIP. Please check the file and try again.")
+                    return None
+                return analyze_project(extracted)
             elif choice == "0":
                 return None
             else:
@@ -356,13 +372,14 @@ def saved_projects_menu() -> None:
         
 def delete_analysis_menu() -> None:
     """
-    Menu for deleting saved project analyses from the database.
+    Menu for deleting saved project analyses from the default User_config_files directory and the database.
     """
     while True:
         print("\n=== Delete Analysis Menu ===")
         
         try:
-            projects = get_saved_projects_from_db()
+            folder = Path(DEFAULT_SAVE_DIR).resolve()
+            projects = list_saved_projects(folder)
             
             if not projects:
                 print("[INFO] No saved projects.")
@@ -370,8 +387,8 @@ def delete_analysis_menu() -> None:
                 return
 
             print("\nSaved projects:\n")
-            for idx, (record_id, filename, _, uploaded_at) in enumerate(projects, start=1):
-                print(f"{idx}) id={record_id}  {filename}  (uploaded: {uploaded_at})")
+            for i, p in enumerate(projects, start=1):
+                print(f"{i}) {p.name}")
 
             sel = input("\nEnter the number of the project to delete (or 0 to exit): ").strip()
             if not sel or sel == "0":
@@ -387,40 +404,62 @@ def delete_analysis_menu() -> None:
                 print("[ERROR] Selection out of range.")
                 continue
 
-            record_id, filename,_, uploaded_at = projects[sel_idx]
+            file_path = projects[sel_idx]
+            filename = file_path.name
             
             # Confirm deletion
-            confirm = input(f"Are you sure you want to delete '{filename}' (uploaded: {uploaded_at})? (y/n): ").strip().lower()
+            confirm = input(
+                f"Are you sure you want to delete '{filename}' from disk "
+                f"and any related DB records? (y/n): "
+            ).strip().lower()            
             if not confirm.startswith("y"):
                 print("[INFO] Deletion cancelled.")
                 continue
             
             # Delete from database
-            db_deleted = delete_from_database_by_id(record_id)
-            file_deleted = delete_file_from_disk(filename)
-            
-            if db_deleted:
-                print(f"[SUCCESS] Deleted '{filename}' from database!")
+            try:
+                db_rows = get_saved_projects_from_db()
+            except Exception as e:
+                print(f"[WARNING] Could not query database: {e}")
+                db_rows = []
+
+            matching_rows = [row for row in db_rows if row[1] == filename]
+
+            if not matching_rows:
+                print(f"[INFO] No database records reference '{filename}'.")
             else:
-                print(f"[WARNING] Database record was not deleted")
-            
-            if file_deleted:
-                print(f"[SUCCESS] Deleted '{filename}' from filesystem!")
-            else:
-                file_path = Path(DEFAULT_SAVE_DIR).expanduser().resolve() / filename
-                if not file_path.exists():
-                    print(f"[INFO] No file found at: {file_path}")
+                deleted_any = False
+                for row in matching_rows:
+                    row_id = row[0]
+                    try:
+                        if delete_from_database_by_id(row_id):
+                            print(f"[SUCCESS] Deleted DB record id={row_id} for '{filename}'.")
+                            deleted_any = True
+                        else:
+                            print(f"[WARNING] Could not delete DB record id={row_id}.")
+                    except Exception as e:
+                        print(f"[WARNING] Error deleting DB record id={row_id}: {e}")
+
+                if not deleted_any:
+                    print("[INFO] No DB records were deleted.")
+                
+                try:
+                    file_deleted = delete_file_from_disk(filename)
+                except Exception as e:
+                    print(f"[WARNING] Unexpected error while attempting to delete file '{filename}': {e}")
+                    file_deleted = False
+
+                if file_deleted:
+                    print(f"[SUCCESS] Deleted '{filename}' from filesystem!")
                 else:
-                    print(f"[WARNING] File exists but could not be deleted: {file_path}")
+                    if file_path.exists():
+                        print(f"[INFO] File remains on disk at: {file_path}")
+                    else:
+                        print(f"[INFO] File not found on disk.")
             
-            if db_deleted or file_deleted:
-                # Ask if they want to delete another
-                another = input("\nDelete another analysis? (y/n): ").strip().lower()
-                if not another.startswith("y"):
-                    return
-            else:
-                print(f"[ERROR] Failed to delete '{filename}' from both database and filesystem")
-                input("Press Enter to continue...")
+            another = input("\nDelete another analysis? (y/n): ").strip().lower()
+            if not another.startswith("y"):
+                return
                 
         except Exception as e:
             print(f"[ERROR] {e}")
@@ -476,6 +515,7 @@ if __name__ == "__main__":
         sys.exit(main())
     finally:
         try:
-            conn.close()
+            if 'conn' in globals() and conn:
+                conn.close()
         except Exception:
             pass
