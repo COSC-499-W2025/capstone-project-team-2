@@ -1,5 +1,3 @@
-
-import argparse
 import json
 import sys
 from pathlib import Path
@@ -18,17 +16,18 @@ from src.resume_item_generator import generate_resume_item
 from src.user_startup_config import ConfigLoader
 from src.file_data_saving import SaveFileAnalysisAsJSON
 from src.db_helper_function import HelperFunct
+from src.Docker_finder import DockerFinder
 
 import mysql.connector
 from mysql.connector import Error
 
 # Connection code for MySQL Docker container
-
+port_number,host_ip= DockerFinder().get_mysql_host_information()
 for attempt in range(5):
     try:
         conn = mysql.connector.connect(
-            host="app_database",          # matches the service name in docker-compose.yml
-            port=3306,
+            host= host_ip,         # matches the service name in docker-compose.yml
+            port=port_number,
             database="appdb",
             user="appuser",
             password="apppassword"

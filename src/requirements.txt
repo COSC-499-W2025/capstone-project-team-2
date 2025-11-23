@@ -8,3 +8,4 @@ PyGithub
 langchain-community
 langchain
 langchain-ollama
+docker
