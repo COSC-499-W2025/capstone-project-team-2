@@ -18,9 +18,14 @@ from src.file_data_saving import SaveFileAnalysisAsJSON
 from src.db_helper_function import HelperFunct
 from src.Docker_finder import DockerFinder
 from src.Configuration import configuration_for_users
-
+from src.project_insights import (
+    record_project_insight,
+    list_project_insights,
+    rank_projects_by_contribution,
+)
 import mysql.connector
 from mysql.connector import Error
+
 
 # Connection code for MySQL Docker container
 port_number,host_ip= DockerFinder().get_mysql_host_information()
@@ -124,6 +129,19 @@ def analyze_project(root: Path) -> None:
             "framework_sources": resume.framework_sources,
         },
     }
+
+    # --- "insight" entry for this analysis ---
+    try:
+        # If you later compute contributors, pass them here instead of None.
+        insight = record_project_insight(
+            analysis,
+            contributors=None,  # or your contributors dict when you hook that up
+        )
+        print(f"[INFO] Insight recorded for project '{insight.project_name}' "
+              f"(id={insight.id}).")
+    except Exception as e:
+        # Never kill the CLI just because logging failed.
+        print(f"[WARN] Failed to record project insight: {e}")
 
     print("[SUMMARY]")
     print(f"  Type       : {resume.project_type} (mode={resume.detection_mode})")
