@@ -228,6 +228,7 @@
 
 ### Extra Details:
 * Planning on saving project duration and pulling a list of files with metadata from dictionary for better access in systems.
+
 ---------------------------
 
 ## Sunday (02/11 - 09/11)
@@ -274,3 +275,49 @@
 ### Extra Details:
 * Fixed an issue with pathing in a test file on linux systems that I now use.
 * Next sprint I intend on saving more project details, specifics to be determined.
+
+---------------------------
+
+## Sunday (23/11 - 16/11)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/23-11-2025_PeerEval_SamM.jpg)
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: Load Saved Project Data
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description        | Feature   | Assigned To | Status   |
+| ------- | ------------------ | --------- | ----------- | -------- |
+| #165   | Load saved JSON data | Load saved project data | Samantha Maranda  | Completed |
+
+### Progress Update (since 16/11/2025) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Load project duration
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Load saved project data
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+* Next sprint is a focus on integration. I will be working on taking all the data we've gathered so far and storing it in JSON files and connecting it with the main program completely.
