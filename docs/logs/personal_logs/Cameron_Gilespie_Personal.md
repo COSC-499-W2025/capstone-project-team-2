@@ -2,6 +2,40 @@
 
 ### Peer Eval Screenshot:
 
+<img width="1092" height="626" alt="image" src= "https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Cameron-Personal-Logs/docs/logs/peer_eval_screenshots/PL_Cameron_11-22-25.png" />
+
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: Create Database
+
+
+## Associated Tasks from Project Board:
+
+| Description        | Status   |
+| ------------------ | -------- |
+| [Establish automated test on docker]  | [Complete] |
+
+
+
+---
+## Next week goals
+The goals for Week 6:
+- Automate Docker launch
+- integrate all features for demo
+---
+
+### Extra Details:
+
+<details>
+So over the break and this week I worked on docker/sql functions. over the reading break I created the helper function for deletion, loading, as well as an update method that allows for us to syncronize json files and content. This week I created a function for the docker containers that run all our tests before hand. What I plan on doing next is creating an automization to launch docker if not already, as well as possibly to establish a docker container if no container was already there
+
+</details>
+
+
+## Dates of Sprint: (11/2/2025 – 11/8/2025)
+
+### Peer Eval Screenshot:
+
 <img width="1092" height="626" alt="image" src= "https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Cameron-Personal-Logs/docs/logs/peer_eval_screenshots/PL-CameronG-11-8-25.png" />
 
 
