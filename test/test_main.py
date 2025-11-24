@@ -192,6 +192,111 @@ class TestMainModule(unittest.TestCase):
         result = main_mod.delete_from_database_by_id(555)
         mock_store_delete.assert_called_once_with(555)
         self.assertTrue(result)
+    @patch("builtins.print")
+    @patch.object(main_mod, "record_project_insight")
+    @patch.object(main_mod, "export_json")  # avoid prompting
+    @patch.object(main_mod, "generate_resume_item")
+    @patch.object(main_mod, "estimate_duration", return_value="5 days")
+    @patch.object(main_mod, "FileMetadataExtractor")
+    def test_analyze_project_logs_info_when_insight_recording_succeeds(
+        self,
+        FakeExtractor,
+        est_duration,
+        gen_resume,
+        _export,
+        mock_record_insight,
+        mock_print,
+    ):
+        # Fake extractor returns an object with .file_hierarchy()
+        fake_inst = MagicMock()
+        fake_inst.file_hierarchy.return_value = {"type": "DIR", "children": []}
+        FakeExtractor.return_value = fake_inst
+
+        # Fake résumé result object with required attributes
+        gen_resume.return_value = SimpleNamespace(
+            project_name="DemoProj",
+            summary="Built DemoProj.",
+            highlights=["Implemented core functionality"],
+            project_type="individual",
+            detection_mode="local",
+            languages=["Python"],
+            frameworks=[],
+            skills=["Python"],
+            framework_sources={},
+        )
+
+        # record_project_insight returns an object with id + project_name
+        mock_record_insight.return_value = SimpleNamespace(
+            id=123,
+            project_name="DemoProj",
+        )
+
+        root = Path("/tmp/project")
+        # This should run without error and log an INFO message
+        main_mod.analyze_project(root)
+
+        mock_record_insight.assert_called_once()
+        # Check that at least one print call starts with the INFO prefix
+        info_calls = [
+            args[0]
+            for args, _ in mock_print.call_args_list
+            if args and isinstance(args[0], str)
+        ]
+        self.assertTrue(
+            any(msg.startswith("[INFO] Insight recorded for project") for msg in info_calls),
+            msg=f"Expected an [INFO] log about insight, got: {info_calls}",
+        )
+
+    @patch("builtins.print")
+    @patch.object(main_mod, "record_project_insight", side_effect=Exception("boom"))
+    @patch.object(main_mod, "export_json")  # avoid prompting
+    @patch.object(main_mod, "generate_resume_item")
+    @patch.object(main_mod, "estimate_duration", return_value="5 days")
+    @patch.object(main_mod, "FileMetadataExtractor")
+    def test_analyze_project_logs_warning_when_insight_recording_fails(
+        self,
+        FakeExtractor,
+        est_duration,
+        gen_resume,
+        _export,
+        _mock_record_insight,
+        mock_print,
+    ):
+        # Fake extractor
+        fake_inst = MagicMock()
+        fake_inst.file_hierarchy.return_value = {"type": "DIR", "children": []}
+        FakeExtractor.return_value = fake_inst
+
+        gen_resume.return_value = SimpleNamespace(
+            project_name="DemoProj",
+            summary="Built DemoProj.",
+            highlights=["Implemented core functionality"],
+            project_type="individual",
+            detection_mode="local",
+            languages=["Python"],
+            frameworks=[],
+            skills=["Python"],
+            framework_sources={},
+        )
+
+        root = Path("/tmp/project")
+
+        # analyze_project should NOT propagate the exception.
+        try:
+            main_mod.analyze_project(root)
+        except Exception as e:  # pragma: no cover
+            self.fail(f"analyze_project should not raise when insight logging fails, but got: {e}")
+
+        # Verify we logged a WARN message containing the exception text
+        printed = [
+            args[0]
+            for args, _ in mock_print.call_args_list
+            if args and isinstance(args[0], str)
+        ]
+        self.assertTrue(
+            any("[WARN] Failed to record project insight: boom" in msg for msg in printed),
+            msg=f"Expected a [WARN] log about failed insight, got: {printed}",
+        )
 
 
 if __name__ == "__main__":
