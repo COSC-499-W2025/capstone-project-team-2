@@ -1,5 +1,41 @@
 from pathlib import Path
 import re
+from dotenv import load_dotenv
+import os
+from github import Github,Auth
+
+class getAuthorsThroughAPI():
+    def __init__(self):
+        load_dotenv()
+        self.token = os.getenv("GITHUB_TOKEN")
+        self.author_list=set()
+        if not self.token:
+            raise RuntimeError(
+                "GITHUB_TOKEN is not set. Please add it to your .env file."
+            )
+
+    def get_authors(self, author_list):
+            g = Github(self.token)
+
+            for user in author_list:
+                try:
+                    username = str(user).strip()
+                    if '(' in username:
+                        username = username.split('(')[0].strip()
+                    userInfo=g.get_user(str(username).strip())
+                    self.author_list.add(userInfo.login)
+
+
+
+                except Exception as e:
+                    print(e)
+                    pass
+            return self.author_list
+
+
+
+
+finder=getAuthorsThroughAPI()
 
 try:
     # GitPython is optional; code must handle environments without it
@@ -39,7 +75,8 @@ def _collect_git_authors_from_repo(repo) -> set[str]:
     except Exception:
         # Be tolerant of odd repos; return whatever we’ve gathered
         pass
-    return authors
+    new_author=finder.get_authors(authors)
+    return new_author
 
 
 def detect_git_collaboration(path: Path) -> dict:
@@ -52,6 +89,8 @@ def detect_git_collaboration(path: Path) -> dict:
     We explicitly close the Repo to release file handles so TemporaryDirectory
     can clean up without PermissionError.
     """
+
+
     if Repo is None:
         return {"project_type": "unknown", "mode": "git"}
 
