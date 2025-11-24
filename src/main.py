@@ -50,7 +50,10 @@ if conn is None or not conn.is_connected():
 
 store = HelperFunct(conn)
 
-DEFAULT_SAVE_DIR = Path("User_config_files")
+
+
+root_folder=Path(__file__).absolute().resolve().parents[1]
+DEFAULT_SAVE_DIR = root_folder / "User_config_files" / "project_insights"
 
 def _input_path(prompt: str, allow_blank: bool = False)->Optional[Path] :
     """
@@ -129,6 +132,7 @@ def analyze_project(root: Path) -> None:
             "framework_sources": resume.framework_sources,
         },
     }
+    analysis = convert_datetime_to_string(analysis)
 
     # --- "insight" entry for this analysis ---
     try:
@@ -214,6 +218,9 @@ def list_saved_projects(folder: Path) -> list[Path]:
     filtered = [f for f in all_files if f.name not in {
     "UserConfigs.json",
     "default_user_configuration.json"
+    "UserConfigs.json",
+    "project_insights.json"
+
     }]
 
     return filtered
