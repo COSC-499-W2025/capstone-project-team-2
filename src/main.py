@@ -217,7 +217,7 @@ def list_saved_projects(folder: Path) -> list[Path]:
     # Exclude config files
     filtered = [f for f in all_files if f.name not in {
     "UserConfigs.json",
-    "default_user_configuration.json"
+    "default_user_configuration.json",
     "UserConfigs.json",
     "project_insights.json"
 

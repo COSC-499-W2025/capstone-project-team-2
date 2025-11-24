@@ -26,7 +26,7 @@ from typing import Dict, List
 from .project_skill_insights import identify_skills
 from .project_stack_detection import detect_project_stack
 from .project_type_detection import detect_project_type
-from get_contributors_percentage_per_person import get_contributors_percentages_git
+from .get_contributors_percentage_per_person import get_contributors_percentages_git
 
 @dataclass(frozen=True)
 class ResumeItem:
@@ -85,15 +85,10 @@ def generate_resume_item(project_root: Path | str, project_name: str | None = No
             project_type="individual"
         else:
             project_type="unknown"
-
-
-
-
-
-
-    project_type_info = detect_project_type(resolved_root)
-    #project_type = project_type_info.get("project_type", "unknown")
-    detection_mode = str(project_type_info.get("mode", "local")).lower()
+    if project_type_git=="Data unsuccessfully collected":
+        project_type_info = detect_project_type(resolved_root)
+        project_type = project_type_info.get("project_type", "unknown")
+        detection_mode = str(project_type_info.get("mode", "local")).lower()
 
     # Detect programming languages and frameworks/tools from the project.
     stack_info = detect_project_stack(resolved_root)

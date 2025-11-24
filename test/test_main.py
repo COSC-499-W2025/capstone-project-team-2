@@ -4,6 +4,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch, MagicMock
 import sys
+from src.get_contributors_percentage_per_person import get_contributors_percentages_git
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 import src.main as main_mod
 
