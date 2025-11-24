@@ -14,22 +14,28 @@ class getAuthorsThroughAPI():
                 "GITHUB_TOKEN is not set. Please add it to your .env file."
             )
 
-    def get_authors(self, author_list):
+
+
+    def get_authors_of_repo(self, author_list):
             g = Github(self.token)
 
             for user in author_list:
+                print(user)
                 try:
+
                     username = str(user).strip()
                     if '(' in username:
                         username = username.split('(')[0].strip()
                     userInfo=g.get_user(str(username).strip())
-                    self.author_list.add(userInfo.login)
+                    userAlternativeNames,userLogin=userInfo.name, userInfo.login
+                    self.author_list.add((userLogin,userAlternativeNames))
 
 
 
                 except Exception as e:
                     print(e)
                     pass
+            print(self.author_list)
             return self.author_list
 
 
@@ -75,7 +81,7 @@ def _collect_git_authors_from_repo(repo) -> set[str]:
     except Exception:
         # Be tolerant of odd repos; return whatever we’ve gathered
         pass
-    new_author=finder.get_authors(authors)
+    new_author=finder.get_authors_of_repo(authors)
     return new_author
 
 

@@ -12,6 +12,7 @@ from src.project_type_detection import (
     detect_project_type,
     find_contributor_files,
     extract_names_from_text,
+    getAuthorsThroughAPI
 )
 
 UNATTRIBUTED = "<unattributed>"
@@ -259,8 +260,11 @@ def canonical_for_git(name: Optional[str], email: Optional[str], contribs: List[
     #6: No name or email
     return "<unknown>"
 
-def detect_individual_contributions_git(project_root: Path, *, repo: Optional[Repo] = None) -> Dict[str, Dict]:
-    
+def detect_individual_contributions_git(
+    project_root: Path,
+    *,
+    repo: Optional[Repo] = None
+) -> Dict[str, Dict]:
     """
     Detect individual contributions using Git history.
 
@@ -268,8 +272,12 @@ def detect_individual_contributions_git(project_root: Path, *, repo: Optional[Re
     - Different emails are treated as separate contributors UNLESS they match a CONTRIBUTORS entry
     - CONTRIBUTORS file provides canonical names that merge multiple identities
     - Untracked files are placed in <unattributed>
+    - GitHub API (getAuthorsThroughAPI) is used to merge multiple Git identities
+      (different names / logins) into a single canonical GitHub login where possible.
     """
-    
+    # GitHub identity resolver (uses GITHUB_TOKEN + PyGithub)
+    name_finder = getAuthorsThroughAPI()
+
     try:
         repo = repo or Repo(project_root)
     except (InvalidGitRepositoryError, Exception):
@@ -277,7 +285,7 @@ def detect_individual_contributions_git(project_root: Path, *, repo: Optional[Re
 
     # Load contributor names from CONTRIBUTORS/AUTHORS/README files
     contribs = contributor_names_from_files(project_root)
-    
+
     # Initialize owner_to_canon mapping for metadata owners
     owner_to_canon = {c: c.strip() for c in contribs}
 
@@ -286,29 +294,70 @@ def detect_individual_contributions_git(project_root: Path, *, repo: Optional[Re
         canon: {"files_owned": [], "files_from_metadata": [], "files_from_text": []}
         for canon in set(contribs)
     }
-    buckets[UNATTRIBUTED] = {"files_owned": [], "files_from_metadata": [], "files_from_text": []}
+    buckets[UNATTRIBUTED] = {
+        "files_owned": [],
+        "files_from_metadata": [],
+        "files_from_text": [],
+    }
 
     # Cache canonical names for emails and names
     email_to_canon: Dict[str, str] = {}
     name_to_canon: Dict[str, str] = {}
 
+    # -------------------------------------------------------------------------
+    # Build GitHub identity map using commit authors + getAuthorsThroughAPI
+    # -------------------------------------------------------------------------
+    raw_names: set[str] = set()
+
+    try:
+        # Collect all unique author names from the repo history
+        for commit in repo.iter_commits():
+            author = getattr(commit, "author", None)
+            if author is None:
+                continue
+            author_name = getattr(author, "name", None)
+            if author_name:
+                raw_names.add(author_name.strip())
+    except Exception:
+        # Repo may be large or have odd history; best-effort only
+        pass
+
+    gh_identity_map: Dict[str, str] = {}
+    try:
+        if raw_names:
+            # get_authors_of_repo returns a set of (login, display_name) tuples
+            resolved = name_finder.get_authors_of_repo(raw_names)
+            for login, display in resolved:
+                if login:
+                    gh_identity_map[login.lower()] = login
+                if display:
+                    gh_identity_map[display.lower()] = login
+    except Exception:
+        # If the API fails for any reason, just fall back to local logic
+        gh_identity_map = {}
+
+    # -------------------------------------------------------------------------
     # Get tracked files from git
+    # -------------------------------------------------------------------------
     try:
         tracked = set(repo.git.ls_files().splitlines())
     except Exception:
+        # Fall back to walking the filesystem if ls-files fails
         tracked = set(
             p.relative_to(project_root).as_posix()
             for p in project_root.rglob("*")
             if p.is_file() and ".git" not in p.parts
         )
 
+    # -------------------------------------------------------------------------
     # Attribute each tracked file to a contributor
+    # -------------------------------------------------------------------------
     for rel in tracked:
         try:
             commits = list(repo.iter_commits(paths=str(rel), max_count=1))
         except Exception:
             commits = []
-        
+
         if not commits:
             buckets[UNATTRIBUTED]["files_owned"].append(rel)
             continue
@@ -319,36 +368,66 @@ def detect_individual_contributions_git(project_root: Path, *, repo: Optional[Re
         author_name = getattr(author, "name", None) if author else None
         author_email = getattr(author, "email", None) if author else None
 
-        # Determine canonical name
-        if author_email:
+        # ------------------- Determine canonical name ------------------------
+        lookup_key = (author_name or "").lower().strip()
+
+        # 1) Prefer GitHub identity if we have it (GitHub login = canonical)
+        if lookup_key and lookup_key in gh_identity_map:
+            canonical = gh_identity_map[lookup_key]
+
+        # 2) Otherwise, use email-based canonical mapping
+        elif author_email:
             key = author_email.lower()
             if key in email_to_canon:
                 canonical = email_to_canon[key]
             else:
-                canonical = canonical_for_git(author_name, author_email, contribs, owner_to_canon)
+                canonical = canonical_for_git(
+                    author_name,
+                    author_email,
+                    contribs,
+                    owner_to_canon,
+                )
                 email_to_canon[key] = canonical
+
+        # 3) Fallback: name-based canonicalization
         elif author_name:
-            # No email - use name-based matching
-            matched = next((existing for existing in name_to_canon if name_matches(existing, author_name)), None)
+            matched = next(
+                (existing for existing in name_to_canon if name_matches(existing, author_name)),
+                None,
+            )
             if matched:
                 canonical = name_to_canon[matched]
             else:
-                canonical = canonical_for_git(author_name, None, contribs, owner_to_canon)
+                canonical = canonical_for_git(
+                    author_name,
+                    None,
+                    contribs,
+                    owner_to_canon,
+                )
                 name_to_canon[author_name] = canonical
+
+        # 4) Last resort
         else:
             canonical = "<unknown>"
 
         # Add file to contributor's bucket
-        buckets.setdefault(canonical, {"files_owned": [], "files_from_metadata": [], "files_from_text": []})
+        buckets.setdefault(
+            canonical,
+            {"files_owned": [], "files_from_metadata": [], "files_from_text": []},
+        )
         buckets[canonical]["files_owned"].append(rel)
 
+    # -------------------------------------------------------------------------
     # Handle untracked files (exist on disk but not in git)
+    # -------------------------------------------------------------------------
     file_map = files_to_owner_map(project_root, FileMetadataExtractor(project_root))
     for rel in file_map.keys():
         if rel not in tracked and rel not in buckets[UNATTRIBUTED]["files_owned"]:
             buckets[UNATTRIBUTED]["files_owned"].append(rel)
 
+    # -------------------------------------------------------------------------
     # Finalize results
+    # -------------------------------------------------------------------------
     return {
         person: {
             "files_owned": sorted(stats["files_owned"]),
@@ -358,6 +437,7 @@ def detect_individual_contributions_git(project_root: Path, *, repo: Optional[Re
         }
         for person, stats in buckets.items()
     }
+
 
 def detect_individual_contributions(project_path: str | Path, *, extractor: Optional[FileMetadataExtractor] = None) -> Dict:
     """
