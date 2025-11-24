@@ -48,7 +48,6 @@ def _stash_corrupted_file(path: Path) -> None:
     try:
         path.replace(backup)
     except Exception:
-        # Nothing else we can do—leave the file in place.
         pass
 
 
@@ -124,19 +123,24 @@ def _parse_analyzed_at(ts: str) -> datetime:
     try:
         dt = datetime.fromisoformat(ts)
         if dt.tzinfo is None:
-            # Assume UTC if no timezone is present.
             dt = dt.replace(tzinfo=timezone.utc)
         return dt
     except Exception:
-        # Extremely defensive: if the stored timestamp is malformed,
-        # push it to the beginning of the timeline.
         return datetime.min.replace(tzinfo=timezone.utc)
 
 
 def _flatten_file_nodes(hierarchy: JsonEntry) -> List[JsonEntry]:
     """
-    Traverse a hierarchy tree emitted by ``FileMetadataExtractor`` and return file nodes.
-    Directory nodes (``type`` == ``DIR``) are ignored.
+    Walk through a hierarchy dict and pull out actual file nodes.
+
+    This is basically a "grab all files from the tree" helper.  
+    We ignore directories and only return items that look like files.
+
+    Args:
+        hierarchy: The hierarchy dict from FileMetadataExtractor.
+
+    Returns:
+        List of file node dictionaries (directories excluded).
     """
     if not isinstance(hierarchy, dict):
         return []
@@ -148,10 +152,14 @@ def _flatten_file_nodes(hierarchy: JsonEntry) -> List[JsonEntry]:
         node = stack.pop()
         if not isinstance(node, dict):
             continue
+
         node_type = str(node.get("type", "")).upper()
         children = node.get("children") or []
+
+        # Only treat non-DIR types as files
         if node_type and node_type != "DIR":
             files.append(node)
+
         for child in children:
             if isinstance(child, dict):
                 stack.append(child)
@@ -160,6 +168,18 @@ def _flatten_file_nodes(hierarchy: JsonEntry) -> List[JsonEntry]:
 
 
 def _safe_int(value: Any) -> int:
+    """
+    Try to convert something into an int without blowing up.
+
+    If it doesn't work (wrong type, None, etc.), we just return 0.
+    This keeps the rest of the code simple and avoids needing tons of try/excepts.
+
+    Args:
+        value: Anything that should be converted to an integer.
+
+    Returns:
+        Integer value, or 0 if conversion fails.
+    """
     try:
         return int(value)
     except Exception:
@@ -167,6 +187,20 @@ def _safe_int(value: Any) -> int:
 
 
 def _parse_timestamp(value: Any) -> Optional[datetime]:
+    """
+    Try to convert a timestamp string into a datetime.
+
+    This tries ISO format first (the modern way),  
+    and if that fails, it tries a simple "YYYY-MM-DD HH:MM:SS" fallback.
+
+    If it still can't parse it, we just return None.
+
+    Args:
+        value: Timestamp string to parse.
+
+    Returns:
+        Parsed datetime object, or None if parsing fails or value isn't a string.
+    """
     if not isinstance(value, str):
         return None
     try:
@@ -179,7 +213,29 @@ def _parse_timestamp(value: Any) -> Optional[datetime]:
 
 
 def _compute_file_analysis(hierarchy: JsonEntry) -> Dict[str, Any]:
-    """Derive file analysis stats to be stored with each insight."""
+    """
+    Look through all file nodes and compute some general stats.
+
+    Basically:  
+      - how many files there are  
+      - total + average size  
+      - breakdown by file type  
+      - biggest file  
+      - newest modified file  
+
+    Args:
+        hierarchy: The hierarchy dict from FileMetadataExtractor output.
+
+    Returns:
+        Dictionary with:
+            - file_count (int): Total number of files
+            - total_size_bytes (int): Combined size of all files
+            - average_size_bytes (int): Mean file size
+            - file_types (Dict[str, int]): Count of files by type
+            - largest_file (Dict): Info about the biggest file (if any)
+            - newest_file (Dict): Info about most recently modified file (if any)
+    """
+    # First pull out all files from the hierarchy tree
     files = _flatten_file_nodes(hierarchy)
     if not files:
         return {
@@ -195,17 +251,24 @@ def _compute_file_analysis(hierarchy: JsonEntry) -> Dict[str, Any]:
     newest_ts = None
     newest_file = None
 
+    # Go through each file and grab stats
     for node in files:
         size = _safe_int(node.get("size", 0))
         total_size += size
+
+        # Track type breakdown
         ftype = str(node.get("type") or "FILE").upper()
         file_types[ftype] = file_types.get(ftype, 0) + 1
+
+        # Track largest file encountered
         if not largest or size > largest.get("size_bytes", 0):
             largest = {
                 "name": node.get("name"),
                 "type": ftype,
                 "size_bytes": size,
             }
+
+        # Track most recently modified file
         modified = _parse_timestamp(node.get("modified"))
         if modified and (newest_ts is None or modified > newest_ts):
             newest_ts = modified
@@ -222,10 +285,12 @@ def _compute_file_analysis(hierarchy: JsonEntry) -> Dict[str, Any]:
         "average_size_bytes": total_size // file_count if file_count else 0,
         "file_types": file_types,
     }
+
     if largest:
         analysis["largest_file"] = largest
     if newest_file:
         analysis["newest_file"] = newest_file
+
     return analysis
 
 
@@ -249,12 +314,16 @@ class ProjectInsight:
 
     def contribution_score(self, contributor: Optional[str] = None) -> int:
         """
-        Determine the ranking score for this insight.
+        Figure out how much "impact" a project has.
+
+        If you specify a contributor, we use *their* file_count.
+        Otherwise we fall back to the top_contribution_count stored for the project.
 
         Args:
-            contributor: Optional contributor name to focus on. When supplied,
-                use that contributor's ``file_count``. Otherwise rely on the
-                pre-computed ``top_contribution_count``.
+            contributor: Optional contributor name to focus scoring on.
+
+        Returns:
+            Contribution score as an integer.
         """
         if contributor and contributor in self.contributors:
             try:
@@ -272,28 +341,24 @@ class ProjectInsight:
 
 def _entry_to_dataclass(entry: JsonEntry) -> ProjectInsight:
     """
-    Convert a raw dict entry to ``ProjectInsight``, normalizing contributors
-    and stats to keep behavior consistent across versions.
+    Convert a raw dict entry to ``ProjectInsight`` while normalizing fields.
+
+    This method smooths out older or slightly inconsistent data so our
+    dataclass stays predictable and easy to work with.
     """
-    # Normalize contributors for older or external entries.
     raw_contributors = entry.get("contributors", {}) or {}
     contributors = _normalize_contributors(raw_contributors)
 
-    # Normalize skills as a sorted list to ensure deterministic ordering.
     skills = sorted(entry.get("skills", []) or [])
 
-    # Start from stored stats, but make a copy so we don't mutate the original dict.
     raw_stats = entry.get("stats") or {}
     stats: Dict[str, Any] = dict(raw_stats)
 
-    # Ensure contributor-based stats are present.
     contrib_stats = _summarize_contributors(contributors)
     stats.setdefault("contributors", contrib_stats["contributors"])
     stats.setdefault("total_file_contributions", contrib_stats["total_file_contributions"])
     stats.setdefault("top_contributor", contrib_stats["top_contributor"])
     stats.setdefault("top_contribution_count", contrib_stats["top_contribution_count"])
-
-    # Ensure skill_count is present.
     stats.setdefault("skill_count", len(skills))
 
     analyzed_at = entry.get("analyzed_at", _now_iso())
@@ -329,21 +394,27 @@ def record_project_insight(
     insight_id: Optional[str] = None,
 ) -> ProjectInsight:
     """
-    Append a new project insight entry derived from ``analysis``.
+    Save a new project insight to the JSON log.
+
+    Basically takes the analysis data from the pipeline, normalizes it,
+    computes file stats, calculates contributor stats, and then appends
+    the whole thing to the storage file.
 
     Args:
-        analysis: Dictionary produced by the analysis pipeline.
-        storage_path: JSON file where insights should be persisted.
+        analysis: Analysis data from the pipeline with resume/hierarchy info.
+        storage_path: Where to save insights (defaults to DEFAULT_STORAGE).
         contributors: Optional contributor mapping for ranking purposes.
-        analyzed_at: Optional override for the timestamp.
-        insight_id: Optional override for deterministic IDs during testing.
+        analyzed_at: Optional timestamp override for when analysis occurred.
+        insight_id: Optional fixed ID (useful for testing).
+
+    Returns:
+        The ProjectInsight instance that was created and saved.
     """
     resume = analysis.get("resume_item") or {}
     project_root = analysis.get("project_root")
     project_name = resume.get("project_name")
 
     if not project_name and project_root:
-        # Use the leaf name of the path if available; fallback to raw project_root.
         try:
             project_name = Path(project_root).name or project_root
         except Exception:
@@ -382,7 +453,15 @@ def record_project_insight(
 
 
 def list_project_insights(storage_path: PathLike = DEFAULT_STORAGE) -> List[ProjectInsight]:
-    """Return all stored insights ordered chronologically."""
+    """
+    Return all stored insights in chronological order (oldest → newest).
+
+    Args:
+        storage_path: Where the project insights are stored.
+
+    Returns:
+        List of ProjectInsight objects sorted by analyzed_at timestamp.
+    """
     path = Path(storage_path)
     insights = (_entry_to_dataclass(e) for e in _read_entries(path))
     return sorted(insights, key=lambda i: _parse_analyzed_at(i.analyzed_at))
@@ -395,12 +474,18 @@ def rank_projects_by_contribution(
     top_n: Optional[int] = None,
 ) -> List[ProjectInsight]:
     """
-    Sort stored insights by contribution score.
+    Sort stored insights by contribution strength.
+
+    If you specify a contributor, we only care about their impact.
+    Otherwise we use each project's strongest contributor score.
 
     Args:
-        contributor: Optional contributor focus to score by that individual's impact.
-        top_n: Optional cap on the returned list size. ``None`` returns all.
-               Values <= 0 return an empty list.
+        storage_path: JSON file where insights are stored.
+        contributor: If specified, rank by this person's contribution score.
+        top_n: Max number to return (None = all, 0 or negative = empty list).
+
+    Returns:
+        List of ProjectInsight objects sorted by contribution score (highest first).
     """
     ranked = sorted(
         list_project_insights(storage_path),
@@ -416,9 +501,17 @@ def rank_projects_by_contribution(
 
 def list_skill_history(storage_path: PathLike = DEFAULT_STORAGE) -> List[Dict[str, Any]]:
     """
-    Return a chronological list of the skills demonstrated per project.
+    Build a simple timeline of what skills were used in each project.
 
-    Each entry contains ``project_name``, ``skills``, and ``analyzed_at``.
+    Args:
+        storage_path: Where insights are stored.
+
+    Returns:
+        A list of dictionaries, each containing:
+            - project_name (str): Name of the project
+            - skills (List[str]): Skills used in the project
+            - analyzed_at (str): ISO timestamp of when it was analyzed
+            - skill_count (int): Number of skills in that project
     """
     return [
         {
@@ -438,19 +531,31 @@ def summaries_for_top_ranked_projects(
     top_n: int = 3,
 ) -> List[Dict[str, Any]]:
     """
-    Return project summaries for the highest ranked projects.
+    Get quick summaries for the top-ranked projects.
 
     Args:
-        contributor: Optional contributor name that influences ranking.
-        top_n: Number of project summaries to include. Defaults to 3.
+        storage_path: The JSON file where project insights are saved.
+        contributor: If provided, ranking is based on this person's contribution.
+        top_n: How many top projects you want (default is 3).
+
+    Returns:
+        List of dictionaries, each containing:
+            - project_name (str): Name of the project
+            - summary (str): Project summary text
+            - analyzed_at (str): When it was analyzed
+            - contributors (int): Number of contributors
+            - top_contribution_count (int): Highest contributor's file count
+            - score (int): Contribution score used for ranking
     """
     if top_n <= 0:
         return []
+
     ranked = rank_projects_by_contribution(
         storage_path=storage_path,
         contributor=contributor,
         top_n=top_n,
     )
+
     return [
         {
             "project_name": insight.project_name,
