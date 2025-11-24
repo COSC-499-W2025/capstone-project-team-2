@@ -24,7 +24,6 @@ from src.project_insights import (
     summaries_for_top_ranked_projects,
 )
 
-
 logger = logging.getLogger("ProjectInsightsTests")
 logger.addHandler(logging.NullHandler())
 logger.propagate = False
@@ -40,8 +39,8 @@ def _analysis_payload(
     hierarchy=None,
 ) -> dict:
     """
-    Build a synthetic analysis payload shaped like analyze_project() output
-    so we can exercise record_project_insight() in isolation.
+    Helper for building realistic, but fake, analysis payloads.
+    Makes it easier to write clean tests.
     """
     languages = languages or ["Python"]
     frameworks = frameworks or ["Flask"]
@@ -91,7 +90,7 @@ class TestProjectInsights(unittest.TestCase):
         self.temp_dir.cleanup()
 
     def _announce(self, message: str) -> None:
-        """Helper: emit readable progress updates via logging."""
+        """Tiny helper for readable logs."""
         logger.info(message)
 
     def test_record_and_list_project_insights(self) -> None:
@@ -114,25 +113,32 @@ class TestProjectInsights(unittest.TestCase):
             insight_id="alpha-1",
         )
 
+        # Basic checks to make sure persistence and normalization happened correctly
         self.assertEqual(insight.project_name, "Alpha")
         self.assertTrue(self.storage.exists())
 
+        # Verify the JSON file was written with correct structure
         disk_data = json.loads(self.storage.read_text(encoding="utf-8"))
         self.assertEqual(len(disk_data), 1)
+
+        # Verify file analysis fields were computed
         self.assertGreaterEqual(insight.file_analysis["file_count"], 1)
         self.assertIn("total_size_bytes", insight.file_analysis)
         self.assertIn("largest_file", insight.file_analysis)
 
+        # Verify loaded insights have sorted/normalized data
         listed = list_project_insights(self.storage)
         self.assertEqual(listed[0].skills, ["Flask", "Python"])
         self.assertEqual(listed[0].languages, ["C", "Python"])
         self.assertEqual(listed[0].frameworks, ["Django", "Flask"])
         self.assertEqual(len(listed), 1)
+
+        # Verify contributor data was normalized correctly
         self.assertEqual(listed[0].contributors["Bob"]["file_count"], 2)
         self.assertEqual(listed[0].stats["total_file_contributions"], 6)
 
     def test_list_project_insights_returns_chronological_records(self) -> None:
-        """Ensure projects are ordered by analyzed_at, not insertion order."""
+        """Ensure projects are ordered by analyzed_at timestamp."""
         self._announce("Building a chronological project list.")
 
         ts1 = datetime(2025, 2, 10, tzinfo=timezone.utc)
@@ -154,12 +160,12 @@ class TestProjectInsights(unittest.TestCase):
         projects = list_project_insights(self.storage)
         self.assertEqual(len(projects), 2)
 
-        # Chronological ordering should place Beta first because ts1 < ts2
+        # Beta should appear first since it has the earlier timestamp
         self.assertEqual(projects[0].project_name, "Beta")
         self.assertEqual(projects[1].project_name, "Alpha")
 
     def test_rank_projects_by_contribution(self) -> None:
-        """Rank projects globally and per contributor based on file_count."""
+        """Rank projects by total contributor impact."""
         self._announce("Ranking projects by contribution strength.")
 
         record_project_insight(
@@ -175,9 +181,11 @@ class TestProjectInsights(unittest.TestCase):
             insight_id="delta",
         )
 
+        # Global ranking should favor Delta (Peer's 20 > User's 10 in Gamma)
         ranked = rank_projects_by_contribution(storage_path=self.storage)
         self.assertEqual([item.project_name for item in ranked], ["Delta", "Gamma"])
 
+        # When ranking by specific contributor (User), Gamma wins (10 > 3)
         ranked_user = rank_projects_by_contribution(
             storage_path=self.storage,
             contributor="User",
@@ -185,7 +193,7 @@ class TestProjectInsights(unittest.TestCase):
         self.assertEqual([item.project_name for item in ranked_user], ["Gamma", "Delta"])
 
     def test_rank_projects_by_contribution_top_n_zero(self) -> None:
-        """Ensure top_n=0 returns an empty list instead of all entries."""
+        """top_n=0 should yield an empty result instead of all items."""
         self._announce("Verifying top_n=0 returns an empty ranking.")
 
         record_project_insight(
@@ -205,14 +213,13 @@ class TestProjectInsights(unittest.TestCase):
         ranked_zero = rank_projects_by_contribution(storage_path=self.storage, top_n=0)
         ranked_negative = rank_projects_by_contribution(storage_path=self.storage, top_n=-5)
 
-        # With None we should see all entries.
+        # None should return all, but 0 or negative should return empty list
         self.assertEqual(len(ranked_none), 2)
-        # With 0 or negative, we should see no entries.
         self.assertEqual(len(ranked_zero), 0)
         self.assertEqual(len(ranked_negative), 0)
 
     def test_list_skill_history_returns_chronological_skills(self) -> None:
-        """Record skill usage timeline entries and ensure chronological order."""
+        """Check that skill history is ordered and contains correct info."""
         self._announce("Building chronological skill history.")
 
         ts1 = datetime(2025, 5, 1, tzinfo=timezone.utc)
@@ -232,12 +239,16 @@ class TestProjectInsights(unittest.TestCase):
         )
 
         history = list_skill_history(self.storage)
+
+        # Should be ordered chronologically (SkillB first, then SkillA)
         self.assertEqual([entry["project_name"] for entry in history], ["SkillB", "SkillA"])
+        # Skills should be sorted alphabetically
         self.assertEqual(history[0]["skills"], ["Docker", "Go"])
+        # skill_count should match the number of skills
         self.assertEqual(history[1]["skill_count"], 1)
 
     def test_summaries_for_top_ranked_projects(self) -> None:
-        """Ensure we can retrieve summaries for the highest ranked projects."""
+        """Validate summary extraction for top-ranked projects."""
         self._announce("Retrieving top project summaries.")
 
         record_project_insight(
@@ -257,16 +268,20 @@ class TestProjectInsights(unittest.TestCase):
             storage_path=self.storage,
             top_n=1,
         )
+
+        # Only the top project should be returned
         self.assertEqual(len(summaries), 1)
         self.assertEqual(summaries[0]["project_name"], "TopDog")
         self.assertEqual(summaries[0]["summary"], "Did great things.")
+
+        # Verify all expected fields are present
         self.assertIn("top_contribution_count", summaries[0])
         self.assertIn("contributors", summaries[0])
         self.assertIn("score", summaries[0])
         self.assertGreater(summaries[0]["score"], 0)
 
     def test_corrupted_storage_is_preserved_before_rewrite(self) -> None:
-        """If the JSON log is corrupted, stash it before writing new data."""
+        """Ensure corrupted logs get saved aside before being replaced."""
         self._announce("Preserving corrupted insight logs before rewriting.")
 
         record_project_insight(
@@ -275,7 +290,7 @@ class TestProjectInsights(unittest.TestCase):
             insight_id="omega-1",
         )
 
-        # Corrupt the JSON file between writes.
+        # Force corruption by writing invalid JSON
         self.storage.write_text("not-json", encoding="utf-8")
 
         record_project_insight(
@@ -284,22 +299,28 @@ class TestProjectInsights(unittest.TestCase):
             insight_id="omega-2",
         )
 
+        # Corrupted file should have been stashed with a timestamped backup name
         backups = list(self.storage.parent.glob("insights.json.corrupt-*"))
         self.assertEqual(len(backups), 1)
         self.assertEqual(backups[0].read_text(encoding="utf-8"), "not-json")
 
+        # Fresh log should contain only the new record
         disk_data = json.loads(self.storage.read_text(encoding="utf-8"))
         self.assertEqual(len(disk_data), 1)
         self.assertEqual(disk_data[0]["id"], "omega-2")
 
     def test_non_list_storage_is_stashed(self) -> None:
-        """Treat valid JSON with wrong shape as corrupted for consistency."""
+        """Valid JSON but wrong shape should still be treated as corrupted."""
         self._announce("Stashing non-list JSON payloads.")
 
+        # Write valid JSON that isn't a list
         self.storage.write_text(json.dumps({"unexpected": "data"}), encoding="utf-8")
+
+        # Should return empty list and stash the corrupted file
         projects = list_project_insights(self.storage)
         self.assertEqual(projects, [])
 
+        # Verify backup was created
         backups = list(self.storage.parent.glob("insights.json.corrupt-*"))
         self.assertEqual(len(backups), 1)
 
