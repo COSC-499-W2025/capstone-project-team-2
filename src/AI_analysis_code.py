@@ -498,6 +498,7 @@ class codeAnalysisAI():
             print("\n" + "=" * 100 + "\n")
 
         if save_json:
+            # Save the analysis results to a JSON file in the 'results' directory
             self.save_all_results(results)
 
         return results
