@@ -9,6 +9,7 @@ import pytest
 from pathlib import Path
 from io import StringIO
 from unittest.mock import patch
+import pytest
 
 from src.data_extraction import FileMetadataExtractor
 
