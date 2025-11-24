@@ -530,7 +530,7 @@ My goal for the following weeks is to add some optional features to the CLI, whi
 
 
 
-# 📝 Personal Log – Week 10 + week11 (11/10/2025-11/27/2025
+# 📝 Personal Log – Week 11 + week12 (11/10/2025-11/27/2025
 
 ## 📊 Peer Evaluation
 ![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/11-22-2025.png)
