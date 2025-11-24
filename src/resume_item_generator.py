@@ -75,7 +75,11 @@ def generate_resume_item(project_root: Path | str, project_name: str | None = No
 
     # Determine project type (e.g., collaborative vs. individual).
     # Normalize `mode` to lowercase for stable comparisons.
-    project_type_git=get_contributors_percentages_git(str(resolved_root)).output_result()
+    try:
+        project_type_git=get_contributors_percentages_git(str(resolved_root)).output_result()
+    except Exception as e:
+        project_type_git="Data unsuccessfully collected"
+
     if project_type_git!="Data unsuccessfully collected":
 
         project_type_bool=project_type_git.get("is_collaborative")
@@ -85,7 +89,8 @@ def generate_resume_item(project_root: Path | str, project_name: str | None = No
             project_type="individual"
         else:
             project_type="unknown"
-    if project_type_git=="Data unsuccessfully collected":
+        detection_mode='git'
+    else:
         project_type_info = detect_project_type(resolved_root)
         project_type = project_type_info.get("project_type", "unknown")
         detection_mode = str(project_type_info.get("mode", "local")).lower()
