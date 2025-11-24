@@ -1,3 +1,44 @@
+
+## Week 12 (11/17/2025- 11/23/2025)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+<img width="2117" height="1210" alt="image" src="https://github.com/user-attachments/assets/2b963491-83aa-4ceb-8ffc-128eb4a7bcfa" />
+
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: added integration of of project insights into CLI user interface
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description                     | Feature                   | Assigned To | Status   |
+| ------- | ------------------------------- | ------------------------- | ----------- | -------- |
+| N/A   | [project insigths CLI integration in main.py]   | [insights about a project can be viewed by user]      | [ssmith86]  | [pending]   |
+
+### Progress Update (since 10/26/2025) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Added project insights to CLI integration in main.py
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+This week went very rough for me in my personal life. In addition there were some issues with docker and mySQL not working together correctly and some missing code in the development branch due to a merging issue. As a result I wasn't able to test my code, so it remains unmerged with the development branch until we can get it sorted out.
+
+### Tasks for Next Sprint:
+- Finish integrating code into CLI
+
 ## Week 10 (11/03/2025- 11/09/2025)
 
 ### Task Types Worked On (Screenshot from Peer Eval)
