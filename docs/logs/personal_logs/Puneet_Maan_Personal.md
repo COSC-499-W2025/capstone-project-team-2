@@ -1,3 +1,77 @@
+# Sprint Log: (17/11/2025 – 23/11/2025)
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/23-11-2025_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Goals Recap
+
+Team Log: This week I completed the Team Log for the group, summarizing team progress, Kanban status, completed tasks, and all testing results.
+Coding: I focused on extending the new Project Insights subsystem that I introduced during last week's bonus work. Building on the initial logging and ranking functionality, I implemented richer analysis features (file-level statistics, skill history timelines, and top-ranked project summaries), hardened the JSON storage layer against corrupted data, and expanded the test suite so these behaviors are reliable over time.
+
+---
+
+## Key Accomplishments
+
+### My Work (PR #176)
+- Added full **file analysis** (file counts, total/avg size, type breakdown, largest/newest file).
+- Implemented **skill history tracking** using chronological ordering.
+- Added **top-ranked project summaries** with scoring and contributor statistics.
+- Normalized contributors/skills for consistent ordering across old and new entries.
+- Strengthened JSON storage:
+  - Non-list or corrupted JSON logs are now safely stashed and replaced.
+  - _read_entries handles malformed data gracefully.
+- Expanded test coverage for:
+  - File analysis
+  - Skill history
+  - Ranked summaries
+  - Corrupted JSON handling
+
+### Code Reviews Completed
+I also supported the team through multiple PR reviews in the areas of Docker automation, contribution percentages, and database helpers.
+- Docker auto-testing (#172)  
+- Contribution percentage calculation (#161)  
+- Database functions (#160)
+
+---
+
+## Deliverables Completed
+- File analysis and statistics module  
+- Skill history and ranking summaries  
+- JSON storage improvements  
+- Full test coverage for new features  
+- Team Log completed for the group
+
+---
+
+## Plan for Next Cycle
+- Integrate Project Insights with CLI/UI workflows.
+- Add optional CLI/visualization helpers.
+- Refine ranking metrics and contributor scoring.
+- Support Milestone 1 integration tasks.
+
+---
+
+## Reflection
+
+### What Went Well
+- Smooth extension of Project Insights with no regressions.
+- Strong test coverage for all new analytics.
+- Robust storage layer with safe corruption handling.
+- Completed the Team Log accurately and on time.
+
+### What I Can Improve
+- Add more developer facing documentation.
+- Coordinate data schema alignment earlier.
+- Explore performance optimizations for large project hierarchies.
+
+---
+
+## ====================================================
+
 # Sprint Log: (03/11/2025 – 09/11/2025)
 
 ---
