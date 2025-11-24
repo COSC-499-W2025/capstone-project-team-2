@@ -1,9 +1,14 @@
+import os.path
+import shutil
 import unittest
 import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch, MagicMock
 import sys
+import mysql.connector
+from mysql.connector import Error
+from src.Docker_finder import DockerFinder
 from src.get_contributors_percentage_per_person import get_contributors_percentages_git
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 import src.main as main_mod
@@ -298,6 +303,44 @@ class TestMainModule(unittest.TestCase):
             any("[WARN] Failed to record project insight: boom" in msg for msg in printed),
             msg=f"Expected a [WARN] log about failed insight, got: {printed}",
         )
+
+
+    def tearDown(self):
+
+        port_number, host_ip = DockerFinder().get_mysql_host_information()
+
+        try:
+            conn = mysql.connector.connect(
+                host=host_ip,
+                port=port_number,
+                database="appdb",
+                user="appuser",
+                password="apppassword"
+            )
+
+            if conn.is_connected():
+                print("✅ Connected to MySQL successfully!")
+                cur = conn.cursor()
+
+            # Delete ONLY the test artifact
+            cur.execute("""
+                        DELETE
+                        FROM project_data
+                        WHERE filename = %s;
+                        """, ("Demo.json",))
+
+            conn.commit()
+            cur.close()
+            conn.close()
+
+        except Error as e:
+            print(f"MySQL not ready yet: {e}")
+
+    # Remove test folder
+    BASE = Path(__file__).resolve().parent
+    directory = BASE / "User_config_files"
+    if directory.exists():
+        shutil.rmtree(directory)
 
 
 if __name__ == "__main__":
