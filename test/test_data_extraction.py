@@ -8,6 +8,7 @@ import tempfile
 from pathlib import Path
 from io import StringIO
 from unittest.mock import patch
+import pytest
 
 from src.data_extraction import FileMetadataExtractor
 
@@ -98,6 +99,8 @@ class TestDataExtract(unittest.TestCase):
     @patch("platform.system", return_value="Windows")
     @patch("win32security.LookupAccountSid")
     @patch("win32security.GetFileSecurity")
+    @pytest.mark.skipif(sys.platform != "win32", reason="win32security is only available on Windows")
+    @unittest.skipUnless(sys.platform == "win32", "Requires Windows win32 APIs")
     def test_win32(self, moc_get_sec, mock_lookup, mock_system):
         # creating a mock file author and testing the return with win32
         mock_lookup.return_value = ("John", "DESKTOP-12345", 1)
