@@ -108,23 +108,6 @@ class HelperFunct:
 
 
         # Delete
-        
-    def count_file_references(self, filename: str) -> int:
-        """
-        Count how many records in project_data reference a given filename.
-        Returns the number of rows referencing the filename.
-        """
-        cursor = self.conn.cursor()
-        try:
-            cursor.execute(
-                "SELECT COUNT(*) FROM project_data WHERE filename = %s",
-                (filename,),
-            )
-            row = cursor.fetchone()
-            return int(row[0]) if row else 0
-        finally:
-            cursor.close()
-            
     def delete(self, row_id: int) -> bool:
         cursor = self.conn.cursor()
         try:

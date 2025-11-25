@@ -26,7 +26,7 @@ from typing import Dict, List
 from .project_skill_insights import identify_skills
 from .project_stack_detection import detect_project_stack
 from .project_type_detection import detect_project_type
-from .get_contributors_percentage_per_person import get_contributors_percentages_git
+
 
 @dataclass(frozen=True)
 class ResumeItem:
@@ -73,28 +73,11 @@ def generate_resume_item(project_root: Path | str, project_name: str | None = No
     # Use explicit name if provided; otherwise use the directory name.
     name = project_name or resolved_root.name
 
-    # Determine project type - first try Git analysis
-    project_type = "unknown"  # Fixed: always initialize with fallback
-    detection_mode = "local"
-    
-    try:
-        project_type_git = get_contributors_percentages_git(str(resolved_root)).output_result()
-        if project_type_git != "Data unsuccessfully collected":
-            project_type_bool = project_type_git.get("is_collaborative")
-            if project_type_bool is True:
-                project_type = "collaborative"
-                detection_mode = "git"
-            elif project_type_bool is False:
-                project_type = "individual"
-                detection_mode = "git"
-    except Exception:
-        pass  # Git analysis failed, use fallback below
-
-    # If Git analysis failed or returned unknown, use detect_project_type as fallback
-    if project_type == "unknown":
-        project_type_info = detect_project_type(resolved_root)
-        project_type = project_type_info.get("project_type", "unknown")
-        detection_mode = str(project_type_info.get("mode", "local")).lower()
+    # Determine project type (e.g., collaborative vs. individual).
+    # Normalize `mode` to lowercase for stable comparisons.
+    project_type_info = detect_project_type(resolved_root)
+    project_type = project_type_info.get("project_type", "unknown")
+    detection_mode = str(project_type_info.get("mode", "local")).lower()
 
     # Detect programming languages and frameworks/tools from the project.
     stack_info = detect_project_stack(resolved_root)
@@ -241,5 +224,3 @@ def _format_list(items: List[str]) -> str:
 
 
 __all__ = ["ResumeItem", "generate_resume_item"]
-
-

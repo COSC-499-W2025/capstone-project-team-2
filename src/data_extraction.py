@@ -144,12 +144,12 @@ class FileMetadataExtractor:
         for path in content:
             try:
                 stat = path.stat()
-                created = datetime.datetime.fromtimestamp(stat.st_birthtime)  # Keep as datetime
-                modified = datetime.datetime.fromtimestamp(stat.st_mtime)      # Keep as datetime
+                created = datetime.datetime.fromtimestamp(stat.st_birthtime).strftime('%Y-%m-%d %H:%M:%S')
+                modified = datetime.datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
                 size = stat.st_size
                 author = self.get_author(path)
             except Exception:
-                created = modified = None  # Use None instead of "N/A" for failed dates
+                created = modified = "N/A"
                 size = 0
                 author = "Unknown"
 
