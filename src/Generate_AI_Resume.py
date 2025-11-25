@@ -433,8 +433,8 @@ class GenerateProjectResume:
         return resume_item
 
 
-
-docker = GenerateProjectResume(r"D:\UBCO\capstone-project-team-2\test\tiny_scripts").generate()
+"""
+docker = GenerateProjectResume(r"").generate()
 print(docker.project_title)
 print(docker.one_sentence_summary)
 print(docker.key_skills_used)
@@ -450,3 +450,4 @@ for name, principle in docker.oop_principles_detected.items():
         print("code:", snippet.get("code")[:200], "...")
 
 
+"""
