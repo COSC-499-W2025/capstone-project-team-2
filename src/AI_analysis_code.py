@@ -29,7 +29,6 @@ class codeAnalysisAI():
         :param folderPath:
         """
         self.folderPath = Path(folderPath)
-        # Map of languages to file extensions (e.g. ".py" for Python) that are suppported by Qwen
         self.qwen_languages_with_suffixes = {
             # -------------------------
             # GENERAL PURPOSE
@@ -188,7 +187,7 @@ class codeAnalysisAI():
                 self.suffix_to_languages.setdefault(suffix, set()).add(lang)
 
         self.model = OllamaLLM(model="qwen2.5-coder:1.5b")  # Here we are defining what ollama model to use
-        self.prompt = PromptTemplate(  # Template for generating code review prompts for AI to follow
+        self.prompt = PromptTemplate(
             input_variables=["language", "filepath", "code"],
             template="""
                 You are a professional software engineer and code reviewer. 
@@ -301,9 +300,6 @@ class codeAnalysisAI():
         return path.suffix
 
     def _is_ignored(self, path: Path) -> bool:
-        """
-        Returns True if the given path is in the ignore_dirs list, False otherwise.
-        """
         return any(part in self.ignore_dirs for part in path.parts)
 
     def _clean_model_output(self, text: str) -> str:
@@ -437,7 +433,6 @@ class codeAnalysisAI():
         """
         results = {}
         """Run deep Qwen-based analysis on all supported source files."""
-        # Iterate over all files in the folderPath and its subdirectories
         for file_path in self.folderPath.rglob("*"):
             if not file_path.is_file():
                 continue
@@ -481,11 +476,7 @@ class codeAnalysisAI():
 
             print(response)
             try:
-                # Parse JSON response into a dictionary
                 parsed = orjson.loads(cleaned_response)
-                # Store the parsed analysis result in the results dictionary
-                # with the file path as the key 
-                # This also make sure that the result return by AI is a vaild JSON file 
                 results[str(file_path)] = parsed
 
 
