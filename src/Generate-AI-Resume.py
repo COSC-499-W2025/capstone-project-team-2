@@ -186,6 +186,7 @@ class GenerateProjectResume:
 
 
     def generate(self)->dict:
+        print(f"running analysis on {self.project_root.name}")
         context=self._build_context()
         result=self.chain.invoke({"project_context":context})
         return result
