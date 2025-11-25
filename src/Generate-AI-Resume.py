@@ -2,6 +2,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 from typing import List, Dict
+from dataclasses import dataclass
 
 from dotenv import load_dotenv
 from docx import Document
@@ -9,6 +10,17 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.output_parsers import JsonOutputParser
+
+
+@dataclass()
+class ResumeItem:
+    project_title: str
+    one_sentence_summary: str
+    detailed_summary: str
+    key_responsibilities: List[str]
+    key_skills_used: List[str]
+    tech_stack: str
+    impact: str
 
 
 class GenerateProjectResume:
@@ -35,25 +47,45 @@ class GenerateProjectResume:
 
 
     def __init__(self,folder):
-        load_dotenv()
-        self.google_model="gemini-2.5-flash"
-        self.folder=folder
 
+        """
+        Initialize a GenerateProjectResume instance.
+
+        :param folder: The root directory of the project
+        :raises FileNotFoundError: If the given folder does not exist
+        :raises RuntimeError: If the GOOGLE_API_KEY environment variable is not set
+        """
+        load_dotenv()
+        self.google_model="gemini-2.5-flash" #Define what Gemini model we are going to be using
+        self.folder=folder
         self.max_chars: int = 20_000
-        self.project_root=Path(self.folder)
+        self.project_root=Path(self.folder) #Getting the root folder path
         if not self.project_root.exists():
             raise FileNotFoundError(f"No such folder {self.project_root}")
 
-        self.google_api_key = os.getenv("GOOGLE_API_KEY")
+        self.google_api_key = os.getenv("GOOGLE_API_KEY") #Get the Google_API_key stored in the .env file
+
+        # If it's not added in the .env file, its raises a runtime error
         if not self.google_api_key:
             raise RuntimeError("Missing GOOGLE_API_KEY in .env file")
 
+
+        #Here we are creating an instance of the LLM (langchain_google_genai.ChatGoogleGenerativeAI)
+        # and passing in the model and the Google_api_key to authenticate the LLM.
         self.llm = ChatGoogleGenerativeAI(
             model=self.google_model,
             google_api_key=self.google_api_key
         )
+
+        # Here we are creating an instance of the parser to parse the output from the LLM into JSON format
         self.parser = JsonOutputParser()
 
+
+
+        """
+        Here we are creating the prompt template to be sent to the LLM
+        which in this case in gemini-2.5-flash
+        """
         self.langChain_prompt = PromptTemplate.from_template(
             """
         You are an expert technical résumé writer.
@@ -102,9 +134,25 @@ class GenerateProjectResume:
 
 
     def _classify_file(self, path: Path) -> str:
+        """
+
+        Classify a file by its extension or contents.
+
+        Returns one of the following strings:
+        - "ignore": if the file is an image or cannot be read
+        - "pdf": if the file is a PDF
+        - "docx": if the file is a DOCX or DOC
+        - "text": if the file is a plaintext file
+        - "code": if the file is a source code file or contains code snippets
+
+        :param path: The path to the file to classify
+        :type path: Path
+        :return: A string indicating the type of the file
+        :rtype: str
+        """
+
+        #Here we are getting the file extension type
         file_extension=path.suffix.lower()
-
-
 
         if file_extension in self.IMAGE_EXTS:
             return "ignore"
@@ -125,12 +173,28 @@ class GenerateProjectResume:
             return "code"
 
 
-
-
         return "ignore"
 
 
     def _read_file(self,path:Path)->str:
+        """
+        Reads the contents of a file.
+
+        The type of the file is determined by calling `_classify_file`.
+
+        If the file is a PDF, it is read using PyPDFLoader.
+        If the file is a DOCX, it is read using Python-Docx.
+        If the file is a plaintext file or contains code snippets, it is read using Path.read_text.
+
+        Returns the contents of the file as a string.
+        If an exception occurs during file reading, an empty string is returned.
+
+        :param path: The path to the file to read
+        :type path: Path
+        :return: The contents of the file as a string
+        :rtype: str
+        """
+        # Here we are using the classify_file function to determine the type of the file
         ftype=self._classify_file(path)
         try:
             if ftype=="pdf":
@@ -152,6 +216,24 @@ class GenerateProjectResume:
             return ""
 
     def _build_context(self):
+        """
+        Builds a string context from the project root and its files.
+
+        The context string is formatted as follows:
+        - ROOT: <project root path>\n
+        - FILES:\n
+        - <file path> [<file type>]\n
+        - SNIPPETS:\n
+        - === <file path> [<file type>] ===\n
+        - <file snippet>\n
+        - === <file path> [<file type>] ===\n
+        - ...
+
+        If the total length of the context string exceeds `max_chars`, the remaining snippets are truncated.
+
+        :return: The context string
+        :rtype: str
+        """
         pieces: List[str] = [f"ROOT: {self.project_root.resolve()}\n", "FILES:\n"]
         total_length=0
         file_infos=[]
@@ -185,10 +267,35 @@ class GenerateProjectResume:
         return "".join(pieces)
 
 
-    def generate(self)->dict:
+    def generate(self)->ResumeItem:
+        """
+        Generates a resume item for the given project root.
+
+        The resume item is generated by running the AI chain on the project context.
+
+        The project context is built by recursively traversing the project root and its files,
+        and extracting snippets from the files. The snippets are then fed into the AI chain,
+        which generates a resume item based on the snippets.
+
+        :return: A dictionary containing the generated resume item
+        :rtype: dict
+        """
         print(f"running analysis on {self.project_root.name}")
         context=self._build_context()
-        result=self.chain.invoke({"project_context":context})
-        return result
+        result=self.chain.invoke({"project_context":context}) #Here we are invoke the llm to start the process
+        print(result)
+        resume_item=ResumeItem(
+            project_title=result.get("project_title",""),
+            one_sentence_summary=result.get("one_sentence_summary",""),
+            detailed_summary=result.get("detailed_summary",""),
+            key_responsibilities=result.get("key_responsibilities",[]),
+            key_skills_used=result.get("key_skills_used",[]),
+            tech_stack=result.get("tech_stack",""),
+            impact=result.get("impact",""),
+        )
+        return resume_item
 
 
+
+docker=GenerateProjectResume(r"D:\Python Project\Anime_downloader").generate()
+print(docker)
