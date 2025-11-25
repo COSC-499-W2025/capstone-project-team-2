@@ -187,7 +187,7 @@ class codeAnalysisAI():
             for suffix in suffixes:
                 self.suffix_to_languages.setdefault(suffix, set()).add(lang)
 
-        self.model = OllamaLLM(model="qwen2.5-coder:1.5b")  # Here we are defining what ollama model to use
+        self.model = OllamaLLM(model="qwen2.5-coder:1.5b", base_url="http://ollama:11434")  # Here we are defining what ollama model to use
         self.prompt = PromptTemplate(  # Template for generating code review prompts for AI to follow
             input_variables=["language", "filepath", "code"],
             template="""
