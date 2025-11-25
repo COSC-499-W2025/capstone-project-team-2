@@ -288,6 +288,33 @@ class codeAnalysisAI():
 
         self.max_chars_per_file = 40_000
 
+    def _normalize_top_level_fields(self, data: dict) -> dict:
+        """
+        Ensures inferred_strengths, growth_areas, and recommended_refactorings
+        exist at the top level. If the model incorrectly placed them inside
+        code_quality_and_maintainability, extract and move them.
+        """
+        nested = data.get("code_quality_and_maintainability", {})
+
+        # Fields that must be top-level
+        required_fields = [
+            "inferred_strengths",
+            "growth_areas",
+            "recommended_refactorings",
+        ]
+
+        # Move misplaced fields from nested to top-level
+        for field in required_fields:
+            # If nested contains the field, move it
+            if field in nested and field not in data:
+                data[field] = nested.pop(field)
+
+            # If missing entirely, create empty fallback
+            if field not in data:
+                data[field] = []
+
+        return data
+
     def _get_suffix_key(self, path: Path) -> str:
         """
         Returns a key based on the suffix of the given path.
@@ -308,11 +335,15 @@ class codeAnalysisAI():
 
     def _clean_model_output(self, text: str) -> str:
         """
-        Cleans the output of the model by:
-        - removing code block fences,
-        - extracting the JSON object,
-        - stripping JS-style comments (// and /* */),
-        - removing trailing commas before } or ] so that json.loads() can parse it.
+        Clean the raw LLM output so it becomes valid JSON:
+
+        - Strip ```json / ```python / ``` fences
+        - Keep only the main JSON object (from first '{' to last '}')
+        - Remove all // line comments
+        - Remove /* ... */ block comments
+        - Merge duplicated recommended_refactorings arrays
+        - Fix backslashes in the "file" path so they're valid JSON escapes
+        - Remove trailing commas before } or ]
         """
         if not text:
             return text
@@ -325,23 +356,48 @@ class codeAnalysisAI():
         if match:
             cleaned = match.group(1).strip()
         else:
+            # Fallback: naked ``` ... ```
             if cleaned.startswith("```") and cleaned.endswith("```"):
                 cleaned = cleaned[3:-3].strip()
 
-        # 2. Extract the first JSON-looking object if wrapped in extra text
-        json_match = re.search(r"\{[\s\S]*\}", cleaned)
-        if json_match:
-            cleaned = json_match.group(0).strip()
+        # 2. Extract the main JSON-looking object (first '{' to last '}')
+        first = cleaned.find("{")
+        last = cleaned.rfind("}")
+        if first != -1 and last != -1 and last > first:
+            cleaned = cleaned[first:last + 1]
 
-        # 3. Remove single-line comments: // ...
-        cleaned = re.sub(r"//.*?$", "", cleaned, flags=re.MULTILINE)
+        # 3. Remove ALL JS-style // comments aggressively
+        #    (Safe because our schema never legitimately uses '//' in string values)
+        cleaned = re.sub(r"//.*", "", cleaned)
 
         # 4. Remove block comments: /* ... */
         cleaned = re.sub(r"/\*[\s\S]*?\*/", "", cleaned)
 
-        # 5. Remove trailing commas before } or ]
-        #    e.g.  "foo": "bar", }  ->  "foo": "bar" }
-        #          [1, 2, 3, ]      ->  [1, 2, 3 ]
+        # 5. Merge duplicated array literals for recommended_refactorings:
+        #    "recommended_refactorings": [ ... ], [ ... ]
+        #    -> "recommended_refactorings": [ ..., ... ]
+        cleaned = re.sub(
+            r'"recommended_refactorings"\s*:\s*\[([^\]]*)\]\s*,\s*\[([^\]]*)\]',
+            r'"recommended_refactorings": [\1,\2]',
+            cleaned,
+            flags=re.DOTALL,
+        )
+
+        # 6. Fix invalid backslashes in "file" value (e.g. \P, unescaped Windows paths)
+        file_match = re.search(r'"file"\s*:\s*"([^"]*)"', cleaned)
+        if file_match:
+            original_path = file_match.group(1)
+            # Make all backslashes safe for JSON by doubling them
+            safe_path = original_path.replace("\\", "\\\\")
+            cleaned = (
+                    cleaned[: file_match.start(1)]
+                    + safe_path
+                    + cleaned[file_match.end(1):]
+            )
+
+        # 7. Remove trailing commas before } or ]
+        #    e.g. "foo": "bar", }  ->  "foo": "bar" }
+        #         [1, 2, 3, ]      ->  [1, 2, 3 ]
         cleaned = re.sub(r",(\s*[}\]])", r"\1", cleaned)
 
         return cleaned.strip()
@@ -483,6 +539,10 @@ class codeAnalysisAI():
             try:
                 # Parse JSON response into a dictionary
                 parsed = orjson.loads(cleaned_response)
+
+                parsed=self._normalize_top_level_fields(parsed)
+
+
                 # Store the parsed analysis result in the results dictionary
                 # with the file path as the key
                 # This also make sure that the result return by AI is a vaild JSON file
