@@ -10,6 +10,10 @@ pandas
 langchain-community
 langchain
 langchain-ollama
+langchain-core
+langchain-google-genai
+python-docx
+pypdf
 docker
 pytest
 pytest-mock
