@@ -267,3 +267,4 @@ class get_contributors_percentages_git:
             self.g.close()
             return self.project_info
         return "Data unsuccessfully collected"
+

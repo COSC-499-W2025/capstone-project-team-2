@@ -3,6 +3,7 @@ import shutil
 import tempfile
 import zipfile
 
+
 import unittest
 from pathlib import Path
 
@@ -97,8 +98,8 @@ class TestExtraction(unittest.TestCase):
         - Each expected file that is predefined in the setup function
           is in the extraction folder when extraction is complete.
 
-
         """
+
         self.instance.extractFiles()
         for file in os.listdir(self.temp_path):
             file_path = os.path.join(self.temp_path, file)
