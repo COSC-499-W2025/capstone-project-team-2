@@ -191,5 +191,3 @@ class GenerateProjectResume:
         return result
 
 
-finder=GenerateProjectResume(r'D:\UBCO\COSC360_final-Project')
-print(finder.generate())
