@@ -61,25 +61,25 @@ class GenerateProjectResume:
     CODE_EXTS = {
         # Python
         ".py", ".pyw", ".ipynb",".pyscript",
-        
+
         # Web & JavaScript/TypeScript
         ".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx",
-        
+
         # Java & JVM Languages
         ".java", ".kt", ".kts", ".scala", ".groovy",
-        
+
         # C/C++ Family
         ".c", ".h", ".cpp", ".hpp", ".cc", ".cxx",
-        
+
         # .NET
         ".cs", ".vb",
-        
+
         # Web & Markup
-        ".html", ".htm", 
+        ".html", ".htm",
         ".css", ".scss", ".sass", ".less",
         ".vue", ".svelte",
         ".xml", ".svg",
-        
+
         # Scripting
         ".rb", ".pl", ".pm", ".t", ".py",
         ".lua", ".r", ".R", ".m", ".jl",
@@ -434,7 +434,7 @@ class GenerateProjectResume:
 
 
 """
-docker = GenerateProjectResume(r"").generate()
+docker = GenerateProjectResume(r"D:\UBCO\capstone-project-team-2\test\tiny_scripts").generate()
 print(docker.project_title)
 print(docker.one_sentence_summary)
 print(docker.key_skills_used)
@@ -442,7 +442,7 @@ print(docker.tech_stack)
 print(docker.oop_principles_detected.keys())
 
 for name, principle in docker.oop_principles_detected.items():
-    print(f"\n=== {name.upper()} ===")
+    print(f"=== {name.upper()} ===")
     print("present:", principle.present)
     print("description:", principle.description)
     for snippet in principle.code_snippets:
