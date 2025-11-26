@@ -5,7 +5,11 @@ import orjson
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
+from src.Docker_finder import DockerFinder
 
+
+
+base_url=DockerFinder().get_ollama_host_Information()
 
 class codeAnalysisAI():
     """
@@ -202,7 +206,7 @@ class codeAnalysisAI():
             model=model,
             format="json",  # Request JSON output format
             temperature=0.1, # Low temperature for more consistent outputs
-            base_url="http://localhost:11434",
+            base_url=base_url,
         )
 
         print(f"✓ Initialized Ollama with model: {model}")
