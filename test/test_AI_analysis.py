@@ -1,6 +1,7 @@
 import unittest
 from pathlib import Path
 from src.AI_analysis_code import codeAnalysisAI
+import pytest
 
 
 class TestAIOutput(unittest.TestCase):
@@ -21,6 +22,7 @@ class TestAIOutput(unittest.TestCase):
         cls.instance = codeAnalysisAI(cls.folder)
         cls.result = cls.instance.run_analysis()
 
+    #pytest.skip("Skipping Ollama-dependent tests", allow_module_level=True)
     def test_analysis_returns_valid_result(self):
         """Tests that the result of the code analysis is valid.
 
