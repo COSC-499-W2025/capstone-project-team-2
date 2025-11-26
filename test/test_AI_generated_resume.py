@@ -1,3 +1,14 @@
+import warnings
+warnings.filterwarnings(
+    "ignore",
+    message=".*MessageMapContainer.*",
+    category=DeprecationWarning
+)
+warnings.filterwarnings(
+    "ignore",
+    message=".*ScalarMapContainer.*",
+    category=DeprecationWarning
+)
 import unittest
 from src.Generate_AI_Resume import GenerateProjectResume
 from src.Generate_AI_Resume import OOPPrinciple,ResumeItem
