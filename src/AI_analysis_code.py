@@ -5,52 +5,6 @@ import orjson
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
-from dataclasses import dataclass, field
-from typing import List,Dict,Optional
-
-
-@dataclass
-class CodeAnalysisResult:
-    """
-    Represents the complete code analysis result for a single file.
-    All fields are at the top level for easy access.
-
-    """
-    # Basic info
-    file: str
-    language: str
-    summary: str
-
-    # Design and Architecture
-    design_concepts_observed: List[str] = field(default_factory=list)
-    design_analysis: str = ""
-
-    # Data Structures and Algorithms
-    structures_used: List[str] = field(default_factory=list)
-    algorithmic_insights: str = ""
-    time_best_case: str = ""
-    time_average_case: str = ""
-    time_worst_case: str = ""
-    space_complexity: str = ""
-    complexity_comments: str = ""
-
-    # Control Flow and Error Handling
-    control_patterns: List[str] = field(default_factory=list)
-    error_handling_quality: str = ""
-
-    # Library and Framework Usage
-    libraries_detected: List[str] = field(default_factory=list)
-    experience_inference: str = ""
-
-    # Code Quality and Maintainability
-    readability: str = ""
-    testability: str = ""
-    technical_debt: str = ""
-
-    # Top-level assessments
-    inferred_strengths: List[str] = field(default_factory=list)
-    growth_areas: List[str] = field(default_factory=list)
-    recommended_refactorings: List[str] = field(default_factory=list)
 
 
 class codeAnalysisAI():
