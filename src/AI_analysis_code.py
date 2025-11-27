@@ -2,34 +2,43 @@ import os
 import re
 from pathlib import Path
 import orjson
+from langchain_ollama import ChatOllama
 from langchain_core.prompts import PromptTemplate
-from langchain_ollama import OllamaLLM
+from langchain_core.output_parsers import JsonOutputParser
+from src.Docker_finder import DockerFinder
 
+
+
+base_url=DockerFinder().get_ollama_host_Information()
 
 class codeAnalysisAI():
     """
     This a code analysis engine which deploys the use of
     recursive to scan a project directory, and identify
     the supporting programming languages by file extension,
-    which is later send to an LLM(Qwen) using the Ollama system
+    which is later sent to an LLM(Ollama) using LangChain
     returning a structured analysis of the code to be used in
     the system
 
     :parameter
     - folderPath: Path
         project root folder
-
-
+    - model: str (optional)
+        Ollama model name (default: "qwen2.5-coder:1.5b")
     """
 
-    def __init__(self, folderPath):
+    def __init__(self, folderPath, model="qwen2.5-coder:1.5b"):
         """
         Here is the initiation function which creates a list of supported languages that
         the LLM supports for code review
-        :param folderPath:
+
+        :param folderPath: Path to the project folder
+        :param model: Ollama model to use (default: qwen2.5-coder:1.5b)
         """
         self.folderPath = Path(folderPath)
-        # Map of languages to file extensions (e.g. ".py" for Python) that are suppported by Qwen
+
+
+        # Map of languages to file extensions (e.g. ".py" for Python)
         self.qwen_languages_with_suffixes = {
             # -------------------------
             # GENERAL PURPOSE
@@ -175,7 +184,9 @@ class codeAnalysisAI():
             "Solidity": [".sol"],
             "Vyper": [".vy"],
             "Move": [".move"],
-            "Rust (Solana)": [".rs"]}
+            "Rust (Solana)": [".rs"]
+        }
+
         self.suffix_to_languages = {}
         self.ignore_dirs = {
             "env", "venv", ".venv", "__pycache__",
@@ -183,108 +194,129 @@ class codeAnalysisAI():
             "dist", "build", ".git", ".idea", ".vscode",
             ".pytest_cache", ".mypy_cache", "__pycache__",
         }
+
         for lang, suffixes in self.qwen_languages_with_suffixes.items():
             for suffix in suffixes:
                 self.suffix_to_languages.setdefault(suffix, set()).add(lang)
-        OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://ollama2:11434")
-        self.model = OllamaLLM(model="qwen2.5-coder:1.5b", base_url= OLLAMA_HOST)  # Here we are defining what ollama model to use
-        self.prompt = PromptTemplate(  # Template for generating code review prompts for AI to follow
+
+        # Initialize Ollama model using LangChain
+        # Make sure Ollama is running locally (ollama serve)
+        # and the model is pulled (ollama pull qwen2.5-coder:7b)
+        self.llm = ChatOllama(
+            model=model,
+            format="json",  # Request JSON output format
+            temperature=0.1, # Low temperature for more consistent outputs
+            base_url=base_url,
+        )
+
+        print(f"✓ Initialized Ollama with model: {model}")
+        print("  Make sure Ollama is running: ollama serve")
+        print(f"  Make sure model is pulled: ollama pull {model}")
+
+        # Initialize JSON output parser
+        self.parser = JsonOutputParser()
+
+        # Template for generating code review prompts for AI to follow
+        self.prompt = PromptTemplate(
             input_variables=["language", "filepath", "code"],
             template="""
-                You are a professional software engineer and code reviewer. 
-                You have been given a code file to review in depth, and you MUST respond with ONLY valid strict JSON.
+                       You are a professional software engineer and code reviewer. 
+                       You have been given a code file to review in depth, and you MUST respond with ONLY valid strict JSON.
 
-                ❗ ABSOLUTE RULES:
-                - Do NOT include ```json or ```python or ``` in your answer.
-                - Do NOT include any markdown.
-                - Do NOT include explanations outside the JSON.
-                - Do NOT include comments of ANY kind.
-                - Do NOT use sequences like //, /*, or */ anywhere in the output.
-                - Do NOT explain values after commas or in parentheses.
-                - Every line MUST be valid strict JSON.
-                - Output MUST be PURE JSON only.
-                - Violating these rules will break the parser.
+                       ❗ ABSOLUTE RULES:
+                       - Do NOT include ```json or ```python or ``` in your answer.
+                       - Do NOT include any markdown.
+                       - Do NOT include explanations outside the JSON.
+                       - Do NOT include comments of ANY kind.
+                       - Do NOT use sequences like //, /*, or */ anywhere in the output.
+                       - Do NOT explain values after commas or in parentheses.
+                       - Every line MUST be valid strict JSON.
+                       - Output MUST be PURE JSON only.
+                       - Violating these rules will break the parser.
 
-                You MUST determine and report algorithmic time and space complexity for the code (based on loops, recursion, data structures, etc.). 
-                Use Big-O notation (e.g., "O(n)", "O(n log n)"). If needed, infer reasonable complexity from the structure of the code; otherwise 
-                say that the time or space complexity cannot be determined and give the reasons in the "complexity_comments" field.
+                       You MUST determine and report algorithmic time and space complexity for the code (based on loops, recursion, data structures, etc.). 
+                       Use Big-O notation (e.g., "O(n)", "O(n log n)"). If needed, infer reasonable complexity from the structure of the code; otherwise 
+                       say that the time or space complexity cannot be determined and give the reasons in the "complexity_comments" field.
 
-                Any explanation, note, assumption, or clarification that you might normally write as a comment (for example:
-                "Assuming the input file is not empty") MUST be written as plain text INSIDE the "complexity_comments" field.
-                You MUST NOT use comment syntax anywhere.
+                       Any explanation, note, assumption, or clarification that you might normally write as a comment (for example:
+                       "Assuming the input file is not empty") MUST be written as plain text INSIDE the "complexity_comments" field.
+                       You MUST NOT use comment syntax anywhere.
 
-                All fields in the JSON MUST contain meaningful, descriptive content:
-                - Do NOT leave any string field as an empty string; if you have little to say, write a short descriptive sentence.
-                - Do NOT leave any list field empty; if nothing is present, explain that explicitly
-                  (e.g., ["No significant data structures used in this file."]).
-                - If a concept does not apply, say so explicitly in that field instead of leaving it blank.
+                       All fields in the JSON MUST contain meaningful, descriptive content:
+                       - Do NOT leave any string field as an empty string; if you have little to say, write a short descriptive sentence.
+                       - Do NOT leave any list field empty; if nothing is present, explain that explicitly
+                         (e.g., ["No significant data structures used in this file."]).
+                       - If a concept does not apply, say so explicitly in that field instead of leaving it blank.
 
-                The JSON output MUST contain EXACTLY the following top-level keys and NO others:
-                - "file"
-                - "language"
-                - "summary"
-                - "design_and_architecture"
-                - "data_structures_and_algorithms"
-                - "control_flow_and_error_handling"
-                - "library_and_framework_usage"
-                - "code_quality_and_maintainability"
-                - "inferred_strengths"
-                - "growth_areas"
-                - "recommended_refactorings"
+                       The JSON output MUST contain EXACTLY the following top-level keys and NO others:
+                       - "file"
+                       - "language"
+                       - "summary"
+                       - "design_and_architecture"
+                       - "data_structures_and_algorithms"
+                       - "control_flow_and_error_handling"
+                       - "library_and_framework_usage"
+                       - "code_quality_and_maintainability"
+                       - "inferred_strengths"
+                       - "growth_areas"
+                       - "recommended_refactorings"
 
-                The keys "inferred_strengths", "growth_areas", and "recommended_refactorings" MUST be TOP-LEVEL keys.
-                They MUST NOT be placed inside "code_quality_and_maintainability" or any other nested object.
+                       The keys "inferred_strengths", "growth_areas", and "recommended_refactorings" MUST be TOP-LEVEL keys.
+                       They MUST NOT be placed inside "code_quality_and_maintainability" or any other nested object.
 
-                Here is the required JSON structure (you MUST follow this structure exactly, only changing the empty values):
+                       Here is the required JSON structure (you MUST follow this structure exactly, only changing the empty values):
 
-                {{
-                  "file": "{filepath}",
-                  "language": "{language}",
-                  "summary": "",
-                  "design_and_architecture": {{
-                    "concepts_observed": [],
-                    "analysis": ""
-                  }},
-                  "data_structures_and_algorithms": {{
-                    "structures_used": [],
-                    "algorithmic_insights": "",
-                    "time_complexity": {{
-                      "best_case": "",
-                      "average_case": "",
-                      "worst_case": ""
-                    }},
-                    "space_complexity": "",
-                    "complexity_comments": ""
-                  }},
-                  "control_flow_and_error_handling": {{
-                    "patterns": [],
-                    "error_handling_quality": ""
-                  }},
-                  "library_and_framework_usage": {{
-                    "libraries_detected": [],
-                    "experience_inference": ""
-                  }},
-                  "code_quality_and_maintainability": {{
-                    "readability": "",
-                    "testability": "",
-                    "technical_debt": ""
-                  }},
-                  "inferred_strengths": [],
-                  "growth_areas": [],
-                  "recommended_refactorings": []
-                }}
+                       {{
+                         "file": "{filepath}",
+                         "language": "{language}",
+                         "summary": "",
+                         "design_and_architecture": {{
+                           "concepts_observed": [],
+                           "analysis": ""
+                         }},
+                         "data_structures_and_algorithms": {{
+                           "structures_used": [],
+                           "algorithmic_insights": "",
+                           "time_complexity": {{
+                             "best_case": "",
+                             "average_case": "",
+                             "worst_case": ""
+                           }},
+                           "space_complexity": "",
+                           "complexity_comments": ""
+                         }},
+                         "control_flow_and_error_handling": {{
+                           "patterns": [],
+                           "error_handling_quality": ""
+                         }},
+                         "library_and_framework_usage": {{
+                           "libraries_detected": [],
+                           "experience_inference": ""
+                         }},
+                         "code_quality_and_maintainability": {{
+                           "readability": "",
+                           "testability": "",
+                           "technical_debt": ""
+                         }},
+                         "inferred_strengths": [],
+                         "growth_areas": [],
+                         "recommended_refactorings": []
+                       }}
 
-                Notes on content:
-                - "inferred_strengths" MUST be an array of strings describing strengths you infer from the code.
-                - "growth_areas" MUST be an array of strings describing potential improvement areas.
-                - "recommended_refactorings" MUST be an array of strings, each describing a concrete refactoring or improvement.
+                       Notes on content:
+                       - "inferred_strengths" MUST be an array of strings describing strengths you infer from the code.
+                       - "growth_areas" MUST be an array of strings describing potential improvement areas.
+                       - "recommended_refactorings" MUST be an array of strings, each describing a concrete refactoring or improvement.
 
-                Now analyze this file deeply and return ONLY the JSON with all fields filled with meaningful content:
+                       Now analyze this file deeply and return ONLY the JSON with all fields filled with meaningful content:
 
-                Code:
-                {code}
-                """
+                       Code:
+                       {code}
+                       """
         )
+
+        # Create LangChain chain: prompt -> LLM -> parser
+        self.chain = self.prompt | self.llm | self.parser
 
         self.max_chars_per_file = 40_000
 
@@ -367,15 +399,12 @@ class codeAnalysisAI():
             cleaned = cleaned[first:last + 1]
 
         # 3. Remove ALL JS-style // comments aggressively
-        #    (Safe because our schema never legitimately uses '//' in string values)
         cleaned = re.sub(r"//.*", "", cleaned)
 
         # 4. Remove block comments: /* ... */
         cleaned = re.sub(r"/\*[\s\S]*?\*/", "", cleaned)
 
-        # 5. Merge duplicated array literals for recommended_refactorings:
-        #    "recommended_refactorings": [ ... ], [ ... ]
-        #    -> "recommended_refactorings": [ ..., ... ]
+        # 5. Merge duplicated array literals for recommended_refactorings
         cleaned = re.sub(
             r'"recommended_refactorings"\s*:\s*\[([^\]]*)\]\s*,\s*\[([^\]]*)\]',
             r'"recommended_refactorings": [\1,\2]',
@@ -383,11 +412,10 @@ class codeAnalysisAI():
             flags=re.DOTALL,
         )
 
-        # 6. Fix invalid backslashes in "file" value (e.g. \P, unescaped Windows paths)
+        # 6. Fix invalid backslashes in "file" value
         file_match = re.search(r'"file"\s*:\s*"([^"]*)"', cleaned)
         if file_match:
             original_path = file_match.group(1)
-            # Make all backslashes safe for JSON by doubling them
             safe_path = original_path.replace("\\", "\\\\")
             cleaned = (
                     cleaned[: file_match.start(1)]
@@ -396,8 +424,6 @@ class codeAnalysisAI():
             )
 
         # 7. Remove trailing commas before } or ]
-        #    e.g. "foo": "bar", }  ->  "foo": "bar" }
-        #         [1, 2, 3, ]      ->  [1, 2, 3 ]
         cleaned = re.sub(r",(\s*[}\]])", r"\1", cleaned)
 
         return cleaned.strip()
@@ -415,7 +441,6 @@ class codeAnalysisAI():
         -------
         None
         """
-
         root_folder = Path(__file__).resolve().parent / "results"
         os.makedirs(root_folder, exist_ok=True)
         with open(root_folder / "analysis_result.json", "wb") as f:
@@ -429,70 +454,20 @@ class codeAnalysisAI():
 
     def run_analysis(self, save_json=False):
         """
-        Run deep Qwen-based analysis on all supported source files.
+        Run deep Gemini-based analysis on all supported source files.
 
         Parameters
         ----------
         save_json : bool
             If True, save the analysis results to a JSON file in the 'results' directory.
 
-       Returns
-       -------
-       dict
-       A dictionary mapping file paths to the full AI-generated analysis for each file.
-
-       The dictionary has the structure:
-
-      {
-        "path/to/file.py": {
-            "file": "<absolute file path>",
-            "language": "<Detected programming language>",
-            "summary": "<Short summary of the file>",
-
-            "design_and_architecture": {
-                "concepts_observed": [ ... ],
-                "analysis": "<Explanation of design patterns, structure, and architecture>"
-            },
-
-            "data_structures_and_algorithms": {
-                "structures_used": [ ... ],
-                "algorithmic_insights": "<Description of algorithmic behaviour>",
-                "time_complexity": {
-                    "best_case": "O(?)",
-                    "average_case": "O(?)",
-                    "worst_case": "O(?)"
-                },
-                "space_complexity": "O(?)",
-                "complexity_comments": "<Reasoning for complexity values>"
-            },
-
-            "control_flow_and_error_handling": {
-                "patterns": [ ... ],
-                "error_handling_quality": "<Quality of try/except or lack thereof>"
-            },
-
-            "code_quality_and_maintainability": {
-                "readability": "<Readability score/comment>",
-                "technical_debt": "<Refactoring opportunities>",
-                "testability": "<How easily this code can be tested>"
-            },
-
-            "library_and_framework_usage": {
-                "libraries_detected": [ ... ],
-                "experience_inference": "<Inference of experience based on library use>"
-            },
-
-            "inferred_strengths": [ ... ],
-            "growth_areas": [ ... ],
-            "recommended_refactorings": [ ... ]
-        },
-
-        ...
-
-    }
+        Returns
+        -------
+        dict
+            A dictionary mapping file paths to the full AI-generated analysis for each file.
         """
         results = {}
-        """Run deep Qwen-based analysis on all supported source files."""
+
         # Iterate over all files in the folderPath and its subdirectories
         for file_path in self.folderPath.rglob("*"):
             if not file_path.is_file():
@@ -520,39 +495,30 @@ class codeAnalysisAI():
             if len(code) > self.max_chars_per_file:
                 code = code[: self.max_chars_per_file] + "\n\n# [Truncated for analysis]\n"
 
-            final_prompt = self.prompt.format(
-                language=language_label,
-                filepath=str(file_path),
-                code=code,
-            )
-
             print(f"\n\n==================== Analyzing: {file_path} ({language_label}) ====================\n")
 
             try:
-                response = self.model.invoke(final_prompt)
-                cleaned_response = self._clean_model_output(response)
-            except Exception as e:
-                print(f"Error calling model on {file_path}: {e}")
-                continue
+                # Invoke the LangChain chain (prompt -> LLM -> parser)
+                # The chain automatically: formats prompt -> sends to LLM -> parses JSON response
+                parsed = self.chain.invoke({
+                    "language": language_label,
+                    "filepath": str(file_path),
+                    "code": code
+                })
 
-            print(response)
-            try:
-                # Parse JSON response into a dictionary
-                parsed = orjson.loads(cleaned_response)
+                # Normalize fields to ensure correct structure
+                parsed = self._normalize_top_level_fields(parsed)
 
-                parsed=self._normalize_top_level_fields(parsed)
-
-
-                # Store the parsed analysis result in the results dictionary
-                # with the file path as the key
-                # This also make sure that the result return by AI is a vaild JSON file
+                # Store the parsed analysis result
                 results[str(file_path)] = parsed
 
+                print(f"✓ Successfully analyzed {file_path}")
 
             except Exception as e:
-                print(f"❌ JSON parsing failed for {file_path}: {e}")
-                print("Model Output:")
-                print(response)
+                print(f"❌ Error analyzing {file_path}: {e}")
+                # Print more detailed error info for debugging
+                import traceback
+                print(traceback.format_exc())
                 continue
 
             print("\n" + "=" * 100 + "\n")
@@ -561,3 +527,10 @@ class codeAnalysisAI():
             self.save_all_results(results)
 
         return results
+
+    #def return_LLM_output(self,save_Json=False):
+    #    LLM_output=self.run_analysis(save_json=save_Json)
+
+
+
+
