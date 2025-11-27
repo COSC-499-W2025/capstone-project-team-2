@@ -201,7 +201,7 @@ class codeAnalysisAI():
 
         # Initialize Ollama model using LangChain
         # Make sure Ollama is running locally (ollama serve)
-        # and the model is pulled (ollama pull qwen2.5-coder:7b)
+        # and the model is pulled (ollama pull qwen2.5-coder:1.5b)
         self.llm = ChatOllama(
             model=model,
             format="json",  # Request JSON output format
@@ -528,9 +528,10 @@ class codeAnalysisAI():
 
         return results
 
-    #def return_LLM_output(self,save_Json=False):
-    #    LLM_output=self.run_analysis(save_json=save_Json)
 
 
 
 
+
+test=codeAnalysisAI(Path(r"D:\UBCO\capstone-project-team-2\test\tiny_scripts"))
+test.run_analysis(save_json=True)
