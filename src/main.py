@@ -18,6 +18,7 @@ from src.file_data_saving import SaveFileAnalysisAsJSON
 from src.db_helper_function import HelperFunct
 from src.Docker_finder import DockerFinder
 from src.Configuration import configuration_for_users
+from src.individual_contribution_detection import detect_individual_contributions
 from src.project_insights import (
     record_project_insight,
     list_project_insights,
@@ -122,6 +123,21 @@ def analyze_project(root: Path) -> None:
     duration = estimate_duration(hierarchy)
     resume = generate_resume_item(root, project_name=root.name)
 
+    # --- detect individual contributions if collaborative ---
+    contributors_data = None
+    try:
+        if resume.project_type == "collaborative" and detect_individual_contributions:
+            contrib_result = detect_individual_contributions(root)
+            # contrib_result looks like:
+            # {"is_collaborative": True, "mode": "git" | "local", "contributors": {...}}
+            contributors_data = contrib_result.get("contributors") or None
+    except ValueError:
+        # Raised if the project isn’t actually collaborative, etc.
+        contributors_data = None
+    except Exception as e:
+        print(f"[WARN] Failed to detect individual contributions: {e}")
+        contributors_data = None
+
     analysis = {
         "project_root": str(root),
         "hierarchy": hierarchy,
@@ -137,7 +153,14 @@ def analyze_project(root: Path) -> None:
             "skills": resume.skills,
             "framework_sources": resume.framework_sources,
         },
+        "project_type": {
+            "project_type": resume.project_type,
+            "mode": resume.detection_mode,
+        },
     }
+    if contributors_data:
+        analysis["contributors"] = contributors_data
+
     analysis = convert_datetime_to_string(analysis)
 
     # --- "insight" entry for this analysis ---
@@ -145,7 +168,7 @@ def analyze_project(root: Path) -> None:
         # If you later compute contributors, pass them here instead of None.
         insight = record_project_insight(
             analysis,
-            contributors=None,  # or your contributors dict when you hook that up
+            contributors=contributors_data,
         )
         print(
             f"[INFO] Insight recorded for project '{insight.project_name}' "
@@ -161,6 +184,35 @@ def analyze_project(root: Path) -> None:
     print(f"  Frameworks : {', '.join(resume.frameworks) or '—'}")
     print(f"  Skills     : {', '.join(resume.skills) or '—'}")
     print(f"  Duration   : {duration}\n")
+    print()
+
+    if resume.summary:
+        print(f"  Résumé line: {resume.summary}\n")
+
+    # contributor breakdown (if we have it)
+    if contributors_data:
+        """
+        Keep only contributors who actually own files and "<unattributed>" so 
+        the user can still see how many files were in the project but not
+        attributed to a specific person.
+        """
+        filtered: list[tuple[str, int]] = []
+        for name, info in contributors_data.items():
+            file_count = int(info.get("file_count", len(info.get("files_owned", []))))
+            if file_count > 0 or name == "<unattributed>":
+                filtered.append((name, file_count))
+
+        if filtered:
+            print("  Contributors:")
+            for name, file_count in sorted(filtered, key=lambda kv: kv[1], reverse=True):
+                print(f"    - {name}: {file_count} files")
+            print()
+        else:
+            print("  Contributors: (no file ownership data)\n")
+
+    elif resume.project_type == "collaborative":
+        # Collaborative but we couldn’t compute contributions
+        print("  Contributors: (could not detect)\n")
 
     export_json(root.name, analysis)
 
@@ -296,6 +348,19 @@ def show_saved_summary(path: Path) -> None:
     duration = analysis.get("duration_estimate", "—")
     summary = (analysis.get("resume_item", {}) or {}).get("summary", "—")
 
+    contributors_raw = analysis.get("contributors") or {}
+    contributors_list: list[tuple[str, int, dict]] = []
+
+    if isinstance(contributors_raw, dict):
+        tmp: list[tuple[str, int, dict]] = []
+        for name, info in contributors_raw.items():
+            file_count = int(info.get("file_count", len(info.get("files_owned", []))))
+            if file_count > 0 or name == "<unattributed>":
+                tmp.append((name, file_count, info))
+        # sort by file_count descending
+        contributors_list = sorted(tmp, key=lambda tup: tup[1], reverse=True)
+
+
     print(f"\n== {path.name} ==")
     print(f"Project root : {analysis.get('project_root', '—')}")
     print(f"Type         : {pt} (mode={mode})")
@@ -303,10 +368,18 @@ def show_saved_summary(path: Path) -> None:
     print(f"Frameworks   : {', '.join(frws) or '—'}")
     print(f"Skills       : {', '.join(skills) or '—'}")
     print(f"Duration     : {duration}")
+
+    # contributors from saved JSON
+    if contributors_list:
+        print("Contributors :")
+        for name, file_count, _info in contributors_list:
+            print(f"  - {name}: {file_count} files")
+        print()
+
+    # print
     if summary and summary != "—":
         print(f"Résumé line  : {summary}")
     print()
-
 
 def get_saved_projects_from_db() -> list[tuple]:
     """
