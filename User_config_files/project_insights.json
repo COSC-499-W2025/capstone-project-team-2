@@ -1,0 +1,230 @@
+[
+  {
+    "id": "dab8ebba-0496-403b-bdf2-5063028c89e2",
+    "project_name": "COSC 344 Assignment 5",
+    "summary": "Built COSC 344 Assignment 5 with Python.",
+    "analyzed_at": "2025-11-25T04:04:23.995943+00:00",
+    "languages": [
+      "Python"
+    ],
+    "frameworks": [],
+    "skills": [
+      "Python"
+    ],
+    "project_type": "individual",
+    "detection_mode": "local",
+    "duration_estimate": "85 days, 16:08:58.094342",
+    "hierarchy": {
+      "name": "COSC 344 Assignment 5",
+      "type": "DIR",
+      "children": [
+        {
+          "name": "Q1.py",
+          "type": "py",
+          "size": 1800,
+          "created": "2025-11-16 19:41:51",
+          "modified": "2025-11-17 13:11:39",
+          "author": "mahigangal",
+          "children": []
+        },
+        {
+          "name": ".DS_Store",
+          "type": "FILE",
+          "size": 6148,
+          "created": "2025-11-17 13:24:46",
+          "modified": "2025-11-24 17:40:06",
+          "author": "mahigangal",
+          "children": []
+        },
+        {
+          "name": "cameraman.tif",
+          "type": "tif",
+          "size": 65240,
+          "created": "2025-08-31 01:31:08",
+          "modified": "2025-11-17 11:44:50",
+          "author": "mahigangal",
+          "children": []
+        },
+        {
+          "name": "blob.png",
+          "type": "png",
+          "size": 8440,
+          "created": "2025-08-31 01:31:08",
+          "modified": "2025-11-17 11:44:50",
+          "author": "mahigangal",
+          "children": []
+        },
+        {
+          "name": "Q3.py",
+          "type": "py",
+          "size": 1444,
+          "created": "2025-11-16 19:42:01",
+          "modified": "2025-11-17 13:23:22",
+          "author": "mahigangal",
+          "children": []
+        },
+        {
+          "name": "bwimage.png",
+          "type": "png",
+          "size": 1098,
+          "created": "2025-08-31 01:31:08",
+          "modified": "2025-11-17 11:44:50",
+          "author": "mahigangal",
+          "children": []
+        },
+        {
+          "name": "Q2.py",
+          "type": "py",
+          "size": 1321,
+          "created": "2025-11-16 19:41:57",
+          "modified": "2025-11-17 13:12:57",
+          "author": "mahigangal",
+          "children": []
+        }
+      ]
+    },
+    "contributors": {},
+    "stats": {
+      "contributors": 0,
+      "total_file_contributions": 0,
+      "top_contributor": null,
+      "top_contribution_count": 0,
+      "skill_count": 1
+    },
+    "file_analysis": {
+      "file_count": 7,
+      "total_size_bytes": 85491,
+      "average_size_bytes": 12213,
+      "file_types": {
+        "PY": 3,
+        "PNG": 2,
+        "TIF": 1,
+        "FILE": 1
+      },
+      "largest_file": {
+        "name": "cameraman.tif",
+        "type": "TIF",
+        "size_bytes": 65240
+      },
+      "newest_file": {
+        "name": ".DS_Store",
+        "type": "FILE",
+        "modified": "2025-11-24 17:40:06"
+      }
+    }
+  },
+  {
+    "id": "c8845451-cca9-447f-882c-7888ae75e4b3",
+    "project_name": "COSC 344 Assignment 5",
+    "summary": "Built COSC 344 Assignment 5 with Python.",
+    "analyzed_at": "2025-11-25T07:25:34.110406+00:00",
+    "languages": [
+      "Python"
+    ],
+    "frameworks": [],
+    "skills": [
+      "Python"
+    ],
+    "project_type": "individual",
+    "detection_mode": "local",
+    "duration_estimate": "85 days, 16:08:58.094342",
+    "hierarchy": {
+      "name": "COSC 344 Assignment 5",
+      "type": "DIR",
+      "children": [
+        {
+          "name": "Q1.py",
+          "type": "py",
+          "size": 1800,
+          "created": "2025-11-16 19:41:51",
+          "modified": "2025-11-17 13:11:39",
+          "author": "mahigangal",
+          "children": []
+        },
+        {
+          "name": ".DS_Store",
+          "type": "FILE",
+          "size": 6148,
+          "created": "2025-11-17 13:24:46",
+          "modified": "2025-11-24 17:40:06",
+          "author": "mahigangal",
+          "children": []
+        },
+        {
+          "name": "cameraman.tif",
+          "type": "tif",
+          "size": 65240,
+          "created": "2025-08-31 01:31:08",
+          "modified": "2025-11-17 11:44:50",
+          "author": "mahigangal",
+          "children": []
+        },
+        {
+          "name": "blob.png",
+          "type": "png",
+          "size": 8440,
+          "created": "2025-08-31 01:31:08",
+          "modified": "2025-11-17 11:44:50",
+          "author": "mahigangal",
+          "children": []
+        },
+        {
+          "name": "Q3.py",
+          "type": "py",
+          "size": 1444,
+          "created": "2025-11-16 19:42:01",
+          "modified": "2025-11-17 13:23:22",
+          "author": "mahigangal",
+          "children": []
+        },
+        {
+          "name": "bwimage.png",
+          "type": "png",
+          "size": 1098,
+          "created": "2025-08-31 01:31:08",
+          "modified": "2025-11-17 11:44:50",
+          "author": "mahigangal",
+          "children": []
+        },
+        {
+          "name": "Q2.py",
+          "type": "py",
+          "size": 1321,
+          "created": "2025-11-16 19:41:57",
+          "modified": "2025-11-17 13:12:57",
+          "author": "mahigangal",
+          "children": []
+        }
+      ]
+    },
+    "contributors": {},
+    "stats": {
+      "contributors": 0,
+      "total_file_contributions": 0,
+      "top_contributor": null,
+      "top_contribution_count": 0,
+      "skill_count": 1
+    },
+    "file_analysis": {
+      "file_count": 7,
+      "total_size_bytes": 85491,
+      "average_size_bytes": 12213,
+      "file_types": {
+        "PY": 3,
+        "PNG": 2,
+        "TIF": 1,
+        "FILE": 1
+      },
+      "largest_file": {
+        "name": "cameraman.tif",
+        "type": "TIF",
+        "size_bytes": 65240
+      },
+      "newest_file": {
+        "name": ".DS_Store",
+        "type": "FILE",
+        "modified": "2025-11-24 17:40:06"
+      }
+    }
+  }
+]

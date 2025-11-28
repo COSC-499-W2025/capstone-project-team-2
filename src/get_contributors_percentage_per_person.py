@@ -1,19 +1,19 @@
 from pathlib import Path
-
 from github import Github, Auth
-from git import Actor, Repo, InvalidGitRepositoryError
+from git import Repo, InvalidGitRepositoryError
 from collections import Counter, defaultdict
 import os
+import sys
 from dotenv import load_dotenv
-
-
-class get_contributors_percentages_git:
+from typing import Any, Dict
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from src.individual_contribution_detection import detect_individual_contributions, UNATTRIBUTED
+class get_contributors_percentages_per_person:
 
     """
     This is a class that Analyze a git repository contributions using GitHub API,
     where it extracts contributor stats from a local git repository through connecting to
     GitHub API to fetch commit data and calculate each  contributor's percentage of total commits.
-
 
     Attributes:
         file_path (str): The path of the local git repository.
@@ -24,8 +24,7 @@ class get_contributors_percentages_git:
         state_2 (str or None): Status message from repository info collection.
 
     """
-
-
+    
     def __init__(self,file_path):
 
         """
@@ -60,7 +59,6 @@ class get_contributors_percentages_git:
 
         self._remote_repo = None
 
-
     def _ensure_repo(self):
         if self.final_url is None:
             self.get_repo_link()
@@ -73,11 +71,6 @@ class get_contributors_percentages_git:
         if self._remote_repo is None:
             self._remote_repo = self.g.get_repo(self.final_url)
         return self._remote_repo
-
-
-
-
-
 
     def get_repo_link(self):
         try:
@@ -100,11 +93,6 @@ class get_contributors_percentages_git:
             return "Not a git repository"
         return "Successfully  created repo url"
 
-
-
-
-
-
     def get_repo_info(self):
         """
         Here we are connecting to the GitHub API
@@ -117,9 +105,6 @@ class get_contributors_percentages_git:
         from self.final_url, and iterates through each branch and commits to build up
         contributor statistics
 
-
-
-
         """
 
         """
@@ -130,8 +115,6 @@ class get_contributors_percentages_git:
         print(f"Remaining: {core.remaining}")
         print(f"Resets at: {core.reset}")
         """
-
-
 
         if self.final_url is not None:
             #repo = self.g.get_repo(self.final_url)
@@ -158,18 +141,15 @@ class get_contributors_percentages_git:
 
                     self.author_count[author_login] += 1 #here we add the user logins information to the collection Object
                     self.total_commits += 1 #Here we add to the total commits done throughout the project/Repo
-
-
+                    
             return "Data successfully collected"
 
         return "Data unsuccessfully collected"
-
 
     def get_files_by_author(self):
 
         """
         Retrieve per-author file modification statistics from a GitHub repository.
-
 
         """
 
@@ -185,7 +165,6 @@ class get_contributors_percentages_git:
                 "changes":0,
             }),
         )
-
 
         seen_shas=set()
         for branch in Remote_repo.get_branches():
@@ -204,9 +183,6 @@ class get_contributors_percentages_git:
                             continue
 
                         suffix=Path(file.filename).suffix.lower()
-
-
-
                         stats=author_stats[author][file.filename]
                         stats.setdefault("fileType",suffix)
                         stats["additions"] += file.additions or 0
@@ -225,13 +201,6 @@ class get_contributors_percentages_git:
 
             return final_dict
 
-
-
-
-
-
-
-
     def output_result(self):
         """
         Here we are talking the metadata we received and then output in dictionary format to be used
@@ -241,7 +210,6 @@ class get_contributors_percentages_git:
         self.state_1=self.get_repo_link()
         self.state_2=self.get_repo_info()
         files=self.get_files_by_author()
-
 
         if self.state_1 != "Not a git repository" and self.state_2 != "Data unsuccessfully collected":
 
@@ -267,4 +235,81 @@ class get_contributors_percentages_git:
             self.g.close()
             return self.project_info
         return "Data unsuccessfully collected"
+    
+def contribution_percentages_from_local(project_path: str | Path, *, include_unattributed: bool = True, project_name: str = None,) -> Dict[str, Any]:
+    """
+    Compute contribution percentages for a non-Git collaborative project using the output of detect_individual_contributions().
+    
+    """
+    
+    root = Path(project_path)
+    if project_name is None:
+        project_name = root.name  # Get project name from directory
+        
+    summary = detect_individual_contributions(project_path)
+    contributors = summary.get("contributors", {})
 
+    items = (
+        (name, data)
+        for name, data in contributors.items()
+        if name != UNATTRIBUTED
+    )
+
+    filtered = dict(items)
+
+    total_files = sum(c.get("file_count", 0) for c in filtered.values()) # Calculate total files across contributors
+
+    for name, data in filtered.items():
+        count = data.get("file_count", 0)
+        pct = (count / total_files) * 100 if total_files > 0 else 0.0
+        data["percentage"] = f"{pct:.2f}%" # Add percentage to each contributor
+
+    # Put back into the summary structure
+    return {
+        "is_collaborative": summary.get("is_collaborative", True),
+        "mode": summary.get("mode", "local"),
+        "project_name": project_name, 
+        "total_items": total_files,
+        "metric": "files",
+        "contributors": filtered
+    }
+    
+def contribution_summary(project_path: str | Path) -> Dict[str, Any]:
+    """
+    Entry point for contribution analysis:
+
+    - If `project_path` is a Git repo with a GitHub remote, use commit-based percentages via get_contributors_percentages_git
+    - Otherwise use local (non-Git) contribution detection and percentage calculation.
+    """
+    root = Path(project_path)
+    project_name = root.name
+
+    # detect if it's a git repo
+    try:
+        Repo(root)
+        is_git = True
+    except (InvalidGitRepositoryError, Exception):
+        is_git = False
+
+    if is_git:
+        git_analyzer = get_contributors_percentages_per_person(root)
+        result = git_analyzer.output_result()
+        
+        # Handle unsuccessful collection
+        if not isinstance(result, dict):
+            raise RuntimeError(f"Git analysis failed: {result}")
+        
+        # Normalizing Git output to match unified structure
+        git_project_name = result.get("project_name") or project_name
+        return {
+            "is_collaborative": result.get("is_collaborative", False),
+            "mode": "git",
+            "project_name": git_project_name,
+            "project_path": str(root),
+            "total_items": result.get("total_commits", 0),  # map total_commits to total_items
+            "metric": "commits",
+            "contributors": result.get("contributors", {})
+        }
+
+    # Fallback to non-git / local contributions
+    return contribution_percentages_from_local(root, project_name=project_name) 
