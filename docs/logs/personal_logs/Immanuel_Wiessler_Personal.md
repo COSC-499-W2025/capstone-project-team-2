@@ -530,7 +530,7 @@ My goal for the following weeks is to add some optional features to the CLI, whi
 
 
 
-# 📝 Personal Log – Week 11 + week12 (11/10/2025-11/27/2025
+# 📝 Personal Log – Week 11 + week12 11/10/2025-11/27/2025
 
 ## 📊 Peer Evaluation
 ![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/11-22-2025.png)
@@ -657,3 +657,42 @@ and also adding a system to calculate the contributor percentage if the uploaded
 
 
 
+
+
+
+# 📝 Personal Log – Week 13  11/24/2025-11/28/2025
+
+
+## 📊 Peer Evaluation
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/11-22-2025.png)
+
+
+---
+
+## 🚀 Features Worked On
+
+- AI integration for getting a resume styled output
+- Created Automtically docker connection for our OLLama system for both from inside and outside of the container
+
+---
+
+## 📌 Associated Tasks from Project Board
+- [191 : Docker patch for Ollama connection)](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/191)
+- [188 :Ai generate resume ](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/188)
+---
+
+## 📈 Progress Update (since 10/22/2025)
+
+| Task/Issue | Status |
+|------------|--------|
+|**Creation of Automatically docker connection file for Ollama connection** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+|**new Addtion of AI generated resume into the system**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
+
+
+## 🎯 Next Week’s Goals
+- Work on video demo
+- Create Team contract
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 13)
