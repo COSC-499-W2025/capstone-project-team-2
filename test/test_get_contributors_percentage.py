@@ -1,6 +1,9 @@
 from pathlib import Path
 import shutil
-from src.get_contributors_percentage_per_person import get_contributors_percentages_git
+import sys
+sys.path.append(str(Path(__file__).parent.parent))
+from src.get_contributors_percentage_per_person import contribution_summary, contribution_percentages_from_local
+from src.individual_contribution_detection import UNATTRIBUTED
 import unittest
 import tempfile
 from git import Repo, Actor
@@ -8,7 +11,6 @@ from github import Github, Auth
 import os
 from dotenv import load_dotenv
 import uuid
-
 
 class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
 
@@ -43,17 +45,14 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
         cls.repo_2.git.add(A=True)
         cls.repo_2.index.commit("Commit 1", author=Actor("Bob", "Bob@example.com"))
 
-
         cls.repo.git.add(A=True)
         cls.repo.index.commit("Commit A", author=Actor("Alice", "alice@example.com"))
-
 
         with open(file_path, "a") as f:
             f.write("Hello 2")
 
         cls.repo.git.add(A=True)
         cls.repo.index.commit("Commit B", author=Actor("Bob", "bob@example.com"))
-
 
         auth = Auth.Token(cls.token)
         cls.gh = Github(auth=auth)
@@ -88,18 +87,16 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
         branch_2 = cls.repo_2.active_branch.name
         cls.repo_2.git.push("--set-upstream", "origin", branch_2)
 
-
-
     def test_two_contributors_equal_commits(self):
         """
         Checks to see if there are two commits in the repo that the PCT(percentage contributions)
         are 50%
         :return:
         """
-        result = get_contributors_percentages_git(self.repo_path).output_result()
+        result = contribution_summary(self.repo_path)
         self.assertIsNotNone(result, "Result should not be None")
         self.assertTrue(result['is_collaborative'], "Should be collaborative with 2 contributors")
-        self.assertEqual(result['total_commits'], 2, "Should have 2 total commits")
+        self.assertEqual(result['total_items'], 2, "Should have 2 total commits")
         self.assertEqual(len(result['contributors']), 2, "Should have 2 contributors")
 
         for name, stats in result['contributors'].items():
@@ -111,15 +108,15 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
         This test is checking to see if the return structure of the system is correct
         :return:
         """
-        result = get_contributors_percentages_git(self.repo_path).output_result()
+        result = contribution_summary(self.repo_path)
         self.assertIn('is_collaborative', result)
         self.assertIn('project_name', result)
-        self.assertIn('total_commits', result)
+        self.assertIn('total_items', result)
         self.assertIn('contributors', result)
 
         self.assertIsInstance(result['is_collaborative'], bool)
         self.assertIsInstance(result['project_name'], str)
-        self.assertIsInstance(result['total_commits'], int)
+        self.assertIsInstance(result['total_items'], int)
         self.assertIsInstance(result['contributors'], dict)
 
         for name, stats in result['contributors'].items():
@@ -134,14 +131,10 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
         Here we are testing to see if the individual repos return dictionary is correct
         :return:
         """
-        result = get_contributors_percentages_git(self.repo_path_2).output_result()
+        result = contribution_summary(self.repo_path_2)
         self.assertFalse(result['is_collaborative'])
         self.assertIn('is_collaborative', result)
-        self.assertIn('files_change', result)
-        self.assertIsInstance(result['files_change'], dict)
         #self.assertFalse(result['is_collaborative'], "Should not be collaborative")
-
-
 
     def test_percentage_add_to_100(self):
         """
@@ -149,7 +142,7 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
         :return:
         """
         total_percentage = 0
-        result = get_contributors_percentages_git(self.repo_path).output_result()
+        result = contribution_summary(self.repo_path)
         for name, stats in result['contributors'].items():
             percentage = float(stats['percentage'].rstrip('%'))
             total_percentage += percentage
@@ -189,9 +182,90 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
             shutil.rmtree(cls.repo_path, ignore_errors=True)
             if os.path.exists(cls.repo_path_2):
                 shutil.rmtree(cls.repo_path_2, ignore_errors=True)
+                
+class TestIndividualContributionDetection_percentage_non_git(unittest.TestCase):
+    """Tests for non-Git contribution detection and percentage calculation."""
 
+    def setUp(self):
+        """Create a temporary directory for each test."""
+        self.test_dir = tempfile.mkdtemp()
+        self.test_path = Path(self.test_dir)
+        
+        # create a COLLABORATIVE non-git project
+        (self.test_path / "CONTRIBUTORS").write_text("Alice\nBob\n")
+        
+        # Create some files shared between contributors
+        for i in range(4):
+            (self.test_path / f"file{i}.py").write_text("# Test file")
 
+    def tearDown(self):
+        """Clean up temporary directory after each test."""
+        if self.test_path.exists():
+            shutil.rmtree(self.test_path, ignore_errors=True)
 
+    def test_non_git_uses_local_mode(self):
+        """Non-Git directories use local mode and return collaborative summary."""
+        result = contribution_summary(self.test_path)
+
+        self.assertEqual(result['mode'], 'local')
+        self.assertEqual(result['metric'], 'files')
+
+        self.assertTrue(result['is_collaborative'])
+        self.assertEqual(result['total_items'], 4)
+        self.assertGreaterEqual(len(result['contributors']), 2)
+
+    def test_non_git_output_structure(self):
+        """Test that non-Git output has the correct unified structure."""
+        result = contribution_summary(self.test_path)
+
+        required_fields = ['is_collaborative', 'mode', 'project_name',
+                           'total_items', 'metric', 'contributors']
+
+        for field in required_fields:
+            self.assertIn(field, result)
+
+        # Valid types
+        self.assertIsInstance(result['is_collaborative'], bool)
+        self.assertIsInstance(result['mode'], str)
+        self.assertIsInstance(result['project_name'], str)
+        self.assertIsInstance(result['total_items'], int)
+        self.assertIsInstance(result['metric'], str)
+        self.assertIsInstance(result['contributors'], dict)
+
+        self.assertTrue(result['is_collaborative'])
+        self.assertGreaterEqual(len(result['contributors']), 2)
+
+    def test_non_git_percentages_sum_to_100(self):
+        """Test that percentages sum to 100 for collaborative non-Git projects."""
+        result = contribution_summary(self.test_path)
+
+        total = 0
+        for name, stats in result['contributors'].items():
+            pct = float(stats['percentage'].rstrip('%'))
+            total += pct
+
+        self.assertAlmostEqual(total, 100.0, places=1)
+
+    def test_non_git_percentage_format(self):
+        """Test that non-Git percentages are properly formatted."""
+        result = contribution_summary(self.test_path)
+
+        for contributor, stats in result['contributors'].items():
+            self.assertIn('percentage', stats)
+            self.assertIn('file_count', stats)
+
+            percentage = stats['percentage']
+            self.assertIsInstance(percentage, str)
+            self.assertTrue(percentage.endswith('%'))
+
+            # parseable
+            value = float(percentage.rstrip('%'))
+            self.assertGreaterEqual(value, 0.0)
+            self.assertLessEqual(value, 100.0)
+
+            self.assertIsInstance(stats['file_count'], int)
+            self.assertGreaterEqual(stats['file_count'], 0)
 
 if __name__ == "__main__":
     unittest.main()
+ 
