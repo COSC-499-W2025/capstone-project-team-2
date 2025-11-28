@@ -532,5 +532,9 @@ class codeAnalysisAI():
     #    LLM_output=self.run_analysis(save_json=save_Json)
 
 
+if __name__ == "__main__":
+    root_folder = Path(__file__).resolve().parent
 
+    instance = codeAnalysisAI(root_folder)
+    print(instance.run_analysis())
 
