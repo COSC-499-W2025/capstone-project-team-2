@@ -26,7 +26,7 @@ from typing import Dict, List
 from .project_skill_insights import identify_skills
 from .project_stack_detection import detect_project_stack
 from .project_type_detection import detect_project_type
-from .get_contributors_percentage_per_person import get_contributors_percentages_git
+from .get_contributors_percentage_per_person import contribution_summary
 
 @dataclass(frozen=True)
 class ResumeItem:
@@ -78,15 +78,14 @@ def generate_resume_item(project_root: Path | str, project_name: str | None = No
     detection_mode = "local"
     
     try:
-        project_type_git = get_contributors_percentages_git(str(resolved_root)).output_result()
-        if project_type_git != "Data unsuccessfully collected":
-            project_type_bool = project_type_git.get("is_collaborative")
-            if project_type_bool is True:
-                project_type = "collaborative"
-                detection_mode = "git"
-            elif project_type_bool is False:
-                project_type = "individual"
-                detection_mode = "git"
+        contrib_summary = contribution_summary(resolved_root)
+        is_collaborative = contrib_summary.get("is_collaborative", False)
+        detection_mode = contrib_summary.get("mode", "local")
+        
+        if is_collaborative:
+            project_type = "collaborative"
+        else:
+            project_type = "individual"
     except Exception:
         pass  # Git analysis failed, use fallback below
 
