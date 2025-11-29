@@ -5,6 +5,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch, MagicMock
 import sys
+import json
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 import src.main as main_mod
@@ -347,6 +348,74 @@ class TestMainModule(unittest.TestCase):
         self.assertIn("new_project.json", names)
         self.assertIn("old_project.json", names)
 
+    @patch("builtins.print")
+    def test_show_saved_summary_uses_contribution_summary(self, mock_print):
+        """show_saved_summary should print contributors from contribution_summary and ignore 0-count noise."""
+        temp_file = Path(self.tempdir) / "analysis.json"
+
+        data = {
+            "analysis": {
+                "project_root": "/tmp/demo",
+                "resume_item": {
+                    "project_type": "collaborative",
+                    "detection_mode": "git",
+                    "languages": ["Python"],
+                    "frameworks": [],
+                    "skills": ["Python"],
+                    "summary": "Built Demo.",
+                },
+                "duration_estimate": "2 days",
+                "contribution_summary": {
+                    "metric": "files",
+                    "contributors": {
+                        "Alice": {"file_count": 3, "percentage": "60%"},
+                        "Bob": {"file_count": 2, "percentage": "40%"},
+                        "Noise": {"file_count": 0, "percentage": "0%"},
+                        "<unattributed>": {"file_count": 0, "percentage": "0%"},
+                    },
+                },
+            }
+        }
+        temp_file.write_text(json.dumps(data), encoding="utf-8")
+
+        main_mod.show_saved_summary(temp_file)
+
+        printed = [
+            args[0]
+            for args, _ in mock_print.call_args_list
+            if args and isinstance(args[0], str)
+        ]
+
+        # contributors header
+        self.assertTrue(any("Contributors :" in line for line in printed))
+
+        # Alice/Bob lines with percentages + "files" metric
+        self.assertTrue(
+            any("Alice" in line and "3 files" in line and "(60%" in line for line in printed),
+            msg=f"No Alice line in: {printed}",
+        )
+        self.assertTrue(
+            any("Bob" in line and "2 files" in line and "(40%" in line for line in printed),
+            msg=f"No Bob line in: {printed}",
+        )
+
+        # Noise should be filtered out
+        self.assertFalse(
+            any("Noise" in line for line in printed),
+            msg=f"'Noise' contributor should have been filtered out: {printed}",
+        )
+
+        # <unattributed> kept even with 0 files
+        self.assertTrue(
+            any("<unattributed>" in line for line in printed),
+            msg=f'<unattributed> missing from contributors: {printed}',
+        )
+
+        # résumé line printed
+        self.assertTrue(
+            any("Résumé line" in line and "Built Demo." in line for line in printed),
+            msg=f"No résumé line in saved-summary output: {printed}",
+        )
 
 if __name__ == "__main__":
     unittest.main()
