@@ -692,6 +692,7 @@ and also adding a system to calculate the contributor percentage if the uploaded
 ## 🎯 Next Week’s Goals
 - Work on video demo
 - Create Team contract
+- begin to finalize our Milestone 1 deliverables 
 
 ---
 
