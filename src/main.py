@@ -125,22 +125,20 @@ def analyze_project(root: Path) -> None:
     duration = estimate_duration(hierarchy)
     resume = generate_resume_item(root, project_name=root.name)
 
-    # --- detect individual contributions if collaborative ---
-    contributors_data = None
+    # --- contribution summary (percentages, git or local) ---
+    contrib_summary: Dict[str, Any] | None = None
+    contributors_data: Dict[str, Any] | None = None
     try:
-        if resume.project_type == "collaborative" and detect_individual_contributions:
-            contrib_result = detect_individual_contributions(root)
-            # contrib_result looks like:
-            # {"is_collaborative": True, "mode": "git" | "local", "contributors": {...}}
-            contributors_data = contrib_result.get("contributors") or None
-    except ValueError:
-        # Raised if the project isn’t actually collaborative, etc.
-        contributors_data = None
+        if resume.project_type == "collaborative":
+            # This uses git-based or local-based logic internally
+            contrib_summary = contribution_summary(root)
+            contributors_data = (contrib_summary or {}).get("contributors") or None
     except Exception as e:
-        print(f"[WARN] Failed to detect individual contributions: {e}")
+        print(f"[WARN] Contribution percentage analysis failed: {e}")
+        contrib_summary = None
         contributors_data = None
 
-    analysis = {
+    analysis: Dict[str, Any] = {
         "project_root": str(root),
         "hierarchy": hierarchy,
         "duration_estimate": duration,
@@ -160,6 +158,9 @@ def analyze_project(root: Path) -> None:
             "mode": resume.detection_mode,
         },
     }
+
+    if contrib_summary is not None:
+        analysis["contribution_summary"] = contrib_summary
     if contributors_data:
         analysis["contributors"] = contributors_data
 
@@ -167,7 +168,6 @@ def analyze_project(root: Path) -> None:
 
     # --- "insight" entry for this analysis ---
     try:
-        # If you later compute contributors, pass them here instead of None.
         insight = record_project_insight(
             analysis,
             contributors=contributors_data,
@@ -177,7 +177,6 @@ def analyze_project(root: Path) -> None:
             f"(id={insight.id})."
         )
     except Exception as e:
-        # Never kill the CLI just because logging failed.
         print(f"[WARN] Failed to record project insight: {e}")
 
     print("[SUMMARY]")
@@ -186,13 +185,11 @@ def analyze_project(root: Path) -> None:
     print(f"  Frameworks : {', '.join(resume.frameworks) or '—'}")
     print(f"  Skills     : {', '.join(resume.skills) or '—'}")
     print(f"  Duration   : {duration}\n")
-    print()
 
-     # --- contributors section using percentages ---
+    # --- contributors section using percentages ---
     if contributors_data:
         metric = (contrib_summary or {}).get("metric", "items")
-        print("  Contributors:")
-        # stable ordering: most to least by “count”
+
         def _count(info: dict) -> int:
             if "file_count" in info:
                 return int(info.get("file_count") or 0)
@@ -200,53 +197,34 @@ def analyze_project(root: Path) -> None:
                 return int(info.get("commit_count") or 0)
             return len(info.get("files_owned", []))
 
-        sorted_contribs = sorted(
-            contributors_data.items(),
-            key=lambda kv: _count(kv[1]),
-            reverse=True,
-        )
-        for name, info in sorted_contribs:
-            count = _count(info)
-            pct = info.get("percentage")
-            if pct:
-                print(f"    - {name}: {count} {metric} ({pct})")
-            else:
-                print(f"    - {name}: {count} {metric}")
-        print()
-    elif resume.project_type == "collaborative":
-        print("  Contributors: (could not detect)\n")
-    else:
-        print()
-
-    if resume.summary:
-        print(f"  Résumé line: {resume.summary}\n")
-
-    # contributor breakdown (if we have it)
-    if contributors_data:
-        """
-        Keep only contributors who actually own files and "<unattributed>" so 
-        the user can still see how many files were in the project but not
-        attributed to a specific person.
-        """
-        filtered: list[tuple[str, int]] = []
+        # filter out junk zero-count names, keep <unattributed>
+        filtered: list[tuple[str, dict]] = []
         for name, info in contributors_data.items():
-            file_count = int(info.get("file_count", len(info.get("files_owned", []))))
-            if file_count > 0 or name == "<unattributed>":
-                filtered.append((name, file_count))
+            count = _count(info)
+            if count > 0 or name == "<unattributed>":
+                filtered.append((name, info))
 
         if filtered:
             print("  Contributors:")
-            for name, file_count in sorted(filtered, key=lambda kv: kv[1], reverse=True):
-                print(f"    - {name}: {file_count} files")
+            for name, info in sorted(filtered, key=lambda kv: _count(kv[1]), reverse=True):
+                count = _count(info)
+                pct = info.get("percentage")
+                if pct:
+                    print(f"    - {name}: {count} {metric} ({pct})")
+                else:
+                    print(f"    - {name}: {count} {metric}")
             print()
         else:
             print("  Contributors: (no file ownership data)\n")
 
     elif resume.project_type == "collaborative":
-        # Collaborative but we couldn’t compute contributions
         print("  Contributors: (could not detect)\n")
 
+    if resume.summary:
+        print(f"  Résumé line: {resume.summary}\n")
+
     export_json(root.name, analysis)
+
 
 
 def convert_datetime_to_string(obj):
