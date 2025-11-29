@@ -696,3 +696,144 @@ and also adding a system to calculate the contributor percentage if the uploaded
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 13)
+
+For week 13 I began working on more AI implemenetation including the resume generation system and an addition system to the Docker connection file so that we can connect to the Ollama system from both inside and outside of the container, This week was a bit of stressfully week due to looming deadline for both our presenataion and our submission for Milestone 1.However I was exciting to work on doing more AI Integration stuff this week which was focusing on improving the flow of both the Ollama system and the AI generated resume, which was improved with a clearer style than the previous one that I implemented for week 12, addition I discovered that the **langchian** had a library that could format json more cleanly so that the outpput is in the correct json format addition now that I had a better understanding of how to do prompt enginnering, I used this knowledge to built a more defined prompt to be sent to the google gemmi to generate the resume, the way that it was implemented was to take folder and recurivsely go through each file and idenfity if the that particular file is a code,doc, or pdf file and depending on the type detected the associated sytstem would read the contents of those files and build a context from the content of those files and sends and place them into a list which is sent to the gemmi through a prompt which you can see down below
+
+```py
+self.langChain_prompt = PromptTemplate.from_template(
+            """
+            You are an expert technical résumé writer.
+
+            You are given a snapshot of a software project including:
+            - file structure
+            - code snippets (any language including PHP)
+            - documentation (PDF/DOCX/TXT)
+            - configuration files
+
+            Return a single JSON object summarizing the entire project:
+
+            {{
+              "project_title": "...",
+              "one_sentence_summary": "...",
+              "detailed_summary": "...",
+              "key_responsibilities": [
+                "bullet point...",
+                "bullet point..."
+              ],
+              "key_skills_used": [
+                "skill...",
+                "technology..."
+              ],
+              "tech_stack": "short paragraph of main technologies" and ,
+              "impact": "optional short impact statement",
+              "oop_principles_detected": {{
+                "abstraction": {{
+                  "present": false,
+                  "description": "",
+                  "code_snippets": []
+                }},
+                "encapsulation": {{
+                  "present": false,
+                  "description": "",
+                  "code_snippets": []
+                }},
+                "inheritance": {{
+                  "present": false,
+                  "description": "",
+                  "code_snippets": []
+                }},
+                "polymorphism": {{
+                  "present": false,
+                  "description": "",
+                  "code_snippets": []
+                }}
+              }}
+            }}
+
+            For "key_skills_used", include both technical tools (languages, frameworks, libraries, databases, etc.)
+            and conceptual skills (e.g., testing strategies, design patterns, cloud, CI/CD).
+            When the project demonstrates object-oriented design, explicitly include object-oriented principles
+            such as abstraction, encapsulation, inheritance, and polymorphism as skills where appropriate.
+
+            For "oop_principles_detected":
+            - For each principle (abstraction, encapsulation, inheritance, polymorphism):
+              - Set "present" to true or false (JSON booleans).
+              - If present, fill "description" with a short explanation referencing the file/class/method.
+              - If present, "code_snippets" MUST be a non-empty array of objects like:
+                {{
+                  "file": "relative/path/to/file.ext",
+                  "code": "EXACT code excerpt that demonstrates the principle"
+                }}.
+              - The "code" field MUST contain a direct copy of the relevant code from the project context
+                (class definitions, methods, interface implementations, overridden methods, etc.).
+              - Do NOT wrap code in markdown fences (no ```), only plain text inside the JSON string.
+            - If a principle is not detected, leave:
+              - "present": false
+              - "description": ""
+              - "code_snippets": []
+
+            Do NOT output anything except valid JSON.
+
+            PROJECT CONTEXT:
+            \"\"\"{project_context}\"\"\"
+            """
+        )
+
+
+```
+
+To run the model I used the concept of **langchain chains**,which are the core asbtraction that lets you connect multiple components together into a single reusbale pipline,without needing to manually defined each step(Calling the LLM, parsing output, and feeding it to the next component) in other words in streamlines the process of creating a model intreaction pipeline and example of this can be seen down below.
+
+```py
+self.chain=self.langChain_prompt | self.llm | self.parser
+```
+
+in essence this chain is taking the prompt and then passing it to the LLM and then the parser which is a function that takes the output of the LLM and returns it in the formatted JSON object which is then used int the creation of of the resume/protfolio, where I store the results into 
+a dataclass object to make the process of access the elements of the json more convenient to do this I did it in the following way 
+
+```py
+
+
+@dataclass()
+class OOPPrinciple:
+    present: bool
+    description: str
+    code_snippets: List[Dict[str, str]]
+
+@dataclass()
+class ResumeItem:
+    project_title: str
+    one_sentence_summary: str
+    detailed_summary: str
+    key_responsibilities: List[str]
+    key_skills_used: List[str]
+    tech_stack: str
+    impact: str
+    oop_principles_detected: Dict[str, OOPPrinciple]
+
+    resume_item = ResumeItem(
+            # Project title from the analysis
+            project_title=result.get("project_title", ""),
+            # Brief project summary in one sentence
+            one_sentence_summary=result.get("one_sentence_summary", ""),
+            # Detailed project description
+            detailed_summary=result.get("detailed_summary", ""),
+            # List of main responsibilities/tasks
+            key_responsibilities=result.get("key_responsibilities", []),
+            # Technologies and skills demonstrated
+            key_skills_used=result.get("key_skills_used", []),
+            # Main technologies used in the project
+            tech_stack=result.get("tech_stack", ""),
+            # Project's impact or achievements
+            impact=result.get("impact", ""),
+            # Object-oriented principles detected in the project
+            oop_principles_detected=oop_principles,
+
+        )
+        return resume_item
+```
+this was cool aspect which I enjoyed playing around with and I learned a lot about dataclass from doing this 
+
+The second thing that I focused on doing was creating an enchament to the docker automation script that I perviously created, where I added the ability to auto connect to the ollama image/container.
+
+The last thing that I focused on was creating the test for these files to make sure that they are working as intended.
