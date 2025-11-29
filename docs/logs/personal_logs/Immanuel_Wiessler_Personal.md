@@ -664,7 +664,7 @@ and also adding a system to calculate the contributor percentage if the uploaded
 
 
 ## 📊 Peer Evaluation
-![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/11-22-2025.png)
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/11-29-2025.png)
 
 
 ---
@@ -677,8 +677,8 @@ and also adding a system to calculate the contributor percentage if the uploaded
 ---
 
 ## 📌 Associated Tasks from Project Board
-- [191 : Docker patch for Ollama connection)](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/191)
-- [188 :Ai generate resume ](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/188)
+- [191 : Docker patch for Ollama connection](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/191)
+- [188 : Ai generate resume ](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/188)
 ---
 
 ## 📈 Progress Update (since 10/22/2025)
