@@ -26,6 +26,8 @@ from src.project_insights import (
 )
 import mysql.connector
 from mysql.connector import Error
+from src.get_contributors_percentage_per_person import contribution_summary
+
 
 
 # Connection code for MySQL Docker container
@@ -185,6 +187,36 @@ def analyze_project(root: Path) -> None:
     print(f"  Skills     : {', '.join(resume.skills) or '—'}")
     print(f"  Duration   : {duration}\n")
     print()
+
+     # --- contributors section using percentages ---
+    if contributors_data:
+        metric = (contrib_summary or {}).get("metric", "items")
+        print("  Contributors:")
+        # stable ordering: most to least by “count”
+        def _count(info: dict) -> int:
+            if "file_count" in info:
+                return int(info.get("file_count") or 0)
+            if "commit_count" in info:
+                return int(info.get("commit_count") or 0)
+            return len(info.get("files_owned", []))
+
+        sorted_contribs = sorted(
+            contributors_data.items(),
+            key=lambda kv: _count(kv[1]),
+            reverse=True,
+        )
+        for name, info in sorted_contribs:
+            count = _count(info)
+            pct = info.get("percentage")
+            if pct:
+                print(f"    - {name}: {count} {metric} ({pct})")
+            else:
+                print(f"    - {name}: {count} {metric}")
+        print()
+    elif resume.project_type == "collaborative":
+        print("  Contributors: (could not detect)\n")
+    else:
+        print()
 
     if resume.summary:
         print(f"  Résumé line: {resume.summary}\n")
@@ -346,20 +378,34 @@ def show_saved_summary(path: Path) -> None:
     frws = stack.get("frameworks") or analysis.get("stack", {}).get("frameworks", [])
     skills = stack.get("skills") or analysis.get("skills", [])
     duration = analysis.get("duration_estimate", "—")
-    summary = (analysis.get("resume_item", {}) or {}).get("summary", "—")
+    summary = stack.get("summary", "—")
 
-    contributors_raw = analysis.get("contributors") or {}
-    contributors_list: list[tuple[str, int, dict]] = []
+    # Try to use contribution_summary first; fall back to raw contributors
+    contrib_summary = analysis.get("contribution_summary") or {}
+    contributors_raw = (
+        analysis.get("contributors")
+        or contrib_summary.get("contributors")
+        or {}
+    )
+    contrib_metric = contrib_summary.get("metric", "items")
+
+    contributors_list: list[tuple[str, int, str | None]] = []
 
     if isinstance(contributors_raw, dict):
-        tmp: list[tuple[str, int, dict]] = []
-        for name, info in contributors_raw.items():
-            file_count = int(info.get("file_count", len(info.get("files_owned", []))))
-            if file_count > 0 or name == "<unattributed>":
-                tmp.append((name, file_count, info))
-        # sort by file_count descending
-        contributors_list = sorted(tmp, key=lambda tup: tup[1], reverse=True)
+        def _count(info: dict) -> int:
+            if "file_count" in info:
+                return int(info.get("file_count") or 0)
+            if "commit_count" in info:
+                return int(info.get("commit_count") or 0)
+            return len(info.get("files_owned", []))
 
+        tmp: list[tuple[str, int, str | None]] = []
+        for name, info in contributors_raw.items():
+            count = _count(info)
+            if count > 0 or name == "<unattributed>":
+                pct = info.get("percentage")
+                tmp.append((name, count, pct))
+        contributors_list = sorted(tmp, key=lambda tup: tup[1], reverse=True)
 
     print(f"\n== {path.name} ==")
     print(f"Project root : {analysis.get('project_root', '—')}")
@@ -368,18 +414,22 @@ def show_saved_summary(path: Path) -> None:
     print(f"Frameworks   : {', '.join(frws) or '—'}")
     print(f"Skills       : {', '.join(skills) or '—'}")
     print(f"Duration     : {duration}")
+    print()
 
-    # contributors from saved JSON
     if contributors_list:
         print("Contributors :")
-        for name, file_count, _info in contributors_list:
-            print(f"  - {name}: {file_count} files")
+        for name, count, pct in contributors_list:
+            if pct:
+                print(f"  - {name}: {count} {contrib_metric} ({pct})")
+            else:
+                print(f"  - {name}: {count} {contrib_metric}")
         print()
 
-    # print
     if summary and summary != "—":
         print(f"Résumé line  : {summary}")
     print()
+
+
 
 def get_saved_projects_from_db() -> list[tuple]:
     """
