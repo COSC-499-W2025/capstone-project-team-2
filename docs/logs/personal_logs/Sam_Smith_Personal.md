@@ -1,3 +1,62 @@
+## Week 13 (11/24/2025- 11/30/2025)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+<img width="2113" height="1214" alt="image" src="https://github.com/user-attachments/assets/cb448974-238a-4f16-9ca3-4eaea98eadad"/>
+
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: added integration of collaboration summary into CLI output
+  * #2: added integration of collaboration percentage into CLI output
+  * #3: added basic resume display for analyzed projects into CLI
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description                     | Feature                   | Assigned To | Status   |
+| ------- | ------------------------------- | ------------------------- | ----------- | -------- |
+| 192  | [collaboration summary]   | [summary of users who collaborated on project displays]      | [ssmith86]  | [complete]   |
+| 192  | [collaboration percentage]   | [contribition percentage for users who collaborated on project displays]      | [ssmith86]  | [complete]   |
+| 192  | [resume line display]   | [basic resume line describing project displays]      | [ssmith86]  | [complete]   |
+
+### Progress Update (since 10/26/2025) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>added integration of collaboration summary into CLI output
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>added integration of collaboration percentage into CLI output
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>added basic resume display for analyzed projects into CLI
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+This week we finalized most of the project, moslty finished integrating everything and worked on bug fixes. We also built the google slides for our project presentation
+
+### Tasks for Next Sprint:
+- Project final demo, last bug fixes and integration of gemini into CLI
 
 ## Week 12 (11/17/2025- 11/23/2025)
 
