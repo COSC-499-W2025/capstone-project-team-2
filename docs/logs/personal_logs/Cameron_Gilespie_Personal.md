@@ -1,3 +1,37 @@
+## Dates of Sprint: (11/24/2025 – 11/30/2025)
+
+### Peer Eval Screenshot:
+
+<img width="1092" height="626" alt="image" src= "https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Cameron-Personal-Logs/docs/logs/peer_eval_screenshots/CameronG_PL_11-29-25.png" />
+
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: Create/Format portfolio output
+  * #2: Add Ollama LLM to docker
+
+
+## Associated Tasks from Project Board:
+
+| Description        | Status   |
+| ------------------ | -------- |
+| [Create/Format portfolio output]  | [Complete] |
+| [Add Ollama LLM to docker]  | [Complete] |
+
+
+
+---
+## Next week goals
+- Discuss next steps with team
+---
+
+### Extra Details:
+
+<details>
+This week i added portfolio output to our user interface, I also added our selected LLM Olama to our docker instance for future use of our LLM. Overall I did a small piece of critial work. the integration of Ollama into docker reduces our need to export data to an online enviroment by keeping it built into our project. furthermore, we had yet to have a formal output for our resume and portfolio. I was hoping to do more this week but a combination of a miscommunication between my team partner and I led me to do less on top of the fact that I really needed to focus on the final assignments/projects for my other classes.
+
+</details>
+
+
 ## Dates of Sprint: (11/10/2025 – 11/22/2025)
 
 ### Peer Eval Screenshot:
