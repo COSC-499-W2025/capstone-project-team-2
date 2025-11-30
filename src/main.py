@@ -20,6 +20,7 @@ from src.file_data_saving import SaveFileAnalysisAsJSON
 from src.db_helper_function import HelperFunct
 from src.Docker_finder import DockerFinder
 from src.Configuration import configuration_for_users
+from src.individual_contribution_detection import detect_individual_contributions
 from src.project_insights import (
     record_project_insight,
     list_project_insights,
@@ -30,6 +31,8 @@ from src.project_insights import (
 
 import mysql.connector
 from mysql.connector import Error
+from src.get_contributors_percentage_per_person import contribution_summary
+
 
 
 # Connection code for MySQL Docker container
@@ -128,7 +131,20 @@ def analyze_project(root: Path) -> None:
     duration = estimate_duration(hierarchy)
     resume = generate_resume_item(root, project_name=root.name)
 
-    analysis = {
+    # --- contribution summary (percentages, git or local) ---
+    contrib_summary: Dict[str, Any] | None = None
+    contributors_data: Dict[str, Any] | None = None
+    try:
+        if resume.project_type == "collaborative":
+            # This uses git-based or local-based logic internally
+            contrib_summary = contribution_summary(root)
+            contributors_data = (contrib_summary or {}).get("contributors") or None
+    except Exception as e:
+        print(f"[WARN] Contribution percentage analysis failed: {e}")
+        contrib_summary = None
+        contributors_data = None
+
+    analysis: Dict[str, Any] = {
         "project_root": str(root),
         "hierarchy": hierarchy,
         "duration_estimate": duration,
@@ -143,22 +159,30 @@ def analyze_project(root: Path) -> None:
             "skills": resume.skills,
             "framework_sources": resume.framework_sources,
         },
+        "project_type": {
+            "project_type": resume.project_type,
+            "mode": resume.detection_mode,
+        },
     }
+
+    if contrib_summary is not None:
+        analysis["contribution_summary"] = contrib_summary
+    if contributors_data:
+        analysis["contributors"] = contributors_data
+
     analysis = convert_datetime_to_string(analysis)
 
     # --- "insight" entry for this analysis ---
     try:
-        # If you later compute contributors, pass them here instead of None.
         insight = record_project_insight(
             analysis,
-            contributors=None,  # or your contributors dict when you hook that up
+            contributors=contributors_data,
         )
         print(
             f"[INFO] Insight recorded for project '{insight.project_name}' "
             f"(id={insight.id})."
         )
     except Exception as e:
-        # Never kill the CLI just because logging failed.
         print(f"[WARN] Failed to record project insight: {e}")
 
     print("[SUMMARY]")
@@ -168,7 +192,45 @@ def analyze_project(root: Path) -> None:
     print(f"  Skills     : {', '.join(resume.skills) or '—'}")
     print(f"  Duration   : {duration}\n")
 
+    # --- contributors section using percentages ---
+    if contributors_data:
+        metric = (contrib_summary or {}).get("metric", "items")
+
+        def _count(info: dict) -> int:
+            if "file_count" in info:
+                return int(info.get("file_count") or 0)
+            if "commit_count" in info:
+                return int(info.get("commit_count") or 0)
+            return len(info.get("files_owned", []))
+
+        # filter out junk zero-count names, keep <unattributed>
+        filtered: list[tuple[str, dict]] = []
+        for name, info in contributors_data.items():
+            count = _count(info)
+            if count > 0 or name == "<unattributed>":
+                filtered.append((name, info))
+
+        if filtered:
+            print("  Contributors:")
+            for name, info in sorted(filtered, key=lambda kv: _count(kv[1]), reverse=True):
+                count = _count(info)
+                pct = info.get("percentage")
+                if pct:
+                    print(f"    - {name}: {count} {metric} ({pct})")
+                else:
+                    print(f"    - {name}: {count} {metric}")
+            print()
+        else:
+            print("  Contributors: (no file ownership data)\n")
+
+    elif resume.project_type == "collaborative":
+        print("  Contributors: (could not detect)\n")
+
+    if resume.summary:
+        print(f"  Résumé line: {resume.summary}\n")
+
     export_json(root.name, analysis)
+
 
 
 def convert_datetime_to_string(obj):
@@ -300,7 +362,34 @@ def show_saved_summary(path: Path) -> None:
     frws = stack.get("frameworks") or analysis.get("stack", {}).get("frameworks", [])
     skills = stack.get("skills") or analysis.get("skills", [])
     duration = analysis.get("duration_estimate", "—")
-    summary = (analysis.get("resume_item", {}) or {}).get("summary", "—")
+    summary = stack.get("summary", "—")
+
+    # Try to use contribution_summary first; fall back to raw contributors
+    contrib_summary = analysis.get("contribution_summary") or {}
+    contributors_raw = (
+        analysis.get("contributors")
+        or contrib_summary.get("contributors")
+        or {}
+    )
+    contrib_metric = contrib_summary.get("metric", "items")
+
+    contributors_list: list[tuple[str, int, str | None]] = []
+
+    if isinstance(contributors_raw, dict):
+        def _count(info: dict) -> int:
+            if "file_count" in info:
+                return int(info.get("file_count") or 0)
+            if "commit_count" in info:
+                return int(info.get("commit_count") or 0)
+            return len(info.get("files_owned", []))
+
+        tmp: list[tuple[str, int, str | None]] = []
+        for name, info in contributors_raw.items():
+            count = _count(info)
+            if count > 0 or name == "<unattributed>":
+                pct = info.get("percentage")
+                tmp.append((name, count, pct))
+        contributors_list = sorted(tmp, key=lambda tup: tup[1], reverse=True)
 
     print(f"\n== {path.name} ==")
     print(f"Project root : {analysis.get('project_root', '—')}")
@@ -309,9 +398,21 @@ def show_saved_summary(path: Path) -> None:
     print(f"Frameworks   : {', '.join(frws) or '—'}")
     print(f"Skills       : {', '.join(skills) or '—'}")
     print(f"Duration     : {duration}")
+    print()
+
+    if contributors_list:
+        print("Contributors :")
+        for name, count, pct in contributors_list:
+            if pct:
+                print(f"  - {name}: {count} {contrib_metric} ({pct})")
+            else:
+                print(f"  - {name}: {count} {contrib_metric}")
+        print()
+
     if summary and summary != "—":
         print(f"Résumé line  : {summary}")
     print()
+
 
 
 def get_saved_projects_from_db() -> list[tuple]:
