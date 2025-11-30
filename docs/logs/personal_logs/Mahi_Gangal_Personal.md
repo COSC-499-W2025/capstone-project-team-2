@@ -495,5 +495,68 @@ These changes required updating a some portions of the test suite. I wrote new t
     </span>
 </details>
 
+## Dates of Sprint: (11/24/2025 – 11/30/2025) 
+
+### Peer Eval Screenshot: <img width="1085" height="633" alt="mahi gangal" src="https://github.com/user-attachments/assets/3d6ec59e-99dc-4a13-8abd-1cea830960c6" />
 
 
+---
+
+### Features Worked on this Milestone   
+#### Week 12
+  * Completed support for contribution-percentages in non-Git projects using file counts.
+  * Deep Analysis Module for Python Projects
+      - Built a full analysis engine for Python projects.
+      - Extracts OOP structure (classes, inheritance, overrides, private attributes, dunders).
+      - Adds data-structure usage analysis and algorithm/complexity signals.
+      - Generates narrative explanations that interpret developer skill and design decisions.
+      - Computes overall OOP score with qualitative feedback.
+  * Added comprehensive tests for both features.
+  * Integrated the analyzer into the main workflow so insights, metrics, and narratives appear in final reports.
+
+---
+
+## Associated Tasks from Project Board:
+- https://github.com/orgs/COSC-499-W2025/projects/11?pane=issue&itemId=142162084
+- https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=141963819
+
+---
+### Progress Update (since 11/24/2025)
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong></td>
+        <td><strong>STATUS</strong></td>
+    </tr>
+    <tr>
+    <td>Implement contribution-percentages in non-Git projects using file counts.</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+    <tr>
+    <td>Implemented Deep Analysis Module for Python Projects</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+   <tr>
+    <td>Develop and validate corresponding test cases</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+  <tr>
+    <td>Integrating analyzer in the main system</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+</table>
+
+---
+
+### Next week goals
+
+- If time permits: begin expanding the deep-analysis framework to additional languages such as Java and C/C++, using a parallel AST-based approach.
+- Finish all remaining work needed for the Milestone #1 demo and submission.
+
+---
+
+### Extra Details:
+<details>
+    <summary><span style='font-weight:bold'>Click to expand</span> </summary>
+This sprint I focused on strengthening the analytical depth and reliability of our system. The biggest chunk of work was building the complete Python static-analysis module from scratch, something far beyond basic metrics. The analyzer now interprets classes, inheritance patterns, private attributes, overridden methods, and dunder usage, and pairs this with data-structure patterns and algorithmic/complexity signals. The goal was not just to count things, but to translate them into meaningful insights that reflect a developer’s design decisions and technical ability. I also wrote an extensive set of tests to validate the analyzer’s behavior across edge cases, including syntax errors, empty directories, nested classes, and attribute-detection scenarios. Integrating this module into the main workflow required refactoring parts of the system so results are saved, loaded, and deleted consistently. Alongside this, I completed the PR enabling contribution analysis for non-Git collaborative projects, ensuring consistent behavior across all project types. Overall, this sprint was about raising the intelligence, stability, and polish of the system so it’s ready for the Milestone #1 demo.
+    </span>
+</details>
