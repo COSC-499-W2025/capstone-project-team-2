@@ -426,15 +426,16 @@ def display_portfolio(path: Path) -> None:
         duration = analysis.get("duration_estimate", "—")
         summary = (analysis.get("resume_item", {}) or {}).get("summary", "—")
 
-        print(f"\n== {path.name} ==")
-        print(f"Project root : {analysis.get('project_root', '—')}")
-        print(f"Type         : {pt} (mode={mode})")
+        print("\n===============================")
+        print(f" PROJECT: {path.name}")
+        print("===============================")
+
+        if summary and summary != "—":
+            print(f"Résumé line  : {summary}")
+        print(f"Duration     : {duration}")
         print(f"Languages    : {', '.join(langs) or '—'}")
         print(f"Frameworks   : {', '.join(frws) or '—'}")
         print(f"Skills       : {', '.join(skills) or '—'}")
-        print(f"Duration     : {duration}")
-        if summary and summary != "—":
-            print(f"Résumé line  : {summary}")
         print()
         return
 
