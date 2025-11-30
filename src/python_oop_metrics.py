@@ -19,7 +19,7 @@ class ClassInfo:
     public_attrs: Set[str] = field(default_factory=set)
 
 class ClassVisitor(ast.NodeVisitor):
-    """AST visitor that extracts OOP relevant info from a single module."""
+    """Collects class definitions and basic OOP signals."""
 
     def __init__(self, file_path: Path, module_name: str):
         self.file_path = file_path
@@ -87,7 +87,7 @@ class ClassVisitor(ast.NodeVisitor):
                     
 class _DataStructureAndComplexityVisitor(ast.NodeVisitor):
     """
-    AST visitor that collects data structure usage and complexity signals.
+    Collects data structure usage and rough complexity signals.
     """
     
     def __init__(self) -> None:
@@ -97,7 +97,6 @@ class _DataStructureAndComplexityVisitor(ast.NodeVisitor):
         self.dict_literals = 0
         self.set_literals = 0
         self.tuple_literals = 0
-
         self.list_comprehensions = 0
         self.dict_comprehensions = 0
         self.set_comprehensions = 0
@@ -114,7 +113,7 @@ class _DataStructureAndComplexityVisitor(ast.NodeVisitor):
         self.functions_with_nested_loops = 0
         self.max_loop_depth_overall = 0
 
-    # Data structure usage  
+    # Data structure 
     def visit_List(self, node: ast.List) -> Any:
         self.list_literals += 1
         self.generic_visit(node)
@@ -143,7 +142,7 @@ class _DataStructureAndComplexityVisitor(ast.NodeVisitor):
         self.set_comprehensions += 1
         self.generic_visit(node)
 
-    # Imports for advanced structures
+    # Imports 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> Any:
         module = node.module or ""
         if module.startswith("collections"):
@@ -170,7 +169,7 @@ class _DataStructureAndComplexityVisitor(ast.NodeVisitor):
                 pass
         self.generic_visit(node)
 
-    # Function-level complexity 
+    # complexity 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> Any:
         self.total_functions += 1
         max_depth = self._max_loop_depth(node)
@@ -182,7 +181,7 @@ class _DataStructureAndComplexityVisitor(ast.NodeVisitor):
     def _max_loop_depth(self, node: ast.AST, current_depth: int = 0) -> int:
         
         """
-        Roughly measure max nesting of for/while loops inside a function.
+        measure max nesting of for/while loops inside a function.
         """
         max_depth = current_depth
         for child in ast.iter_child_nodes(node):
@@ -205,20 +204,11 @@ class _DataStructureAndComplexityVisitor(ast.NodeVisitor):
         if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name):
             if func.value.id == "heapq":
                 self.uses_heapq = True
-
         self.generic_visit(node)
 class PythonOOPAstAnalyzer:
     
     """
     Analyze Python OOP usage in a project directory using the built-in AST.
-    Primary metrics:
-      - Number of classes
-      - Average methods per class
-      - How many classes use inheritance
-      - Encapsulation indicators (private attributes)
-      - Polymorphism indicators (overrides of base methods)
-      - Richness of special/dunder methods
-
     Produces a normalized OOP score in [0, 1] + short textual summary.
     """
     
@@ -252,7 +242,7 @@ class PythonOOPAstAnalyzer:
 
     def discover_python_files(self) -> None:
         """
-        Collect all .py files under root, skipping some common noisy dirs.
+        Collect all .py files under root, skipping some common dirs.
         """
         ignore_dirs = {".git", "__pycache__", ".venv", "venv", "env"}
 
@@ -273,7 +263,6 @@ class PythonOOPAstAnalyzer:
             self.syntax_errors.append(path)
             return
 
-        # Derive module name from file path
         try:
             rel = path.relative_to(self.root)
             module_name = ".".join(rel.with_suffix("").parts)
@@ -299,7 +288,6 @@ class PythonOOPAstAnalyzer:
         self.ds_counts["dict_comprehensions"] += v.dict_comprehensions
         self.ds_counts["set_comprehensions"] += v.set_comprehensions
 
-        # OR booleans
         for key in self.alg_usage:
             self.alg_usage[key] = self.alg_usage[key] or getattr(v, key)
 
@@ -455,21 +443,18 @@ class PythonOOPAstAnalyzer:
             rating = "low"
             comment = (
                 "The project shows limited use of object-oriented design. "
-                "There are some classes, but inheritance, encapsulation, and "
-                "polymorphism are either absent or lightly used."
+                "There are some classes, but inheritance, encapsulation, and polymorphism are either absent or lightly used."
             )
         elif oop_score < 0.6:
             rating = "medium"
             comment = (
                 "The project demonstrates moderate OOP usage. Classes and methods "
-                "are present, with some inheritance or encapsulation, but there is "
-                "still room to deepen abstraction and polymorphism."
+                "are present, with some inheritance or encapsulation, but there is still room to deepen abstraction and polymorphism."
             )
         else:
             rating = "high"
             comment = (
-                "The project exhibits strong object-oriented design: classes are "
-                "well-used, inheritance and method overriding appear, and there are "
+                "The project exhibits strong object-oriented design: classes are well-used, inheritance and method overriding appear, and there are "
                 "signs of encapsulation and expressive interfaces."
             )
 
@@ -590,18 +575,15 @@ def build_narrative(metrics: Dict[str, Any]) -> Dict[str, str]:
         # overall OOP interpretation based on score
         if score < 0.3:
             oop_lines.append(
-                "Overall, the OOP score is low, so this artifact shows only limited use of "
-                "object-oriented design beyond basic class definitions."
+                "Overall, the OOP score is low, so this artifact shows only limited use of object-oriented design beyond basic class definitions."
             )
         elif score < 0.6:
             oop_lines.append(
-                "Overall, the OOP score is moderate, indicating some use of object-oriented ideas "
-                "but still with room for deeper abstraction and polymorphism."
+                "Overall, the OOP score is moderate, indicating some use of object-oriented ideas but still with room for deeper abstraction and polymorphism."
             )
         else:
             oop_lines.append(
-                "The high OOP score indicates strong, deliberate use of object-oriented design in "
-                "this artifact."
+                "The high OOP score indicates strong, deliberate use of object-oriented design in this artifact."
             )
 
     oop_narrative = " ".join(oop_lines)
@@ -620,8 +602,7 @@ def build_narrative(metrics: Dict[str, Any]) -> Dict[str, str]:
 
     if total_literal_collections == 0:
         ds_lines.append(
-            "The analysis did not detect any collection literals, so data structure usage is "
-            "minimal in this artifact."
+            "The analysis did not detect any collection literals, so data structure usage is minimal in this artifact."
         )
     else:
         ds_lines.append(
@@ -676,8 +657,7 @@ def build_narrative(metrics: Dict[str, Any]) -> Dict[str, str]:
 
     if total_funcs == 0:
         cx_lines.append(
-            "No functions were detected for complexity analysis, so we cannot infer much about "
-            "algorithmic design from this artifact."
+            "No functions were detected for complexity analysis, so we cannot infer much about algorithmic design from this artifact."
         )
     else:
         cx_lines.append(
@@ -729,15 +709,13 @@ def build_narrative(metrics: Dict[str, Any]) -> Dict[str, str]:
         "complexity": cx_narrative,
     }
     
-
 def analyze_python_project_oop(root: str | Path) -> Dict[str, Any]:
     """
     function added to simplify integration with other modules.
     """
     root = '/Users/mahigangal/Desktop/PyWhatKit-master'
     analyzer = PythonOOPAstAnalyzer(Path(root))
-    metrics = analyzer.analyze()
-    return metrics
+    return analyzer.analyze()
 
 def pretty_print_oop_report(metrics: dict):
     print("\n" + "="*60)
@@ -817,7 +795,5 @@ def pretty_print_oop_report(metrics: dict):
         print(narrative["complexity"])
 
     print("\n" + "="*60 + "\n")
-
-
 
 pretty_print_oop_report(analyze_python_project_oop('/Users/mahigangal/Desktop/Communicado'))
