@@ -5,6 +5,8 @@ from typing import Any, Dict,Optional
 import datetime
 import zipfile
 
+from src.Generate_AI_Resume import GenerateProjectResume
+
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 # Local module Imports
 from src.CLI_Interface_for_user_config import ConfigurationForUsersUI
@@ -373,6 +375,27 @@ def delete_file_from_disk(filename: str) -> bool:
     except Exception as e:
         print(f"[WARNING] Failed to delete file '{filename}': {e}")
         return False
+    
+def display_portfolio(path: Path) -> None:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"[ERROR] Could not read {path.name}: {e}")
+        return
+    docker = GenerateProjectResume(data).generate()
+    print(docker.project_title)
+    print(docker.one_sentence_summary)
+    print(docker.key_skills_used)
+    print(docker.tech_stack)
+    print(docker.oop_principles_detected.keys())
+
+    for name, principle in docker.oop_principles_detected.items():
+        print(f"=== {name.upper()} ===")
+        print("present:", principle.present)
+        print("description:", principle.description)
+        for snippet in principle.code_snippets:
+            print("file:", snippet.get("file"))
+            print("code:", snippet.get("code")[:200], "...")
 
 
 # ---------- Menus ----------
@@ -581,6 +604,52 @@ def delete_analysis_menu() -> None:
             input("Press Enter to return to main menu...")
             return
 
+def get_portfolio() -> None:
+
+    """
+    Lets the user select a saved project and generates a portfolio-style
+    summary using GenerateProjectResume.
+    """
+    while True:
+        print("\n=== Portfolio Generator ===")
+
+        try:
+            # Utilized logic from "saved_projects_menu"
+            folder = Path(DEFAULT_SAVE_DIR).resolve()
+            items = list_saved_projects(folder)
+
+            if not items:
+                print("[INFO] No saved projects")
+                input("Press Enter to return to main menu...")
+                return
+
+            print(f"\nSaved analyses:\n")
+            for i, p in enumerate(items, start=1):
+                print(f"{i}) {p.name}")
+
+            sel = input(
+                "\nChoose a file to view (or press 0 to exit to main menu): "
+            ).strip()
+            if not sel or sel == "0":
+                return
+
+            try:
+                idx = int(sel) - 1
+                if idx < 0 or idx >= len(items):
+                    print("Invalid selection.")
+                    continue
+
+                display_portfolio(items[idx])
+                input("Press Enter to continue...")
+            except ValueError:
+                print("Please enter a number.")
+                continue
+
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            input("Press Enter to return to main menu...")
+            return
+
 
 def main() -> int:
     while True:
@@ -589,6 +658,7 @@ def main() -> int:
         print("2) Analyze project")
         print("3) Saved projects")
         print("4) Delete analysis")
+        print("5) Portfolio Generator")
         print("0) Exit")
         choice = input("Select an option: ").strip()
 
@@ -601,6 +671,8 @@ def main() -> int:
                 saved_projects_menu()
             elif choice == "4":
                 delete_analysis_menu()
+            elif choice == "5":
+                get_portfolio()
             elif choice == "0":
                 print("Goodbye!")
                 return 0
