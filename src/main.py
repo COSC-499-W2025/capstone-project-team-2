@@ -25,6 +25,9 @@ from src.project_insights import (
     list_project_insights,
     rank_projects_by_contribution,
 )
+
+
+
 import mysql.connector
 from mysql.connector import Error
 
@@ -57,6 +60,7 @@ root_folder = Path(__file__).absolute().resolve().parents[1]
 LEGACY_SAVE_DIR = root_folder / "User_config_files"
 # New location: nested project_insights folder
 DEFAULT_SAVE_DIR = LEGACY_SAVE_DIR / "project_insights"
+project_file_path=None
 
 
 def _input_path(prompt: str, allow_blank: bool = False) -> Optional[Path]:
@@ -384,13 +388,15 @@ def display_portfolio(path: Path) -> None:
 
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
+
     except Exception as e:
         print(f"[ERROR] Could not read {path.name}: {e}")
         return
 
     
     # Load user config
-    config_path = Path("User_config_files/UserConfigs.json")
+    #config_path = Path("User_config_files/UserConfigs.json")
+    config_path= LEGACY_SAVE_DIR /"UserConfigs.json"
     try:
         config_data = json.loads(config_path.read_text(encoding="utf-8"))
         has_external = config_data.get("consented", {}).get("external", False)
@@ -434,7 +440,8 @@ def display_portfolio(path: Path) -> None:
 
     else:
         try:
-            docker = GenerateProjectResume(str(path)).generate()
+            directory_file_path=data.get("project_root")
+            docker = GenerateProjectResume(directory_file_path).generate()
         except Exception as e:
             print(f"[ERROR] Could not generate portfolio: {e}")
             return
@@ -507,6 +514,7 @@ def analyze_project_menu() -> None:
         try:
             if choice == "1":
                 dir = _input_path("Enter path to project directory: ")
+
                 return analyze_project(dir)
             elif choice == "2":
                 zip = _input_path("Enter path to ZIP: ")
