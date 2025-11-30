@@ -17,6 +17,54 @@ class DockerFinder:
             self.client=None
         self.port_number=None
         self.host_ip=None
+        self.ollama_port_number=None
+        self.ollama_host_ip=None
+        self.base_url=None
+
+
+
+    def get_ollama_host_Information(self):
+        """
+        Retrieves the host IP and port number associated with the Ollama2 container.
+
+        Iterates over all running containers and checks if the container's name contains "ollama2".
+        If such a container is found, it retrieves the HostPort and HostIp from the container's ports.
+
+        If the retrieved HostIp is "0.0.0.0", it replaces it with "localhost".
+
+        Sets the base_url attribute to the host IP and port number.
+
+        Returns the base_url attribute.
+
+        :return: str
+        :rtype: str
+        """
+        try:
+            ollam_con=None
+            for container in self.client.containers.list():
+                if "ollama2" in container.name:
+                    ollam_con=self.client.containers.get(container.name)
+
+            values=ollam_con.ports
+            for key,value in values.items():
+                if value is not None:
+                    self.ollama_port_number=value[0]['HostPort']
+                    self.ollama_host_ip=value[0]['HostIp']
+
+
+            if self.ollama_host_ip == "0.0.0.0":
+                self.ollama_host_ip ="localhost"
+
+            self.base_url=f"http://{self.ollama_host_ip}:{self.ollama_port_number}"
+
+
+        except AttributeError as e:
+            self.base_url="http://ollama2:11434"
+            pass
+
+        return self.base_url
+
+
 
     def get_mysql_host_information(self):
         """
@@ -52,3 +100,5 @@ class DockerFinder:
             pass
 
         return self.port_number, self.host_ip
+
+

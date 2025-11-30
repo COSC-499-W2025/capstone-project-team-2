@@ -1,5 +1,7 @@
 
 from src.Docker_finder import DockerFinder
+from langchain_ollama import ChatOllama
+from langchain_core.prompts import PromptTemplate
 import mysql.connector
 from mysql.connector import Error
 import unittest
@@ -21,7 +23,7 @@ class testDockerFinder(unittest.TestCase):
         """
         self.docker_finder=DockerFinder()
         self.portNumber,self.portHost=self.docker_finder.get_mysql_host_information()
-
+        self.ollama_base_url=self.docker_finder.get_ollama_host_Information()
 
     def test_connection_database_with_retrieved_info(self):
         """
@@ -46,6 +48,41 @@ class testDockerFinder(unittest.TestCase):
             if conn is not None and conn.is_connected():
                 conn.close()
 
+
+    def test_ollama_connection(self):
+        """
+        This test checks if the Ollama connection is successful and can generate
+        a response given a prompt template. The test uses the Ollama model "qwen2.5-coder:1.5b"
+        and the temperature is set to 0.1. The test then generates a response to the prompt
+        "What is the capital of India?" and checks if the response is equal to "New Delhi"
+        """
+        
+        ollama_model="qwen2.5-coder:1.5b"
+        
+        llm=ChatOllama(
+                model=ollama_model,
+                base_url=self.ollama_base_url,
+                temperature=0.1
+            )
+        prompt=PromptTemplate(
+                 
+                input_variables=["country"],
+                template="""
+
+                        What is the captial of {country}? 
+
+                        """
+            )
+        chain=prompt | llm
+        result=chain.invoke(
+                {"country":"India"}
+               ).content
+        print(result)
+        self.assertIn("New Delhi",result)
+
+        
+if __name__ == '__main__':
+    unittest.main(verbosity=2)
 
 
 

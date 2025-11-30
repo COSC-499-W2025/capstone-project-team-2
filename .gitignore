@@ -1,5 +1,4 @@
 *.pyc
-
-# environment files
 .env
-.env.*
+.venv_py310
+.venv

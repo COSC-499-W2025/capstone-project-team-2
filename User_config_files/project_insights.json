@@ -226,5 +226,937 @@
         "modified": "2025-11-24 17:40:06"
       }
     }
+  },
+  {
+    "id": "2a13e13f-1527-4c0d-9e74-bfbfac24844e",
+    "project_name": "src",
+    "summary": "Built src with Python.",
+    "analyzed_at": "2025-11-30T01:05:10.358901+00:00",
+    "languages": [
+      "Python"
+    ],
+    "frameworks": [],
+    "skills": [
+      "Data Analysis",
+      "Data Visualization",
+      "Python",
+      "Testing"
+    ],
+    "project_type": "individual",
+    "detection_mode": "local",
+    "duration_estimate": "21 days, 2:08:41.841813",
+    "hierarchy": {
+      "name": "src",
+      "type": "DIR",
+      "children": [
+        {
+          "name": ".pytest_cache",
+          "type": "DIR",
+          "children": [
+            {
+              "name": ".gitignore",
+              "type": "FILE",
+              "size": 39,
+              "created": "2025-11-08 14:55:37",
+              "modified": "2025-11-08 14:55:37",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "CACHEDIR.TAG",
+              "type": "TAG",
+              "size": 191,
+              "created": "2025-11-08 14:55:37",
+              "modified": "2025-11-08 14:55:37",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "README.md",
+              "type": "md",
+              "size": 310,
+              "created": "2025-11-08 14:55:37",
+              "modified": "2025-11-08 14:55:37",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "v",
+              "type": "DIR",
+              "children": [
+                {
+                  "name": "cache",
+                  "type": "DIR",
+                  "children": [
+                    {
+                      "name": "lastfailed",
+                      "type": "FILE",
+                      "size": 57,
+                      "created": "2025-11-16 13:46:58",
+                      "modified": "2025-11-16 13:46:58",
+                      "author": "cagil",
+                      "children": []
+                    },
+                    {
+                      "name": "nodeids",
+                      "type": "FILE",
+                      "size": 2,
+                      "created": "2025-11-08 14:55:37",
+                      "modified": "2025-11-16 13:50:02",
+                      "author": "cagil",
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "AI_analysis_code.py",
+          "type": "py",
+          "size": 21114,
+          "created": "2025-11-29 15:57:59",
+          "modified": "2025-11-29 15:57:59",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "CLI_interface_for_file_extraction.py",
+          "type": "py",
+          "size": 3539,
+          "created": "2025-11-29 13:56:31",
+          "modified": "2025-11-29 13:59:54",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "CLI_Interface_for_user_config.py",
+          "type": "py",
+          "size": 6262,
+          "created": "2025-11-29 13:56:31",
+          "modified": "2025-11-29 15:57:59",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "Configuration.py",
+          "type": "py",
+          "size": 2384,
+          "created": "2025-11-29 13:56:31",
+          "modified": "2025-11-29 13:59:54",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "contribution_skill_association.py",
+          "type": "py",
+          "size": 4313,
+          "created": "2025-11-29 13:56:31",
+          "modified": "2025-11-29 13:59:54",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "data_extraction.py",
+          "type": "py",
+          "size": 7091,
+          "created": "2025-11-29 13:56:32",
+          "modified": "2025-11-29 15:57:59",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "db_helper_function.py",
+          "type": "py",
+          "size": 4346,
+          "created": "2025-11-29 13:56:32",
+          "modified": "2025-11-29 15:57:59",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "Docker_finder.py",
+          "type": "py",
+          "size": 3424,
+          "created": "2025-11-29 13:56:31",
+          "modified": "2025-11-29 13:59:54",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "extraction.py",
+          "type": "py",
+          "size": 3232,
+          "created": "2025-11-29 13:56:32",
+          "modified": "2025-11-29 13:59:54",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "file_data_saving.py",
+          "type": "py",
+          "size": 2394,
+          "created": "2025-11-29 13:56:32",
+          "modified": "2025-11-29 13:59:54",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "Generate_AI_Resume.py",
+          "type": "py",
+          "size": 16270,
+          "created": "2025-11-29 15:57:59",
+          "modified": "2025-11-29 15:57:59",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "get_contributors_percentage_per_person.py",
+          "type": "py",
+          "size": 12542,
+          "created": "2025-11-29 13:56:32",
+          "modified": "2025-11-29 15:57:59",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "individual_contribution_detection.py",
+          "type": "py",
+          "size": 14846,
+          "created": "2025-11-29 13:56:32",
+          "modified": "2025-11-29 13:59:54",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "load_json_save.py",
+          "type": "py",
+          "size": 1325,
+          "created": "2025-11-29 15:57:59",
+          "modified": "2025-11-29 15:57:59",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "main.py",
+          "type": "py",
+          "size": 24776,
+          "created": "2025-11-29 13:56:32",
+          "modified": "2025-11-29 17:02:44",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "project_duration_estimation.py",
+          "type": "py",
+          "size": 3419,
+          "created": "2025-11-29 13:56:32",
+          "modified": "2025-11-29 13:59:54",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "project_insights.py",
+          "type": "py",
+          "size": 19317,
+          "created": "2025-11-29 13:56:32",
+          "modified": "2025-11-29 15:57:59",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "project_skill_insights.py",
+          "type": "py",
+          "size": 6035,
+          "created": "2025-11-29 13:56:32",
+          "modified": "2025-11-29 13:59:54",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "project_stack_detection.py",
+          "type": "py",
+          "size": 8508,
+          "created": "2025-11-29 13:56:32",
+          "modified": "2025-11-29 13:59:54",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "project_type_detection.py",
+          "type": "py",
+          "size": 7548,
+          "created": "2025-11-29 13:56:32",
+          "modified": "2025-11-29 13:59:54",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "requirements.txt",
+          "type": "txt",
+          "size": 259,
+          "created": "2025-11-29 13:56:32",
+          "modified": "2025-11-29 15:57:59",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "results",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "analysis_result.json",
+              "type": "json",
+              "size": 28082,
+              "created": "2025-11-29 15:57:59",
+              "modified": "2025-11-29 17:03:55",
+              "author": "cagil",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "resume_exporter.py",
+          "type": "py",
+          "size": 4072,
+          "created": "2025-11-29 13:56:32",
+          "modified": "2025-11-29 13:59:54",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "resume_item_generator.py",
+          "type": "py",
+          "size": 8181,
+          "created": "2025-11-29 13:56:32",
+          "modified": "2025-11-29 15:57:59",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "TEST.zip",
+          "type": "zip",
+          "size": 634,
+          "created": "2025-11-29 13:56:31",
+          "modified": "2025-11-29 13:59:54",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "user_consent.py",
+          "type": "py",
+          "size": 8701,
+          "created": "2025-11-29 13:56:32",
+          "modified": "2025-11-29 13:59:54",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "user_startup_config.py",
+          "type": "py",
+          "size": 2050,
+          "created": "2025-11-29 13:56:32",
+          "modified": "2025-11-29 13:59:54",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "__init__.py",
+          "type": "py",
+          "size": 0,
+          "created": "2025-11-29 13:56:31",
+          "modified": "2025-11-29 13:59:54",
+          "author": "cagil",
+          "children": []
+        },
+        {
+          "name": "__pycache__",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "AI_analysis_code.cpython-311.pyc",
+              "type": "pyc",
+              "size": 21744,
+              "created": "2025-11-29 17:00:51",
+              "modified": "2025-11-29 17:00:51",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "CLI_interface_for_file_extraction.cpython-311.pyc",
+              "type": "pyc",
+              "size": 3269,
+              "created": "2025-11-29 14:29:09",
+              "modified": "2025-11-29 14:29:09",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "CLI_Interface_for_user_config.cpython-311.pyc",
+              "type": "pyc",
+              "size": 8448,
+              "created": "2025-11-29 17:00:54",
+              "modified": "2025-11-29 17:00:54",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "CLI_Interface_for_user_config.cpython-313.pyc",
+              "type": "pyc",
+              "size": 7373,
+              "created": "2025-11-29 17:01:46",
+              "modified": "2025-11-29 17:01:46",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "Configuration.cpython-311.pyc",
+              "type": "pyc",
+              "size": 3209,
+              "created": "2025-11-29 14:29:08",
+              "modified": "2025-11-29 14:29:08",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "Configuration.cpython-313.pyc",
+              "type": "pyc",
+              "size": 2981,
+              "created": "2025-11-29 14:30:00",
+              "modified": "2025-11-29 14:30:00",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "contribution_skill_association.cpython-311.pyc",
+              "type": "pyc",
+              "size": 5696,
+              "created": "2025-11-29 14:29:08",
+              "modified": "2025-11-29 14:29:08",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "data_extraction.cpython-311.pyc",
+              "type": "pyc",
+              "size": 8959,
+              "created": "2025-11-29 17:00:55",
+              "modified": "2025-11-29 17:00:55",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "data_extraction.cpython-313.pyc",
+              "type": "pyc",
+              "size": 8101,
+              "created": "2025-11-29 17:01:46",
+              "modified": "2025-11-29 17:01:46",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "db_helper_function.cpython-311.pyc",
+              "type": "pyc",
+              "size": 7557,
+              "created": "2025-11-29 17:00:55",
+              "modified": "2025-11-29 17:00:55",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "db_helper_function.cpython-313.pyc",
+              "type": "pyc",
+              "size": 6773,
+              "created": "2025-11-29 17:01:46",
+              "modified": "2025-11-29 17:01:46",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "Docker_finder.cpython-311.pyc",
+              "type": "pyc",
+              "size": 4508,
+              "created": "2025-11-29 14:29:05",
+              "modified": "2025-11-29 14:29:05",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "Docker_finder.cpython-313.pyc",
+              "type": "pyc",
+              "size": 4491,
+              "created": "2025-11-29 14:30:06",
+              "modified": "2025-11-29 14:30:06",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "extraction.cpython-311.pyc",
+              "type": "pyc",
+              "size": 4931,
+              "created": "2025-11-29 14:29:09",
+              "modified": "2025-11-29 14:29:09",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "extraction.cpython-313.pyc",
+              "type": "pyc",
+              "size": 4630,
+              "created": "2025-11-29 14:30:00",
+              "modified": "2025-11-29 14:30:00",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "file_data_saving.cpython-311.pyc",
+              "type": "pyc",
+              "size": 2965,
+              "created": "2025-11-29 14:29:09",
+              "modified": "2025-11-29 14:29:09",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "file_data_saving.cpython-313.pyc",
+              "type": "pyc",
+              "size": 2672,
+              "created": "2025-11-29 14:30:05",
+              "modified": "2025-11-29 14:30:05",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "Generate_AI_Resume.cpython-311.pyc",
+              "type": "pyc",
+              "size": 17367,
+              "created": "2025-11-29 17:00:52",
+              "modified": "2025-11-29 17:00:52",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "Generate_AI_Resume.cpython-313.pyc",
+              "type": "pyc",
+              "size": 15921,
+              "created": "2025-11-29 17:01:38",
+              "modified": "2025-11-29 17:01:38",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "get_contributors_percentage_per_person.cpython-311.pyc",
+              "type": "pyc",
+              "size": 15496,
+              "created": "2025-11-29 17:00:55",
+              "modified": "2025-11-29 17:00:55",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "get_contributors_percentage_per_person.cpython-313.pyc",
+              "type": "pyc",
+              "size": 14385,
+              "created": "2025-11-29 17:01:46",
+              "modified": "2025-11-29 17:01:46",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "individual_contribution_detection.cpython-311.pyc",
+              "type": "pyc",
+              "size": 20599,
+              "created": "2025-11-29 14:29:08",
+              "modified": "2025-11-29 14:29:08",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "individual_contribution_detection.cpython-313.pyc",
+              "type": "pyc",
+              "size": 16776,
+              "created": "2025-11-29 17:01:46",
+              "modified": "2025-11-29 17:01:46",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "load_json_save.cpython-311.pyc",
+              "type": "pyc",
+              "size": 2211,
+              "created": "2025-11-29 17:00:56",
+              "modified": "2025-11-29 17:00:56",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "main.cpython-311.pyc",
+              "type": "pyc",
+              "size": 35069,
+              "created": "2025-11-29 17:04:14",
+              "modified": "2025-11-29 17:04:14",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "main.cpython-313.pyc",
+              "type": "pyc",
+              "size": 30087,
+              "created": "2025-11-29 17:04:19",
+              "modified": "2025-11-29 17:04:19",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "project_duration_estimation.cpython-311.pyc",
+              "type": "pyc",
+              "size": 4519,
+              "created": "2025-11-29 14:29:11",
+              "modified": "2025-11-29 14:29:11",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "project_duration_estimation.cpython-313.pyc",
+              "type": "pyc",
+              "size": 4314,
+              "created": "2025-11-29 14:30:00",
+              "modified": "2025-11-29 14:30:00",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "project_insights.cpython-311.pyc",
+              "type": "pyc",
+              "size": 25528,
+              "created": "2025-11-29 17:00:56",
+              "modified": "2025-11-29 17:00:56",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "project_insights.cpython-313.pyc",
+              "type": "pyc",
+              "size": 22735,
+              "created": "2025-11-29 17:01:47",
+              "modified": "2025-11-29 17:01:47",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "project_skill_insights.cpython-311.pyc",
+              "type": "pyc",
+              "size": 8460,
+              "created": "2025-11-29 14:29:08",
+              "modified": "2025-11-29 14:29:08",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "project_skill_insights.cpython-313.pyc",
+              "type": "pyc",
+              "size": 7433,
+              "created": "2025-11-29 14:30:00",
+              "modified": "2025-11-29 14:30:00",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "project_stack_detection.cpython-311.pyc",
+              "type": "pyc",
+              "size": 10994,
+              "created": "2025-11-29 14:29:08",
+              "modified": "2025-11-29 14:29:08",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "project_stack_detection.cpython-313.pyc",
+              "type": "pyc",
+              "size": 9632,
+              "created": "2025-11-29 14:30:00",
+              "modified": "2025-11-29 14:30:00",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "project_type_detection.cpython-311.pyc",
+              "type": "pyc",
+              "size": 8940,
+              "created": "2025-11-29 14:29:08",
+              "modified": "2025-11-29 14:29:08",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "project_type_detection.cpython-313.pyc",
+              "type": "pyc",
+              "size": 8064,
+              "created": "2025-11-29 14:30:00",
+              "modified": "2025-11-29 14:30:00",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "resume_exporter.cpython-311.pyc",
+              "type": "pyc",
+              "size": 5804,
+              "created": "2025-11-29 14:29:11",
+              "modified": "2025-11-29 14:29:11",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "resume_item_generator.cpython-311.pyc",
+              "type": "pyc",
+              "size": 9249,
+              "created": "2025-11-29 17:00:56",
+              "modified": "2025-11-29 17:00:56",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "resume_item_generator.cpython-313.pyc",
+              "type": "pyc",
+              "size": 8322,
+              "created": "2025-11-29 17:01:46",
+              "modified": "2025-11-29 17:01:46",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "user_consent.cpython-311.pyc",
+              "type": "pyc",
+              "size": 9696,
+              "created": "2025-11-29 14:29:11",
+              "modified": "2025-11-29 14:29:11",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "user_consent.cpython-313.pyc",
+              "type": "pyc",
+              "size": 8565,
+              "created": "2025-11-29 14:30:00",
+              "modified": "2025-11-29 14:30:00",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "user_startup_config.cpython-311.pyc",
+              "type": "pyc",
+              "size": 3426,
+              "created": "2025-11-29 14:29:08",
+              "modified": "2025-11-29 14:29:08",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "user_startup_config.cpython-313.pyc",
+              "type": "pyc",
+              "size": 3123,
+              "created": "2025-11-29 14:30:00",
+              "modified": "2025-11-29 14:30:00",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "__init__.cpython-311.pyc",
+              "type": "pyc",
+              "size": 129,
+              "created": "2025-11-29 14:29:04",
+              "modified": "2025-11-29 14:29:04",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "__init__.cpython-313.pyc",
+              "type": "pyc",
+              "size": 168,
+              "created": "2025-11-29 14:10:43",
+              "modified": "2025-11-29 14:10:43",
+              "author": "cagil",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    "contributors": {},
+    "stats": {
+      "contributors": 0,
+      "total_file_contributions": 0,
+      "top_contributor": null,
+      "top_contribution_count": 0,
+      "skill_count": 4
+    },
+    "file_analysis": {
+      "file_count": 78,
+      "total_size_bytes": 660582,
+      "average_size_bytes": 8469,
+      "file_types": {
+        "PYC": 45,
+        "PY": 25,
+        "ZIP": 1,
+        "JSON": 1,
+        "TXT": 1,
+        "FILE": 3,
+        "MD": 1,
+        "TAG": 1
+      },
+      "largest_file": {
+        "name": "main.cpython-311.pyc",
+        "type": "PYC",
+        "size_bytes": 35069
+      },
+      "newest_file": {
+        "name": "main.cpython-313.pyc",
+        "type": "PYC",
+        "modified": "2025-11-29 17:04:19"
+      }
+    }
+  },
+  {
+    "id": "0c1b1d9e-8427-48fc-9ef7-b086f51ea260",
+    "project_name": "tiny_scripts",
+    "summary": "Built tiny_scripts with Python.",
+    "analyzed_at": "2025-11-30T01:33:38.451413+00:00",
+    "languages": [
+      "Python"
+    ],
+    "frameworks": [],
+    "skills": [
+      "Python"
+    ],
+    "project_type": "individual",
+    "detection_mode": "local",
+    "duration_estimate": "1:02:58.066241",
+    "hierarchy": {
+      "name": "tiny_scripts",
+      "type": "DIR",
+      "children": [
+        {
+          "name": "tiny_scripts",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "Classes.py",
+              "type": "py",
+              "size": 2121,
+              "created": "2025-11-29 15:57:59",
+              "modified": "2025-11-29 15:57:59",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "condition.py",
+              "type": "py",
+              "size": 76,
+              "created": "2025-11-29 15:57:59",
+              "modified": "2025-11-29 15:57:59",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "greeting.py",
+              "type": "py",
+              "size": 44,
+              "created": "2025-11-29 15:57:59",
+              "modified": "2025-11-29 15:57:59",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "hello.py",
+              "type": "py",
+              "size": 34,
+              "created": "2025-11-29 15:57:59",
+              "modified": "2025-11-29 15:57:59",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "loop_test.py",
+              "type": "py",
+              "size": 45,
+              "created": "2025-11-29 15:57:59",
+              "modified": "2025-11-29 15:57:59",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "math_ops.py",
+              "type": "py",
+              "size": 84,
+              "created": "2025-11-29 15:57:59",
+              "modified": "2025-11-29 15:57:59",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "Poly.py",
+              "type": "py",
+              "size": 1544,
+              "created": "2025-11-29 15:57:59",
+              "modified": "2025-11-29 15:57:59",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "random_pick.py",
+              "type": "py",
+              "size": 98,
+              "created": "2025-11-29 15:57:59",
+              "modified": "2025-11-29 15:57:59",
+              "author": "cagil",
+              "children": []
+            },
+            {
+              "name": "__pycache__",
+              "type": "DIR",
+              "children": [
+                {
+                  "name": "loop_test.cpython-311-pytest-9.0.1.pyc",
+                  "type": "pyc",
+                  "size": 419,
+                  "created": "2025-11-29 17:00:57",
+                  "modified": "2025-11-29 17:00:57",
+                  "author": "cagil",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "contributors": {},
+    "stats": {
+      "contributors": 0,
+      "total_file_contributions": 0,
+      "top_contributor": null,
+      "top_contribution_count": 0,
+      "skill_count": 1
+    },
+    "file_analysis": {
+      "file_count": 9,
+      "total_size_bytes": 4465,
+      "average_size_bytes": 496,
+      "file_types": {
+        "PYC": 1,
+        "PY": 8
+      },
+      "largest_file": {
+        "name": "Classes.py",
+        "type": "PY",
+        "size_bytes": 2121
+      },
+      "newest_file": {
+        "name": "loop_test.cpython-311-pytest-9.0.1.pyc",
+        "type": "PYC",
+        "modified": "2025-11-29 17:00:57"
+      }
+    }
   }
 ]
