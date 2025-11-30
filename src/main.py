@@ -388,8 +388,6 @@ def display_portfolio(path: Path) -> None:
         print(f"[ERROR] Could not read {path.name}: {e}")
         return
 
-    config_path = Path("User_config_files/UserConfigs.json")
-
     
     # Load user config
     config_path = Path("User_config_files/UserConfigs.json")
@@ -400,88 +398,88 @@ def display_portfolio(path: Path) -> None:
         print(f"[WARN] Could not read user config, assuming no external consent: {e}")
         has_external = False
 
-        if not has_external:
-            print(f"\n=== PROJECT SUMMARY (External tools disabled) ===")
+    if not has_external:
+        print(f"\n=== PROJECT SUMMARY (External tools disabled) ===")
 
-            analysis = data if isinstance(data, dict) else {}
-            if "analysis" in analysis and isinstance(analysis["analysis"], dict):
-                analysis = analysis["analysis"]
+        analysis = data if isinstance(data, dict) else {}
+        if "analysis" in analysis and isinstance(analysis["analysis"], dict):
+            analysis = analysis["analysis"]
 
-            pt = (
-                analysis.get("resume_item", {}).get("project_type")
-                or analysis.get("project_type", {}).get("project_type", "—")
+        pt = (
+            analysis.get("resume_item", {}).get("project_type")
+            or analysis.get("project_type", {}).get("project_type", "—")
             )
-            mode = (
-                analysis.get("resume_item", {}).get("detection_mode")
-                or analysis.get("project_type", {}).get("mode", "—")
+        mode = (
+            analysis.get("resume_item", {}).get("detection_mode")
+            or analysis.get("project_type", {}).get("mode", "—")
             )
-            stack = analysis.get("resume_item", {}) or {}
-            langs = stack.get("languages") or analysis.get("stack", {}).get("languages", [])
-            frws = stack.get("frameworks") or analysis.get("stack", {}).get("frameworks", [])
-            skills = stack.get("skills") or analysis.get("skills", [])
-            duration = analysis.get("duration_estimate", "—")
-            summary = (analysis.get("resume_item", {}) or {}).get("summary", "—")
+        stack = analysis.get("resume_item", {}) or {}
+        langs = stack.get("languages") or analysis.get("stack", {}).get("languages", [])
+        frws = stack.get("frameworks") or analysis.get("stack", {}).get("frameworks", [])
+        skills = stack.get("skills") or analysis.get("skills", [])
+        duration = analysis.get("duration_estimate", "—")
+        summary = (analysis.get("resume_item", {}) or {}).get("summary", "—")
 
-            print(f"\n== {path.name} ==")
-            print(f"Project root : {analysis.get('project_root', '—')}")
-            print(f"Type         : {pt} (mode={mode})")
-            print(f"Languages    : {', '.join(langs) or '—'}")
-            print(f"Frameworks   : {', '.join(frws) or '—'}")
-            print(f"Skills       : {', '.join(skills) or '—'}")
-            print(f"Duration     : {duration}")
-            if summary and summary != "—":
-                print(f"Résumé line  : {summary}")
-            print()
+        print(f"\n== {path.name} ==")
+        print(f"Project root : {analysis.get('project_root', '—')}")
+        print(f"Type         : {pt} (mode={mode})")
+        print(f"Languages    : {', '.join(langs) or '—'}")
+        print(f"Frameworks   : {', '.join(frws) or '—'}")
+        print(f"Skills       : {', '.join(skills) or '—'}")
+        print(f"Duration     : {duration}")
+        if summary and summary != "—":
+            print(f"Résumé line  : {summary}")
+        print()
+        return
+
+    else:
+        try:
+            docker = GenerateProjectResume(str(path)).generate()
+        except Exception as e:
+            print(f"[ERROR] Could not generate portfolio: {e}")
             return
+    
+        print("\n===============================")
+        print(f"PROJECT: {docker.project_title}")
+        print("===============================\n")
+        print(f"One-Sentence Summary: {docker.one_sentence_summary}\n")
 
+        print("Key Skills Used:")
+        for skill in docker.key_skills_used:
+            print(f"  • {skill}")   
+        print()
+
+        print("Tech Stack:")
+
+        tech_stack = docker.tech_stack
+
+    
+        if isinstance(tech_stack, str):
+            tech_stack = [tech_stack]
+
+        if tech_stack:
+            print("  • " + ", ".join(tech_stack))
         else:
-            try:
-                docker = GenerateProjectResume(str(path)).generate()
-            except Exception as e:
-                print(f"[ERROR] Could not generate portfolio: {e}")
-                return
-    
-            print("\n===============================")
-            print(f"PROJECT: {docker.project_title}")
-            print("===============================\n")
-            print(f"One-Sentence Summary: {docker.one_sentence_summary}\n")
+            print("  (None detected)")
+        print()
 
-            print("Key Skills Used:")
-            for skill in docker.key_skills_used:
-                print(f"  • {skill}")   
-            print()
+        print("=== OOP Principles Detected ===\n")
 
-            print("Tech Stack:")
-
-            tech_stack = docker.tech_stack
-
-    
-            if isinstance(tech_stack, str):
-                tech_stack = [tech_stack]
-
-            if tech_stack:
-                print("  • " + ", ".join(tech_stack))
+        print(docker.oop_principles_detected.keys())
+        for name, principle in docker.oop_principles_detected.items():
+            print(f"=== {name.upper()} ===")
+            print("present:", principle.present)
+            print("description:", principle.description)
+            for snippet in principle.code_snippets:
+                    file = snippet.get("file", "(unknown file)")
+                    code = snippet.get("code", "")
+                    print(f"File: {file}")
+                    print(f"Code:\n{code[:200]}...")
+                    print()
             else:
-                print("  (None detected)")
-            print()
+                print("No code samples.\n")
 
-            print("=== OOP Principles Detected ===\n")
-
-            print(docker.oop_principles_detected.keys())
-            for name, principle in docker.oop_principles_detected.items():
-                print(f"=== {name.upper()} ===")
-                print("present:", principle.present)
-                print("description:", principle.description)
-                for snippet in principle.code_snippets:
-                        file = snippet.get("file", "(unknown file)")
-                        code = snippet.get("code", "")
-                        print(f"File: {file}")
-                        print(f"Code:\n{code[:200]}...")
-                        print()
-                else:
-                    print("No code samples.\n")
-
-            print("============================================\n")
+        print("============================================\n")
 
 
 # ---------- Menus ----------
