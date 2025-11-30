@@ -2,11 +2,13 @@ Database/docker instructions
 
  for docker set up run:
 
-docker-compose up db 
+docker-compose up
+docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b
+docker-compose up
+
 
 reseting all docker data
 docker-compose down -v  # -v removes old data
-docker-compose up db
 
 
 
