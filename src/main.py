@@ -496,7 +496,7 @@ def display_portfolio(path: Path) -> None:
 
     
     # Load user config
-    config_path = Path("User_config_files") / "UserConfigs.json"
+    config_path = LEGACY_SAVE_DIR / "UserConfigs.json"
     try:
         config_data = json.loads(config_path.read_text(encoding="utf-8"))
         has_external = config_data.get("consented", {}).get("external", False)
@@ -584,10 +584,10 @@ def display_portfolio(path: Path) -> None:
             print(f"=== {name.upper()} ===")
             print("present:", principle.present)
             print("description:", principle.description)
-            if not snippet:
+            if not principle.code_snippets:
                 print("No code samples.\n")
             else:
-                for snippet in snippet:
+                for snippet in principle.code_snippets:
                     file = snippet.get("file", "(unknown file)")
                     code = snippet.get("code", "")
                     print(f"File: {file}")
