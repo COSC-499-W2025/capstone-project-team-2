@@ -387,6 +387,25 @@ def display_portfolio(path: Path) -> None:
     except Exception as e:
         print(f"[ERROR] Could not read {path.name}: {e}")
         return
+
+    config_path = Path("User_config_files/UserConfigs.json")
+
+    
+    # Load user config
+    config_path = Path("User_config_files/UserConfigs.json")
+    try:
+        config_data = json.loads(config_path.read_text(encoding="utf-8"))
+        has_external = config_data.get("consented", {}).get("external", False)
+    except Exception as e:
+        print(f"[WARN] Could not read user config, assuming no external consent: {e}")
+        has_external = False
+
+        if not has_external:
+            print("\n=== RAW PROJECT DATA (Third-party tools disabled by user) ===\n")
+            print(json.dumps(data, indent=4))
+            print()
+        return
+
     
     try:
         docker = GenerateProjectResume(str(path)).generate()
