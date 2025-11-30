@@ -1,5 +1,4 @@
 *.pyc
-.env
 .venv_py310
 .venv
 .env
