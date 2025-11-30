@@ -34,8 +34,7 @@ class ai_data_scrubber:
         data_structures = self._gather_from_list(data_structures_and_algorithms, "structures_used")
         data_structures = self._remove_sentence_data(data_structures, tolerance=1)  #Tolerance 1 rationlized by looking at a generated analysis
         data_structures = self._gather_unique(data_structures)
-        #Unsure if this scrub will be needed so it's commented out for now
-        #data_structures = self._remove_similar_data(data_structures, similarity_word_num=1) #Considering data structure names, one similar word should be valid
+        data_structures = self._remove_similar_data(data_structures, similarity_word_num=1) #Considering data structure names, one similar word should be valid
 
         time_complexities_recorded = self._gather_from_list(data_structures_and_algorithms, "time_complexity")
         time_complexities_recorded = self._gather_from_list(time_complexities_recorded, "average_case") #Average case used for recorded time complexities. Can add all three later if wanted.
@@ -102,7 +101,7 @@ class ai_data_scrubber:
         '''
         no_sentence_list = list()
         for string in data:
-            if not (string.type() == str):  #If value isn't a string, it shouldn't be in the list
+            if not (isinstance(string, str)):  #If value isn't a string, it shouldn't be in the list
                 continue
             if string.count(" ") > tolerance:   #Counts the spaces to find if it's considered a sentence according to tolerance
                 continue
@@ -126,7 +125,7 @@ class ai_data_scrubber:
         '''
         clipped_data = list()
         for string in data:
-            if not (string.type() == str):  #If value isn't a string, it shouldn't be in the list
+            if not (isinstance(string, str)):  #If value isn't a string, it shouldn't be in the list
                 continue
             space_count = 0
             for i in range(0, len(string)):
@@ -153,7 +152,7 @@ class ai_data_scrubber:
         '''
         unique_list = list()
         for item in data:
-            if not (item.type() == str):    #If value isn't a string, it shouldn't be in the list
+            if not (isinstance(item, str)):    #If value isn't a string, it shouldn't be in the list
                 continue
             if casing == "lower":
                 item = item.lower()
@@ -176,7 +175,7 @@ class ai_data_scrubber:
         '''
         words_in_data = list()
         for string in data:
-            if not (string.type() == str):  #If value isn't a string, it shouldn't be in the list
+            if not (isinstance(string, str)):  #If value isn't a string, it shouldn't be in the list
                 data.remove(string)
                 continue
             words_in_data.append([string, re.findall(r"\w+", string.lower())])  #Pulls the words out of string, seperating by special characters and spaces
@@ -189,7 +188,7 @@ class ai_data_scrubber:
             for item_set in similar_sets:
                 similarity = 0
                 for similar_item in item_set:   #iterates over list of similar items to find if new item is similar to all of them, needs to be all of them in case of extra words
-                    if self._compare_word_sets(item, similar_item, similarity_word_num):
+                    if self._compare_word_sets(item[1], similar_item[1], similarity_word_num):
                         similarity+=1
                 if similarity == len(item_set): #if new item is similar to all of list of similar items, adds it to that list of similar items
                     item_set.append(item)
@@ -199,7 +198,10 @@ class ai_data_scrubber:
                 similar_sets.append([item])
         final_set = list()
         for similar_set in similar_sets:    #Pulls shortest item of each list of similar items
-            final_set.append(min(similar_set, key=len))
+            similar_words = list()
+            for item in similar_set:
+                similar_words.append(item[0])
+            final_set.append(min(similar_words, key=len))
         return final_set
 
     def _compare_word_sets(self, set1: list, set2: list, words_needed: int) -> bool:
@@ -217,7 +219,7 @@ class ai_data_scrubber:
         similar_words = 0
         for word1 in set1:
             for word2 in set2:
-                if word1 in word2 or word2 in word1:
+                if (word1 in word2) or (word2 in word1):
                     similar_words+=1
                     break   #breaks for efficiency once similarity found once
             if similar_words >= words_needed:
@@ -239,7 +241,7 @@ class ai_data_scrubber:
         value_list = list()
         for name, value in dictionary.items():
             if key in value:
-                if type(value[key]) is list:    #If value of value[key] is a list, we add all elements of list to value_list instead of a list as one element
+                if isinstance(value[key], list):    #If value of value[key] is a list, we add all elements of list to value_list instead of a list as one element
                     value_list.extend(value[key])
                 else:
                     value_list.append(value[key])
@@ -259,7 +261,7 @@ class ai_data_scrubber:
         value_list = list()
         for dictionary in dict_list:
             if key in dictionary:
-                if type(dictionary[key]) is list:    #If value of dictionary[key] is a list, we add all elements of list to value_list instead of a list as one element
+                if isinstance(dictionary[key], list):    #If value of dictionary[key] is a list, we add all elements of list to value_list instead of a list as one element
                     value_list.extend(dictionary[key])
                 else:
                     value_list.append(dictionary[key])
