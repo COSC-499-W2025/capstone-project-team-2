@@ -713,7 +713,6 @@ def analyze_python_project_oop(root: str | Path) -> Dict[str, Any]:
     """
     function added to simplify integration with other modules.
     """
-    root = '/Users/mahigangal/Desktop/PyWhatKit-master'
     analyzer = PythonOOPAstAnalyzer(Path(root))
     return analyzer.analyze()
 
@@ -795,5 +794,3 @@ def pretty_print_oop_report(metrics: dict):
         print(narrative["complexity"])
 
     print("\n" + "="*60 + "\n")
-
-pretty_print_oop_report(analyze_python_project_oop('/Users/mahigangal/Desktop/Communicado'))
