@@ -395,8 +395,7 @@ def display_portfolio(path: Path) -> None:
 
     
     # Load user config
-    #config_path = Path("User_config_files/UserConfigs.json")
-    config_path= LEGACY_SAVE_DIR /"UserConfigs.json"
+    config_path = Path("User_config_files") / "UserConfigs.json"
     try:
         config_data = json.loads(config_path.read_text(encoding="utf-8"))
         has_external = config_data.get("consented", {}).get("external", False)
@@ -431,7 +430,7 @@ def display_portfolio(path: Path) -> None:
         print("===============================")
 
         if summary and summary != "—":
-            print(f"Résumé line  : {summary}")
+            print(f"Summary: {summary}")
         print(f"Duration     : {duration}")
         print(f"Languages    : {', '.join(langs) or '—'}")
         print(f"Frameworks   : {', '.join(frws) or '—'}")
@@ -472,20 +471,26 @@ def display_portfolio(path: Path) -> None:
         print()
 
         print("=== OOP Principles Detected ===\n")
+        oop_data = docker.oop_principles_detected
 
-        print(docker.oop_principles_detected.keys())
+        if not oop_data or not isinstance(oop_data, dict):
+            print("No OOP data detected.\n")
+            return
+        else:
+            print(oop_data.keys())
+
         for name, principle in docker.oop_principles_detected.items():
             print(f"=== {name.upper()} ===")
             print("present:", principle.present)
             print("description:", principle.description)
-            for snippet in principle.code_snippets:
+            if not snippet:
+                print("No code samples.\n")
+            else:
+                for snippet in snippet:
                     file = snippet.get("file", "(unknown file)")
                     code = snippet.get("code", "")
                     print(f"File: {file}")
-                    print(f"Code:\n{code[:200]}...")
-                    print()
-            else:
-                print("No code samples.\n")
+                    print(f"Code:\n{code[:200]}...\n")
 
         print("============================================\n")
 
@@ -770,7 +775,7 @@ def main() -> int:
                 print("Goodbye!")
                 return 0
             else:
-                print("Please choose a valid option (0-4).")
+                print("Please choose a valid option (0-5).")
         except KeyboardInterrupt:
             print("\n[Interrupted] Returning to menu.")
         except Exception as e:
