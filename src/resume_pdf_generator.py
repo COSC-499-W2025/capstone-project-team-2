@@ -12,12 +12,7 @@ from Generate_AI_Resume import ResumeItem,OOPPrinciple,GenerateProjectResume
 
 
 
-@dataclass()
-class ResumeProject:
-    title:str
-    description:str
-    skills : list[str]
-    highlights: Optional[list[str]]= None
+
 
 
 class SimpleResumeGenerator:
