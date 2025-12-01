@@ -36,8 +36,7 @@ class TestGenerateProjectResume(unittest.TestCase):
         cls.instance = GenerateProjectResume(cls.folder)
         cls.result = cls.instance.generate()
 
-    @pytest.mark.skip(reason="Skipping Google GenAI tests, using local Ollama instead")
-    @unittest.skip("Skipping Google GenAI tests, using local Ollama instead")
+
     def test_output_resume_type(self):
         """
         Tests that the output of generate() is a ResumeItem object and that its
