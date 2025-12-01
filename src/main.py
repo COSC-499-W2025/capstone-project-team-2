@@ -3,9 +3,8 @@ import sys
 from pathlib import Path
 from typing import Any, Dict,Optional
 import datetime
-import zipfile
-
-from src.Generate_AI_Resume import GenerateProjectResume
+import mysql.connector
+from mysql.connector import Error
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 # Local module Imports
@@ -20,20 +19,12 @@ from src.file_data_saving import SaveFileAnalysisAsJSON
 from src.db_helper_function import HelperFunct
 from src.Docker_finder import DockerFinder
 from src.Configuration import configuration_for_users
-from src.individual_contribution_detection import detect_individual_contributions
-from src.project_insights import (
-    record_project_insight,
-    list_project_insights,
-    rank_projects_by_contribution,
-)
-
-
-
-import mysql.connector
-from mysql.connector import Error
+from src.Generate_AI_Resume import GenerateProjectResume
 from src.get_contributors_percentage_per_person import contribution_summary
-
-
+from src.python_oop_metrics import analyze_python_project_oop, pretty_print_oop_report
+from src.project_insights import (
+    record_project_insight
+)
 
 # Connection code for MySQL Docker container
 port_number,host_ip= DockerFinder().get_mysql_host_information()
@@ -65,7 +56,6 @@ LEGACY_SAVE_DIR = root_folder / "User_config_files"
 DEFAULT_SAVE_DIR = LEGACY_SAVE_DIR / "project_insights"
 project_file_path=None
 
-
 def _input_path(prompt: str, allow_blank: bool = False) -> Optional[Path]:
     """
     prompt user for a path and loop until it exists
@@ -80,7 +70,6 @@ def _input_path(prompt: str, allow_blank: bool = False) -> Optional[Path]:
         if path.exists():
             return path
         print(f"[ERROR] Path not found: {path}")
-
 
 def extract_if_zip(zip_path: Path) -> Path:
     """
@@ -105,7 +94,6 @@ def extract_if_zip(zip_path: Path) -> Path:
 
     return extracted_path
 
-
 def estimate_duration(hierarchy: Dict[str, Any]) -> str:
     """
     Wraps Project_Duration_Estimator.get_duration().
@@ -116,7 +104,6 @@ def estimate_duration(hierarchy: Dict[str, Any]) -> str:
         return str(estimate.get_duration())
     except Exception as e:
         return f"unavailable ({e})"
-
 
 def analyze_project(root: Path) -> None:
     """
@@ -143,7 +130,7 @@ def analyze_project(root: Path) -> None:
         print(f"[WARN] Contribution percentage analysis failed: {e}")
         contrib_summary = None
         contributors_data = None
-
+        
     analysis: Dict[str, Any] = {
         "project_root": str(root),
         "hierarchy": hierarchy,
@@ -164,26 +151,11 @@ def analyze_project(root: Path) -> None:
             "mode": resume.detection_mode,
         },
     }
-
+    
     if contrib_summary is not None:
         analysis["contribution_summary"] = contrib_summary
     if contributors_data:
         analysis["contributors"] = contributors_data
-
-    analysis = convert_datetime_to_string(analysis)
-
-    # --- "insight" entry for this analysis ---
-    try:
-        insight = record_project_insight(
-            analysis,
-            contributors=contributors_data,
-        )
-        print(
-            f"[INFO] Insight recorded for project '{insight.project_name}' "
-            f"(id={insight.id})."
-        )
-    except Exception as e:
-        print(f"[WARN] Failed to record project insight: {e}")
 
     print("[SUMMARY]")
     print(f"  Type       : {resume.project_type} (mode={resume.detection_mode})")
@@ -228,10 +200,27 @@ def analyze_project(root: Path) -> None:
 
     if resume.summary:
         print(f"  Résumé line: {resume.summary}\n")
+        
+    oop_metrics = python_oop_analysis(root, resume)
+    
+    if oop_metrics is not None:
+        analysis["python_oop_analysis"] = oop_metrics
+    
+    analysis = convert_datetime_to_string(analysis)
+    
+    try:
+        insight = record_project_insight(
+            analysis,
+            contributors=contributors_data,
+        )
+        print(
+            f"[INFO] Insight recorded for project '{insight.project_name}' "
+            f"(id={insight.id})."
+        )
+    except Exception as e:
+        print(f"[WARN] Failed to record project insight: {e}")
 
     export_json(root.name, analysis)
-
-
 
 def convert_datetime_to_string(obj):
     """
@@ -248,7 +237,6 @@ def convert_datetime_to_string(obj):
         return [convert_datetime_to_string(item) for item in obj]
     else:
         return obj
-
 
 def export_json(project_name: str, analysis: Dict[str, Any]) -> None:
     """
@@ -281,7 +269,6 @@ def export_json(project_name: str, analysis: Dict[str, Any]) -> None:
             print(f"[INFO] Saved to database (ID: {record_id})")
         except Exception as e:
             print(f"[WARNING] Could not save to database: {e}")
-
 
 def list_saved_projects(folder: Path) -> list[Path]:
     """
@@ -332,7 +319,6 @@ def list_saved_projects(folder: Path) -> list[Path]:
     ]
 
     return filtered
-
 
 def show_saved_summary(path: Path) -> None:
     """
@@ -412,8 +398,10 @@ def show_saved_summary(path: Path) -> None:
     if summary and summary != "—":
         print(f"Résumé line  : {summary}")
     print()
-
-
+    
+    oop_analysis = analysis.get("python_oop_analysis")
+    if oop_analysis and isinstance(oop_analysis, dict):
+        pretty_print_oop_report(oop_analysis)
 
 def get_saved_projects_from_db() -> list[tuple]:
     """
@@ -430,14 +418,12 @@ def get_saved_projects_from_db() -> list[tuple]:
     finally:
         cursor.close()
 
-
 def delete_from_database_by_id(record_id: int) -> bool:
     """
     Deletes a database record by ID.
     Returns True if a record was deleted, False otherwise.
     """
     return store.delete(record_id)
-
 
 def delete_file_from_disk(filename: str) -> bool:
     """
@@ -494,7 +480,6 @@ def display_portfolio(path: Path) -> None:
         print(f"[ERROR] Could not read {path.name}: {e}")
         return
 
-    
     # Load user config
     config_path = LEGACY_SAVE_DIR / "UserConfigs.json"
     try:
@@ -537,6 +522,11 @@ def display_portfolio(path: Path) -> None:
         print(f"Frameworks   : {', '.join(frws) or '—'}")
         print(f"Skills       : {', '.join(skills) or '—'}")
         print()
+        
+        oop_analysis = analysis.get("python_oop_analysis")
+        if oop_analysis and isinstance(oop_analysis, dict):
+            pretty_print_oop_report(oop_analysis)
+            
         return
 
     else:
@@ -594,13 +584,46 @@ def display_portfolio(path: Path) -> None:
                     print(f"Code:\n{code[:200]}...\n")
 
         print("============================================\n")
+        
+def python_oop_analysis(root: Path, resume) -> Dict[str, Any] | None:
+    
+    """
+    Runs Python OOP analysis if:
+    - External AI consent is disabled
+    - Project contains Python code
+    
+    Returns the OOP metrics dict if analysis was run, None otherwise.
+    """
+    # Check if external consent is enabled
+    config_path = LEGACY_SAVE_DIR / "UserConfigs.json"
+    try:
+        config_data = json.loads(config_path.read_text(encoding="utf-8"))
+        has_external = config_data.get("consented", {}).get("external", False)
+    except Exception as e:
+        print(f"[WARN] Could not read user config, assuming no external consent: {e}")
+        has_external = False
 
+    # Only run if external AI is disabled AND project contains Python
+    if not has_external and "Python" in resume.languages:
+        try:
+            print("[INFO] External AI is disabled. Running non-LLM Python analysis...")
+            print()
+            
+            oop_metrics = analyze_python_project_oop(root)
+            pretty_print_oop_report(oop_metrics)
+            
+            return oop_metrics
+            
+        except Exception as e:
+            print(f"[ERROR] Python OOP analysis failed: {e}")
+            return None
+    
+    return None
 
 # ---------- Menus ----------
 def settings_menu() -> None:
     cfg = ConfigLoader().load()
     ConfigurationForUsersUI(cfg).run_configuration_cli()
-
 
 def analyze_project_menu() -> None:
     """
@@ -642,7 +665,6 @@ def analyze_project_menu() -> None:
             return None
         except Exception as e:
             print(f"[ERROR] {e}")
-
 
 def saved_projects_menu() -> None:
     """
@@ -689,7 +711,6 @@ def saved_projects_menu() -> None:
             print(f"[ERROR] {e}")
             input("Press Enter to return to main menu...")
             return
-
 
 def delete_analysis_menu() -> None:
     """
@@ -849,7 +870,6 @@ def get_portfolio() -> None:
             input("Press Enter to return to main menu...")
             return
 
-
 def main() -> int:
     while True:
         print("\n=== Main Menu ===")
@@ -881,7 +901,6 @@ def main() -> int:
             print("\n[Interrupted] Returning to menu.")
         except Exception as e:
             print(f"[ERROR] {e}")
-
 
 if __name__ == "__main__":
     # --- Startup: ask for user consent before doing anything ---

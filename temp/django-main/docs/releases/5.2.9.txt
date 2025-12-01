@@ -1,0 +1,28 @@
+==========================
+Django 5.2.9 release notes
+==========================
+
+*December 2, 2025*
+
+Django 5.2.9 fixes one security issue with severity "high", one security issue
+with severity "moderate", and several bugs in 5.2.8.
+
+Bugfixes
+========
+
+* Fixed a bug in Django 5.2 where
+  ``django.utils.feedgenerator.Stylesheet.__str__()`` did not escape
+  the ``url``, ``mimetype``, and ``media`` attributes, potentially leading
+  to invalid XML markup (:ticket:`36733`).
+
+* Fixed a bug in Django 5.2 on PostgreSQL where ``bulk_create()`` did not apply
+  a field's custom query placeholders (:ticket:`36748`).
+
+* Fixed a regression in Django 5.2.2 that caused a crash when using aggregate
+  functions with an empty ``Q`` filter over a queryset with annotations
+  (:ticket:`36751`).
+
+* Fixed a regression in Django 5.2.8 where ``DisallowedRedirect`` was raised by
+  :class:`~django.http.HttpResponseRedirect` and
+  :class:`~django.http.HttpResponsePermanentRedirect` for URLs longer than 2048
+  characters. The limit is now 16384 characters (:ticket:`36743`).
