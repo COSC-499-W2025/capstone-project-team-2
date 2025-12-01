@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+# Covers DB context initialization and cleanup helpers.
 import src.app_context as mod
 
 

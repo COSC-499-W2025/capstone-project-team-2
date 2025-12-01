@@ -1,6 +1,7 @@
 import pytest
 from types import SimpleNamespace
 
+# Tests for the CLI entrypoint orchestration and consent flow.
 import src.main as main_mod
 
 

@@ -3,6 +3,7 @@ from types import SimpleNamespace
 
 import pytest
 
+# Smoke tests for menu dispatch flows using monkeypatched input.
 import src.menus as mod
 
 

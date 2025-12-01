@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# Menu flows for the CLI, delegating to analysis, saved-project, and portfolio helpers.
 from src.CLI_Interface_for_user_config import ConfigurationForUsersUI
 from src.analysis_service import (
     _input_path,
@@ -19,6 +20,7 @@ from src.user_startup_config import ConfigLoader
 
 
 def settings_menu() -> None:
+    """Load config and launch the configuration CLI."""
     cfg = ConfigLoader().load()
     ConfigurationForUsersUI(cfg).run_configuration_cli()
 
@@ -26,6 +28,12 @@ def settings_menu() -> None:
 def analyze_project_menu(ctx: AppContext) -> None:
     """
     Ask user if their project is in a directory or zip file and analyze it.
+
+    Args:
+        ctx (AppContext): Shared DB/store context.
+
+    Returns:
+        None
     """
     while True:
         print("\n=== Analyze Project Menu ===")
@@ -69,6 +77,12 @@ def analyze_project_menu(ctx: AppContext) -> None:
 def saved_projects_menu(ctx: AppContext) -> None:
     """
     Display all saved projects from the configured directory and legacy location.
+
+    Args:
+        ctx (AppContext): Shared DB/store context.
+
+    Returns:
+        None
     """
     while True:
         print("\n=== Saved Project Menu ===")
@@ -113,6 +127,12 @@ def saved_projects_menu(ctx: AppContext) -> None:
 def delete_analysis_menu(ctx: AppContext) -> None:
     """
     Menu for deleting saved project analyses from disk and the database.
+
+    Args:
+        ctx (AppContext): Shared DB/store context.
+
+    Returns:
+        None
     """
     while True:
         print("\n=== Delete Analysis Menu ===")
@@ -222,6 +242,12 @@ def delete_analysis_menu(ctx: AppContext) -> None:
 def get_portfolio_menu(ctx: AppContext) -> None:
     """
     Let the user select a saved project and generate a portfolio-style summary.
+
+    Args:
+        ctx (AppContext): Shared DB/store context.
+
+    Returns:
+        None
     """
     while True:
         print("\n=== Portfolio Generator ===")
@@ -264,6 +290,15 @@ def get_portfolio_menu(ctx: AppContext) -> None:
 
 
 def main_menu(ctx: AppContext) -> int:
+    """
+    Top-level navigation loop for the CLI.
+
+    Args:
+        ctx (AppContext): Shared DB/store context.
+
+    Returns:
+        int: Exit code (0 on normal exit).
+    """
     while True:
         print("\n=== Main Menu ===")
         print("1) Settings")

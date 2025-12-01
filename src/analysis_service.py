@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+# Analysis helpers used by the CLI menus for project ingestion and persistence.
 from src.app_context import AppContext
 from src.data_extraction import FileMetadataExtractor
 from src.extraction import extractInfo
@@ -20,8 +21,14 @@ from src.file_data_saving import SaveFileAnalysisAsJSON
 
 def _input_path(prompt: str, allow_blank: bool = False) -> Optional[Path]:
     """
-    Prompt user for a path and loop until it exists.
-    Returns path or None.
+    Prompt user for a path until it exists.
+
+    Args:
+        prompt (str): Message shown to the user.
+        allow_blank (bool): If True, empty input returns None.
+
+    Returns:
+        Optional[Path]: Resolved path or None when blank is allowed.
     """
     while True:
         p = input(prompt).strip()
@@ -35,8 +42,18 @@ def _input_path(prompt: str, allow_blank: bool = False) -> Optional[Path]:
 
 def extract_if_zip(zip_path: Path) -> Path:
     """
-    Validate and extract ZIP using extractInfo.runExtraction().
-    Returns Path to extracted folder on success.
+    Validate and extract a ZIP archive.
+
+    Args:
+        zip_path (Path): Location of the ZIP file.
+
+    Returns:
+        Path: Extracted folder path.
+
+    Raises:
+        RuntimeError: Extraction returned an empty result.
+        ValueError: Extraction reported an error string.
+        FileNotFoundError: Expected extracted folder missing.
     """
     out = extractInfo(str(zip_path)).runExtraction()
 
@@ -59,8 +76,13 @@ def extract_if_zip(zip_path: Path) -> Path:
 
 def estimate_duration(hierarchy: Dict[str, Any]) -> str:
     """
-    Wrap Project_Duration_Estimator.get_duration().
-    If successful returns duration estimate, otherwise "unavailable (...)".
+    Estimate project duration from a file hierarchy.
+
+    Args:
+        hierarchy (Dict[str, Any]): File tree metadata.
+
+    Returns:
+        str: Duration string or "unavailable (...)" on failure.
     """
     try:
         estimate = Project_Duration_Estimator(hierarchy)
@@ -71,8 +93,13 @@ def estimate_duration(hierarchy: Dict[str, Any]) -> str:
 
 def convert_datetime_to_string(obj):
     """
-    Recursively converts datetime objects to strings in a dictionary or list.
-    Also handles timedelta objects.
+    Recursively convert datetime/timedelta objects to strings.
+
+    Args:
+        obj: Arbitrary nested structure containing datetime values.
+
+    Returns:
+        Any: Same structure with serialized datetimes.
     """
     if isinstance(obj, datetime.datetime):
         return obj.strftime("%Y-%m-%d %H:%M:%S")
@@ -87,7 +114,15 @@ def convert_datetime_to_string(obj):
 
 def python_oop_analysis(root: Path, resume, legacy_save_dir: Path) -> Dict[str, Any] | None:
     """
-    Runs Python OOP analysis if external AI consent is disabled and the project contains Python code.
+    Run Python OOP analysis when external AI is disabled and Python is present.
+
+    Args:
+        root (Path): Project root to scan.
+        resume: Resume metadata object with language info.
+        legacy_save_dir (Path): Config directory containing consent flags.
+
+    Returns:
+        dict | None: OOP metrics if executed, otherwise None.
     """
     config_path = legacy_save_dir / "UserConfigs.json"
     try:
@@ -112,7 +147,15 @@ def python_oop_analysis(root: Path, resume, legacy_save_dir: Path) -> Dict[str, 
 
 def export_json(project_name: str, analysis: Dict[str, Any], ctx: AppContext) -> None:
     """
-    Save analyzed project as a json file and to the database using the default directory.
+    Persist analyzed project to disk and database.
+
+    Args:
+        project_name (str): Name used for output filename.
+        analysis (Dict[str, Any]): Serializable analysis payload.
+        ctx (AppContext): Shared DB/store handles.
+
+    Returns:
+        None
     """
     ans = input("Save JSON report? (y/n): ").strip().lower() or "n"
     if not ans.startswith("y"):
@@ -140,7 +183,14 @@ def export_json(project_name: str, analysis: Dict[str, Any], ctx: AppContext) ->
 
 def analyze_project(root: Path, ctx: AppContext) -> None:
     """
-    Analyze the project at the given root and optionally persist results.
+    Analyze a project folder and optionally persist results.
+
+    Args:
+        root (Path): Project root to scan.
+        ctx (AppContext): Shared DB/store handles.
+
+    Returns:
+        None
     """
     print(f"\n[INFO] Analyzing: {root}\n")
 

@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+# Tests for listing, summarizing, and safely deleting saved analysis artifacts.
 import src.saved_projects as mod
 
 

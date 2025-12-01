@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+# Validates analysis orchestration, export, and consent-aware OOP analysis helpers.
 import src.analysis_service as mod
 
 

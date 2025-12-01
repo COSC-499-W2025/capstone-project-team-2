@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+# Render saved analyses as portfolio-style output, honoring consent settings.
 from src.app_context import AppContext
 from src.Generate_AI_Resume import GenerateProjectResume
 from src.python_oop_metrics import pretty_print_oop_report
@@ -9,6 +10,13 @@ from src.python_oop_metrics import pretty_print_oop_report
 def display_portfolio(path: Path, ctx: AppContext) -> None:
     """
     Read a saved project JSON file and print a formatted portfolio summary.
+
+    Args:
+        path (Path): Saved analysis file.
+        ctx (AppContext): Shared context for consent/config paths.
+
+    Returns:
+        None
     """
     try:
         data = json.loads(path.read_text(encoding="utf-8"))

@@ -3,6 +3,7 @@ from types import SimpleNamespace
 
 import pytest
 
+# Exercises portfolio display paths for consent on/off.
 import src.portfolio as mod
 
 

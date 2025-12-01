@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 
+# CLI entrypoint that wires consent/config into the shared menu flow.
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from src.Configuration import configuration_for_users
@@ -14,6 +15,12 @@ def run() -> int:
     """
     Entry point for the CLI application.
     Handles consent, loads configuration, and dispatches to the main menu.
+
+    Returns:
+        int: Process exit code (0 on normal exit, non-zero on failure/decline).
+
+    Raises:
+        Exception: Propagates unexpected errors after closing context.
     """
     consent_manager = UserConsent()
     proceed = consent_manager.ask_for_consent()

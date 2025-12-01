@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+# Utilities for reading, listing, and cleaning up saved analysis artifacts.
 from src.app_context import AppContext
 from src.python_oop_metrics import pretty_print_oop_report
 
@@ -9,6 +10,12 @@ from src.python_oop_metrics import pretty_print_oop_report
 def list_saved_projects(folder: Path) -> list[Path]:
     """
     Return saved analysis files from the configured folder and legacy location.
+
+    Args:
+        folder (Path): New default storage directory.
+
+    Returns:
+        list[Path]: Unique JSON analysis files excluding config artifacts.
     """
     candidate_dirs: list[Path] = []
 
@@ -51,6 +58,9 @@ def list_saved_projects(folder: Path) -> list[Path]:
 def show_saved_summary(path: Path) -> None:
     """
     Display a summary of a saved analysis JSON.
+
+    Args:
+        path (Path): Location of the saved analysis file.
     """
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
@@ -133,7 +143,12 @@ def show_saved_summary(path: Path) -> None:
 def get_saved_projects_from_db(ctx: AppContext) -> list[tuple]:
     """
     Fetch all saved projects from the database.
-    Returns a list of tuples: (id, filename, content, uploaded_at)
+
+    Args:
+        ctx (AppContext): Shared DB context.
+
+    Returns:
+        list[tuple]: (id, filename, content, uploaded_at) rows.
     """
     cursor = ctx.conn.cursor()
     try:
@@ -148,7 +163,14 @@ def get_saved_projects_from_db(ctx: AppContext) -> list[tuple]:
 
 def delete_from_database_by_id(record_id: int, ctx: AppContext) -> bool:
     """
-    Delete a database record by ID. Returns True if deleted.
+    Delete a database record by ID.
+
+    Args:
+        record_id (int): Primary key to remove.
+        ctx (AppContext): Shared DB context.
+
+    Returns:
+        bool: True if a record was deleted.
     """
     return ctx.store.delete(record_id)
 
@@ -156,7 +178,13 @@ def delete_from_database_by_id(record_id: int, ctx: AppContext) -> bool:
 def delete_file_from_disk(filename: str, ctx: AppContext) -> bool:
     """
     Delete a file only if no remaining DB records reference it.
-    Supports both the new default location and the legacy directory.
+
+    Args:
+        filename (str): Target filename.
+        ctx (AppContext): Shared DB/store context.
+
+    Returns:
+        bool: True if the file was removed.
     """
     try:
         base_dir = Path(ctx.default_save_dir).expanduser().resolve()

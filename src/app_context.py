@@ -10,12 +10,23 @@ from src.db_helper_function import HelperFunct
 
 @dataclass
 class AppContext:
+    """
+    Shared application handles for database access and default storage paths.
+
+    Attributes:
+        conn (mysql.connector.MySQLConnection): Live MySQL connection.
+        store (HelperFunct): Helper wrapper for DB operations.
+        legacy_save_dir (Path): Legacy config/insight base directory.
+        default_save_dir (Path): Default nested directory for new insights.
+    """
+
     conn: mysql.connector.MySQLConnection
     store: HelperFunct
     legacy_save_dir: Path
     default_save_dir: Path
 
     def close(self) -> None:
+        """Close the DB connection safely."""
         try:
             if self.conn:
                 self.conn.close()
@@ -26,10 +37,17 @@ class AppContext:
 def create_app_context() -> AppContext:
     """
     Initialize database connection, helper store, and shared paths.
+
+    Returns:
+        AppContext: Shared handles for DB access and filesystem targets.
+
+    Raises:
+        Exception: If connection cannot be established after retries.
     """
     port_number, host_ip = DockerFinder().get_mysql_host_information()
     conn = None
 
+    # Retry a handful of times in case the MySQL container is still coming up.
     for _ in range(5):
         try:
             conn = mysql.connector.connect(
