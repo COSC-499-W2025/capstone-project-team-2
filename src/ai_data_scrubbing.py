@@ -176,7 +176,6 @@ class ai_data_scrubber:
         words_in_data = list()
         for string in data:
             if not (isinstance(string, str)):  #If value isn't a string, it shouldn't be in the list
-                data.remove(string)
                 continue
             words_in_data.append([string, re.findall(r"\w+", string.lower())])  #Pulls the words out of string, seperating by special characters and spaces
         similar_sets = list()
