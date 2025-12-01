@@ -321,3 +321,58 @@
 
 ### Extra Details:
 * Next sprint is a focus on integration. I will be working on taking all the data we've gathered so far and storing it in JSON files and connecting it with the main program completely.
+
+---------------------------
+
+## Sunday (30/11 - 23/11)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/30-11-2025_PeerEval_SamM.jpg)
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: AI project analysis: AI analsysis data scrubbing
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description        | Feature   | Assigned To | Status   |
+| ------- | ------------------ | --------- | ----------- | -------- |
+| #187   | AI data scrubbing | AI porject analysis | Samantha Maranda  | Completed |
+
+### Progress Update (since 23/11/2025) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Scrub AI data
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Integrate AI data into main
+        </td>
+        <!-- Status -->
+        <td>Incomplete
+        </td>
+    </tr>
+     <tr>
+        <!-- Task/Issue # -->
+        <td>Save AI analysis
+        </td>
+        <!-- Status -->
+        <td>Incomplete
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+* Next sprint I'll integrate the scrubbed AI data and save it alongside our other data
+
