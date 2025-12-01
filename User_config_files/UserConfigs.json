@@ -9,7 +9,7 @@
     "theme": "dark"
   },
   "consented": {
-    "external": true,
+    "external": false,
     "Data consent": true
   }
 }

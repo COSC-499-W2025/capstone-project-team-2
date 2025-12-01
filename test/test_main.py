@@ -416,6 +416,205 @@ class TestMainModule(unittest.TestCase):
             any("Résumé line" in line and "Built Demo." in line for line in printed),
             msg=f"No résumé line in saved-summary output: {printed}",
         )
+        
+    @patch.object(main_mod, "analyze_python_project_oop")
+    @patch.object(main_mod, "pretty_print_oop_report")
+    @patch("builtins.print")
+    @patch.object(main_mod, "record_project_insight")
+    @patch.object(main_mod, "export_json")
+    @patch.object(main_mod, "generate_resume_item")
+    @patch.object(main_mod, "estimate_duration", return_value="5 days")
+    @patch.object(main_mod, "FileMetadataExtractor")
+    def test_analyze_project_runs_python_oop_analysis_no_external_and_python_project(
+        self,
+        FakeExtractor,
+        est_duration,
+        gen_resume,
+        _export,
+        _record,
+        mock_print,
+        mock_pretty_print,
+        mock_analyze_oop,
+    ):
+        """
+        Test that analyze_project runs Python OOP analysis when:
+        - External AI consent is disabled
+        - Project contains Python code
+        """
+        import tempfile
+
+        # Fake extractor
+        fake_inst = MagicMock()
+        fake_inst.file_hierarchy.return_value = {"type": "DIR", "children": []}
+        FakeExtractor.return_value = fake_inst
+
+        # Fake resume with Python language
+        gen_resume.return_value = SimpleNamespace(
+            project_name="PythonProj",
+            summary="Built PythonProj.",
+            highlights=["Python project"],
+            project_type="individual",
+            detection_mode="local",
+            languages=["Python"],
+            frameworks=[],
+            skills=["Python"],
+            framework_sources={},
+        )
+
+        # Fake project insight record
+        _record.return_value = SimpleNamespace(id=1, project_name="PythonProj")
+
+        # Mock OOP metrics returned by analyzer
+        mock_oop_metrics = {
+            "classes": {"count": 5, "avg_methods_per_class": 3.2},
+            "score": {"oop_score": 0.65, "rating": "medium"},
+        }
+        mock_analyze_oop.return_value = mock_oop_metrics
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_config_dir = Path(tmpdir) / "User_config_files"
+            temp_config_dir.mkdir(parents=True, exist_ok=True)
+            config_file = temp_config_dir / "UserConfigs.json"
+            config_file.write_text(
+                json.dumps({"consented": {"external": False, "data": True}}),
+                encoding="utf-8",
+            )
+
+            with patch.object(main_mod, "LEGACY_SAVE_DIR", temp_config_dir):
+                root = Path("/tmp/python_project")
+                main_mod.analyze_project(root)
+
+        # Verify Python OOP analyzer was called
+        mock_analyze_oop.assert_called_once_with(root)
+        # Verify pretty printer was called with returned metrics
+        mock_pretty_print.assert_called_once_with(mock_oop_metrics)
+
+        # Verify info message about running Python analysis was printed
+        printed = [
+            args[0]
+            for args, _ in mock_print.call_args_list
+            if args and isinstance(args[0], str)
+        ]
+        self.assertTrue(
+            any("Running non-LLM Python analysis" in msg for msg in printed),
+            msg=f"Expected Python analysis info message, got: {printed}",
+        )
+        
+    @patch.object(main_mod, "analyze_python_project_oop")
+    @patch("builtins.print")
+    @patch.object(main_mod, "record_project_insight")
+    @patch.object(main_mod, "export_json")
+    @patch.object(main_mod, "generate_resume_item")
+    @patch.object(main_mod, "estimate_duration", return_value="5 days")
+    @patch.object(main_mod, "FileMetadataExtractor")
+    def test_analyze_project_skips_python_oop_analysis_when_external_enabled(
+        self,
+        FakeExtractor,
+        est_duration,
+        gen_resume,
+        _export,
+        _record,
+        mock_print,
+        mock_analyze_oop,
+    ):
+        """
+        Test that analyze_project does not run Python OOP analysis when external AI consent is enabled, even if project contains Python
+        """
+        import tempfile
+
+        # Fake extractor
+        fake_inst = MagicMock()
+        fake_inst.file_hierarchy.return_value = {"type": "DIR", "children": []}
+        FakeExtractor.return_value = fake_inst
+
+        # Fake resume with Python language
+        gen_resume.return_value = SimpleNamespace(
+            project_name="PythonProj",
+            summary="Built PythonProj.",
+            highlights=["Python project"],
+            project_type="individual",
+            detection_mode="local",
+            languages=["Python"],
+            frameworks=[],
+            skills=["Python"],
+            framework_sources={},
+        )
+
+        # Fake project insight record
+        _record.return_value = SimpleNamespace(id=1, project_name="PythonProj")
+
+        # Use a local temporary directory instead of self.temp_path
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_config_dir = Path(tmpdir) / "User_config_files"
+            temp_config_dir.mkdir(parents=True, exist_ok=True)
+            config_file = temp_config_dir / "UserConfigs.json"
+            config_file.write_text(
+                json.dumps({"consented": {"external": True, "data": True}}),
+                encoding="utf-8",
+            )
+
+            with patch.object(main_mod, "LEGACY_SAVE_DIR", temp_config_dir):
+                root = Path("/tmp/python_project")
+                main_mod.analyze_project(root)
+
+        # Verify Python OOP analyzer was NOT called
+        mock_analyze_oop.assert_not_called()
+        
+    @patch.object(main_mod, "pretty_print_oop_report")
+    @patch("builtins.print")
+    def test_display_portfolio_shows_python_oop_when_external_disabled(
+        self,
+        mock_print,
+        mock_pretty_print,
+    ):
+        """
+        Test that display_portfolio shows Python OOP analysis when:
+        - External AI is disabled
+        - Saved data contains python_oop_analysis
+        """
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir_path = Path(tmpdir)
+            temp_file = tmpdir_path / "portfolio_test.json"
+
+            # Create analysis data with Python OOP metrics
+            data = {
+                "project_root": "/tmp/python_project",
+                "resume_item": {
+                    "project_type": "individual",
+                    "detection_mode": "local",
+                    "languages": ["Python"],
+                    "frameworks": [],
+                    "skills": ["Python"],
+                    "summary": "Python project for portfolio.",
+                },
+                "duration_estimate": "1 week",
+                "python_oop_analysis": {
+                    "classes": {"count": 12, "avg_methods_per_class": 5.0},
+                    "score": {"oop_score": 0.80, "rating": "high"},
+                },
+            }
+            temp_file.write_text(json.dumps(data), encoding="utf-8")
+
+            # Config with external = False
+            temp_config_dir = tmpdir_path / "User_config_files"
+            temp_config_dir.mkdir(parents=True, exist_ok=True)
+            config_file = temp_config_dir / "UserConfigs.json"
+            config_file.write_text(
+                json.dumps({"consented": {"external": False, "data": True}}),
+                encoding="utf-8",
+            )
+
+            with patch.object(main_mod, "LEGACY_SAVE_DIR", temp_config_dir):
+                main_mod.display_portfolio(temp_file)
+
+        # Verify pretty_print_oop_report was called once with the OOP metrics
+        mock_pretty_print.assert_called_once()
+        call_arg = mock_pretty_print.call_args[0][0]
+        self.assertEqual(call_arg["classes"]["count"], 12)
+        self.assertEqual(call_arg["score"]["rating"], "high")
+        
 
 if __name__ == "__main__":
     unittest.main()
