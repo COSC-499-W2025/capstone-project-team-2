@@ -429,11 +429,11 @@ class PythonOOPAstAnalyzer:
 
         # Weighted combination
         oop_score = (
-            0.30 * richness +
+            0.25 * richness +
             0.20 * inheritance_ratio +
-            0.20 * encapsulation_ratio +
-            0.20 * polymorphism_ratio +
-            0.10 * dunder_ratio
+            0.25 * encapsulation_ratio +
+            0.25 * polymorphism_ratio +
+            0.05 * dunder_ratio
         )
 
         oop_score = max(0.0, min(1.0, oop_score))
@@ -454,8 +454,9 @@ class PythonOOPAstAnalyzer:
         else:
             rating = "high"
             comment = (
-                "The project exhibits strong object-oriented design: classes are well-used, inheritance and method overriding appear, and there are "
-                "signs of encapsulation and expressive interfaces."
+                "The project exhibits strong object-oriented design: classes are well-used, "
+                "encapsulation is present, and inheritance with method overriding provides "
+                "clear polymorphic behavior and expressive interfaces."
             )
 
         metrics = {
@@ -575,7 +576,8 @@ def build_narrative(metrics: Dict[str, Any]) -> Dict[str, str]:
         # overall OOP interpretation based on score
         if score < 0.3:
             oop_lines.append(
-                "Overall, the OOP score is low, so this artifact shows only limited use of object-oriented design beyond basic class definitions."
+                "Overall, the OOP score is low, so this artifact shows only limited use of "
+                "object-oriented design beyond basic class or data-holder definitions."     
             )
         elif score < 0.6:
             oop_lines.append(
@@ -602,7 +604,8 @@ def build_narrative(metrics: Dict[str, Any]) -> Dict[str, str]:
 
     if total_literal_collections == 0:
         ds_lines.append(
-            "The analysis did not detect any collection literals, so data structure usage is minimal in this artifact."
+            "The analysis did not detect any collection literals, so data structure usage "
+            "appears minimal in this artifact."
         )
     else:
         ds_lines.append(
