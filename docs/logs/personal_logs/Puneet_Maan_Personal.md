@@ -1,3 +1,57 @@
+# Sprint Log: (24/11/2025 – 30/11/2025)
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/30-11-2025_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Goals Recap
+Coding: Focused on restructuring the CLI into modular layers. Broke main.py into dedicated modules (app_context, analysis_service, saved_projects, portfolio, menus) and reduced it to handle only consent/config and menu dispatch. Deferred MySQL connections until after consent. Added comprehensive docstrings and expanded pytest coverage for all new modules. Performed manual testing across all menu flows, project save/load operations, analysis workflows, and error handling.
+
+---
+
+## Key Accomplishments
+**My Work (PR #214)**
+- Separated CLI responsibilities into modular layers: `app_context`, `analysis_service`, `saved_projects`, `portfolio`, `menus`.
+- Reduced `main.py` to manage only consent, configuration, and menu delegation.
+- Deferred database creation to `create_app_context()` to ensure no MySQL calls happen before user consent.
+- Added standards style docstrings across all refactored modules for clarity and maintainability.
+- Built and ran pytest suites for all new modules (`main`, `app_context`, `analysis_service`, `saved_projects`, `portfolio`, `menus`) with all tests passing.
+- Conducted manual testing of menu flows, project operations, analysis workflows, and error handling.
+
+### Code Reviews Completed
+Reviewed multiple team PRs.
+
+---
+
+## Deliverables Completed
+- Modular CLI structure with deferred database initialization.
+- Comprehensive documentation via docstrings.
+- Passing pytest coverage for all new modules.
+- Manual testing completed for our actual usage flows.
+
+---
+
+## Plan for Next Cycle
+- Ensure all Milestone 1 deliverables are fully completed and validated.
+- Fix any remaining issues or blockers from the CLI and Project Insights work.
+- Prepare for final M1 submission, including demos, documentation, and team coordination.
+
+---
+
+## Reflection
+#### What Went Well
+- The CLI refactor went smoothly, and the code is now organized into clear, modular components that are easier to maintain and extend.  
+- The team is wrapping up the final deliverables for Milestone 1, and progress is steady. It feels like we’re approaching the finish line for the semester.  
+- Overall collaboration and coordination on tasks have improved, helping us keep things moving despite the complexity of the project.  
+
+#### What We Can Improve
+- Some PRs were submitted later than expected, which caused minor delays in progress and coordination. Planning for earlier submissions or better communication around timing could help avoid these bottlenecks in the future.  
+
+## ====================================================
+
 # Sprint Log: (17/11/2025 – 23/11/2025)
 
 ---
