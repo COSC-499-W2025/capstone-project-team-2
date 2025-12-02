@@ -39,10 +39,10 @@ class SimpleResumeGenerator:
     :ivar data: The input data for populating the resume content.
     :type data: ResumeItem
     """
-    def __init__(self,filePath:str,data):
+    def __init__(self,folderPath:str,data):
         self.project_title = None
         self.styles=getSampleStyleSheet()
-        self.output_path=Path(filePath)
+        self.folder_path=Path(folderPath)
         self.story=[]
         self.data:ResumeItem=data
         self.project_title = self.data.project_title
@@ -63,7 +63,7 @@ class SimpleResumeGenerator:
         # The document will have a specific page size (letter), left, right, top, and
         # bottom margins (0.75 * inch each). The document will be saved at the location
         # specified by self.output_path.
-        doc=SimpleDocTemplate(str(self.output_path),
+        doc=SimpleDocTemplate(str(self.folder_path/f"{name}.pdf"),
                               pagesize=letter,  # Specifies the page size as letter.
                               leftMargin=0.75 * inch,  # Specifies the left margin.
                               rightMargin=0.75 * inch,  # Specifies the right margin.
@@ -105,14 +105,17 @@ class SimpleResumeGenerator:
         if self.data.key_skills_used:
             skills_text = f"<b>Skills:</b> {', '.join(self.data.key_skills_used)}"
             self.story.append(Paragraph(skills_text, self.styles['Normal']))
+            self.story.append(Spacer(1, 0.1 * inch))
 
         # Display the tech stack used in the project if it exists
         if self.data.tech_stack:
             self.story.append(Paragraph(f"<b>Tech Stack:</b> {self.data.tech_stack}", self.styles['Normal']))
+            self.story.append(Spacer(1, 0.1 * inch))
 
         # Display the impact of the project if it exists
         if self.data.impact:
             self.story.append(Paragraph(f"<b>Impact:</b> {self.data.impact}", self.styles['Normal']))
+            self.story.append(Spacer(1, 0.1 * inch))
 
         # Add a small space between paragraphs
         self.story.append(Spacer(1, 0.3 * inch))
@@ -135,11 +138,11 @@ class SimpleResumeGenerator:
         for i in tqdm(range(20), desc=f"Creating PDF Portfolio for {self.project_title}", unit="step"):
             time.sleep(1)
         self.generate()
-        print(f"Resume has been created and saved to {self.output_path}")
+        print(f"Resume has been created and saved to {self.folder_path}")
 
 
 
-""""
-test=GenerateProjectResume(r"").generate(saveToJson=False)
-SimpleResumeGenerator("",data=test).display_and_run()
-"""
+
+test=GenerateProjectResume(r"D:\UBCO\COSC360_final-Project").generate(saveToJson=False)
+generator=SimpleResumeGenerator(r"D:\UBCO\capstone-project-team-2",data=test)
+generator.display_and_run()
