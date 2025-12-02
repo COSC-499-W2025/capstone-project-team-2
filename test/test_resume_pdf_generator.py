@@ -8,9 +8,32 @@ import shutil
 
 
 class TestPDFGenerator(unittest.TestCase):
+    """
+    Test case class for verifying the functionality of PDF generation routines.
+
+    This class contains test methods to ensure the correctness of PDF generation,
+    including the generation of multiple PDFs, verifying content, and handling
+    custom filenames. It uses temporary directories for test isolation and cleanup.
+
+    :ivar tempFolder: Path to a temporary folder for storing generated PDFs during testing.
+    :type tempFolder: str
+    :ivar test_folder: Path to the folder containing test scripts or related data.
+    :type test_folder: Path
+    :ivar instance: Instance of a pre-generated project resume loaded for testing purposes.
+    :type instance: GenerateProjectResume
+    """
 
     @classmethod
     def setUpClass(cls):
+        """
+        Set up the test class-level resources required for testing.
+
+        This method creates a temporary directory to store generated PDFs and initializes
+        the test resources from the specified folder. It also instantiates the necessary
+        objects for generating project resumes based on the test scripts.
+
+        :rtype: None
+        """
         cls.tempFolder = tempfile.mkdtemp()  # Creates actual directory for PDFs
         root_folder = Path(__file__).resolve().parent
         cls.test_folder = root_folder / "tiny_scripts"
@@ -18,7 +41,7 @@ class TestPDFGenerator(unittest.TestCase):
 
 
     def test_save_pdf(self):
-        """Test that PDF is created with specified filename"""
+        """Test that PDF is created with a specified filename"""
         generator = SimpleResumeGenerator(self.tempFolder, data=self.instance, fileName="Portfolio")
         generator.generate()  # Creates "Portfolio.pdf"
 
@@ -80,7 +103,7 @@ class TestPDFGenerator(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        """Cleanup temporary files after all tests"""
+        """Clean up temporary files after all tests"""
 
         if os.path.exists(cls.tempFolder):
             try:
