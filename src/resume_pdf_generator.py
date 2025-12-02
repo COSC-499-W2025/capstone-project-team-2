@@ -140,7 +140,7 @@ class SimpleResumeGenerator:
         for i in tqdm(range(20), desc=f"Creating PDF Portfolio for {self.project_title}", unit="step"):
             time.sleep(1)
         self.generate()
-        print(f"Resume has been created and saved to {self.folder_path}")
+        print(f"Portfolio has been created and saved to {self.folder_path}")
 
 
 

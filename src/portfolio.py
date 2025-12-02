@@ -5,9 +5,10 @@ from pathlib import Path
 from src.app_context import AppContext
 from src.Generate_AI_Resume import GenerateProjectResume
 from src.python_oop_metrics import pretty_print_oop_report
+from src.resume_pdf_generator import SimpleResumeGenerator
 
 
-def display_portfolio(path: Path, ctx: AppContext) -> None:
+def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
     """
     Read a saved project JSON file and print a formatted portfolio summary.
 
@@ -73,7 +74,7 @@ def display_portfolio(path: Path, ctx: AppContext) -> None:
 
     try:
         directory_file_path = data.get("project_root")
-        docker = GenerateProjectResume(directory_file_path).generate()
+        docker = GenerateProjectResume(directory_file_path).generate(saveToJson=False)
     except Exception as e:
         print(f"[ERROR] Could not generate portfolio: {e}")
         return
@@ -123,3 +124,16 @@ def display_portfolio(path: Path, ctx: AppContext) -> None:
                 print(f"Code:\n{code[:200]}...\n")
 
     print("============================================\n")
+    generate_pdf_input=input("Would you like to generate a PDF? (y/n): ")
+    if generate_pdf_input.upper()=="Y":
+        folder_path=str(input("Enter the folder path where you want to save the PDF: "))
+        name_of_file=str(input("Enter the name of the PDF file: "))
+        SimpleResumeGenerator(folder_path,data=docker,fileName=name_of_file).display_and_run()
+
+
+
+
+
+
+
+
