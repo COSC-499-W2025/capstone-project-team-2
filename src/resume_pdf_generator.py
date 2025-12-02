@@ -39,13 +39,14 @@ class SimpleResumeGenerator:
     :ivar data: The input data for populating the resume content.
     :type data: ResumeItem
     """
-    def __init__(self,folderPath:str,data):
+    def __init__(self,folderPath:str,data,fileName:str):
         self.project_title = None
         self.styles=getSampleStyleSheet()
         self.folder_path=Path(folderPath)
         self.story=[]
         self.data:ResumeItem=data
         self.project_title = self.data.project_title
+        self.fileName=fileName
 
 
     def generate(self,name:str="My Portfolio"):
@@ -55,6 +56,7 @@ class SimpleResumeGenerator:
         responsibilities, skills, tech stack, impact, and a timestamp for generation and is created
         using the report lab python library to create the PDF.
 
+        :param fileName:
         :param name: Title to be displayed on the first page of the document.
         :type name: str
         :return: None
@@ -63,7 +65,7 @@ class SimpleResumeGenerator:
         # The document will have a specific page size (letter), left, right, top, and
         # bottom margins (0.75 * inch each). The document will be saved at the location
         # specified by self.output_path.
-        doc=SimpleDocTemplate(str(self.folder_path/f"{name}.pdf"),
+        doc=SimpleDocTemplate(str(self.folder_path/f"{self.fileName}.pdf"),
                               pagesize=letter,  # Specifies the page size as letter.
                               leftMargin=0.75 * inch,  # Specifies the left margin.
                               rightMargin=0.75 * inch,  # Specifies the right margin.
@@ -142,7 +144,3 @@ class SimpleResumeGenerator:
 
 
 
-
-test=GenerateProjectResume(r"D:\UBCO\COSC360_final-Project").generate(saveToJson=False)
-generator=SimpleResumeGenerator(r"D:\UBCO\capstone-project-team-2",data=test)
-generator.display_and_run()
