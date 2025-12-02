@@ -19,3 +19,4 @@ pytest-mock
 pytest-cov
 python-dotenv
 reportlab
+tqdm
