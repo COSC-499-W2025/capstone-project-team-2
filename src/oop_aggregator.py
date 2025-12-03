@@ -1,7 +1,12 @@
-from dataclasses import dataclass, field
+"""
+OOP Aggregator
+
+Aggregates canonical per-file analysis reports into unified project-level
+OOP metrics, including class stats, encapsulation, polymorphism, data
+structures, complexity, and a narrative summary.
+"""
+
 from typing import List, Dict, Any, Set
-from pathlib import Path
-import math
 
 # Expected canonical class/file shapes 
 # Each canonical report (per file) should be a dict like:
@@ -77,7 +82,7 @@ def aggregate_canonical_reports(canonical_reports: List[Dict[str, Any]], total_f
     dunder_rich = 0
     private_attr_classes = 0
 
-    # Build name -> methods mapping for override detection
+    # Build name by methods mapping for override detection
     methods_by_class: Dict[str, Set[str]] = {}
 
     for c in all_classes:
@@ -100,15 +105,10 @@ def aggregate_canonical_reports(canonical_reports: List[Dict[str, Any]], total_f
     # Polymorphism detection: override methods present in subclasses
     override_classes = 0
     override_method_count = 0
-    # To find overrides, we need to see bases and check whether base class methods are present.
-    # Build a name -> class mapping for easy lookup
-    classes_by_name = {}
-    for c in all_classes:
-        classes_by_name[c.get("name", "")] = c
 
     for c in all_classes:
         base_method_union = set()
-        for base in (c.get("bases')") if False else c.get("bases", [])):  # type: ignore
+        for base in c.get("bases", []):
             if base in methods_by_class:
                 base_method_union |= methods_by_class[base]
         overrides = set(c.get("methods", [])) & base_method_union
@@ -120,32 +120,20 @@ def aggregate_canonical_reports(canonical_reports: List[Dict[str, Any]], total_f
     for rep in canonical_reports:
         ds = rep.get("data_structures") or {}
         # counts mapping from canonical schema to analyzer keys
-        counts = ds.get("counts", {}) if isinstance(ds.get("counts", {}), dict) else {}
-        if counts.get("list", 0):
-            ds_counts["list_literals"] += counts.get("list", 0)
-        if counts.get("dict", 0):
-            ds_counts["dict_literals"] += counts.get("dict", 0)
-        if counts.get("set", 0):
-            ds_counts["set_literals"] += counts.get("set", 0)
-        if counts.get("tuple", 0):
-            ds_counts["tuple_literals"] += counts.get("tuple", 0)
+        counts = ds.get("counts", {}) if isinstance(ds.get("counts"), dict) else {}
+        for key, target in [("list", "list_literals"), ("dict", "dict_literals"), 
+                             ("set", "set_literals"), ("tuple", "tuple_literals")]:
+            ds_counts[target] += counts.get(key, 0)
 
-        comps = ds.get("comprehensions", {}) or {}
-        if comps.get("list", 0):
-            ds_counts["list_comprehensions"] += comps.get("list", 0)
-        if comps.get("dict", 0):
-            ds_counts["dict_comprehensions"] += comps.get("dict", 0)
-        if comps.get("set", 0):
-            ds_counts["set_comprehensions"] += comps.get("set", 0)
+        comps = ds.get("comprehensions") or {}
+        for key, target in [("list", "list_comprehensions"), ("dict", "dict_comprehensions"),
+                             ("set", "set_comprehensions")]:
+            ds_counts[target] += comps.get(key, 0)
 
-        if ds.get("uses_priority_queue", False):
-            alg_usage["uses_heapq"] = True
-        if ds.get("uses_sorted", False):
-            alg_usage["uses_sorted"] = True
-        if ds.get("uses_counter_like", False):
-            alg_usage["uses_counter"] = True
-        if ds.get("uses_defaultdict_like", False):
-            alg_usage["uses_defaultdict"] = True
+        for src, target in [("uses_priority_queue", "uses_heapq"), ("uses_sorted", "uses_sorted"),
+                             ("uses_counter_like", "uses_counter"), ("uses_defaultdict_like", "uses_defaultdict")]:
+            if ds.get(src):
+                alg_usage[target] = True
 
         cx = rep.get("complexity") or {}
         complexity_stats["total_functions"] += cx.get("total_functions", 0)
@@ -178,7 +166,7 @@ def aggregate_canonical_reports(canonical_reports: List[Dict[str, Any]], total_f
     if n_classes == 0:
         rating = "none"
         comment = (
-            "No Python classes were found in this project, so OOP "
+            "No classes were found in this project, so OOP "
             "usage appears minimal or absent."
         )
     elif oop_score < 0.3:
@@ -456,6 +444,7 @@ def build_narrative(metrics: Dict[str, Any]) -> Dict[str, str]:
     }
 
 def pretty_print_oop_report(metrics: dict):
+    """Print a formatted OOP analysis report to stdout."""
     print("\n" + "="*60)
     print("         PYTHON OOP ANALYSIS REPORT")
     print("="*60)
