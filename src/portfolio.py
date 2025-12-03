@@ -127,7 +127,7 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
     generate_pdf_input=input("Would you like to generate a PDF? (y/n): ")
     if generate_pdf_input.upper()=="Y":
         folder_path=str(input("Enter the folder path where you want to save the PDF: "))
-        name_of_file=str(input("Enter the name of the PDF file: "))
+        name_of_file=str(input("Enter the name of the PDF file: ")) or "Portfolio"
         SimpleResumeGenerator(folder_path,data=docker,fileName=name_of_file).display_and_run()
 
 
