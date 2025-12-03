@@ -8,7 +8,7 @@ from src.analysis_service import (
     extract_if_zip,
 )
 from src.app_context import AppContext
-from src.portfolio import display_portfolio
+from src.portfolio import display_portfolio_and_generate_pdf
 from src.saved_projects import (
     delete_file_from_disk,
     delete_from_database_by_id,
@@ -62,7 +62,11 @@ def analyze_project_menu(ctx: AppContext) -> None:
                         "try again."
                     )
                     return None
-                return analyze_project(extracted, ctx)
+                return analyze_project(
+                    extracted,
+                    ctx,
+                    project_label=zip_path.stem,
+                )
             elif choice == "0":
                 return None
             else:
@@ -277,7 +281,7 @@ def get_portfolio_menu(ctx: AppContext) -> None:
                     print("Invalid selection.")
                     continue
 
-                display_portfolio(items[idx], ctx)
+                display_portfolio_and_generate_pdf(items[idx], ctx)
                 input("Press Enter to continue...")
             except ValueError:
                 print("Please enter a number.")
