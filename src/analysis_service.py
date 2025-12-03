@@ -11,7 +11,7 @@ from src.extraction import extractInfo
 from src.get_contributors_percentage_per_person import contribution_summary
 from src.project_duration_estimation import Project_Duration_Estimator
 from src.project_insights import record_project_insight
-from src.python_oop_metrics import (
+from src.python_analyzer import (
     analyze_python_project_oop,
     pretty_print_oop_report,
 )

@@ -4,7 +4,7 @@ from typing import Any
 
 # Utilities for reading, listing, and cleaning up saved analysis artifacts.
 from src.app_context import AppContext
-from src.python_oop_metrics import pretty_print_oop_report
+from src.python_analyzer import pretty_print_oop_report
 
 
 def list_saved_projects(folder: Path) -> list[Path]:

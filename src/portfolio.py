@@ -4,7 +4,7 @@ from pathlib import Path
 # Render saved analyses as portfolio-style output, honoring consent settings.
 from src.app_context import AppContext
 from src.Generate_AI_Resume import GenerateProjectResume
-from src.python_oop_metrics import pretty_print_oop_report
+from src.python_analyzer import pretty_print_oop_report
 
 
 def display_portfolio(path: Path, ctx: AppContext) -> None:
