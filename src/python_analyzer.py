@@ -331,17 +331,13 @@ class PythonOOPAstAnalyzer:
         ds_visitor.visit(tree)
         self._accumulate_ds_and_complexity(ds_visitor)
         
-    # Accumulate data structure and complexity stats
     def _accumulate_ds_and_complexity(self, v: _DataStructureAndComplexityVisitor) -> None:
-        
-        self.ds_counts["list_literals"] += v.list_literals
-        self.ds_counts["dict_literals"] += v.dict_literals
-        self.ds_counts["set_literals"] += v.set_literals
-        self.ds_counts["tuple_literals"] += v.tuple_literals
-        self.ds_counts["list_comprehensions"] += v.list_comprehensions
-        self.ds_counts["dict_comprehensions"] += v.dict_comprehensions
-        self.ds_counts["set_comprehensions"] += v.set_comprehensions
+        """Accumulate data structure and complexity stats from a visitor."""
+        # Data structure counts
+        for key in self.ds_counts:
+            self.ds_counts[key] += getattr(v, key)
 
+        # Algorithm usage flags (OR them together)
         for key in self.alg_usage:
             self.alg_usage[key] = self.alg_usage[key] or getattr(v, key)
 
@@ -354,73 +350,38 @@ class PythonOOPAstAnalyzer:
         )
         
     def to_canonical_reports(self) -> List[Dict[str, Any]]:
-        """
-        Convert the analyzer's current internal state (class_infos + ds_counts + complexity_stats) into a list of canonical per-file reports. Group ClassInfo 
-        by file path so each report corresponds to a source file.
-        """
-        # group ClassInfo objects by file
+        """Convert class_infos into canonical per-file reports for the aggregator."""
         files_map = defaultdict(list)
         for ci in self.class_infos:
             files_map[str(ci.file_path)].append(ci)
 
         reports = []
         for file_path, class_list in files_map.items():
-            classes = [_classinfo_to_canonical_class(ci) for ci in class_list]
-
-            # leave DS + complexity empty per file (project-level injected later)
-            ds = {
-                "counts": {"list": 0, "dict": 0, "set": 0, "tuple": 0},
-                "comprehensions": {"list": 0, "dict": 0, "set": 0},
-                "uses_priority_queue": False,
-                "uses_sorted": False,
-                "uses_counter_like": False,
-                "uses_defaultdict_like": False,
-            }
-
-            complexity = {
-                "total_functions": 0,
-                "functions_with_nested_loops": 0,
-                "max_loop_depth": 0,
-            }
-
             reports.append({
                 "file": file_path,
                 "module": class_list[0].module if class_list else "",
-                "classes": classes,
-                "data_structures": ds,
-                "complexity": complexity,
+                "classes": [_classinfo_to_canonical_class(ci) for ci in class_list],
+                "data_structures": {},
+                "complexity": {},
                 "syntax_ok": True,
             })
-
         return reports
     
-    # Compute metrics method
     def compute_metrics(self) -> Dict[str, Any]:
-        """
-        Delegate class-based scoring to the aggregator, then inject
-        project-level DS + complexity stats.
-        """
+        """Delegate scoring to aggregator, then inject project-level stats."""
         canonical_reports = self.to_canonical_reports()
-        # Pass the actual file count (including syntax error files) to the aggregator
         metrics = aggregate_canonical_reports(canonical_reports, total_files=len(self.python_files))
 
-        # inject project-level DS totals
+        # Inject project-level data structures
         metrics["data_structures"] = {
-            "list_literals": self.ds_counts["list_literals"],
-            "dict_literals": self.ds_counts["dict_literals"],
-            "set_literals": self.ds_counts["set_literals"],
-            "tuple_literals": self.ds_counts["tuple_literals"],
-            "list_comprehensions": self.ds_counts["list_comprehensions"],
-            "dict_comprehensions": self.ds_counts["dict_comprehensions"],
-            "set_comprehensions": self.ds_counts["set_comprehensions"],
+            **self.ds_counts,
             "uses_defaultdict": self.alg_usage["uses_defaultdict"],
             "uses_counter": self.alg_usage["uses_counter"],
         }
 
-        # inject project-level complexity totals
+        # Inject project-level complexity
         total_funcs = self.complexity_stats["total_functions"]
         nested = self.complexity_stats["functions_with_nested_loops"]
-
         metrics["complexity"] = {
             "total_functions": total_funcs,
             "functions_with_nested_loops": nested,
@@ -431,37 +392,26 @@ class PythonOOPAstAnalyzer:
             "uses_bisect": self.alg_usage["uses_bisect"],
         }
 
-        # syntax errors
-        metrics.setdefault("syntax_errors", [])
-        metrics["syntax_errors"].extend([str(p) for p in self.syntax_errors])
-
+        # Add syntax errors
+        metrics.setdefault("syntax_errors", []).extend(str(p) for p in self.syntax_errors)
         return metrics
     
     def analyze(self) -> Dict[str, Any]:
-        """
-        Run the analysis pipeline and return the computed metrics (delegates scoring).
-        """
-        
+        """Run the analysis pipeline and return computed metrics."""
         if not self.python_files:
             self.discover_python_files()
         
+        # Reset state
         self.class_infos = []
         self.syntax_errors = []
-        # reset ds counts
-        for k in list(self.ds_counts.keys()):
-            self.ds_counts[k] = 0
-        # reset alg usage flags
-        for k in list(self.alg_usage.keys()):
-            self.alg_usage[k] = False
-        # reset complexity stats
-        for k in list(self.complexity_stats.keys()):
-            self.complexity_stats[k] = 0
+        self.ds_counts = {k: 0 for k in self.ds_counts}
+        self.alg_usage = {k: False for k in self.alg_usage}
+        self.complexity_stats = {k: 0 for k in self.complexity_stats}
 
-        # analyze each file
+        # Analyze each file
         for f in self.python_files:
             self.analyze_file(f)
 
-        # compute and return metrics
         return self.compute_metrics()
     
 def analyze_python_project_oop(root: str | Path) -> Dict[str, Any]:

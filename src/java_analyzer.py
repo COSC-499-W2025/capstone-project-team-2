@@ -1,18 +1,31 @@
-# java_javalang_analyzer.py
+"""
+Java OOP Analyzer Module
+
+Analyzes Java source files for object-oriented programming patterns,
+data structure usage, and code complexity metrics using the javalang parser.
+Produces canonical reports compatible with oop_aggregator.
+"""
+
 from pathlib import Path
-from typing import Dict, Any, List, Set, Tuple
+from typing import Dict, Any, List, Set
 import javalang
 
 from javalang.tree import (
     ClassDeclaration, MethodDeclaration, ConstructorDeclaration,
-    VariableDeclarator, MemberReference, Assignment, This, ClassCreator,
+    VariableDeclarator, MemberReference, Assignment, ClassCreator,
     ForStatement, WhileStatement, DoStatement
 )
 
 def iter_nodes(node):
+    """
+    Iterate all nodes in the AST starting from 'node' in depth-first manner.
     
-    """ Generator to iterate all nodes in the AST starting from 'node' in depth-first manner."""
-    
+    Args:
+        node: The root AST node to start iteration from.
+        
+    Yields:
+        Each node in the AST tree.
+    """
     if node is None:
         return
     stack = [node]
@@ -34,7 +47,14 @@ LOOP_NODE_TYPES = (ForStatement, WhileStatement, DoStatement)
 
 def max_loop_depth(node) -> int:
     """
-    Compute max loop nesting depth under a node (counts nested for/while/do). 
+    Compute maximum loop nesting depth under a node.
+    Counts nested for/while/do loops to estimate algorithmic complexity.
+    
+    Args:
+        node: AST node to analyze.
+        
+    Returns:
+        Maximum nesting depth of loops (0 if no loops).
     """
     def helper(n, depth=0):
         maxd = depth
@@ -57,28 +77,35 @@ def max_loop_depth(node) -> int:
 
 def find_this_assignments(method_node) -> Set[str]:
     """
-    Find attribute names assigned to this, e.g., this.x = ...
-    Return set of attribute names.
+    Find attribute names assigned via 'this' in a method/constructor.
+    
+    Args:
+        method_node: A method or constructor AST node.
+        
+    Returns:
+        Set of attribute names assigned through 'this'.
     """
     attrs = set()
     for n in iter_nodes(method_node):
         if isinstance(n, Assignment):
-            lhs = n.expressionl  # left-hand side
-            # could be a This.MemberReference or just MemberReference
+            lhs = n.expressionl
             try:
-                if isinstance(lhs, MemberReference):
-                    if lhs.qualifier == 'this' and lhs.member:
-                        attrs.add(lhs.member)
-                # Also handle explicit This nodes
-                if isinstance(lhs, This):
-                    pass
+                if isinstance(lhs, MemberReference) and lhs.qualifier == 'this' and lhs.member:
+                    attrs.add(lhs.member)
             except Exception:
                 pass
     return attrs
 
 def detect_class_creations(root) -> List[str]:
     """
-    Find 'new TypeName(...)' occurrences and return simple type names.
+    Find 'new TypeName(...)' occurrences in the AST.
+    Used to detect data structure usage like ArrayList, HashMap, etc.
+    
+    Args:
+        root: Root AST node to search.
+        
+    Returns:
+        List of simple type names being instantiated.
     """
     names = []
     for n in iter_nodes(root):
@@ -94,26 +121,31 @@ def detect_class_creations(root) -> List[str]:
 
 def analyze_source(source: str, path: Path) -> Dict[str, Any]:
     """
-    Parse a Java source string and produce per-file metrics in the canonical shape.
+    Parse a Java source string and produce per-file metrics.
+    Extracts OOP information including classes, inheritance, methods,
+    fields, data structure usage, and code complexity metrics.
+    
+    Args:
+        source: Java source code as a string.
+        path: Path to the source file (for reporting).
+        
+    Returns:
+        Dict in canonical format with keys:
+        - file: File path string
+        - module: Package name
+        - classes: List of class info dicts
+        - imports: List of import strings
+        - data_structures: Dict of DS usage flags
+        - complexity: Dict with function/loop metrics
+        - syntax_ok: Boolean indicating parse success
     """
     try:
         tree = javalang.parse.parse(source)
-    except javalang.parser.JavaSyntaxError as e:
-        return {
-            "file": str(path),
-            "classes_parsed": 0,
-            "class_infos": [],
-            "imports": [],
-            "data_structures": {},
-            "complexity": {},
-            "syntax_ok": False,
-            "syntax_error": str(e),
-        }
     except Exception as e:
         return {
             "file": str(path),
-            "classes_parsed": 0,
-            "class_infos": [],
+            "module": "",
+            "classes": [],
             "imports": [],
             "data_structures": {},
             "complexity": {},
@@ -123,6 +155,9 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
 
     # imports: list of import.path strings
     imports = [imp.path for imp in tree.imports] if getattr(tree, 'imports', None) else []
+
+    # Extract package name for module field
+    package_name = tree.package.name if getattr(tree, 'package', None) else ""
 
     class_infos = []
     total_functions = 0
@@ -155,8 +190,8 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
                     bases.append(str(impl))
 
         methods = set()
-        has_init = False
-        dunder_count = 0
+        has_constructor = False
+        special_methods = []  # Java equivalents: toString, equals, hashCode, compareTo
         private_attrs = set()
         public_attrs = set()
 
@@ -179,7 +214,7 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
                 methods.add(member.name)
                 # special methods mapping: treat toString/equals/hashCode/compareTo as "dunder-like"
                 if member.name in {"toString", "equals", "hashCode", "compareTo"}:
-                    dunder_count += 1
+                    special_methods.append(member.name)
 
                 # complexity: treat each method as a function
                 total_functions += 1
@@ -201,7 +236,7 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
             if isinstance(ctor, ConstructorDeclaration):
                 # name equals class name usually
                 methods.add(ctor.name)
-                has_init = True
+                has_constructor = True
                 total_functions += 1
                 depth = max_loop_depth(ctor)
                 max_loop_depth_overall = max(max_loop_depth_overall, depth)
@@ -220,12 +255,12 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
 
         class_infos.append({
             "name": cname,
-            "module": "", # Java has no module concept like Python; could use package name if desired
+            "module": package_name,
             "file_path": str(path),
             "bases": bases,
             "methods": sorted(methods),
-            "has_init": has_init,
-            "dunder_count": dunder_count,
+            "has_constructor": has_constructor,
+            "special_methods": special_methods,
             "private_attrs": sorted(private_attrs),
             "public_attrs": sorted(public_attrs),
         })
@@ -267,8 +302,8 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
 
     return {
         "file": str(path),
-        "classes_parsed": len(class_infos),
-        "class_infos": class_infos,
+        "module": package_name,
+        "classes": class_infos,
         "imports": imports,
         "data_structures": ds,
         "complexity": complexity,
@@ -278,45 +313,27 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
 # convert per_file metrics to your ClassInfo dataclass
 def per_file_to_classinfo_list(per_file_metrics: Dict[str, Any], ClassInfoCls):
     """
-    ClassInfoCls is your ClassInfo dataclass (imported from your python analyzer module).
-    Returns List[ClassInfoCls] instances.
+    Convert per-file metrics to a list of ClassInfo dataclass instances.
+    
+    Args:
+        per_file_metrics: Dict returned by analyze_source().
+        ClassInfoCls: The ClassInfo dataclass (from python_analyzer).
+        
+    Returns:
+        List of ClassInfo instances for each class in the file.
     """
     out = []
-    for ci in per_file_metrics.get("class_infos", []):
+    for ci in per_file_metrics.get("classes", []):
         out.append(ClassInfoCls(
             name=ci["name"],
             module=ci.get("module", ""),
             file_path=Path(ci["file_path"]),
             bases=ci.get("bases", []),
             methods=set(ci.get("methods", [])),
-            has_init=ci.get("has_init", False),
-            dunder_methods=ci.get("dunder_count", 0),
+            has_init=ci.get("has_constructor", False),
+            dunder_methods=len(ci.get("special_methods", [])),
             private_attrs=set(ci.get("private_attrs", [])),
             public_attrs=set(ci.get("public_attrs", [])),
         ))
     return out
 
-
-# Quick CLI test
-if __name__ == "__main__":
-    import json
-    sample = '''
-    package com.example;
-    import java.util.ArrayList;
-    import java.util.HashMap;
-    public class Foo extends Base implements IExample {
-        private int x;
-        public String name;
-        public Foo() { this.x = 0; }
-        public void doSomething() {
-            for (int i=0;i<10;i++){
-                for (int j=0;j<5;j++){
-                    System.out.println(i+j);
-                }
-            }
-        }
-        public String toString() { return name; }
-    }
-    '''
-    res = analyze_source(sample, Path("src/com/example/Foo.java"))
-    print(json.dumps(res, indent=2))
