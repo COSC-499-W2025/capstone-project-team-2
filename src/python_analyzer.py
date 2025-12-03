@@ -15,6 +15,7 @@ from collections import defaultdict
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from src.oop_aggregator import aggregate_canonical_reports
+from src.oop_aggregator import build_narrative
 
 @dataclass
 class ClassInfo:
@@ -394,6 +395,10 @@ class PythonOOPAstAnalyzer:
 
         # Add syntax errors
         metrics.setdefault("syntax_errors", []).extend(str(p) for p in self.syntax_errors)
+        
+        # Rebuild narrative with updated data_structures and complexity
+        metrics["narrative"] = build_narrative(metrics)
+        
         return metrics
     
     def analyze(self) -> Dict[str, Any]:
