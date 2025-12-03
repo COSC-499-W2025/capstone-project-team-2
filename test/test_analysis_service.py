@@ -66,33 +66,40 @@ def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypat
     ctx.store.insert_json.assert_called_once()
 
 
-def test_python_oop_analysis_runs_when_external_disabled(tmp_path, monkeypatch):
+def test_oop_analysis_runs_when_external_disabled(tmp_path, monkeypatch):
     cfg_dir = tmp_path / "User_config_files"
     cfg_dir.mkdir(parents=True)
     (cfg_dir / "UserConfigs.json").write_text('{"consented": {"external": false}}')
 
     metrics = {"score": {"oop_score": 0.9}}
-    monkeypatch.setattr(mod, "analyze_python_project_oop", lambda root: metrics)
+    
+    class FakeOrchestrator:
+        def __init__(self, root):
+            pass
+        def analyze(self):
+            return metrics
+    
+    monkeypatch.setattr(mod, "MultiLangOrchestrator", FakeOrchestrator)
     called = {}
     monkeypatch.setattr(mod, "pretty_print_oop_report", lambda m: called.setdefault("printed", m))
 
     resume = SimpleNamespace(languages=["Python"])
-    result = mod.python_oop_analysis(Path("/tmp/project"), resume, cfg_dir)
+    result = mod.oop_analysis(Path("/tmp/project"), resume, cfg_dir)
 
     assert result == metrics
     assert called["printed"] == metrics
 
 
-def test_python_oop_analysis_skips_when_external_enabled(tmp_path, monkeypatch):
+def test_oop_analysis_skips_when_external_enabled(tmp_path, monkeypatch):
     cfg_dir = tmp_path / "User_config_files"
     cfg_dir.mkdir(parents=True)
     (cfg_dir / "UserConfigs.json").write_text('{"consented": {"external": true}}')
 
     spy = MagicMock()
-    monkeypatch.setattr(mod, "analyze_python_project_oop", spy)
+    monkeypatch.setattr(mod, "MultiLangOrchestrator", spy)
 
     resume = SimpleNamespace(languages=["Python"])
-    result = mod.python_oop_analysis(Path("/tmp/project"), resume, cfg_dir)
+    result = mod.oop_analysis(Path("/tmp/project"), resume, cfg_dir)
 
     assert result is None
     spy.assert_not_called()
@@ -141,7 +148,7 @@ def test_analyze_project_builds_analysis_and_exports(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(
         mod,
-        "python_oop_analysis",
+        "oop_analysis",
         lambda root, resume, legacy: {"score": {"oop_score": 0.75}},
     )
 
@@ -159,4 +166,4 @@ def test_analyze_project_builds_analysis_and_exports(tmp_path, monkeypatch):
     assert captured["project_name"] == tmp_path.name
     assert captured["ctx"] is ctx
     assert captured["analysis"]["duration_estimate"] == "4 days"
-    assert captured["analysis"]["python_oop_analysis"]["score"]["oop_score"] == 0.75
+    assert captured["analysis"]["oop_analysis"]["score"]["oop_score"] == 0.75

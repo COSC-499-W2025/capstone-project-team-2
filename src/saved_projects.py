@@ -4,7 +4,7 @@ from typing import Any
 
 # Utilities for reading, listing, and cleaning up saved analysis artifacts.
 from src.app_context import AppContext
-from src.python_analyzer import pretty_print_oop_report
+from src.oop_aggregator import pretty_print_oop_report
 
 
 def list_saved_projects(folder: Path) -> list[Path]:
@@ -135,7 +135,7 @@ def show_saved_summary(path: Path) -> None:
         print(f"Résumé line  : {summary}")
     print()
 
-    oop_analysis = analysis.get("python_oop_analysis")
+    oop_analysis = analysis.get("oop_analysis")
     if oop_analysis and isinstance(oop_analysis, dict):
         pretty_print_oop_report(oop_analysis)
 
