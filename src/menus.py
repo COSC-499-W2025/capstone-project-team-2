@@ -3,7 +3,7 @@ from pathlib import Path
 # Menu flows for the CLI, delegating to analysis, saved-project, and portfolio helpers.
 from src.CLI_Interface_for_user_config import ConfigurationForUsersUI
 from src.analysis_service import (
-    _input_path,
+    input_path,
     analyze_project,
     extract_if_zip,
 )
@@ -47,11 +47,11 @@ def analyze_project_menu(ctx: AppContext) -> None:
 
         try:
             if choice == "1":
-                dir_path = _input_path("Enter path to project directory: ")
+                dir_path = input_path("Enter path to project directory: ")
                 if dir_path:
                     return analyze_project(dir_path, ctx)
             elif choice == "2":
-                zip_path = _input_path("Enter path to ZIP: ")
+                zip_path = input_path("Enter path to ZIP: ")
                 if not zip_path:
                     print("[ERROR] ZIP path required.")
                     continue

@@ -66,8 +66,7 @@ def display_portfolio(path: Path, ctx: AppContext) -> None:
         print(f"Skills       : {', '.join(skills) or '—'}")
         print()
 
-        # Support both old and new key names for backward compatibility
-        oop_analysis = analysis.get("oop_analysis") or analysis.get("python_oop_analysis")
+        oop_analysis = analysis.get("oop_analysis")
         if oop_analysis and isinstance(oop_analysis, dict):
             pretty_print_oop_report(oop_analysis)
         return

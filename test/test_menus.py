@@ -22,7 +22,7 @@ def _inputs(values):
 def test_analyze_project_menu_directory_invokes_analyze(monkeypatch):
     called = {}
     monkeypatch.setattr("builtins.input", _inputs(["1"]))
-    monkeypatch.setattr(mod, "_input_path", lambda prompt, allow_blank=False: Path("/tmp/project"))
+    monkeypatch.setattr(mod, "input_path", lambda prompt, allow_blank=False: Path("/tmp/project"))
     monkeypatch.setattr(
         mod,
         "analyze_project",
@@ -38,7 +38,7 @@ def test_analyze_project_menu_directory_invokes_analyze(monkeypatch):
 def test_analyze_project_menu_zip_invokes_extract_and_analyze(monkeypatch):
     called = {}
     monkeypatch.setattr("builtins.input", _inputs(["2"]))
-    monkeypatch.setattr(mod, "_input_path", lambda prompt, allow_blank=False: Path("/tmp/project.zip"))
+    monkeypatch.setattr(mod, "input_path", lambda prompt, allow_blank=False: Path("/tmp/project.zip"))
     monkeypatch.setattr(mod, "extract_if_zip", lambda p: Path("/tmp/unzipped"))
     monkeypatch.setattr(
         mod,
