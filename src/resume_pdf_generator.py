@@ -127,6 +127,18 @@ class SimpleResumeGenerator:
         doc.build(self.story) #Here we are building the PDF to be saved to the system
 
 
+    def create_resume_line(self):
+        doc=SimpleDocTemplate(str(self.folder_path/f"{self.project_title}_resume_line.pdf"),
+                              pagesize=letter,  # Specifies the page size as letter.
+                              leftMargin=0.75 * inch,  # Specifies the left margin.
+                              rightMargin=0.75 * inch,  # Specifies the right margin.
+                              topMargin=0.75 * inch,  # Specifies the top margin.
+                              bottomMargin=0.75 * inch,  # Specifies the bottom margin.
+        )
+        line = f"<b>{self.data.project_title}</b> — {self.data.one_sentence_summary}, using {self.data.tech_stack} {self.data.impact}"
+        paragraph = Paragraph(line, self.styles['Normal'])
+        doc.build([paragraph,Spacer(1, 0.25 * inch)])
+
     def display_and_run(self):
         """
         Executes a visualization progress bar while invoking the generation of a PDF Portfolio.
@@ -137,10 +149,17 @@ class SimpleResumeGenerator:
 
         :return: None
         """
-        for i in tqdm(range(20), desc=f"Creating PDF Portfolio for {self.project_title}", unit="step"):
-            time.sleep(1)
+        #for i in tqdm(range(20), desc=f"Creating PDF Portfolio for {self.project_title}", unit="step"):
+        #    time.sleep(1)
         self.generate()
-        print(f"Portfolio has been created and saved to {self.folder_path}")
+        print("Portfolio has been created")
 
+
+        #for i in tqdm(range(20), desc=f"Creating Resume PDF Line for {self.project_title}", unit="step"):
+        #    time.sleep(1)
+        self.create_resume_line()
+        print(f"Resume Line  has been created")
+        print(f"Resume Line and Portfolio has been saved to {self.folder_path}")
+       
 
 
