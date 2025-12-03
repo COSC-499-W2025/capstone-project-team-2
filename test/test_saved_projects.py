@@ -67,7 +67,7 @@ def test_show_saved_summary_prints_contributors(monkeypatch, tmp_path, capsys):
 
 
 def test_get_saved_projects_from_db_uses_cursor(monkeypatch):
-    rows = [(1, "file.json", "{}", "2024-01-01")]
+    rows = [(1, "file.json", "2024-01-01")]
 
     class FakeCursor:
         def __init__(self):
