@@ -446,7 +446,7 @@ def build_narrative(metrics: Dict[str, Any]) -> Dict[str, str]:
 def pretty_print_oop_report(metrics: dict):
     """Print a formatted OOP analysis report to stdout."""
     print("\n" + "="*60)
-    print("      OOP ANALYSIS REPORT")
+    print("        OOP ANALYSIS REPORT")
     print("="*60)
 
     print(f"\n Files analyzed: {metrics['files_analyzed']}")
