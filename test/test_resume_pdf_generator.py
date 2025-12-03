@@ -48,6 +48,31 @@ class TestPDFGenerator(unittest.TestCase):
         expected_file = os.path.join(self.tempFolder, "Portfolio.pdf")
         self.assertTrue(os.path.exists(expected_file), f"PDF not found at {expected_file}")
 
+    def test_one_line_resume(self):
+        """Test that the one line resume is successfully generated"""
+        generator = SimpleResumeGenerator(self.tempFolder, data=self.instance, fileName="Portfolio")
+        generator.generate()
+        generator.create_resume_line()
+        # Use the actual project title from the data
+        expected_file = os.path.join(self.tempFolder, f"{self.instance.project_title}_resume_line.pdf")
+        self.assertTrue(os.path.exists(expected_file))
+
+    def test_one_line_resume_not_empty(self):
+        """
+        Verifies that the generated one-line resume PDF is not empty and has a minimum size.
+        """
+        generator = SimpleResumeGenerator(self.tempFolder, data=self.instance, fileName="Portfolio")
+        generator.generate()
+        generator.create_resume_line()
+        # Use the actual project title from the data
+        expected_file = os.path.join(self.tempFolder, f"{self.instance.project_title}_resume_line.pdf")
+        file_size = os.path.getsize(expected_file)
+        self.assertGreater(file_size, 0, "PDF file is empty")
+        self.assertGreater(file_size, 1000, "PDF file seems too small")
+
+
+
+
     def test_pdf_has_content(self):
         """Test that generated PDF has content (not empty)"""
         generator = SimpleResumeGenerator(self.tempFolder, data=self.instance, fileName="Portfolio")
