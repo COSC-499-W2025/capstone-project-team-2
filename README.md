@@ -76,13 +76,16 @@ CONTAINER ID   IMAGE                  COMMAND                  CREATED          
 Python setup:
 
 1. Install dependencies: `pip install -r src/requirements.txt`
-2. Set up Environment Variables: 
+2. Set up Environment Variables in .env file in the project folder: 
 ```env
 GOOGLE_API_KEY=your_google_api_key_here
 GITHUB_TOKEN=your_github_token_here
 ```
 Note: Make sure to replace `your_google_api_key_here` and `your_github_token_here` with your actual API keys.
-because GOOGLE_API_KEY(Required for AI-Powered Resume) and GITHUB_TOKEN(Required for GitHub contributor analysis) are required for the application to work.
+because GOOGLE_API_KEY(Required for AI-Powered Resume) and GITHUB_TOKEN(Required for GitHub contributor analysis) are required for the application to work. to get the GOOGLE API_Key please refer to the following PR(#188) and for the GITHUB_API_Key refer to the following PR (#161)
+
+
+
 
 3. To run the program run make sure that your in the project directory(CAPSTONE-PROJECT-TEAM2) and run `python src/main.py` or `python -m src.main`
 
