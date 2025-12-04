@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 import textwrap
 sys.path.append(str(Path(__file__).parent.parent))
-from src.python_oop_metrics import analyze_python_project_oop
+from src.python_analyzer import analyze_python_project_oop
 
 class TestPythonOOPAstAnalyzer(unittest.TestCase):
 

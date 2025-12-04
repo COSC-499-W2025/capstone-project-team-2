@@ -18,3 +18,4 @@ pytest
 pytest-mock
 pytest-cov
 python-dotenv
+javalang
