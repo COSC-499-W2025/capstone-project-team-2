@@ -148,12 +148,13 @@ def get_saved_projects_from_db(ctx: AppContext) -> list[tuple]:
         ctx (AppContext): Shared DB context.
 
     Returns:
-        list[tuple]: (id, filename, content, uploaded_at) rows.
+        list[tuple]: (id, filename, uploaded_at) rows.
     """
     cursor = ctx.conn.cursor()
     try:
         cursor.execute(
-            "SELECT id, filename, content, uploaded_at "
+            # We only need identifiers and metadata for deletion checks.
+            "SELECT id, filename, uploaded_at "
             "FROM project_data ORDER BY uploaded_at DESC"
         )
         return cursor.fetchall()
