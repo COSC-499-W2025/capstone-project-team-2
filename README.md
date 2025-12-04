@@ -54,14 +54,21 @@ This system architecture illustrates the structural design of the application, s
 
 
 **Project setup:**
+
+Python setup:
+
 Please look at our video demo otherwise follow the steps below:
 1. Install dependencies: `pip install -r requirements.txt`
 2. Set up Environment Variables: 
 ```env
 GOOGLE_API_KEY=your_google_api_key_here
 GITHUB_TOKEN=your_github_token_here
-
 ```
+Note: Make sure to replace `your_google_api_key_here` and `your_github_token_here` with your actual API keys.
+because GOOGLE_API_KEY(Required for AI-Powered Resume) and GITHUB_TOKEN(Required for GitHub contributor analysis) are required for the application to work.
+
+Docker setup:
+1. ```docker-compose up -d```
 
 
 
