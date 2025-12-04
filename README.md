@@ -55,9 +55,13 @@ This system architecture illustrates the structural design of the application, s
 **Key Components:**
 
 - **Frontend (Presentation Layer)**: Built using DearPyGui or FreeSimpleGUI, the frontend provides a simple and interactive interface for users to upload files, view metadata, and interact with the application’s features.
-- **Backend (Application Layer)**: Handles file parsing, validation, and metadata extraction using os, shutil, zipfile, and mimetypes. Implements logic for ranking projects, summarizing results, and managing errors. Click may optionally support a CLI version of the app.
-- **Database Layer**: SQLite is used to store extracted metadata, configuration details, and logs during local development and testing.
-- **External Services**: GitHub Actions supports CI/CD for automated testing and updates. Optional APIs may enhance metadata extraction or external integrations.
+- **Backend (Application Layer)**: The backend powers the core analysis engine, leveraging multiple technologies for comprehensive project insights
+  - **File Processing**: Handles ZIP extraction, directory traversal, and      metadata collection achieved using `os`, `shutil`, `zipfile`, and `pathlib`.
+  - **Mult-language OOP Analysis**: Analyzes Python source files via the `ast` module and for Java source files via the `javalang` module. Returning unified metrics on inheritance, encapsulation, polymorphism, and code complexity
+  - **AI-Powered Analysis**: Integrates with Ollama(Via LangChain) for local LLM-based code review and Google Gemini for improved code review and for generating prototype-ready project summaries
+  - **Contributor Detection**: Identifies project collaborators through git history(via GitPython and PyGithub) or file metadata analysis for non-git project
+  - **Stack Detection**: Automatically identifies programming languages, frameworks, and skills through scanning dependency files
+
   
 **Design Principles**
 
