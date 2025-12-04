@@ -55,10 +55,27 @@ This system architecture illustrates the structural design of the application, s
 
 **Project setup:**
 
+Please look at our video demo otherwise follow the steps below:
+
+
+Docker setup:
+1. `docker-compose down -v` to remove previous containers and volumes
+2. `docker-compose build --no-cache` to build the Docker containers
+3. `docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b` to pull the LLM model
+4. `docker compose up -d app_database ollama2` to start the containers
+5. `docker ps` to check the status of the containers and you should see the following
+```bash
+CONTAINER ID   IMAGE                  COMMAND                  CREATED          STATUS                    PORTS                               NAMES
+42a2e9017194   ollama/ollama:latest   "/bin/ollama serve"      17 minutes ago   Up 17 minutes             0.0.0.0:11434->11434/tcp            ollama2
+9c42d7048399   mysql:8.0.44           "docker-entrypoint.s…"   17 minutes ago   Up 17 minutes (healthy)   33060/tcp, 0.0.0.0:3308->3306/tcp   app_database
+```
+
+
+
+
 Python setup:
 
-Please look at our video demo otherwise follow the steps below:
-1. Install dependencies: `pip install -r requirements.txt`
+1. Install dependencies: `pip install -r src/requirements.txt`
 2. Set up Environment Variables: 
 ```env
 GOOGLE_API_KEY=your_google_api_key_here
@@ -67,8 +84,10 @@ GITHUB_TOKEN=your_github_token_here
 Note: Make sure to replace `your_google_api_key_here` and `your_github_token_here` with your actual API keys.
 because GOOGLE_API_KEY(Required for AI-Powered Resume) and GITHUB_TOKEN(Required for GitHub contributor analysis) are required for the application to work.
 
-Docker setup:
-1. ```docker-compose up -d```
+3. To run the program run make sure that your in the project directory(CAPSTONE-PROJECT-TEAM2) and run `python src/main.py` or `python -m src.main`
+
+
+
 
 
 
