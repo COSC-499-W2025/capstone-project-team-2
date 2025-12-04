@@ -11,15 +11,13 @@ from src.extraction import extractInfo
 from src.get_contributors_percentage_per_person import contribution_summary
 from src.project_duration_estimation import Project_Duration_Estimator
 from src.project_insights import record_project_insight
-from src.python_oop_metrics import (
-    analyze_python_project_oop,
-    pretty_print_oop_report,
-)
+from src.multilang_orchestrator import MultiLangOrchestrator
+from src.oop_aggregator import pretty_print_oop_report
 from src.resume_item_generator import generate_resume_item
 from src.file_data_saving import SaveFileAnalysisAsJSON
 
 
-def _input_path(prompt: str, allow_blank: bool = False) -> Optional[Path]:
+def input_path(prompt: str, allow_blank: bool = False) -> Optional[Path]:
     """
     Prompt user for a path until it exists.
 
@@ -112,9 +110,10 @@ def convert_datetime_to_string(obj):
     return obj
 
 
-def python_oop_analysis(root: Path, resume, legacy_save_dir: Path) -> Dict[str, Any] | None:
+def oop_analysis(root: Path, resume, legacy_save_dir: Path) -> Dict[str, Any] | None:
     """
-    Run Python OOP analysis when external AI is disabled and Python is present.
+    Run OOP analysis when external AI is disabled and Python/Java is present.
+    Uses MultiLangOrchestrator to analyze projects containing Python and/or Java.
 
     Args:
         root (Path): Project root to scan.
@@ -132,14 +131,19 @@ def python_oop_analysis(root: Path, resume, legacy_save_dir: Path) -> Dict[str, 
         print(f"[WARN] Could not read user config, assuming no external consent: {e}")
         has_external = False
 
-    if not has_external and "Python" in resume.languages:
+    # Check if project has Python or Java
+    supported_languages = {"Python", "Java"}
+    detected_languages = set(resume.languages) & supported_languages
+
+    if not has_external and detected_languages:
         try:
-            print("[INFO] External AI is disabled. Running non-LLM Python analysis...\n")
-            oop_metrics = analyze_python_project_oop(root)
+            langs = ", ".join(sorted(detected_languages))
+            print(f"[INFO] External AI is disabled. Running non-LLM OOP analysis for {langs}...\n")
+            oop_metrics = MultiLangOrchestrator(root).analyze()
             pretty_print_oop_report(oop_metrics)
             return oop_metrics
         except Exception as e:
-            print(f"[ERROR] Python OOP analysis failed: {e}")
+            print(f"[ERROR] OOP analysis failed: {e}")
             return None
 
     return None
@@ -279,10 +283,10 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
     if resume.summary:
         print(f"  Résumé line: {resume.summary}\n")
 
-    oop_metrics = python_oop_analysis(root, resume, ctx.legacy_save_dir)
+    oop_metrics = oop_analysis(root, resume, ctx.legacy_save_dir)
 
     if oop_metrics is not None:
-        analysis["python_oop_analysis"] = oop_metrics
+        analysis["oop_analysis"] = oop_metrics
 
     analysis = convert_datetime_to_string(analysis)
 

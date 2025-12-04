@@ -23,7 +23,7 @@ def test_display_portfolio_external_disabled_uses_saved_oop(monkeypatch, tmp_pat
             "summary": "Demo",
         },
         "duration_estimate": "1 day",
-        "python_oop_analysis": {"score": {"oop_score": 0.8}},
+        "oop_analysis": {"score": {"oop_score": 0.8}},
     }
     file_path = tmp_path / "analysis.json"
     file_path.write_text(mod.json.dumps(data))

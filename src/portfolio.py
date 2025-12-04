@@ -7,6 +7,7 @@ from src.Generate_AI_Resume import GenerateProjectResume
 from src.python_oop_metrics import pretty_print_oop_report
 from src.resume_pdf_generator import SimpleResumeGenerator
 import os
+from src.oop_aggregator import pretty_print_oop_report
 
 
 def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
@@ -68,7 +69,7 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
         print(f"Skills       : {', '.join(skills) or '—'}")
         print()
 
-        oop_analysis = analysis.get("python_oop_analysis")
+        oop_analysis = analysis.get("oop_analysis")
         if oop_analysis and isinstance(oop_analysis, dict):
             pretty_print_oop_report(oop_analysis)
         return
