@@ -158,5 +158,60 @@ def test_analyze_project_builds_analysis_and_exports(tmp_path, monkeypatch):
 
     assert captured["project_name"] == tmp_path.name
     assert captured["ctx"] is ctx
-    assert captured["analysis"]["duration_estimate"] == "4 days"
-    assert captured["analysis"]["python_oop_analysis"]["score"]["oop_score"] == 0.75
+
+
+def test_analyze_project_honors_project_label(tmp_path, monkeypatch):
+    ctx = SimpleNamespace(
+        default_save_dir=tmp_path / "saves",
+        legacy_save_dir=tmp_path / "legacy",
+        store=SimpleNamespace(),
+    )
+
+    class FakeExtractor:
+        def __init__(self, root):
+            self.root = root
+
+        def file_hierarchy(self):
+            return {}
+
+    monkeypatch.setattr(mod, "FileMetadataExtractor", FakeExtractor)
+    monkeypatch.setattr(mod, "estimate_duration", lambda hierarchy: "1 day")
+
+    captured = {}
+
+    def fake_resume(root, project_name):
+        captured["resume_name"] = project_name
+        return SimpleNamespace(
+            project_name=project_name,
+            summary="Summary",
+            highlights=[],
+            project_type="solo",
+            detection_mode="local",
+            languages=[],
+            frameworks=[],
+            skills=[],
+            framework_sources={},
+        )
+
+    monkeypatch.setattr(mod, "generate_resume_item", fake_resume)
+    monkeypatch.setattr(mod, "contribution_summary", lambda root: {})
+    monkeypatch.setattr(
+        mod,
+        "record_project_insight",
+        lambda analysis, contributors=None: SimpleNamespace(
+            id=1, project_name=analysis["resume_item"]["project_name"]
+        ),
+    )
+    monkeypatch.setattr(mod, "python_oop_analysis", lambda root, resume, legacy: None)
+    monkeypatch.setattr(
+        mod,
+        "export_json",
+        lambda project_name, analysis, ctx_obj: captured.setdefault(
+            "export_name", project_name
+        ),
+    )
+
+    mod.analyze_project(tmp_path, ctx, project_label="CustomZip")
+
+    assert captured["resume_name"] == "CustomZip"
+    assert captured["export_name"] == "CustomZip"

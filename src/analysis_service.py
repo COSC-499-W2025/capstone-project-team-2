@@ -181,7 +181,7 @@ def export_json(project_name: str, analysis: Dict[str, Any], ctx: AppContext) ->
         print(f"[WARNING] Could not save to database: {e}")
 
 
-def analyze_project(root: Path, ctx: AppContext,project_label:str| None=None) -> None:
+def analyze_project(root: Path, ctx: AppContext, project_label: str | None = None) -> None:
     """
     Analyze a project folder and optionally persist results.
 
@@ -194,6 +194,7 @@ def analyze_project(root: Path, ctx: AppContext,project_label:str| None=None) ->
         None
     """
     print(f"\n[INFO] Analyzing: {root}\n")
+
     display_name = project_label or root.name
     hierarchy = FileMetadataExtractor(root).file_hierarchy()
     duration = estimate_duration(hierarchy)
