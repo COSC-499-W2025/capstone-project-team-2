@@ -41,7 +41,7 @@ The platforms target users are **graduating students** and **early career profes
 - Streamlined user interface and authentication system  
 - Structured project documentation (WBS, DFDs, Architecture diagrams)  
 - CI/CD deployment pipelines  
-- Database integration with SQLite
+- Database integration with MySQL + Docker
 
 ---
 
@@ -54,13 +54,29 @@ This system architecture illustrates the structural design of the application, s
 
 **Key Components:**
 
-- **Frontend (Presentation Layer)**: Built using DearPyGui or FreeSimpleGUI, the frontend provides a simple and interactive interface for users to upload files, view metadata, and interact with the application’s features.
+- **Frontend (Presentation Layer)**: Built using **streamlit** or **FreeSimpleGUI***, offering an intutive menu-driven interface for users to navigate and interact with the application.Key features include:
+  - **Interactive menus**: For project analysis,viewing saved projects, portfolio gneration, and configuration management.
+  - **User consent workflow**: Guides users through the process of providing consent and configuring for external services permissions
+  - **Portfolio generation**: Enables users to generate a portfolio-ready resume or portfolio 
+
+
+
 - **Backend (Application Layer)**: The backend powers the core analysis engine, leveraging multiple technologies for comprehensive project insights
   - **File Processing**: Handles ZIP extraction, directory traversal, and      metadata collection achieved using `os`, `shutil`, `zipfile`, and `pathlib`.
   - **Mult-language OOP Analysis**: Analyzes Python source files via the `ast` module and for Java source files via the `javalang` module. Returning unified metrics on inheritance, encapsulation, polymorphism, and code complexity
   - **AI-Powered Analysis**: Integrates with Ollama(Via LangChain) for local LLM-based code review and Google Gemini for improved code review and for generating prototype-ready project summaries
   - **Contributor Detection**: Identifies project collaborators through git history(via GitPython and PyGithub) or file metadata analysis for non-git project
-  - **Stack Detection**: Automatically identifies programming languages, frameworks, and skills through scanning dependency files
+  - **Stack Detection**: Automatically identifies programming languages, frameworks, and skills through scanning dependency files(`requirements.txt`, `package.json`, `composer.json`) and source file extensions, 
+
+- **Database (Storage Layer)**: The application uses MySQL as its primary databases for persistent storage and data management.
+ - **Project Data Storage**: stores analyzed project metadata, Json analysis reports, and file blobs for later retrieval.
+ - **Containerized Deployment**: MySQL runs within a Docker container(`app_database`),
+ with connection details dynamicly set and found in the `DockerFinder` Utiliy.
+ 
+ - **External Services Integration**:
+   - **GitHub API**: Enables commit history analysis and contributor statistics for Git-based projects via **PyGithub**
+
+   - **Google Gemini API**: Powers AI-generated resume summaries and project descriptions (requires `GOOGLE_API_KEY`)
 
   
 **Design Principles**
