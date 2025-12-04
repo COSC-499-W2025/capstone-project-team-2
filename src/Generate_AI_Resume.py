@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List, Dict
 from dataclasses import dataclass
 
+import orjson
 from dotenv import load_dotenv
 from docx import Document
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -129,6 +130,8 @@ class GenerateProjectResume:
         load_dotenv()
         self.google_model="gemini-2.5-flash" #Define what Gemini model we are going to be using
         self.folder=folder
+        self.saveToJson=False
+        self.returnResume=None
         self.max_chars: int = 20_000
         self.project_root=Path(self.folder) #Getting the root folder path
         if not self.project_root.exists():
@@ -381,8 +384,19 @@ class GenerateProjectResume:
 
         return "".join(pieces)
 
+    def save_json_orjson(self, save_loc):
+        if self.saveToJson:
+            filePath = Path(save_loc)
+            filePath.parent.mkdir(parents=True, exist_ok=True)
+            json_bytes = orjson.dumps(self.returnResume,
+                                      option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS
 
-    def generate(self)->ResumeItem:
+                                      )
+            filePath.write_bytes(json_bytes)
+
+
+
+    def generate(self,saveToJson:bool)->ResumeItem:
         """
         Generates a resume item for the given project root.
 
@@ -395,6 +409,7 @@ class GenerateProjectResume:
         :return: The generated resume item
         :rtype: ResumeItem
         """
+        self.saveToJson=saveToJson
         print(f"running analysis on {self.project_root.name}")
         context=self._build_context()
         result=self.chain.invoke({"project_context":context}) #Here we are invoke the llm to start the analysis process
@@ -411,7 +426,7 @@ class GenerateProjectResume:
             )
 
         # Create ResumeItem from the LLM's JSON response with safe dictionary access
-        resume_item = ResumeItem(
+        self.returnResume = ResumeItem(
             # Project title from the analysis
             project_title=result.get("project_title", ""),
             # Brief project summary in one sentence
@@ -430,12 +445,24 @@ class GenerateProjectResume:
             oop_principles_detected=oop_principles,
 
         )
-        return resume_item
+        if saveToJson:
+            save_path = f"output/{self.project_root.name}_resume.json"
+            self.save_json_orjson(save_path)
+
+        return self.returnResume
+
+
+
 
 
 
 """
-docker = GenerateProjectResume(r"").generate()
+ocker = GenerateProjectResume(r"").generate(saveToJson=True)
+
+
+
+
+
 print(docker.project_title)
 print(docker.one_sentence_summary)
 print(docker.key_skills_used)
@@ -449,6 +476,6 @@ for name, principle in docker.oop_principles_detected.items():
     for snippet in principle.code_snippets:
         print("file:", snippet.get("file"))
         print("code:", snippet.get("code")[:200], "...")
-
-
 """
+
+
