@@ -181,22 +181,23 @@ def export_json(project_name: str, analysis: Dict[str, Any], ctx: AppContext) ->
         print(f"[WARNING] Could not save to database: {e}")
 
 
-def analyze_project(root: Path, ctx: AppContext) -> None:
+def analyze_project(root: Path, ctx: AppContext,project_label:str|None=None) -> None:
     """
     Analyze a project folder and optionally persist results.
 
     Args:
         root (Path): Project root to scan.
         ctx (AppContext): Shared DB/store handles.
+        project_label (str | None): Optional override for saved project name.
 
     Returns:
         None
     """
     print(f"\n[INFO] Analyzing: {root}\n")
-
+    display_name = project_label or root.name
     hierarchy = FileMetadataExtractor(root).file_hierarchy()
     duration = estimate_duration(hierarchy)
-    resume = generate_resume_item(root, project_name=root.name)
+    resume = generate_resume_item(root, project_name=display_name)
 
     contrib_summary: Dict[str, Any] | None = None
     contributors_data: Dict[str, Any] | None = None
@@ -296,4 +297,4 @@ def analyze_project(root: Path, ctx: AppContext) -> None:
     except Exception as e:
         print(f"[WARN] Failed to record project insight: {e}")
 
-    export_json(root.name, analysis, ctx)
+    export_json(display_name, analysis, ctx)

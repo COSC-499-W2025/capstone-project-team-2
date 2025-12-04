@@ -6,6 +6,7 @@ from src.app_context import AppContext
 from src.Generate_AI_Resume import GenerateProjectResume
 from src.python_oop_metrics import pretty_print_oop_report
 from src.resume_pdf_generator import SimpleResumeGenerator
+import os
 
 
 def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
@@ -126,8 +127,20 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
     print("============================================\n")
     generate_pdf_input=input("Would you like to generate a PDF? (y/n): ")
     if generate_pdf_input.upper()=="Y":
-        folder_path=str(input("Enter the folder path where you want to save the PDF: "))
-        name_of_file=str(input("Enter the name of the PDF file: ")) or "Portfolio"
+        attempts = 0
+        max_attempts = 3
+        while attempts < max_attempts:
+            folder_path=str(input("Enter the folder path where you want to save the PDF: "))
+            if os.path.exists(folder_path):
+                break
+            else:
+                attempts += 1
+                if attempts < max_attempts:
+                    print(f"Folder does not exist. Please enter a valid folder path. ({attempts}/{max_attempts} attempts)")
+                else:
+                    print("Maximum attempts reached. Returning to menu.")
+                    return
+        name_of_file=str(input("Enter the name of the PDF file or press enter to use default name (Portfolio): ")) or "Portfolio"
         SimpleResumeGenerator(folder_path,data=docker,fileName=name_of_file).display_and_run()
 
 

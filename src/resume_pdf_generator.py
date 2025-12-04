@@ -10,6 +10,7 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from src.Generate_AI_Resume import ResumeItem,GenerateProjectResume
 from tqdm import tqdm
+import os
 
 
 
@@ -65,6 +66,14 @@ class SimpleResumeGenerator:
         # The document will have a specific page size (letter), left, right, top, and
         # bottom margins (0.75 * inch each). The document will be saved at the location
         # specified by self.output_path.
+
+        if os.path.exists(self.folder_path/f"{self.fileName}.pdf"):
+            os.remove(self.folder_path/f"{self.fileName}.pdf")
+
+        if os.path.exists(self.folder_path/f"{self.project_title}_resume_line.pdf"):
+            os.remove(self.folder_path/f"{self.project_title}_resume_line.pdf")
+
+
         doc=SimpleDocTemplate(str(self.folder_path/f"{self.fileName}.pdf"),
                               pagesize=letter,  # Specifies the page size as letter.
                               leftMargin=0.75 * inch,  # Specifies the left margin.
@@ -135,7 +144,7 @@ class SimpleResumeGenerator:
                               topMargin=0.75 * inch,  # Specifies the top margin.
                               bottomMargin=0.75 * inch,  # Specifies the bottom margin.
         )
-        line = f"<b>{self.data.project_title}</b> — {self.data.one_sentence_summary}, using {self.data.tech_stack} {self.data.impact}"
+        line = f"<b>{self.data.project_title}</b> — {self.data.one_sentence_summary}.{self.data.tech_stack} {self.data.impact}"
         paragraph = Paragraph(line, self.styles['Normal'])
         doc.build([paragraph,Spacer(1, 0.25 * inch)])
 

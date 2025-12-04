@@ -62,7 +62,7 @@ def analyze_project_menu(ctx: AppContext) -> None:
                         "try again."
                     )
                     return None
-                return analyze_project(extracted, ctx)
+                return analyze_project(extracted, ctx,project_label=zip_path.stem)
             elif choice == "0":
                 return None
             else:
