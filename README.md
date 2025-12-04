@@ -52,6 +52,19 @@ This system architecture illustrates the structural design of the application, s
 <img width="2000" height="1600" alt="Copy of Copy of CAPSTONE 499 System design Team2 -Page-1 drawio" src="https://github.com/user-attachments/assets/bf6d49ac-18c0-4691-b845-ab9ccff00b70" />
 
 
+
+**Project setup:**
+Please look at our video demo otherwise follow the steps below:
+1. Install dependencies: `pip install -r requirements.txt`
+2. Set up Environment Variables: 
+```env
+GOOGLE_API_KEY=your_google_api_key_here
+GITHUB_TOKEN=your_github_token_here
+
+```
+
+
+
 **Key Components:**
 
 - **Frontend (Presentation Layer)**: Built using **streamlit** or **FreeSimpleGUI***, offering an intutive menu-driven interface for users to navigate and interact with the application.Key features include:
