@@ -181,7 +181,7 @@ def export_json(project_name: str, analysis: Dict[str, Any], ctx: AppContext) ->
         print(f"[WARNING] Could not save to database: {e}")
 
 
-def analyze_project(root: Path, ctx: AppContext,project_label:str|None=None) -> None:
+def analyze_project(root: Path, ctx: AppContext,project_label:str| None=None) -> None:
     """
     Analyze a project folder and optionally persist results.
 
