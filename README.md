@@ -102,14 +102,15 @@ because GOOGLE_API_KEY(Required for AI-Powered Resume) and GITHUB_TOKEN(Required
 
 - **Backend (Application Layer)**: The backend powers the core analysis engine, leveraging multiple technologies for comprehensive project insights
   - **File Processing**: Handles ZIP extraction, directory traversal, and      metadata collection achieved using `os`, `shutil`, `zipfile`, and `pathlib`.
-  - **Mult-language OOP Analysis**: Analyzes Python source files via the `ast` module and for Java source files via the `javalang` module. Returning unified metrics on inheritance, encapsulation, polymorphism, and code complexity
-  - **AI-Powered Analysis**: Integrates with Ollama(Via LangChain) for local LLM-based code review and Google Gemini for improved code review and for generating prototype-ready project summaries
-  - **Contributor Detection**: Identifies project collaborators through git history(via GitPython and PyGithub) or file metadata analysis for non-git project
+  - **Multi-language OOP Analysis**: Analyzes Python source files via the `ast` module and for Java source files via the `javalang` module. Returning unified metrics on **inheritance**, **encapsulation**, **polymorphism**, and **code complexity**
+  - **AI-Powered Analysis**: Integrates with **Ollama**(Via LangChain library) for local LLM-based code review and **Google Gemini** for improved code review and for generating prototype-ready project summaries
+  - **Contributor Detection**: Identifies project collaborators through git history(via **GitPython** and **PyGithub**) or file metadata analysis for non-git project
   - **Stack Detection**: Automatically identifies programming languages, frameworks, and skills through scanning dependency files(`requirements.txt`, `package.json`, `composer.json`) and source file extensions, 
 
-- **Database (Storage Layer)**: The application uses MySQL as its primary databases for persistent storage and data management.
- - **Project Data Storage**: stores analyzed project metadata, Json analysis reports, and file blobs for later retrieval.
- - **Containerized Deployment**: MySQL runs within a Docker container(`app_database`),
+**Database (Storage Layer)**: 
+  - The application uses MySQL as its primary databases for persistent storage and data management.
+  - **Project Data Storage**: stores analyzed project metadata, Json analysis reports, and file blobs for later retrieval.
+  - **Containerized Deployment**: MySQL runs within a Docker container(`app_database`),
  with connection details dynamicly set and found in the `DockerFinder` Utiliy.
  
  - **External Services Integration**:
@@ -177,3 +178,7 @@ Below is the **high-level WBS** outlining the major phases of the project:
 
 [📊 View the Google Sheet](https://docs.google.com/spreadsheets/d/1zsUdvJTiAwR4KajjdB9kgwPiE1tOSrDV0mg0tFfgSF8/edit?usp=sharing)
 
+
+## Team Contract
+
+[👥 Team Contract](https://docs.google.com/document/d/1HScKLEO0oEPisBcpuQHtHZIDCtyFP3HM8qWiATx-VXg/edit?tab=t.0)
