@@ -43,13 +43,16 @@ def test_analyze_project_menu_zip_invokes_extract_and_analyze(monkeypatch):
     monkeypatch.setattr(
         mod,
         "analyze_project",
-        lambda path, ctx: called.setdefault("path", path),
+        lambda path, ctx, project_label=None: called.setdefault(
+            "data", (path, project_label)
+        ),
     )
 
     ctx = SimpleNamespace()
     mod.analyze_project_menu(ctx)
 
-    assert called["path"] == Path("/tmp/unzipped")
+    assert called["data"][0] == Path("/tmp/unzipped")
+    assert called["data"][1] == "project"
 
 
 def test_saved_projects_menu_shows_selected_file(monkeypatch):
@@ -70,7 +73,7 @@ def test_delete_analysis_menu_deletes(monkeypatch, tmp_path):
     monkeypatch.setattr(
         mod,
         "get_saved_projects_from_db",
-        lambda ctx: [(1, file_path.name, "{}", "2024-01-01")],
+        lambda ctx: [(1, file_path.name, "2024-01-01")],
     )
     delete_calls = {}
     monkeypatch.setattr(mod, "delete_from_database_by_id", lambda record_id, ctx: delete_calls.setdefault("id", record_id))
