@@ -53,12 +53,12 @@ This system architecture illustrates the structural design of the application, s
 
 
 
-**Project setup:**
+## Project setup
 
 Please look at our video demo otherwise follow the steps below:
 
 
-Docker setup:
+**Docker setup**:
 1. `docker-compose down -v` to remove previous containers and volumes
 2. `docker-compose build --no-cache` to build the Docker containers
 3. `docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b` to pull the LLM model
@@ -75,7 +75,7 @@ CONTAINER ID   IMAGE                  COMMAND                  CREATED          
 
 
 
-Python setup:
+**Python setup**:
 
 1. Install dependencies: `pip install -r src/requirements.txt`
 2. Set up Environment Variables in .env file in the project folder: 
@@ -86,10 +86,9 @@ GITHUB_TOKEN=your_github_token_here
 Note: Make sure to replace `your_google_api_key_here` and `your_github_token_here` with your actual API keys.
 because GOOGLE_API_KEY(Required for AI-Powered Resume) and GITHUB_TOKEN(Required for GitHub contributor analysis) are required for the application to work. to get the GOOGLE API_Key please refer to the following PR(#188) and for the GITHUB_API_Key refer to the following PR (#161)
 
-
-
-
 3. To run the program run make sure that your in the project directory(CAPSTONE-PROJECT-TEAM2) and run `python src/main.py` or `python -m src.main`
+
+
 
 
 
