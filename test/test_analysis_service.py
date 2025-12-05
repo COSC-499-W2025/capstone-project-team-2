@@ -209,7 +209,7 @@ def test_analyze_project_honors_project_label(tmp_path, monkeypatch):
             id=1, project_name=analysis["resume_item"]["project_name"]
         ),
     )
-    monkeypatch.setattr(mod, "python_oop_analysis", lambda root, resume, legacy: None)
+    monkeypatch.setattr(mod, "oop_analysis", lambda root, resume, legacy: None)
     monkeypatch.setattr(
         mod,
         "export_json",
