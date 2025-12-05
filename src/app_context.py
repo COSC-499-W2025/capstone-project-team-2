@@ -38,7 +38,7 @@ class AppContext:
             pass
 
 
-def create_app_context(external_consent_value: bool) -> AppContext:
+def create_app_context(external_consent_value=False) -> AppContext:
     """
     Initialize database connection, helper store, and shared paths.
 
