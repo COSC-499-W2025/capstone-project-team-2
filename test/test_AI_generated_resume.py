@@ -34,7 +34,7 @@ class TestGenerateProjectResume(unittest.TestCase):
         root_folder = Path(__file__).resolve().parent
         cls.folder = root_folder / "tiny_scripts"
         cls.instance = GenerateProjectResume(cls.folder)
-        cls.result = cls.instance.generate()
+        cls.result = cls.instance.generate(saveToJson=False)
 
 
     def test_output_resume_type(self):
