@@ -46,7 +46,7 @@ def analyze_project_menu(ctx: AppContext) -> None:
         choice = input("Select an option: ").strip()
 
         use_ai = False
-        if AppContext.external_consent == True:
+        if ctx.external_consent == True:
             use_ai = input("Add AI analysis? (y/n): ").strip().lower() == 'y'
 
         try:
