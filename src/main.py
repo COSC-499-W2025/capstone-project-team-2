@@ -39,7 +39,7 @@ def run() -> int:
     except Exception as e:
         print(f"[WARN] Failed to persist consent to configuration: {e}")
 
-    ctx = create_app_context()
+    ctx = create_app_context(consent_manager.has_external_consent)
     try:
         return main_menu(ctx)
     finally:
