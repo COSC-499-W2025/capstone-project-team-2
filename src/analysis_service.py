@@ -15,6 +15,8 @@ from src.multilang_orchestrator import MultiLangOrchestrator
 from src.oop_aggregator import pretty_print_oop_report
 from src.resume_item_generator import generate_resume_item
 from src.file_data_saving import SaveFileAnalysisAsJSON
+from src.ai_data_scrubbing import ai_data_scrubber
+from src.AI_analysis_code import codeAnalysisAI
 
 
 def input_path(prompt: str, allow_blank: bool = False) -> Optional[Path]:
@@ -185,7 +187,7 @@ def export_json(project_name: str, analysis: Dict[str, Any], ctx: AppContext) ->
         print(f"[WARNING] Could not save to database: {e}")
 
 
-def analyze_project(root: Path, ctx: AppContext, project_label: str | None = None) -> None:
+def analyze_project(root: Path, ctx: AppContext, project_label: str | None = None, use_ai_analysis=False) -> None:
     """
     Analyze a project folder and optionally persist results.
 
@@ -193,6 +195,7 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
         root (Path): Project root to scan.
         ctx (AppContext): Shared DB/store handles.
         project_label (str | None): Optional override for saved project name.
+        use_ai_analysis (bool): If true, uses ollama AI analysis
 
     Returns:
         None
@@ -203,6 +206,12 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
     hierarchy = FileMetadataExtractor(root).file_hierarchy()
     duration = estimate_duration(hierarchy)
     resume = generate_resume_item(root, project_name=display_name)
+    ai_analysis = None
+    if use_ai_analysis == True:
+        ollamaObject = codeAnalysisAI(root)
+        ai_analysis_raw = ollamaObject.run_analysis()
+        scrubber = ai_data_scrubber(ai_analysis_raw)
+        ai_analysis = scrubber.get_scrubbed_dict()
 
     contrib_summary: Dict[str, Any] | None = None
     contributors_data: Dict[str, Any] | None = None
@@ -236,6 +245,9 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
         },
     }
 
+    if ai_analysis:
+        analysis["ai_analysis"] = ai_analysis
+
     if contrib_summary is not None:
         analysis["contribution_summary"] = contrib_summary
     if contributors_data:
@@ -246,6 +258,15 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
     print(f"  Languages  : {', '.join(resume.languages) or '—'}")
     print(f"  Frameworks : {', '.join(resume.frameworks) or '—'}")
     print(f"  Skills     : {', '.join(resume.skills) or '—'}")
+    if "ai_analysis" in analysis.keys():
+        print( "  AI Data:")
+        print(f"   Structures        : {', '.join(analysis['ai_analysis']['structures_used'])}")
+        print(f"   Skills            : {', '.join(analysis['ai_analysis']['design_concepts'])}")
+        print(f"   Time Complexities : {', '.join(analysis['ai_analysis']['time_complexities_recorded'])}")
+        print(f"   Space Complexities: {', '.join(analysis['ai_analysis']['space_complexities_recorded'])}")
+        print(f"   Control Flows     : {', '.join(analysis['ai_analysis']['control_flow_and_error_handling_patterns'])}")
+        print(f"   Libraries         : {', '.join(analysis['ai_analysis']['libraries_detected'])}")
+        print(f"   Strengths         : {', '.join(analysis['ai_analysis']['inferred_strengths'])}")
     print(f"  Duration   : {duration}\n")
 
     if contributors_data:
