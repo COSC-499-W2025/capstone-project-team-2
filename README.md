@@ -41,7 +41,7 @@ The platforms target users are **graduating students** and **early career profes
 - Streamlined user interface and authentication system  
 - Structured project documentation (WBS, DFDs, Architecture diagrams)  
 - CI/CD deployment pipelines  
-- Database integration with SQLite
+- Database integration with MySQL + Docker
 
 ---
 
@@ -52,12 +52,76 @@ This system architecture illustrates the structural design of the application, s
 <img width="2000" height="1600" alt="Copy of Copy of CAPSTONE 499 System design Team2 -Page-1 drawio" src="https://github.com/user-attachments/assets/bf6d49ac-18c0-4691-b845-ab9ccff00b70" />
 
 
+
+## Project setup
+
+Please look at our video demo otherwise follow the steps below:
+
+
+**Docker setup**:
+1. `docker-compose down -v` to remove previous containers and volumes
+2. `docker-compose build --no-cache` to build the Docker containers
+3. `docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b` to pull the LLM model
+4. `docker exec -it ollama2 ollama list` and qwen2.5-coder:1.5b should be in the list
+![alt text](image.png) 
+5. `docker compose up -d app_database ollama2` to start the containers
+6. `docker ps` to check the status of the containers and you should see the following
+```bash
+CONTAINER ID   IMAGE                  COMMAND                  CREATED          STATUS                    PORTS                               NAMES
+42a2e9017194   ollama/ollama:latest   "/bin/ollama serve"      17 minutes ago   Up 17 minutes             0.0.0.0:11434->11434/tcp            ollama2
+9c42d7048399   mysql:8.0.44           "docker-entrypoint.s…"   17 minutes ago   Up 17 minutes (healthy)   33060/tcp, 0.0.0.0:3308->3306/tcp   app_database
+```
+
+
+
+
+**Python setup**:
+
+1. Install dependencies: `pip install -r src/requirements.txt`
+2. Set up Environment Variables in .env file in the project folder: 
+```env
+GOOGLE_API_KEY=your_google_api_key_here
+GITHUB_TOKEN=your_github_token_here
+```
+Note: Make sure to replace `your_google_api_key_here` and `your_github_token_here` with your actual API keys.
+because GOOGLE_API_KEY(Required for AI-Powered Resume) and GITHUB_TOKEN(Required for GitHub contributor analysis) are required for the application to work. to get the GOOGLE API_Key please refer to the following PR(#188) and for the GITHUB_API_Key refer to the following PR (#161)
+
+3. To run the program run make sure that your in the project directory(CAPSTONE-PROJECT-TEAM2) and run `python src/main.py` or `python -m src.main`
+
+
+
+
+
+
+
+
 **Key Components:**
 
-- **Frontend (Presentation Layer)**: Built using DearPyGui or FreeSimpleGUI, the frontend provides a simple and interactive interface for users to upload files, view metadata, and interact with the application’s features.
-- **Backend (Application Layer)**: Handles file parsing, validation, and metadata extraction using os, shutil, zipfile, and mimetypes. Implements logic for ranking projects, summarizing results, and managing errors. Click may optionally support a CLI version of the app.
-- **Database Layer**: SQLite is used to store extracted metadata, configuration details, and logs during local development and testing.
-- **External Services**: GitHub Actions supports CI/CD for automated testing and updates. Optional APIs may enhance metadata extraction or external integrations.
+- **Frontend (Presentation Layer)**: Built using **streamlit** or **FreeSimpleGUI***, offering an intutive menu-driven interface for users to navigate and interact with the application.Key features include:
+  - **Interactive menus**: For project analysis,viewing saved projects, portfolio gneration, and configuration management.
+  - **User consent workflow**: Guides users through the process of providing consent and configuring for external services permissions
+  - **Portfolio generation**: Enables users to generate a portfolio-ready resume or portfolio 
+
+
+
+- **Backend (Application Layer)**: The backend powers the core analysis engine, leveraging multiple technologies for comprehensive project insights
+  - **File Processing**: Handles ZIP extraction, directory traversal, and      metadata collection achieved using `os`, `shutil`, `zipfile`, and `pathlib`.
+  - **Multi-language OOP Analysis**: Analyzes Python source files via the `ast` module and for Java source files via the `javalang` module. Returning unified metrics on **inheritance**, **encapsulation**, **polymorphism**, and **code complexity**
+  - **AI-Powered Analysis**: Integrates with **Ollama**(Via LangChain library) for local LLM-based code review and **Google Gemini** for improved code review and for generating prototype-ready project summaries
+  - **Contributor Detection**: Identifies project collaborators through git history(via **GitPython** and **PyGithub**) or file metadata analysis for non-git project
+  - **Stack Detection**: Automatically identifies programming languages, frameworks, and skills through scanning dependency files(`requirements.txt`, `package.json`, `composer.json`) and source file extensions, 
+
+**Database (Storage Layer)**: 
+  - The application uses MySQL as its primary databases for persistent storage and data management.
+  - **Project Data Storage**: stores analyzed project metadata, Json analysis reports, and file blobs for later retrieval.
+  - **Containerized Deployment**: MySQL runs within a Docker container(`app_database`),
+ with connection details dynamicly set and found in the `DockerFinder` Utiliy.
+ 
+ - **External Services Integration**:
+   - **GitHub API**: Enables commit history analysis and contributor statistics for Git-based projects via **PyGithub**
+
+   - **Google Gemini API**: Powers AI-generated resume summaries and project descriptions (requires `GOOGLE_API_KEY`)
+
   
 **Design Principles**
 
@@ -118,3 +182,7 @@ Below is the **high-level WBS** outlining the major phases of the project:
 
 [📊 View the Google Sheet](https://docs.google.com/spreadsheets/d/1zsUdvJTiAwR4KajjdB9kgwPiE1tOSrDV0mg0tFfgSF8/edit?usp=sharing)
 
+
+## Team Contract
+
+[👥 Team Contract](https://docs.google.com/document/d/1HScKLEO0oEPisBcpuQHtHZIDCtyFP3HM8qWiATx-VXg/edit?tab=t.0)
