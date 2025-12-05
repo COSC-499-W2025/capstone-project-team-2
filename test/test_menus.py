@@ -26,7 +26,7 @@ def test_analyze_project_menu_directory_invokes_analyze(monkeypatch):
     monkeypatch.setattr(
         mod,
         "analyze_project",
-        lambda path, ctx: called.setdefault("path", path),
+        lambda path, ctx, use_ai_analysis=False: called.setdefault("path", path),
     )
 
     ctx = SimpleNamespace(
@@ -45,7 +45,7 @@ def test_analyze_project_menu_zip_invokes_extract_and_analyze(monkeypatch):
     monkeypatch.setattr(
         mod,
         "analyze_project",
-        lambda path, ctx, project_label=None: called.setdefault(
+        lambda path, ctx, project_label=None, use_ai_analysis=False: called.setdefault(
             "data", (path, project_label)
         ),
     )
