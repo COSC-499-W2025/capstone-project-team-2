@@ -49,9 +49,7 @@ class TestCAnalyzer:
         assert c_spec["static_functions"] == 1
         assert c_spec["opaque_pointers"] == 1
 
-        # ------------------------------
-        # Loop Complexity
-        # ------------------------------
+
         complexity = report["complexity"]
 
         # At least two functions (test_loops + create/destroy)
