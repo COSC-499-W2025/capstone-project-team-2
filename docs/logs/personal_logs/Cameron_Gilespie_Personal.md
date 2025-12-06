@@ -1,3 +1,36 @@
+## Dates of Sprint: (12/1/2025 – 12/7/2025)
+
+### Peer Eval Screenshot:
+
+<img width="1092" height="626" alt="image" src= "https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Cameron-Personal-Logs/docs/logs/peer_eval_screenshots/PL_Cameron_12-5-25.png" />
+
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: Create a C file analyzer
+
+
+## Associated Tasks from Project Board:
+
+| Description        | Status   |
+| ------------------ | -------- |
+| [Create a C file analyzer]  | [Complete] |
+
+
+
+---
+## Next week goals
+- work out refacting over break
+---
+
+### Extra Details:
+
+<details>
+Worked on creating a new section to our code analysis, i created a subsection for C coding as well as an appropriate test for the analysis as a whole which then was directly integrated with the project menu for use in portfolio and resume items. it was a rather large PR, however, it was nessesary for this week given I unfortunately didnt have time to reduce the ammount of lines required due to essays, and tests and final exams this friday and the upcoming monday. I did find an alternative way to run the analysis about 3/4s of the way to completion which i plan to use in a refactorization of the code at a later date.
+
+</details>
+
+
+
 ## Dates of Sprint: (11/24/2025 – 11/30/2025)
 
 ### Peer Eval Screenshot:
