@@ -75,9 +75,15 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
         # Determine if has constructor
         has_constructor = False
         struct_l = struct_name.lower()
-        for pat in CONSTRUCTOR_PATTERNS:
-            pat_fixed = re.sub(r'\.\*', struct_l, pat.lower())
-            if re.search(pat_fixed, source_l):
+        # Look for functions like structname_create, structname_new, create_structname, etc.
+        constructor_searches = [
+            rf'\b{struct_l}_create\b', rf'\b{struct_l}_new\b',
+            rf'\b{struct_l}_init\b', rf'\b{struct_l}_alloc\b',
+            rf'\bcreate_{struct_l}\b', rf'\bnew_{struct_l}\b',
+            rf'\binit_{struct_l}\b', rf'\balloc_{struct_l}\b',
+        ]
+        for pat in constructor_searches:
+            if re.search(pat, source_l):
                 has_constructor = True
                 break
         
@@ -103,7 +109,7 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
         })
 
     # Find function definitions for complexity analysis
-    func_pattern = r'^\s*(?P<static>static\s+)?(?P<ret_type>[\w\*\s]+?)\s+(?P<name>\w+)\s*\([^;]*\)\s*\{'
+    func_pattern = r'^\s*(static\s+)?([\w\*\s]+?)\s+(\w+)\s*\([^;]*\)\s*\{'
     for match in re.finditer(func_pattern, source, re.MULTILINE):
         func_name = match.group(3)
 
