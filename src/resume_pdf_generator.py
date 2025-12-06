@@ -41,6 +41,20 @@ class SimpleResumeGenerator:
     :type data: ResumeItem
     """
     def __init__(self,folderPath:str,data,fileName:str):
+        """
+        Initialize the SimpleResumeGenerator with the required configuration.
+
+        This constructor sets up the necessary attributes for generating PDF documents,
+        including the output folder path, resume data, and filename. It initializes
+        the ReportLab styles and prepares an empty story list for building the PDF content.
+
+        :param folderPath: The directory path where the generated PDF files will be saved.
+        :type folderPath: str
+        :param data: The resume data object containing project information and details.
+        :type data: ResumeItem
+        :param fileName: The base filename for the generated portfolio PDF (without extension).
+        :type fileName: str
+        """
         self.project_title = None
         self.styles=getSampleStyleSheet()
         self.folder_path=Path(folderPath)
@@ -52,15 +66,20 @@ class SimpleResumeGenerator:
 
     def generate(self,name:str="My Portfolio"):
         """
-        Generates a PDF document with structured content detailing the provided portfolio
-        information. The document includes sections for project title, summary,
-        responsibilities, skills, tech stack, impact, and a timestamp for generation and is created
-        using the report lab python library to create the PDF.
+        Generate a PDF portfolio document with structured resume content.
 
-        :param fileName:
+        This method creates a complete PDF document containing the portfolio information
+        including the document title, generation date, project title, detailed summary,
+        key responsibilities, skills, tech stack, and impact sections. The PDF is created
+        using the ReportLab library and saved to the configured folder path.
+
+        If a PDF file with the same name already exists, it will be removed before
+        generating the new file to prevent conflicts.
+
         :param name: Title to be displayed on the first page of the document.
         :type name: str
         :return: None
+        :rtype: None
         """
         # Creates a SimpleDocTemplate object to generate a PDF document.
         # The document will have a specific page size (letter), left, right, top, and
@@ -137,6 +156,19 @@ class SimpleResumeGenerator:
 
 
     def create_resume_line(self):
+        """
+        Create a condensed one-line resume PDF document.
+
+        This method generates a separate PDF file containing a single-line summary
+        of the project, suitable for use as a quick reference or resume bullet point.
+        The line includes the project title, one-sentence summary, tech stack, and
+        impact statement formatted in a concise format.
+
+        The output file is named using the project title with '_resume_line.pdf' suffix.
+
+        :return: None
+        :rtype: None
+        """
         doc=SimpleDocTemplate(str(self.folder_path/f"{self.project_title}_resume_line.pdf"),
                               pagesize=letter,  # Specifies the page size as letter.
                               leftMargin=0.75 * inch,  # Specifies the left margin.
@@ -150,23 +182,43 @@ class SimpleResumeGenerator:
 
 
     def display_resume_line(self):
+        """
+        Generate the resume line PDF and display a confirmation message.
+
+        This method wraps the create_resume_line() method and prints a confirmation
+        message to stdout indicating the location where the resume line PDF was saved.
+
+        :return: None
+        :rtype: None
+        """
         self.create_resume_line()
         print(f"Resume Generated at: {self.folder_path}")
 
     def display_portfolio(self):
+        """
+        Generate the portfolio PDF and display a confirmation message.
+
+        This method wraps the generate() method and prints a confirmation message
+        to stdout indicating the location where the portfolio PDF was saved.
+
+        :return: None
+        :rtype: None
+        """
         self.generate()
         print(f"Portfolio Generated at: {self.folder_path}")
 
 
     def display_and_run(self):
         """
-        Executes a visualization progress bar while invoking the generation of a PDF Portfolio.
+        Generate both the portfolio and resume line PDFs with confirmation messages.
 
-        This method displays a progress bar while performing a task and then calls the `generate`
-        method to complete the PDF Portfolio creation. Upon successful completion, it prints a
-        confirmation message including the save location of the generated file.
+        This is the primary convenience method for generating all resume artifacts at once.
+        It calls display_portfolio() to create the full portfolio PDF and display_resume_line()
+        to create the condensed one-line resume PDF. Upon successful completion, it prints
+        confirmation messages indicating where the files were saved.
 
         :return: None
+        :rtype: None
         """
         #for i in tqdm(range(20), desc=f"Creating PDF Portfolio for {self.project_title}", unit="step"):
         #    time.sleep(1)
