@@ -13,19 +13,21 @@ from src.db_helper_function import HelperFunct
 @dataclass
 class AppContext:
     """
-    Shared application handles for database access and default storage paths.
+    Shared application handles for database access, default storage paths, and global settings variables.
 
     Attributes:
         conn (mysql.connector.MySQLConnection): Live MySQL connection.
         store (HelperFunct): Helper wrapper for DB operations.
         legacy_save_dir (Path): Legacy config/insight base directory.
         default_save_dir (Path): Default nested directory for new insights.
+        external_consent (bool): 
     """
 
     conn: mysql.connector.MySQLConnection
     store: HelperFunct
     legacy_save_dir: Path
     default_save_dir: Path
+    external_consent: bool
 
     def close(self) -> None:
         """Close the DB connection safely."""
@@ -36,9 +38,12 @@ class AppContext:
             pass
 
 
-def create_app_context() -> AppContext:
+def create_app_context(external_consent_value=False) -> AppContext:
     """
     Initialize database connection, helper store, and shared paths.
+
+    paramaters:
+        external_consent_value: value of consent for external llm tools
 
     Returns:
         AppContext: Shared handles for DB access and filesystem targets.
@@ -80,4 +85,5 @@ def create_app_context() -> AppContext:
         store=store,
         legacy_save_dir=legacy_save_dir,
         default_save_dir=default_save_dir,
+        external_consent=external_consent_value
     )

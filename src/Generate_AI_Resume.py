@@ -396,7 +396,7 @@ class GenerateProjectResume:
 
 
 
-    def generate(self,saveToJson:bool)->ResumeItem:
+    def generate(self,saveToJson=False)->ResumeItem:
         """
         Generates a resume item for the given project root.
 

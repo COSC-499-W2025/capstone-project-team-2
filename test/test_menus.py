@@ -26,10 +26,12 @@ def test_analyze_project_menu_directory_invokes_analyze(monkeypatch):
     monkeypatch.setattr(
         mod,
         "analyze_project",
-        lambda path, ctx: called.setdefault("path", path),
+        lambda path, ctx, use_ai_analysis=False: called.setdefault("path", path),
     )
 
-    ctx = SimpleNamespace()
+    ctx = SimpleNamespace(
+        external_consent=False
+    )
     mod.analyze_project_menu(ctx)
 
     assert called["path"] == Path("/tmp/project")
@@ -43,12 +45,14 @@ def test_analyze_project_menu_zip_invokes_extract_and_analyze(monkeypatch):
     monkeypatch.setattr(
         mod,
         "analyze_project",
-        lambda path, ctx, project_label=None: called.setdefault(
+        lambda path, ctx, project_label=None, use_ai_analysis=False: called.setdefault(
             "data", (path, project_label)
         ),
     )
 
-    ctx = SimpleNamespace()
+    ctx = SimpleNamespace(
+        external_consent=False
+    )
     mod.analyze_project_menu(ctx)
 
     assert called["data"][0] == Path("/tmp/unzipped")
@@ -61,7 +65,7 @@ def test_saved_projects_menu_shows_selected_file(monkeypatch):
     monkeypatch.setattr(mod, "show_saved_summary", lambda path: None)
     monkeypatch.setattr("builtins.input", _inputs(["1", ""]))
 
-    ctx = SimpleNamespace(default_save_dir=Path("/tmp/default"))
+    ctx = SimpleNamespace(default_save_dir=Path("/tmp/default"), external_consent=False)
     mod.saved_projects_menu(ctx)
 
 
@@ -77,10 +81,10 @@ def test_delete_analysis_menu_deletes(monkeypatch, tmp_path):
     )
     delete_calls = {}
     monkeypatch.setattr(mod, "delete_from_database_by_id", lambda record_id, ctx: delete_calls.setdefault("id", record_id))
-    monkeypatch.setattr(mod, "delete_file_from_disk", lambda filename, ctx: True)
+    monkeypatch.setattr(mod, "delete_file_from_disk", lambda filename, ctx: False)
     monkeypatch.setattr("builtins.input", _inputs(["1", "y", "n"]))
 
-    ctx = SimpleNamespace(default_save_dir=tmp_path)
+    ctx = SimpleNamespace(default_save_dir=tmp_path, external_consent=False)
     mod.delete_analysis_menu(ctx)
 
     assert delete_calls["id"] == 1

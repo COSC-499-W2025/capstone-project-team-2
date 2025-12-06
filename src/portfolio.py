@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 # Render saved analyses as portfolio-style output, honoring consent settings.
+from src import app_context
 from src.app_context import AppContext
 from src.Generate_AI_Resume import GenerateProjectResume
 from src.resume_pdf_generator import SimpleResumeGenerator
@@ -26,13 +27,7 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
         print(f"[ERROR] Could not read {path.name}: {e}")
         return
 
-    config_path = ctx.legacy_save_dir / "UserConfigs.json"
-    try:
-        config_data = json.loads(config_path.read_text(encoding="utf-8"))
-        has_external = config_data.get("consented", {}).get("external", False)
-    except Exception as e:
-        print(f"[WARN] Could not read user config, assuming no external consent: {e}")
-        has_external = False
+    has_external = ctx.external_consent
 
     if not has_external:
         print("\n=== PROJECT SUMMARY (External tools disabled) ===")
