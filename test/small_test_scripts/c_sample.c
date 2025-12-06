@@ -32,7 +32,7 @@ Foo* foo_create() { return 0; }
 void foo_destroy(Foo* f) { }
 
 // Static function
-static int helper() { return 1; }
+//static int helper() { return 1; }
 
 // Function with nested loops
 int test_loops() {

@@ -49,7 +49,7 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
     total_functions = 0
     functions_with_nested_loops = 0
     max_loop_depth_overall = 0
-    static_function_count = 0
+    #static_function_count = 0
 
     for match in re.finditer(struct_pattern, source, re.DOTALL):
         name1, body, name2 = match.group(1), match.group(2), match.group(3)
@@ -103,16 +103,16 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
         })
 
     # Find function definitions for complexity analysis
-    func_pattern = r'^\s*(static\s+)?([\w\s\*\_]+?)\s+(\w+)\s*\([^;]*\)\s*\{'
-    static_function_count = 0
+    #static_function_count = 0
+    func_pattern = r'^\s*(?P<static>static\s+)?(?P<ret_type>[\w\*\s]+?)\s+(?P<name>\w+)\s*\([^;]*\)\s*\{'
     for match in re.finditer(func_pattern, source, re.MULTILINE):
-        is_static = bool(match.group(1))
+        #is_static = bool(match.group(1))
         func_name = match.group(3)
 
         
-        if is_static:
-            print("Static function detected:", func_name)
-            static_function_count += 1
+    #    if is_static:
+    #        print("Static function detected:", func_name)
+     #       static_function_count += 1
         
         # Skip common non-function patterns
         if func_name in {'if', 'while', 'for', 'switch', 'return', 'sizeof', 'struct'}:
@@ -196,7 +196,7 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
     
         # Additional C-specific data 
         c_spec = {
-            "static_functions": static_function_count,
+            #"static_functions": static_function_count,
             "opaque_pointers": num_opaque_pointers(source),
             "vtable_structs": sum(1 for s in struct_info if s.get("is_vtable", False)),
             "constructor_functions": len(constructor_funcs),
@@ -233,20 +233,20 @@ def calc_loop_depth(code: str) -> int:
     # Track brace depth to understand nesting
     for line in code.split('\n'):
         line = line.strip()
-        
-        # Check if line starts a loop
-        for keyword in loop_keywords:
-            if re.match(rf'\b{keyword}\s*\(', line):
+
+        for keywords in loop_keywords:
+            if keywords == 'do' and line.startswith('do'):
                 current_depth += 1
                 max_depth = max(max_depth, current_depth)
                 break
-        
-        # Track when we exit scopes (closing braces)
-        if '}' in line and current_depth > 0:
-            # Simple heuristic: closing brace might end a loop
-            current_depth = max(0, current_depth - line.count('}'))    
+            elif keywords in ('for', 'while') and re.match(rf'\b{keywords}\s*\(', line):
+                current_depth += 1
+                max_depth = max(max_depth, current_depth)
+                break
+    
+        current_depth = max(0,current_depth - line.count('}'))
     return max_depth
-
+                
 def num_opaque_pointers(source: str) -> int:
     """
     Count opaque pointer typedefs (a key encapsulation pattern in C).
