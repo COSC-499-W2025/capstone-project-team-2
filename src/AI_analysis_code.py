@@ -529,7 +529,7 @@ class codeAnalysisAI():
         return results
 
 
-
+""""
 if __name__ == "__main__":
     root_folder = Path(__file__).resolve().parent
 
@@ -537,5 +537,6 @@ if __name__ == "__main__":
     print(instance.run_analysis())
 
 
-test=codeAnalysisAI(Path(r"D:\UBCO\capstone-project-team-2\test\tiny_scripts"))
+test=codeAnalysisAI(Path(r""))
 test.run_analysis(save_json=True)
+"""
