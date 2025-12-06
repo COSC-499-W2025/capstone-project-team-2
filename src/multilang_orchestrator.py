@@ -105,7 +105,8 @@ class MultiLangOrchestrator:
     def analyze(self) -> Dict[str, Any]:
         """Analyze all Python, Java, and C files and return unified OOP metrics."""
         py_files, java_files, c_files = self.discover_files()
-        self.py_analyzer.python_files = py_files
+        # Include all files in the count for accurate "files_analyzed" metric
+        self.py_analyzer.python_files = py_files + java_files + c_files
 
         # Analyze Python files
         for p in py_files:
