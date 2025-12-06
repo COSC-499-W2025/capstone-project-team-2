@@ -103,22 +103,14 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
         })
 
     # Find function definitions for complexity analysis
-    #static_function_count = 0
     func_pattern = r'^\s*(?P<static>static\s+)?(?P<ret_type>[\w\*\s]+?)\s+(?P<name>\w+)\s*\([^;]*\)\s*\{'
     for match in re.finditer(func_pattern, source, re.MULTILINE):
-        #is_static = bool(match.group(1))
         func_name = match.group(3)
 
-        
-    #    if is_static:
-    #        print("Static function detected:", func_name)
-     #       static_function_count += 1
-        
         # Skip common non-function patterns
         if func_name in {'if', 'while', 'for', 'switch', 'return', 'sizeof', 'struct'}:
             continue
-        
-        
+
         # Check for constructor/destructor patterns
         if any(re.match(p, func_name.lower()) for p in CONSTRUCTOR_PATTERNS):
             constructor_funcs.add(func_name)
@@ -127,11 +119,11 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
             destructor_funcs.add(func_name)
 
         total_functions += 1
-        
+
         func_start = match.end()
         brace_depth = 1
         end = func_start
-        
+
         for i in range(func_start, len(source)):
             if source[i] == '{':
                 brace_depth += 1
@@ -147,62 +139,61 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
         max_loop_depth_overall = max(max_loop_depth_overall, loop_depth)
         if loop_depth >= 2:
             functions_with_nested_loops += 1
-    
-        # Data structure detection from includes and code
-        ds = {
-            "list_literals": 0,
-            "dict_literals": 0,
-            "set_literals": 0,
-            "tuple_literals": 0,
-            "list_comprehensions": 0,
-            "dict_comprehensions": 0,
-            "set_comprehensions": 0,
-            "uses_defaultdict": False,
-            "uses_counter": False,
-            "uses_heapq": False,
-            "uses_bisect": False,
-            "uses_sorted": False,
-        }
-    
-        # Detect common C data structure usage
-        if re.search(r'\w+\s*\[\s*\d*\s*\]', source) or 'malloc' in source:
-            ds["list_literals"] += 1
-    
-        # Hash tables / maps (via includes or implementations)
-        if any('hash' in inc.lower() or 'map' in inc.lower() for inc in includes):
-            ds["dict_literals"] += 1
-    
-        # Sets (via includes)
-        if any('set' in inc.lower() for inc in includes):
-            ds["set_literals"] += 1
-    
-        # Priority queue / heap
-        if any('heap' in inc.lower() or 'queue' in inc.lower() for inc in includes):
-            ds["uses_heapq"] = True
-    
-        # Sorting
-        if 'qsort' in source or 'sort' in source.lower():
-            ds["uses_sorted"] = True
-    
-        # Binary search
-        if 'bsearch' in source:
-            ds["uses_bisect"] = True
-    
-        complexity = {
-            "total_functions": total_functions,
-            "functions_with_nested_loops": functions_with_nested_loops,
-            "max_loop_depth": max_loop_depth_overall,
-        }
-    
-        # Additional C-specific data 
-        c_spec = {
-            #"static_functions": static_function_count,
-            "opaque_pointers": num_opaque_pointers(source),
-            "vtable_structs": sum(1 for s in struct_info if s.get("is_vtable", False)),
-            "constructor_functions": len(constructor_funcs),
-            "destructor_functions": len(destructor_funcs),
-        }
-    
+
+    # Data structure detection from includes and code
+    ds = {
+        "list_literals": 0,
+        "dict_literals": 0,
+        "set_literals": 0,
+        "tuple_literals": 0,
+        "list_comprehensions": 0,
+        "dict_comprehensions": 0,
+        "set_comprehensions": 0,
+        "uses_defaultdict": False,
+        "uses_counter": False,
+        "uses_heapq": False,
+        "uses_bisect": False,
+        "uses_sorted": False,
+    }
+
+    # Detect common C data structure usage
+    if re.search(r'\w+\s*\[\s*\d*\s*\]', source) or 'malloc' in source:
+        ds["list_literals"] += 1
+
+    # Hash tables / maps (via includes or implementations)
+    if any('hash' in inc.lower() or 'map' in inc.lower() for inc in includes):
+        ds["dict_literals"] += 1
+
+    # Sets (via includes)
+    if any('set' in inc.lower() for inc in includes):
+        ds["set_literals"] += 1
+
+    # Priority queue / heap
+    if any('heap' in inc.lower() or 'queue' in inc.lower() for inc in includes):
+        ds["uses_heapq"] = True
+
+    # Sorting
+    if 'qsort' in source or 'sort' in source.lower():
+        ds["uses_sorted"] = True
+
+    # Binary search
+    if 'bsearch' in source:
+        ds["uses_bisect"] = True
+
+    complexity = {
+        "total_functions": total_functions,
+        "functions_with_nested_loops": functions_with_nested_loops,
+        "max_loop_depth": max_loop_depth_overall,
+    }
+
+    # Additional C-specific data
+    c_spec = {
+        "opaque_pointers": num_opaque_pointers(source),
+        "vtable_structs": sum(1 for s in struct_info if s.get("is_vtable", False)),
+        "constructor_functions": len(constructor_funcs),
+        "destructor_functions": len(destructor_funcs),
+    }
+
     return {
         "file": str(path),
         "module": "N/A",  # C doesn't have module system
