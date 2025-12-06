@@ -109,7 +109,7 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
         })
 
     # Find function definitions for complexity analysis
-    func_pattern = r'^\s*(static\s+)?([\w\*\s]+?)\s+(\w+)\s*\([^;]*\)\s*\{'
+    func_pattern = r'^\s*(?P<static>\s+)?(?P<ret_type>[\w*\s]+?)\s*(?P<name>\w+)\s*\([^)]*\)\s*{'
     for match in re.finditer(func_pattern, source, re.MULTILINE):
         func_name = match.group(3)
 
