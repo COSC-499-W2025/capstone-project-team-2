@@ -114,8 +114,8 @@ def convert_datetime_to_string(obj):
 
 def oop_analysis(root: Path, resume, legacy_save_dir: Path) -> Dict[str, Any] | None:
     """
-    Run OOP analysis when external AI is disabled and Python/Java is present.
-    Uses MultiLangOrchestrator to analyze projects containing Python and/or Java.
+    Run OOP analysis when external AI is disabled and Python/Java/C is present.
+    Uses MultiLangOrchestrator to analyze projects containing Python, Java, and/or C.
 
     Args:
         root (Path): Project root to scan.
@@ -133,8 +133,8 @@ def oop_analysis(root: Path, resume, legacy_save_dir: Path) -> Dict[str, Any] | 
         print(f"[WARN] Could not read user config, assuming no external consent: {e}")
         has_external = False
 
-    # Check if project has Python or Java
-    supported_languages = {"Python", "Java"}
+    # Check if project has Python, Java, or C
+    supported_languages = {"Python", "Java", "C"}
     detected_languages = set(resume.languages) & supported_languages
 
     if not has_external and detected_languages:
