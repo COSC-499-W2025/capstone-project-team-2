@@ -453,9 +453,6 @@ class GenerateProjectResume:
 
 
 
-
-
-
 class GenerateLocalResume:
     """
     Generate a ResumeItem from local OOP analysis data without external AI.
