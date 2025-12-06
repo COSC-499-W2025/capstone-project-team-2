@@ -31,7 +31,9 @@ from src.saved_projects import (
 from src.menu_insights import project_insights_menu
 
 from src.user_startup_config import ConfigLoader
-from src.Generate_AI_Resume import GenerateProjectResume
+from src.Generate_AI_Resume import GenerateProjectResume, GenerateLocalResume
+from src.resume_pdf_generator import SimpleResumeGenerator
+import os
 
 
 def settings_menu() -> None:
@@ -330,9 +332,10 @@ def main_menu(ctx: AppContext) -> int:
         print("2) Analyze project")
         print("3) Saved projects")
         print("4) Delete analysis")
-        print("5) AI Portfolio Generator")
+        print("5) Portfolio Generator")
         print("6) AI Resume Line Generator")
-        print("7) Project insights")
+        print("7) Local Resume Generator (No External AI)")
+        print("8) Project insights")
         print("0) Exit")
         choice = input("Select an option: ").strip()
 
@@ -350,12 +353,14 @@ def main_menu(ctx: AppContext) -> int:
             elif choice == "6":
                 ai_resume_line_menu(ctx)
             elif choice == "7":
+                local_resume_menu(ctx)
+            elif choice == "8":
                 project_insights_menu(ctx)
             elif choice == "0":
                 print("Goodbye!")
                 return 0
             else:
-                print("Please choose a valid option (0-7).")
+                print("Please choose a valid option (0-8).")
         except KeyboardInterrupt:
             print("\n[Interrupted] Returning to menu.")
         except Exception as e:
@@ -437,3 +442,126 @@ def ai_resume_line_menu(ctx: AppContext) -> None:
     print("Resume line:")
     print(f"  • {ai_item.one_sentence_summary}")
     print("========================================\n")
+
+
+def local_resume_menu(ctx: AppContext) -> None:
+    """
+    Generate a resume from local OOP analysis without external AI services.
+    Uses the GenerateLocalResume class to build resume content from saved analysis data.
+
+    Args:
+        ctx (AppContext): Shared DB/store context.
+
+    Returns:
+        None
+    """
+    folder = Path(ctx.default_save_dir).resolve()
+    items = list_saved_projects(folder)
+
+    if not items:
+        print("[INFO] No saved projects.")
+        input("Press Enter to return to main menu...")
+        return
+
+    print("\n=== Local Resume Generator (No External AI) ===")
+    print("\nSaved analyses:\n")
+    for i, p in enumerate(items, start=1):
+        print(f"{i}) {p.name}")
+
+    sel = input(
+        "\nChoose a project to generate a resume from (or 0 to cancel): "
+    ).strip()
+    if not sel or sel == "0":
+        return
+
+    try:
+        idx = int(sel) - 1
+        if idx < 0 or idx >= len(items):
+            print("[ERROR] Invalid selection.")
+            return
+    except ValueError:
+        print("[ERROR] Please enter a number.")
+        return
+
+    chosen_path = items[idx]
+    try:
+        data = json.loads(chosen_path.read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"[ERROR] Could not read {chosen_path.name}: {e}")
+        return
+
+    # Check if OOP analysis exists - warn but continue with basic resume
+    if "oop_analysis" not in data:
+        print("[INFO] No OOP analysis data found. Generating basic resume.")
+        print("[TIP] Re-analyze the project with external AI disabled for full OOP analysis.\n")
+
+    # Generate resume from local analysis
+    project_name = chosen_path.stem
+    try:
+        resume_item = GenerateLocalResume(data, project_name).generate()
+    except Exception as e:
+        print(f"[ERROR] Could not generate local resume: {e}")
+        return
+
+    # Display the resume
+    print("\n" + "=" * 60)
+    print(f"  LOCAL RESUME: {resume_item.project_title}")
+    print("=" * 60)
+
+    print("\n" + "-" * 60)
+    print("  ONE-LINE RESUME SUMMARY")
+    print("-" * 60)
+    print(f"\n  {resume_item.one_sentence_summary}\n")
+    print("-" * 60)
+    print(f"\nTech Stack: {resume_item.tech_stack}")
+
+    print("\nKey Responsibilities:")
+    if resume_item.key_responsibilities:
+        for resp in resume_item.key_responsibilities:
+            print(f"  • {resp}")
+    else:
+        print("  • No specific responsibilities detected")
+
+    print("\nSkills:")
+    if resume_item.key_skills_used:
+        print(f"  {', '.join(resume_item.key_skills_used)}")
+    else:
+        print("  No skills detected")
+
+    print("\nImpact:")
+    print(f"  {resume_item.impact}")
+
+    # Only show OOP principles if OOP analysis exists
+    if "oop_analysis" in data and resume_item.oop_principles_detected:
+        print("\nOOP Principles Detected:")
+        for name, principle in resume_item.oop_principles_detected.items():
+            status = "✓" if principle.present else "✗"
+            print(f"  {status} {name.capitalize()}: {principle.description or 'Not detected'}")
+
+    print("\n" + "=" * 50)
+
+    # Offer PDF generation
+    generate_pdf = input("\nWould you like to generate a PDF resume? (y/n): ").strip().lower()
+    if generate_pdf == "y":
+        attempts = 0
+        max_attempts = 3
+        while attempts < max_attempts:
+            folder_path = input("Enter the folder path to save the PDF: ").strip()
+            if os.path.exists(folder_path):
+                break
+            else:
+                attempts += 1
+                if attempts < max_attempts:
+                    print(f"Folder does not exist. ({attempts}/{max_attempts} attempts)")
+                else:
+                    print("Maximum attempts reached. Returning to menu.")
+                    return
+
+        file_name = input("Enter PDF filename (or press Enter for 'LocalResume'): ").strip() or "LocalResume"
+
+        try:
+            SimpleResumeGenerator(folder_path, data=resume_item, fileName=file_name).display_resume_line()
+        except Exception as e:
+            print(f"[ERROR] Could not generate PDF: {e}")
+
+    input("\nPress Enter to return to main menu...")

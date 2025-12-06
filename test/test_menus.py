@@ -103,10 +103,19 @@ def test_main_menu_exit_returns_zero(monkeypatch):
     assert result == 0
 
 def test_main_menu_routes_to_insights_menu(monkeypatch):
-    """Option 7 should dispatch to project_insights_menu."""
+    """Option 8 should dispatch to project_insights_menu."""
+    called = {}
+    monkeypatch.setattr("builtins.input", _inputs(["8", "0"]))
+    monkeypatch.setattr(mod, "project_insights_menu", lambda ctx: called.setdefault("hit", True))
+    mod.main_menu(SimpleNamespace())
+    assert called.get("hit") is True
+
+
+def test_main_menu_routes_to_local_resume_menu(monkeypatch):
+    """Option 7 should dispatch to local_resume_menu."""
     called = {}
     monkeypatch.setattr("builtins.input", _inputs(["7", "0"]))
-    monkeypatch.setattr(mod, "project_insights_menu", lambda ctx: called.setdefault("hit", True))
+    monkeypatch.setattr(mod, "local_resume_menu", lambda ctx: called.setdefault("hit", True))
     mod.main_menu(SimpleNamespace())
     assert called.get("hit") is True
 
