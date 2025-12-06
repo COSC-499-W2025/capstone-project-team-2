@@ -75,7 +75,6 @@ def toggle_external_services(ctx: AppContext) -> None:
     print(f"Current status: {current_status}")
     print("\nExternal services include:")
     print("  - Google Gemini AI (resume generation)")
-    print("  - GitHub API (contributor analysis)")
 
     if ctx.external_consent:
         print("\n1) Disable External Services")
