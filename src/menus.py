@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 
 # Menu flows for the CLI, delegating to analysis, saved-project, and portfolio helpers.
 from src.CLI_Interface_for_user_config import ConfigurationForUsersUI
@@ -17,6 +18,7 @@ from src.saved_projects import (
     show_saved_summary,
 )
 from src.user_startup_config import ConfigLoader
+from src.Generate_AI_Resume import GenerateProjectResume
 
 
 def settings_menu() -> None:
@@ -314,7 +316,8 @@ def main_menu(ctx: AppContext) -> int:
         print("2) Analyze project")
         print("3) Saved projects")
         print("4) Delete analysis")
-        print("5) Portfolio Generator")
+        print("5) AI Portfolio Generator")
+        print("6) AI Resume Line Generator")
         print("0) Exit")
         choice = input("Select an option: ").strip()
 
@@ -329,12 +332,91 @@ def main_menu(ctx: AppContext) -> int:
                 delete_analysis_menu(ctx)
             elif choice == "5":
                 get_portfolio_menu(ctx)
+            elif choice == "6":
+                ai_resume_line_menu(ctx)
             elif choice == "0":
                 print("Goodbye!")
                 return 0
             else:
-                print("Please choose a valid option (0-5).")
+                print("Please choose a valid option (0-6).")
         except KeyboardInterrupt:
             print("\n[Interrupted] Returning to menu.")
         except Exception as e:
             print(f"[ERROR] {e}")
+
+def ai_resume_line_menu(ctx: AppContext) -> None:
+    """
+    Let the user pick a saved project and show ONLY the Gemini résumé line
+    (plus a bit of context), without the full portfolio PDF flow.
+    """
+
+    # Check external consent
+    config_path = ctx.legacy_save_dir / "UserConfigs.json"
+    try:
+        config_data = json.loads(config_path.read_text(encoding="utf-8"))
+        has_external = config_data.get("consented", {}).get("external", False)
+    except Exception as e:
+        print(f"[WARN] Could not read user config, assuming no external consent: {e}")
+        has_external = False
+
+    if not has_external:
+        print(
+            "\n[AI RESUME] External services are disabled in your consent settings.\n"
+            "Enable external services in your consent flow if you want to use Gemini.\n"
+        )
+        return
+
+    # Let the user choose which analysis to base the résumé on
+    folder = Path(ctx.default_save_dir).resolve()
+    items = list_saved_projects(folder)
+
+    if not items:
+        print("[INFO] No saved projects.")
+        input("Press Enter to return to main menu...")
+        return
+
+    print("\nSaved analyses:\n")
+    for i, p in enumerate(items, start=1):
+        print(f"{i}) {p.name}")
+
+    sel = input(
+        "\nChoose a file to generate an AI résumé line from (or 0 to cancel): "
+    ).strip()
+    if not sel or sel == "0":
+        return
+
+    try:
+        idx = int(sel) - 1
+        if idx < 0 or idx >= len(items):
+            print("[ERROR] Invalid selection.")
+            return
+    except ValueError:
+        print("[ERROR] Please enter a number.")
+        return
+
+    chosen_path = items[idx]
+    try:
+        data = json.loads(chosen_path.read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"[ERROR] Could not read {chosen_path.name}: {e}")
+        return
+
+    project_root = data.get("project_root")
+    if not project_root:
+        print("[ERROR] Saved analysis does not contain 'project_root'.")
+        return
+
+    # Run Gemini on the project folder
+    try:
+        ai_item = GenerateProjectResume(project_root).generate(saveToJson=False)
+    except Exception as e:
+        print(f"[ERROR] Could not generate AI résumé line: {e}")
+        return
+
+    # Print a tight résumé-style line + minimal context
+    print("\n========================================")
+    print(f"Project: {ai_item.project_title or Path(project_root).name}")
+    print("----------------------------------------")
+    print("Résumé line:")
+    print(f"  • {ai_item.one_sentence_summary}")
+    print("========================================\n")
