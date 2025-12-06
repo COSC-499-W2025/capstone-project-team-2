@@ -838,3 +838,48 @@ this was cool aspect which I enjoyed playing around with and I learned a lot abo
 The second thing that I focused on doing was creating an enchament to the docker automation script that I perviously created, where I added the ability to auto connect to the ollama image/container.
 
 The last thing that I focused on was creating the test for these files to make sure that they are working as intended.
+
+
+
+
+
+
+
+# 📝 Personal Log – Week 14  12/01/2025-12/7/2025
+
+
+## 📊 Peer Evaluation  
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/12-5-2025.png)
+
+
+---
+
+## 🚀 Features Worked On  
+- Integrated with gemini AI to create a formated PDF protfolio and resume
+- Updated the Readme.md to match our current progress
+- Performed a hotfix on the AI Intergation code
+---
+
+## 📌 Associated Tasks from Project Board  
+- [PDF- Generator + Integration](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/218)
+- [Improved readme file](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/229)
+- [when program is run AI_anlysis on script is run](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/232)
+---
+
+## 📈 Progress Update (since 10/22/2025)  
+
+| Task/Issue | Status |
+|------------|--------|
+|**Intergrated with gemini AI to create a formated PDF protfolio and resume** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+|**Updated the Readme.md to match our current progress**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
+
+
+## 🎯 Next Week’s Goals
+
+- Relax and prepare for finals
+---
+
+## 🧠 Reflection on Current Cycle (Week 14)
+ **Week 14** was very stressful because it was the final sprint for M1 milestones. I could feel the pressure of the looming deadline, the work that I focused on for this week was added a new feature to create PDF version of the protofilo content and then integrated with the gemini AI to create a formated PDF resume, which was a very fun and exciting experience to work on, to pull this I used a framework called `reportLab` for adding the content to pdf to generate the PDF, Where thanks to me intergrating **dataclass** into the ```ResumeItem``` class this make the process of access the elements of the returned dictonary more convenient to making the PDF easier and fasts. I also worked on the README file to clearly highlight the key parts of our project and added installation instructions. Lastly I ecnocuter a bug with Samantha M. on the AI integration code and perform a hotfix to fix it which was a very simple fix which was to removed some offened lines of code that ran the actually class that was not needed inside of the script that it was created in.
+
+ Lastly after taking some advice from the TA I decided to make new coding contributions a bit smaller less than 500 lines of code change
