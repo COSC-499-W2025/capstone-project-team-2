@@ -21,7 +21,13 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
     Returns:
         None
     """
-    has_external = AppContext.external_consent
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"[ERROR] Could not read {path.name}: {e}")
+        return
+
+    has_external = ctx.external_consent
 
     if not has_external:
         print("\n=== PROJECT SUMMARY (External tools disabled) ===")
