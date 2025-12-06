@@ -124,7 +124,49 @@ class TestPDFGenerator(unittest.TestCase):
         expected_file = os.path.join(self.tempFolder, f"{filename_with_spaces}.pdf")
         self.assertTrue(os.path.exists(expected_file))
 
+    def test_display_portfolio(self):
+        """Test that display_portfolio generates PDF and prints confirmation"""
+        generator = SimpleResumeGenerator(self.tempFolder, data=self.instance, fileName="DisplayPortfolioTest")
+        generator.display_portfolio()
 
+        expected_file = os.path.join(self.tempFolder, "DisplayPortfolioTest.pdf")
+        self.assertTrue(os.path.exists(expected_file), f"PDF not found at {expected_file}")
+
+    def test_display_resume_line(self):
+        """Test that display_resume_line generates resume line PDF"""
+        generator = SimpleResumeGenerator(self.tempFolder, data=self.instance, fileName="DisplayResumeLineTest")
+        generator.display_resume_line()
+
+        expected_file = os.path.join(self.tempFolder, f"{self.instance.project_title}_resume_line.pdf")
+        self.assertTrue(os.path.exists(expected_file), f"Resume line PDF not found at {expected_file}")
+
+    def test_display_and_run(self):
+        """Test that display_and_run generates both portfolio and resume line PDFs"""
+        generator = SimpleResumeGenerator(self.tempFolder, data=self.instance, fileName="DisplayAndRunTest")
+        generator.display_and_run()
+
+        portfolio_file = os.path.join(self.tempFolder, "DisplayAndRunTest.pdf")
+        resume_line_file = os.path.join(self.tempFolder, f"{self.instance.project_title}_resume_line.pdf")
+
+        self.assertTrue(os.path.exists(portfolio_file), f"Portfolio PDF not found at {portfolio_file}")
+        self.assertTrue(os.path.exists(resume_line_file), f"Resume line PDF not found at {resume_line_file}")
+
+    def test_overwrite_existing_pdf(self):
+        """Test that generating a PDF overwrites existing file with same name"""
+        generator = SimpleResumeGenerator(self.tempFolder, data=self.instance, fileName="OverwriteTest")
+        generator.generate()
+
+        expected_file = os.path.join(self.tempFolder, "OverwriteTest.pdf")
+        first_size = os.path.getsize(expected_file)
+
+        # Generate again - should overwrite
+        generator2 = SimpleResumeGenerator(self.tempFolder, data=self.instance, fileName="OverwriteTest")
+        generator2.generate()
+
+        self.assertTrue(os.path.exists(expected_file))
+        # File should still exist and have content
+        second_size = os.path.getsize(expected_file)
+        self.assertGreater(second_size, 0)
 
     @classmethod
     def tearDownClass(cls):
