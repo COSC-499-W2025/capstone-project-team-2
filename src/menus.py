@@ -47,11 +47,15 @@ def analyze_project_menu(ctx: AppContext) -> None:
 
         choice = input("Select an option: ").strip()
 
+        use_ai = False
+        if ctx.external_consent == True:
+            use_ai = input("Add AI analysis? (y/n): ").strip().lower() == 'y'
+
         try:
             if choice == "1":
                 dir_path = input_path("Enter path to project directory: ")
                 if dir_path:
-                    return analyze_project(dir_path, ctx)
+                    return analyze_project(dir_path, ctx, use_ai_analysis=use_ai)
             elif choice == "2":
                 zip_path = input_path("Enter path to ZIP: ")
                 if not zip_path:
@@ -68,6 +72,7 @@ def analyze_project_menu(ctx: AppContext) -> None:
                     extracted,
                     ctx,
                     project_label=zip_path.stem,
+                    use_ai_analysis=use_ai
                 )
             elif choice == "0":
                 return None

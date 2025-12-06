@@ -8,7 +8,7 @@ import src.portfolio as mod
 
 
 def test_display_portfolio_external_disabled_uses_saved_oop(monkeypatch, tmp_path, capsys):
-    ctx = SimpleNamespace(legacy_save_dir=tmp_path / "User_config_files")
+    ctx = SimpleNamespace(legacy_save_dir=tmp_path / "User_config_files", external_consent=False)
     ctx.legacy_save_dir.mkdir(parents=True)
     (ctx.legacy_save_dir / "UserConfigs.json").write_text('{"consented": {"external": false}}')
 
@@ -39,7 +39,7 @@ def test_display_portfolio_external_disabled_uses_saved_oop(monkeypatch, tmp_pat
 
 
 def test_display_portfolio_external_enabled_calls_generator(monkeypatch, tmp_path, capsys):
-    ctx = SimpleNamespace(legacy_save_dir=tmp_path / "User_config_files")
+    ctx = SimpleNamespace(legacy_save_dir=tmp_path / "User_config_files", external_consent=True)
     ctx.legacy_save_dir.mkdir(parents=True)
     (ctx.legacy_save_dir / "UserConfigs.json").write_text('{"consented": {"external": true}}')
 
