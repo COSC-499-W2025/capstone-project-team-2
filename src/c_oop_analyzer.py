@@ -14,6 +14,7 @@ Detects:
 
 from pathlib import Path
 from typing import Dict, Any, List, Set
+# from pycparser import c_parser, c_ast found this late in the run, will refactor into later
 import re
 
 # Common naming patterns for constructor/destructor like methods
@@ -37,7 +38,6 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
     source_l = source.lower()
 
     includes = re.findall(r'#include\s*[<"]([^>"]+)[>"]', source)
-
     struct_pattern = r'(?:typedef\s+)?struct\s+(\w+)?\s*\{([^}]+)\}\s*(\w+)?'
     struct_info = []
 
@@ -103,19 +103,21 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
         })
 
     # Find function definitions for complexity analysis
-    func_pattern =r'(static\s+)?(\w[\w\s\*]+?)\s+(\w+)\s*\([^;]*\)\s*\{'
-    for match in re.finditer(func_pattern, source):
+    func_pattern = r'^\s*(static\s+)?([\w\s\*\_]+?)\s+(\w+)\s*\([^;]*\)\s*\{'
+    static_function_count = 0
+    for match in re.finditer(func_pattern, source, re.MULTILINE):
         is_static = bool(match.group(1))
         func_name = match.group(3)
+
         
         if is_static:
+            print("Static function detected:", func_name)
             static_function_count += 1
         
         # Skip common non-function patterns
         if func_name in {'if', 'while', 'for', 'switch', 'return', 'sizeof', 'struct'}:
             continue
         
-        total_functions += 1
         
         # Check for constructor/destructor patterns
         if any(re.match(p, func_name.lower()) for p in CONSTRUCTOR_PATTERNS):
@@ -123,6 +125,8 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
 
         if any(re.match(p, func_name.lower()) for p in DESTRUCTOR_PATTERNS):
             destructor_funcs.add(func_name)
+
+        total_functions += 1
         
         func_start = match.end()
         brace_depth = 1
@@ -257,7 +261,7 @@ def num_opaque_pointers(source: str) -> int:
     opaque_pattern = r'typedef\s+struct\s+\w+\s*\*\s*\w+;'
     return len(re.findall(opaque_pattern, source))
 
-def analyze_c_project_oop(root: Path, extensions: List[str] = None) -> List[Dict[str, Any]]:
+def analyze_c_project(root: Path, extensions: List[str] = None) -> List[Dict[str, Any]]:
     """
     Analyze all C files in a project directory and return canonical reports.
     
