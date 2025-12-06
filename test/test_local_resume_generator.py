@@ -3,6 +3,18 @@ Tests for the GenerateLocalResume class which generates resumes
 from local OOP analysis data without external AI.
 """
 
+import warnings
+warnings.filterwarnings(
+    "ignore",
+    message=".*MessageMapContainer.*",
+    category=DeprecationWarning
+)
+warnings.filterwarnings(
+    "ignore",
+    message=".*ScalarMapContainer.*",
+    category=DeprecationWarning
+)
+
 import unittest
 from src.Generate_AI_Resume import GenerateLocalResume, ResumeItem, OOPPrinciple
 
@@ -201,20 +213,20 @@ class TestGenerateLocalResume(unittest.TestCase):
         self.assertEqual(result.project_title, "EmptyProject")
         self.assertTrue(len(result.key_responsibilities) > 0)  # Should have fallback
 
-    def test_summary_used_as_one_sentence_summary(self):
-        """Verify resume_item summary is used as one_sentence_summary."""
+    def test_one_sentence_summary_includes_project_and_languages(self):
+        """Verify one_sentence_summary includes project name and languages."""
         analysis_data = {
             "resume_item": {
                 "languages": ["Python"],
-                "frameworks": [],
-                "skills": [],
+                "frameworks": ["Flask"],
+                "skills": ["Web Development"],
                 "summary": "Built a CLI tool for data analysis."
             },
             "oop_analysis": {
-                "classes": {"count": 1},
-                "encapsulation": {},
-                "polymorphism": {},
-                "complexity": {},
+                "classes": {"count": 3, "with_inheritance": 1},
+                "encapsulation": {"classes_with_private_attrs": 1},
+                "polymorphism": {"classes_overriding_base_methods": 0},
+                "complexity": {"total_functions": 10},
                 "score": {"oop_score": 0.1, "rating": "low"},
                 "narrative": {}
             }
@@ -222,7 +234,14 @@ class TestGenerateLocalResume(unittest.TestCase):
 
         result = GenerateLocalResume(analysis_data, "CLITool").generate()
 
-        self.assertEqual(result.one_sentence_summary, "Built a CLI tool for data analysis.")
+        # One-line summary should include project name, language, framework, and OOP info
+        self.assertIn("CLITool", result.one_sentence_summary)
+        self.assertIn("Python", result.one_sentence_summary)
+        self.assertIn("Flask", result.one_sentence_summary)
+        self.assertIn("3 classes", result.one_sentence_summary)
+        self.assertIn("10 functions", result.one_sentence_summary)
+        self.assertIn("inheritance", result.one_sentence_summary)
+        self.assertIn("encapsulation", result.one_sentence_summary)
 
 
 if __name__ == "__main__":

@@ -475,6 +475,81 @@ class GenerateLocalResume:
         self.analysis = analysis_data
         self.project_name = project_name
 
+    def _build_resume_line(self, langs: List[str], frameworks: List[str],
+                           skills: List[str], oop_analysis: dict, duration: str) -> str:
+        """
+        Build a comprehensive one-line resume sentence including all key factors.
+
+        Args:
+            langs: List of programming languages
+            frameworks: List of frameworks used
+            skills: List of skills demonstrated
+            oop_analysis: OOP analysis metrics dict
+            duration: Project duration estimate
+
+        Returns:
+            A single sentence summarizing the project for a resume.
+        """
+        parts = []
+
+        # Start with project name and action verb
+        parts.append(f"Developed {self.project_name}")
+
+        # Add languages
+        if langs:
+            if len(langs) == 1:
+                parts.append(f"using {langs[0]}")
+            else:
+                parts.append(f"using {', '.join(langs[:-1])} and {langs[-1]}")
+
+        # Add frameworks
+        if frameworks:
+            if len(frameworks) == 1:
+                parts.append(f"with {frameworks[0]} framework")
+            else:
+                parts.append(f"with {', '.join(frameworks)} frameworks")
+
+        # Add OOP metrics if available
+        classes_data = oop_analysis.get("classes", {})
+        class_count = classes_data.get("count", 0)
+        complexity = oop_analysis.get("complexity", {})
+        func_count = complexity.get("total_functions", 0)
+
+        if class_count > 0 and func_count > 0:
+            parts.append(f"featuring {class_count} classes and {func_count} functions")
+        elif class_count > 0:
+            parts.append(f"featuring {class_count} classes")
+        elif func_count > 0:
+            parts.append(f"featuring {func_count} functions")
+
+        # Add OOP principles if detected
+        oop_features = []
+        if classes_data.get("with_inheritance", 0) > 0:
+            oop_features.append("inheritance")
+        if oop_analysis.get("encapsulation", {}).get("classes_with_private_attrs", 0) > 0:
+            oop_features.append("encapsulation")
+        if oop_analysis.get("polymorphism", {}).get("classes_overriding_base_methods", 0) > 0:
+            oop_features.append("polymorphism")
+
+        if oop_features:
+            parts.append(f"demonstrating {', '.join(oop_features)}")
+
+        # Add key skills (limit to top 3)
+        if skills:
+            top_skills = skills[:3]
+            if len(top_skills) == 1:
+                parts.append(f"showcasing {top_skills[0]}")
+            else:
+                parts.append(f"showcasing {', '.join(top_skills[:-1])} and {top_skills[-1]}")
+
+        # Add duration if available
+        if duration and duration != "—":
+            parts.append(f"over {duration}")
+
+        # Join parts into a sentence
+        sentence = " ".join(parts) + "."
+        return sentence
+
     def generate(self, saveToJson: bool = False) -> ResumeItem:
         """
         Generate a ResumeItem from local analysis data.
@@ -503,11 +578,10 @@ class GenerateLocalResume:
             tech_parts.append(", ".join(frameworks))
         tech_stack = "; ".join(tech_parts) if tech_parts else "Not detected"
 
-        # Build one sentence summary
-        if summary:
-            one_sentence = summary
-        else:
-            one_sentence = f"Software project built with {tech_stack}"
+        # Build comprehensive one-line resume sentence
+        one_sentence = self._build_resume_line(
+            langs, frameworks, skills, oop_analysis, duration
+        )
 
         # Build detailed summary from OOP narrative
         narrative = oop_analysis.get("narrative", {})

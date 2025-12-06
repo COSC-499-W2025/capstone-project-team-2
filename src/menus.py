@@ -490,11 +490,10 @@ def local_resume_menu(ctx: AppContext) -> None:
         print(f"[ERROR] Could not read {chosen_path.name}: {e}")
         return
 
-    # Check if OOP analysis exists
+    # Check if OOP analysis exists - warn but continue with basic resume
     if "oop_analysis" not in data:
-        print("[ERROR] This project does not have OOP analysis data.")
-        print("Please re-analyze the project first using option 2.")
-        return
+        print("[INFO] No OOP analysis data found. Generating basic resume.")
+        print("[TIP] Re-analyze the project with external AI disabled for full OOP analysis.\n")
 
     # Generate resume from local analysis
     project_name = chosen_path.stem
@@ -505,27 +504,39 @@ def local_resume_menu(ctx: AppContext) -> None:
         return
 
     # Display the resume
-    print("\n" + "=" * 50)
+    print("\n" + "=" * 60)
     print(f"  LOCAL RESUME: {resume_item.project_title}")
-    print("=" * 50)
+    print("=" * 60)
 
-    print(f"\nSummary: {resume_item.one_sentence_summary}")
+    print("\n" + "-" * 60)
+    print("  ONE-LINE RESUME SUMMARY")
+    print("-" * 60)
+    print(f"\n  {resume_item.one_sentence_summary}\n")
+    print("-" * 60)
     print(f"\nTech Stack: {resume_item.tech_stack}")
 
     print("\nKey Responsibilities:")
-    for resp in resume_item.key_responsibilities:
-        print(f"  • {resp}")
+    if resume_item.key_responsibilities:
+        for resp in resume_item.key_responsibilities:
+            print(f"  • {resp}")
+    else:
+        print("  • No specific responsibilities detected")
 
     print("\nSkills:")
-    print(f"  {', '.join(resume_item.key_skills_used)}")
+    if resume_item.key_skills_used:
+        print(f"  {', '.join(resume_item.key_skills_used)}")
+    else:
+        print("  No skills detected")
 
     print("\nImpact:")
     print(f"  {resume_item.impact}")
 
-    print("\nOOP Principles Detected:")
-    for name, principle in resume_item.oop_principles_detected.items():
-        status = "✓" if principle.present else "✗"
-        print(f"  {status} {name.capitalize()}: {principle.description or 'Not detected'}")
+    # Only show OOP principles if OOP analysis exists
+    if "oop_analysis" in data and resume_item.oop_principles_detected:
+        print("\nOOP Principles Detected:")
+        for name, principle in resume_item.oop_principles_detected.items():
+            status = "✓" if principle.present else "✗"
+            print(f"  {status} {name.capitalize()}: {principle.description or 'Not detected'}")
 
     print("\n" + "=" * 50)
 
