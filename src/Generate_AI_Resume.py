@@ -460,8 +460,8 @@ class GenerateLocalResume:
     """
     Generate a ResumeItem from local OOP analysis data without external AI.
 
-    This class creates resume content using the metrics from the local
-    System 
+    This class creates resume content using the metrics from the local analysis
+    system 
     """
 
     def __init__(self, analysis_data: dict, project_name: str = "Project"):
