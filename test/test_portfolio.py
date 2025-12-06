@@ -31,7 +31,7 @@ def test_display_portfolio_external_disabled_uses_saved_oop(monkeypatch, tmp_pat
     called = {}
     monkeypatch.setattr(mod, "pretty_print_oop_report", lambda metrics: called.setdefault("metrics", metrics))
 
-    mod.display_portfolio(file_path, ctx)
+    mod.display_portfolio_and_generate_pdf(file_path, ctx)
     out = capsys.readouterr().out
 
     assert "PROJECT: analysis.json" in out
@@ -57,12 +57,12 @@ def test_display_portfolio_external_enabled_calls_generator(monkeypatch, tmp_pat
         def __init__(self, root):
             self.root = root
 
-        def generate(self):
+        def generate(self, saveToJson=False):
             return generated
 
     monkeypatch.setattr(mod, "GenerateProjectResume", FakeResume)
 
-    mod.display_portfolio(file_path, ctx)
+    mod.display_portfolio_and_generate_pdf(file_path, ctx)
     out = capsys.readouterr().out
 
     assert "PROJECT: DemoProj" in out
