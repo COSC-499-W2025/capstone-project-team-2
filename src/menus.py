@@ -1,3 +1,14 @@
+"""
+CLI menus for configuration, consent aware analysis, saved reports, and project insights.
+
+Entrypoints here stitch together user facing flows:
+- settings: configure consent and defaults
+- analyze: ingest a directory or ZIP (with optional AI analysis when consented)
+- saved/delete: review or remove persisted analyses
+- AI portfolio/resume: regenerate AI driven summaries when external services are permitted
+- insights: view chronological projects/skills, rankings, and top summaries from stored insights
+"""
+
 from pathlib import Path
 import json
 
@@ -17,6 +28,8 @@ from src.saved_projects import (
     list_saved_projects,
     show_saved_summary,
 )
+from src.menu_insights import project_insights_menu
+
 from src.user_startup_config import ConfigLoader
 from src.Generate_AI_Resume import GenerateProjectResume
 
@@ -308,7 +321,8 @@ def main_menu(ctx: AppContext) -> int:
         ctx (AppContext): Shared DB/store context.
 
     Returns:
-        int: Exit code (0 on normal exit).
+        int: Exit code (0 on normal exit). Includes options for settings, analysis,
+             saved/deletion flows, portfolio/resume generation, and insights viewing.
     """
     while True:
         print("\n=== Main Menu ===")
@@ -318,6 +332,7 @@ def main_menu(ctx: AppContext) -> int:
         print("4) Delete analysis")
         print("5) AI Portfolio Generator")
         print("6) AI Resume Line Generator")
+        print("7) Project insights")
         print("0) Exit")
         choice = input("Select an option: ").strip()
 
@@ -334,11 +349,13 @@ def main_menu(ctx: AppContext) -> int:
                 get_portfolio_menu(ctx)
             elif choice == "6":
                 ai_resume_line_menu(ctx)
+            elif choice == "7":
+                project_insights_menu(ctx)
             elif choice == "0":
                 print("Goodbye!")
                 return 0
             else:
-                print("Please choose a valid option (0-6).")
+                print("Please choose a valid option (0-7).")
         except KeyboardInterrupt:
             print("\n[Interrupted] Returning to menu.")
         except Exception as e:
@@ -380,7 +397,7 @@ def ai_resume_line_menu(ctx: AppContext) -> None:
         print(f"{i}) {p.name}")
 
     sel = input(
-        "\nChoose a file to generate an AI résumé line from (or 0 to cancel): "
+        "\nChoose a file to generate an AI resume line from (or 0 to cancel): "
     ).strip()
     if not sel or sel == "0":
         return
@@ -410,13 +427,13 @@ def ai_resume_line_menu(ctx: AppContext) -> None:
     try:
         ai_item = GenerateProjectResume(project_root).generate(saveToJson=False)
     except Exception as e:
-        print(f"[ERROR] Could not generate AI résumé line: {e}")
+        print(f"[ERROR] Could not generate AI resume line: {e}")
         return
 
     # Print a tight résumé-style line + minimal context
     print("\n========================================")
     print(f"Project: {ai_item.project_title or Path(project_root).name}")
     print("----------------------------------------")
-    print("Résumé line:")
+    print("Resume line:")
     print(f"  • {ai_item.one_sentence_summary}")
     print("========================================\n")
