@@ -31,15 +31,104 @@ from src.saved_projects import (
 from src.menu_insights import project_insights_menu
 
 from src.user_startup_config import ConfigLoader
+from src.Configuration import configuration_for_users
 from src.Generate_AI_Resume import GenerateProjectResume, GenerateLocalResume
 from src.resume_pdf_generator import SimpleResumeGenerator
 import os
 
 
-def settings_menu() -> None:
-    """Load config and launch the configuration CLI."""
-    cfg = ConfigLoader().load()
-    ConfigurationForUsersUI(cfg).run_configuration_cli()
+def settings_menu(ctx: AppContext) -> None:
+    """
+    Display the settings menu with options for user configuration and external services.
+
+    Provides a submenu allowing users to:
+    1. Modify user profile settings (name, email, role, etc.)
+    2. Toggle external services (Google Gemini AI) on or off mid-session
+
+    Args:
+        ctx (AppContext): Shared application context containing database connection,
+            storage paths, and the current external_consent setting.
+
+    Returns:
+        None: Returns when user selects option 0 to go back to main menu.
+    """
+    while True:
+        print("\n=== Settings Menu ===")
+        print("1) User Configuration")
+        print("2) Toggle External Services")
+        print("0) Back to Main Menu")
+
+        choice = input("Select an option: ").strip()
+
+        if choice == "1":
+            cfg = ConfigLoader().load()
+            ConfigurationForUsersUI(cfg).run_configuration_cli()
+        elif choice == "2":
+            toggle_external_services(ctx)
+        elif choice == "0":
+            return
+        else:
+            print("Please choose a valid option (0-2).")
+
+
+def toggle_external_services(ctx: AppContext) -> None:
+    """
+    Toggle external services on or off during the current session.
+
+    Allows users to enable or disable external API services (Google Gemini AI)
+    without restarting the application. Changes are applied immediately to the
+    current session and persisted to the UserConfigs.json file for future sessions.
+
+    When external services are disabled:
+    - AI Resume Generator (option 6) will be blocked
+    - Analysis will use local processing only
+    - Local Resume Generator (option 7) remains available
+
+    Args:
+        ctx (AppContext): Shared application context. The external_consent
+            attribute will be modified in-place when toggled.
+
+    Returns:
+        None: Returns when user selects option 0 or after toggling.
+
+    Side Effects:
+        - Modifies ctx.external_consent in-place
+        - Saves updated consent to User_config_files/UserConfigs.json
+    """
+    current_status = "ENABLED" if ctx.external_consent else "DISABLED"
+    print(f"\n=== External Services Toggle ===")
+    print(f"Current status: {current_status}")
+    print("\nExternal services include:")
+    print("  - Google Gemini AI (resume generation)")
+
+    if ctx.external_consent:
+        print("\n1) Disable External Services")
+    else:
+        print("\n1) Enable External Services")
+    print("0) Back")
+
+    choice = input("\nSelect an option: ").strip()
+
+    if choice == "1":
+        ctx.external_consent = not ctx.external_consent
+        new_status = "ENABLED" if ctx.external_consent else "DISABLED"
+
+        # Save to config file
+        try:
+            cfg = ConfigLoader().load()
+            configure_json = configuration_for_users(cfg)
+            # Preserve data consent, update external consent
+            data_consent = True  # Data consent must be true if app is running
+            configure_json.save_with_consent(ctx.external_consent, data_consent)
+            configure_json.save_config()
+            print(f"\n[SUCCESS] External services are now {new_status}")
+        except Exception as e:
+            print(f"\n[WARNING] Setting changed for this session but failed to save: {e}")
+            print(f"External services are now {new_status}")
+    elif choice == "0":
+        return
+    else:
+        print("\n[INFO] Invalid option. No changes made.")
 
 
 def analyze_project_menu(ctx: AppContext) -> None:
@@ -341,7 +430,7 @@ def main_menu(ctx: AppContext) -> int:
 
         try:
             if choice == "1":
-                settings_menu()
+                settings_menu(ctx)
             elif choice == "2":
                 analyze_project_menu(ctx)
             elif choice == "3":
