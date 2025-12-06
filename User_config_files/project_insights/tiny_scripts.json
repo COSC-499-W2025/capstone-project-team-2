@@ -1,0 +1,175 @@
+{
+    "project_root": "C:\\Users\\cagil\\Documents\\GitHub\\capstone-project-team-2\\test\\tiny_scripts",
+    "hierarchy": {
+        "name": "tiny_scripts",
+        "type": "DIR",
+        "children": [
+            {
+                "name": "tiny_scripts",
+                "type": "DIR",
+                "children": [
+                    {
+                        "name": "Classes.py",
+                        "type": "py",
+                        "size": 2121,
+                        "created": "2025-12-05 22:46:42",
+                        "modified": "2025-12-05 22:46:42",
+                        "author": "cagil",
+                        "children": []
+                    },
+                    {
+                        "name": "condition.py",
+                        "type": "py",
+                        "size": 76,
+                        "created": "2025-12-05 22:46:42",
+                        "modified": "2025-12-05 22:46:42",
+                        "author": "cagil",
+                        "children": []
+                    },
+                    {
+                        "name": "greeting.py",
+                        "type": "py",
+                        "size": 44,
+                        "created": "2025-12-05 22:46:42",
+                        "modified": "2025-12-05 22:46:42",
+                        "author": "cagil",
+                        "children": []
+                    },
+                    {
+                        "name": "hello.py",
+                        "type": "py",
+                        "size": 34,
+                        "created": "2025-12-05 22:46:42",
+                        "modified": "2025-12-05 22:46:42",
+                        "author": "cagil",
+                        "children": []
+                    },
+                    {
+                        "name": "loop_test.py",
+                        "type": "py",
+                        "size": 45,
+                        "created": "2025-12-05 22:46:42",
+                        "modified": "2025-12-05 22:46:42",
+                        "author": "cagil",
+                        "children": []
+                    },
+                    {
+                        "name": "math_ops.py",
+                        "type": "py",
+                        "size": 84,
+                        "created": "2025-12-05 22:46:42",
+                        "modified": "2025-12-05 22:46:42",
+                        "author": "cagil",
+                        "children": []
+                    },
+                    {
+                        "name": "Poly.py",
+                        "type": "py",
+                        "size": 1544,
+                        "created": "2025-12-05 22:46:42",
+                        "modified": "2025-12-05 22:46:42",
+                        "author": "cagil",
+                        "children": []
+                    },
+                    {
+                        "name": "random_pick.py",
+                        "type": "py",
+                        "size": 98,
+                        "created": "2025-12-05 22:46:42",
+                        "modified": "2025-12-05 22:46:42",
+                        "author": "cagil",
+                        "children": []
+                    },
+                    {
+                        "name": "__pycache__",
+                        "type": "DIR",
+                        "children": [
+                            {
+                                "name": "loop_test.cpython-311-pytest-9.0.1.pyc",
+                                "type": "pyc",
+                                "size": 419,
+                                "created": "2025-12-05 23:02:38",
+                                "modified": "2025-12-05 23:02:38",
+                                "author": "cagil",
+                                "children": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "duration_estimate": "0:15:55.553449",
+    "resume_item": {
+        "project_name": "tiny_scripts",
+        "summary": "Built tiny_scripts with Python.",
+        "highlights": [
+            "Implemented core functionality using Python.",
+            "Demonstrated skills: Python."
+        ],
+        "project_type": "individual",
+        "detection_mode": "local",
+        "languages": [
+            "Python"
+        ],
+        "frameworks": [],
+        "skills": [
+            "Python"
+        ],
+        "framework_sources": {}
+    },
+    "project_type": {
+        "project_type": "individual",
+        "mode": "local"
+    },
+    "oop_analysis": {
+        "files_analyzed": 8,
+        "classes": {
+            "count": 8,
+            "avg_methods_per_class": 2.38,
+            "with_inheritance": 6,
+            "with_init": 4
+        },
+        "encapsulation": {
+            "classes_with_private_attrs": 0
+        },
+        "polymorphism": {
+            "classes_overriding_base_methods": 6,
+            "override_method_count": 10
+        },
+        "special_methods": {
+            "classes_with_multiple_dunders": 0
+        },
+        "data_structures": {
+            "list_literals": 2,
+            "dict_literals": 1,
+            "set_literals": 0,
+            "tuple_literals": 0,
+            "list_comprehensions": 0,
+            "dict_comprehensions": 0,
+            "set_comprehensions": 0,
+            "uses_defaultdict": false,
+            "uses_counter": false
+        },
+        "complexity": {
+            "total_functions": 23,
+            "functions_with_nested_loops": 0,
+            "nested_loop_ratio": 0.0,
+            "max_loop_depth": 1,
+            "uses_sorted": false,
+            "uses_heapq": false,
+            "uses_bisect": false
+        },
+        "score": {
+            "oop_score": 0.52,
+            "rating": "medium",
+            "comment": "The project demonstrates moderate OOP usage. Classes and methods are present, with some inheritance or encapsulation, but there is still room to deepen abstraction and polymorphism."
+        },
+        "syntax_errors": [],
+        "narrative": {
+            "oop": "The project defines 8 class(es) with an average of 2.38 method(s) per class. 6 class(es) use inheritance, indicating some use of hierarchical relationships between types. There is no evidence of encapsulation via private attributes, so information hiding is not a major focus here. 6 class(es) override 10 inherited method(s), which is direct evidence of polymorphism. Overall, the OOP score is moderate, indicating some use of object-oriented ideas but still with room for deeper abstraction and polymorphism.",
+            "data_structures": "The code uses 3 collection literal(s): 2 list(s), 1 dict(s), 0 set(s), and 0 tuple(s). The presence of dictionaries and/or sets indicates some awareness of using hash maps or sets when appropriate for key-based access or membership tests. No usage of specialized counting/grouping helpers was detected, so the code stays with more basic built-in structures rather than specialized helpers.",
+            "complexity": "The analyzer examined 23 function(s); 0 of them contain nested loops (nested loop ratio 0.00, max depth 1). The absence of nested loops suggests most operations are at most linear in the size of their inputs, with no obvious O(n\u00b2) patterns. No use of sorting/priority-queue/binary-search utilities was detected, so the code does not rely on more advanced algorithmic utilities in this artifact."
+        }
+    }
+}

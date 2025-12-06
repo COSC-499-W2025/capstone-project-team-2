@@ -1,0 +1,98 @@
+{
+    "project_root": "C:\\Users\\cagil\\Documents\\GitHub\\capstone-project-team-2\\test\\small_test_scripts\\FULL_C_TEST",
+    "hierarchy": {
+        "name": "FULL_C_TEST",
+        "type": "DIR",
+        "children": [
+            {
+                "name": "full_c_test.c",
+                "type": "c",
+                "size": 9037,
+                "created": "2025-12-06 03:05:26",
+                "modified": "2025-12-06 03:05:54",
+                "author": "cagil",
+                "children": []
+            }
+        ]
+    },
+    "duration_estimate": "0:00:27.887610",
+    "resume_item": {
+        "project_name": "FULL_C_TEST",
+        "summary": "Built FULL_C_TEST with C.",
+        "highlights": [
+            "Implemented core functionality using C.",
+            "Demonstrated skills: C."
+        ],
+        "project_type": "individual",
+        "detection_mode": "local",
+        "languages": [
+            "C"
+        ],
+        "frameworks": [],
+        "skills": [
+            "C"
+        ],
+        "framework_sources": {}
+    },
+    "project_type": {
+        "project_type": "individual",
+        "mode": "local"
+    },
+    "oop_analysis": {
+        "language": "C",
+        "files_analyzed": 1,
+        "classes": {
+            "count": 7,
+            "avg_methods_per_class": 1.71,
+            "with_inheritance": 2,
+            "with_init": 3
+        },
+        "encapsulation": {
+            "classes_with_private_attrs": 0,
+            "opaque_pointers": 2
+        },
+        "polymorphism": {
+            "classes_overriding_base_methods": 0,
+            "override_method_count": 0,
+            "vtable_structs": 2
+        },
+        "special_methods": {
+            "classes_with_multiple_dunders": 0
+        },
+        "lifecycle": {
+            "constructor_functions": 4,
+            "destructor_functions": 4
+        },
+        "data_structures": {
+            "arrays": 14,
+            "hash_tables": 1,
+            "linked_lists": 0,
+            "trees": 0,
+            "queues": 1,
+            "stacks": 0,
+            "dynamic_memory": 12,
+            "pointer_arrays": 0,
+            "uses_qsort": true,
+            "uses_bsearch": true
+        },
+        "complexity": {
+            "total_functions": 37,
+            "functions_with_nested_loops": 7,
+            "nested_loop_ratio": 0.19,
+            "max_loop_depth": 4,
+            "uses_qsort": true,
+            "uses_bsearch": true
+        },
+        "score": {
+            "oop_score": 0.29,
+            "rating": "low",
+            "comment": "The project shows limited use of object-oriented patterns. There are some structs, but encapsulation and polymorphism are minimal."
+        },
+        "syntax_errors": [],
+        "narrative": {
+            "oop": "The project defines 7 struct(s) with an average of 1.71 function pointer(s) per struct. 2 struct(s) use inheritance via composition. Encapsulation is present: 2 opaque pointer(s) hide implementation details. 2 vtable struct(s) provide polymorphic behavior through function pointers. Lifecycle management: 4 constructor(s) and 4 destructor(s) manage object creation/cleanup.",
+            "data_structures": "The code uses 14 array(s) and 1 hash table(s). Dynamic memory allocation appears 12 time(s), indicating runtime-sized structures.",
+            "complexity": "Analyzed 37 function(s); 7 contain nested loops. Uses qsort() for sorting. Uses bsearch() for binary search."
+        }
+    }
+}

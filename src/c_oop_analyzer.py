@@ -30,8 +30,8 @@ DESTRUCTOR_PATTERNS = [
 
 # Vtable naming patterns
 VTABLE_PATTERNS = [
-    r'.*_ops$', r'.*_operations$', r'.*_vtable$', r'.*_vtbl$',
-    r'.*_methods$', r'.*_funcs$', r'.*_interface$'
+    r'.*[_]?ops$', r'.*[_]?operations$', r'.*[_]?vtable$', r'.*[_]?vtbl$',
+    r'.*[_]?methods$', r'.*[_]?funcs$', r'.*[_]?interface$'
 ]
 
 def analyze_source(source: str, path: Path) -> Dict[str, Any]:
@@ -63,9 +63,14 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
         
         # Extract bases 
         bases = []
-        first_member = re.search(r'^\s*struct\s+(\w+)\s+\w+;', body.strip())
-        if first_member:
-            bases.append(first_member.group(1))
+        # Look for struct type as first member (inheritance pattern)
+        #   Match: "struct Shape base;" or "Shape base;"
+        first_member_match = re.search(r'^\s*(?:struct\s+)?(\w+)\s+\w+\s*;', body.strip())
+        if first_member_match:
+            potential_base = first_member_match.group(1)
+            # Check if it's actually a struct name (not a primitive type)
+            if potential_base not in ['int', 'char', 'float', 'double', 'long', 'short', 'void']:
+                bases.append(potential_base)
         
         # Check if this is a vtable struct
         is_vtable = any(re.match(pat, struct_name, re.IGNORECASE) 
@@ -148,43 +153,40 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
 
     # Data structure detection from includes and code
     ds = {
-        "list_literals": 0,
-        "dict_literals": 0,
-        "set_literals": 0,
-        "tuple_literals": 0,
-        "list_comprehensions": 0,
-        "dict_comprehensions": 0,
-        "set_comprehensions": 0,
-        "uses_defaultdict": False,
-        "uses_counter": False,
-        "uses_heapq": False,
-        "uses_bisect": False,
-        "uses_sorted": False,
+        "arrays": 0,                    # Static and dynamic arrays
+        "hash_tables": 0,               # Hash table usage
+        "linked_lists": 0,              # Linked list patterns
+        "trees": 0,                     # Tree structures
+        "queues": 0,                    # Queue implementations
+        "stacks": 0,                    # Stack usage
+        "uses_qsort": False,            # Standard library qsort
+        "uses_bsearch": False,          # Standard library bsearch
+        "dynamic_memory": 0,            # malloc/calloc/realloc count
+        "pointer_arrays": 0,            # Arrays of pointers
     }
+        # Count array declarations
+    ds["arrays"] = len(re.findall(r'\w+\s*\[\s*\d*\s*\]', source))
 
-    # Detect common C data structure usage
-    if re.search(r'\w+\s*\[\s*\d*\s*\]', source) or 'malloc' in source:
-        ds["list_literals"] += 1
+        # Count dynamic memory allocations
+    ds["dynamic_memory"] = (
+        source.count('malloc(') + 
+        source.count('calloc(') + 
+        source.count('realloc(')
+        )
 
-    # Hash tables / maps (via includes or implementations)
-    if any('hash' in inc.lower() or 'map' in inc.lower() for inc in includes):
-        ds["dict_literals"] += 1
+    # Hash tables (look for actual usage, not just includes)
+    if any('hash' in inc.lower() for inc in includes):
+        ds["hash_tables"] += 1
 
-    # Sets (via includes)
-    if any('set' in inc.lower() for inc in includes):
-        ds["set_literals"] += 1
+    # Queues/heaps
+    if any('queue' in inc.lower() or 'heap' in inc.lower() for inc in includes):
+        ds["queues"] += 1
 
-    # Priority queue / heap
-    if any('heap' in inc.lower() or 'queue' in inc.lower() for inc in includes):
-        ds["uses_heapq"] = True
-
-    # Sorting
-    if 'qsort' in source or 'sort' in source.lower():
-        ds["uses_sorted"] = True
+    # Sorting (look for function call, not substring)
+    ds["uses_qsort"] = bool(re.search(r'\bqsort\s*\(', source))
 
     # Binary search
-    if 'bsearch' in source:
-        ds["uses_bisect"] = True
+    ds["uses_bsearch"] = bool(re.search(r'\bbsearch\s*\(', source))
 
     complexity = {
         "total_functions": total_functions,
@@ -209,6 +211,7 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
         "complexity": complexity,
         "syntax_ok": True,
         "c_spec": c_spec,  # Extra data for C-specific reports
+        "MARKER_NEW_VERSION": True,
     }
 
 def calc_loop_depth(code: str) -> int:
@@ -255,8 +258,22 @@ def num_opaque_pointers(source: str) -> int:
     Returns:
         Count of opaque pointer typedefs.
     """
-    opaque_pattern = r'typedef\s+struct\s+\w+\s*\*\s*\w+;'
-    return len(re.findall(opaque_pattern, source))
+    opaque_pattern = r'typedef\s+struct\s+(\w+)\s+\1\s*;'  # struct Foo Foo;
+    forward_decls = re.findall(opaque_pattern, source)
+    
+    # Check these don't have implementations in the same file
+    count = 0
+    for name in forward_decls:
+        # If there's no struct definition with a body, it's opaque
+        impl_pattern = rf'struct\s+{name}\s*\{{[^}}]+\}}'
+        if not re.search(impl_pattern, source, re.DOTALL):
+            count += 1
+    
+    # Also check explicit pointer typedefs
+    pointer_pattern = r'typedef\s+struct\s+\w+\s*\*\s*\w+;'
+    count += len(re.findall(pointer_pattern, source))
+    
+    return count
 
 def analyze_c_project(root: Path, extensions: List[str] = None) -> List[Dict[str, Any]]:
     """
@@ -286,6 +303,7 @@ def analyze_c_project(root: Path, extensions: List[str] = None) -> List[Dict[str
             try:
                 source = path.read_text(encoding="utf-8", errors='ignore')
                 report = analyze_source(source, path)
+                print(f"[PROJECT DEBUG] Report keys after analyze_source: {report.keys()}")
                 canonical_reports.append(report)
             except Exception as e:
                 # Return error report
@@ -298,6 +316,7 @@ def analyze_c_project(root: Path, extensions: List[str] = None) -> List[Dict[str
                     "complexity": {},
                     "syntax_ok": False,
                     "syntax_error": str(e),
+                    "c_spec": {},
                 })
     
     return canonical_reports
