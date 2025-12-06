@@ -352,3 +352,93 @@ def test_insight_helper_filter_and_score_smoke():
     score_recent, _ = insight_helpers.compute_composite_score(recent)
     score_stale, _ = insight_helpers.compute_composite_score(stale)
     assert score_recent > score_stale
+
+
+def test_settings_menu_routes_to_user_config(monkeypatch):
+    """Option 1 in settings menu should launch user configuration CLI."""
+    called = {}
+    monkeypatch.setattr("builtins.input", _inputs(["1", "0", "0"]))
+    monkeypatch.setattr(mod, "ConfigLoader", lambda: SimpleNamespace(load=lambda: {}))
+    monkeypatch.setattr(
+        mod,
+        "ConfigurationForUsersUI",
+        lambda cfg: SimpleNamespace(run_configuration_cli=lambda: called.setdefault("hit", True)),
+    )
+
+    ctx = SimpleNamespace(external_consent=True)
+    mod.settings_menu(ctx)
+
+    assert called.get("hit") is True
+
+
+def test_settings_menu_routes_to_toggle_external(monkeypatch):
+    """Option 2 in settings menu should call toggle_external_services."""
+    called = {}
+    monkeypatch.setattr("builtins.input", _inputs(["2", "0", "0"]))
+    monkeypatch.setattr(
+        mod,
+        "toggle_external_services",
+        lambda ctx: called.setdefault("hit", True),
+    )
+
+    ctx = SimpleNamespace(external_consent=True)
+    mod.settings_menu(ctx)
+
+    assert called.get("hit") is True
+
+
+def test_toggle_external_services_disables(monkeypatch, tmp_path):
+    """Toggle should disable external services when selecting option 1."""
+    monkeypatch.setattr("builtins.input", _inputs(["1"]))
+    monkeypatch.setattr(mod, "ConfigLoader", lambda: SimpleNamespace(load=lambda: {}))
+    monkeypatch.setattr(
+        mod,
+        "configuration_for_users",
+        lambda cfg: SimpleNamespace(
+            save_with_consent=lambda ext, data: None,
+            save_config=lambda: True,
+        ),
+    )
+
+    ctx = SimpleNamespace(external_consent=True)
+    mod.toggle_external_services(ctx)
+
+    assert ctx.external_consent is False
+
+
+def test_toggle_external_services_enables(monkeypatch, tmp_path):
+    """Toggle should enable external services when selecting option 1."""
+    monkeypatch.setattr("builtins.input", _inputs(["1"]))
+    monkeypatch.setattr(mod, "ConfigLoader", lambda: SimpleNamespace(load=lambda: {}))
+    monkeypatch.setattr(
+        mod,
+        "configuration_for_users",
+        lambda cfg: SimpleNamespace(
+            save_with_consent=lambda ext, data: None,
+            save_config=lambda: True,
+        ),
+    )
+
+    ctx = SimpleNamespace(external_consent=False)
+    mod.toggle_external_services(ctx)
+
+    assert ctx.external_consent is True
+
+
+def test_toggle_external_services_back_no_change(monkeypatch):
+    """Selecting 0 (back) should not change external_consent."""
+    monkeypatch.setattr("builtins.input", _inputs(["0"]))
+
+    ctx = SimpleNamespace(external_consent=True)
+    mod.toggle_external_services(ctx)
+
+    assert ctx.external_consent is True
+
+
+def test_main_menu_routes_to_settings_menu(monkeypatch):
+    """Option 1 in main menu should dispatch to settings_menu."""
+    called = {}
+    monkeypatch.setattr("builtins.input", _inputs(["1", "0"]))
+    monkeypatch.setattr(mod, "settings_menu", lambda ctx: called.setdefault("hit", True))
+    mod.main_menu(SimpleNamespace(external_consent=True))
+    assert called.get("hit") is True
