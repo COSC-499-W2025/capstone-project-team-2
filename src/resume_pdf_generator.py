@@ -148,6 +148,16 @@ class SimpleResumeGenerator:
         paragraph = Paragraph(line, self.styles['Normal'])
         doc.build([paragraph,Spacer(1, 0.25 * inch)])
 
+
+    def display_resume_line(self):
+        self.create_resume_line()
+        print(f"Resume Generated at: {self.folder_path}")
+
+    def display_portfolio(self):
+        self.generate()
+        print(f"Portfolio Generated at: {self.folder_path}")
+
+
     def display_and_run(self):
         """
         Executes a visualization progress bar while invoking the generation of a PDF Portfolio.
@@ -160,14 +170,14 @@ class SimpleResumeGenerator:
         """
         #for i in tqdm(range(20), desc=f"Creating PDF Portfolio for {self.project_title}", unit="step"):
         #    time.sleep(1)
-        self.generate()
+        self.display_portfolio()
         print("Portfolio has been created")
 
 
         #for i in tqdm(range(20), desc=f"Creating Resume PDF Line for {self.project_title}", unit="step"):
         #    time.sleep(1)
-        self.create_resume_line()
-        print(f"Resume Line  has been created")
+        self.display_resume_line()
+        print(f"Resume Line has been created")
         print(f"Resume Line and Portfolio has been saved to {self.folder_path}")
        
 

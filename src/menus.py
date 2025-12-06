@@ -560,7 +560,7 @@ def local_resume_menu(ctx: AppContext) -> None:
         file_name = input("Enter PDF filename (or press Enter for 'LocalResume'): ").strip() or "LocalResume"
 
         try:
-            SimpleResumeGenerator(folder_path, data=resume_item, fileName=file_name).display_and_run()
+            SimpleResumeGenerator(folder_path, data=resume_item, fileName=file_name).display_resume_line()
         except Exception as e:
             print(f"[ERROR] Could not generate PDF: {e}")
 
