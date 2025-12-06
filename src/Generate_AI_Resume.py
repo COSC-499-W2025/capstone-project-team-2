@@ -461,7 +461,7 @@ class GenerateLocalResume:
     Generate a ResumeItem from local OOP analysis data without external AI.
 
     This class creates resume content using the metrics from the local
-    Python/Java/C analyzer instead of calling external LLM services.
+    System 
     """
 
     def __init__(self, analysis_data: dict, project_name: str = "Project"):
@@ -699,26 +699,6 @@ class GenerateLocalResume:
         )
 
 
-"""
-ocker = GenerateProjectResume(r"").generate(saveToJson=True)
 
-
-
-
-
-print(docker.project_title)
-print(docker.one_sentence_summary)
-print(docker.key_skills_used)
-print(docker.tech_stack)
-print(docker.oop_principles_detected.keys())
-
-for name, principle in docker.oop_principles_detected.items():
-    print(f"=== {name.upper()} ===")
-    print("present:", principle.present)
-    print("description:", principle.description)
-    for snippet in principle.code_snippets:
-        print("file:", snippet.get("file"))
-        print("code:", snippet.get("code")[:200], "...")
-"""
 
 

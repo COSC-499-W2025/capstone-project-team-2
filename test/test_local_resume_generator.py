@@ -4,6 +4,10 @@ from local OOP analysis data without external AI.
 """
 
 import warnings
+"""
+Here we filter out specific deprecation warnings that are not relevant to our tests.
+This helps keep the test output clean and focused on actual issues.
+"""
 warnings.filterwarnings(
     "ignore",
     message=".*MessageMapContainer.*",
