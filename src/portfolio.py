@@ -4,7 +4,7 @@ from pathlib import Path
 # Render saved analyses as portfolio-style output, honoring consent settings.
 from src import app_context
 from src.app_context import AppContext
-from src.Generate_AI_Resume import GenerateProjectResume
+from src.Generate_AI_Resume import GenerateProjectResume, GenerateLocalResume
 from src.resume_pdf_generator import SimpleResumeGenerator
 import os
 from src.oop_aggregator import pretty_print_oop_report
