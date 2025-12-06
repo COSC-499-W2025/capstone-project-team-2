@@ -39,10 +39,18 @@ import os
 
 def settings_menu(ctx: AppContext) -> None:
     """
-    Settings menu with options for user configuration and external services toggle.
+    Display the settings menu with options for user configuration and external services.
+
+    Provides a submenu allowing users to:
+    1. Modify user profile settings (name, email, role, etc.)
+    2. Toggle external services (Google Gemini AI) on or off mid-session
 
     Args:
-        ctx (AppContext): Shared DB/store context.
+        ctx (AppContext): Shared application context containing database connection,
+            storage paths, and the current external_consent setting.
+
+    Returns:
+        None: Returns when user selects option 0 to go back to main menu.
     """
     while True:
         print("\n=== Settings Menu ===")
@@ -65,10 +73,27 @@ def settings_menu(ctx: AppContext) -> None:
 
 def toggle_external_services(ctx: AppContext) -> None:
     """
-    Toggle external services (Google Gemini, GitHub API) on or off.
+    Toggle external services on or off during the current session.
+
+    Allows users to enable or disable external API services (Google Gemini AI)
+    without restarting the application. Changes are applied immediately to the
+    current session and persisted to the UserConfigs.json file for future sessions.
+
+    When external services are disabled:
+    - AI Resume Generator (option 6) will be blocked
+    - Analysis will use local processing only
+    - Local Resume Generator (option 7) remains available
 
     Args:
-        ctx (AppContext): Shared DB/store context.
+        ctx (AppContext): Shared application context. The external_consent
+            attribute will be modified in-place when toggled.
+
+    Returns:
+        None: Returns when user selects option 0 or after toggling.
+
+    Side Effects:
+        - Modifies ctx.external_consent in-place
+        - Saves updated consent to User_config_files/UserConfigs.json
     """
     current_status = "ENABLED" if ctx.external_consent else "DISABLED"
     print(f"\n=== External Services Toggle ===")
