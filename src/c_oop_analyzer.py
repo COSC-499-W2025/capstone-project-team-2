@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Dict, Any, List, Set
 import re
 
-    # Common OOP naming patterns in C
+# Common naming patterns for constructor/destructor like methods
 CONSTRUCTOR_PATTERNS = [
     r'.*_create$', r'.*_new$', r'.*_init$', r'.*_alloc$',
     r'create_.*', r'new_.*', r'init_.*', r'alloc_.*'
@@ -34,14 +34,16 @@ VTABLE_PATTERNS = [
 ]
 
 def analyze_source(source: str, path: Path) -> Dict[str, Any]:
-    includes = []
-    include_pattern = r'#include\s*[<"]([^>"]+)[>"]'
-    for match in re.finditer(include_pattern, source):
-        includes.append(match.group(1))
+    source_l = source.lower()
 
+    includes = re.findall(r'#include\s*[<"]([^>"]+)[>"]', source)
+
+    struct_pattern = r'(?:typedef\s+)?struct\s+(\w+)?\s*\{([^}]+)\}\s*(\w+)?'
     struct_info = []
-    struct_pattern = r'(?:typedef\s+)?struct\s+(\w+)?\s*\{([^}]+)\}'
 
+    # Track constructors/destructors for lifecycle management
+    constructor_funcs = set()
+    destructor_funcs = set()
 
     # Track all function definitions for complexity
     total_functions = 0
@@ -49,26 +51,19 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
     max_loop_depth_overall = 0
     static_function_count = 0
 
-    # Track constructors/destructors for lifecycle management
-    constructor_funcs = set()
-    destructor_funcs = set()
-
     for match in re.finditer(struct_pattern, source, re.DOTALL):
-        struct_name = match.group(1) or "anonymous"
-        struct_body = match.group(2)
+        name1, body, name2 = match.group(1), match.group(2), match.group(3)
+        struct_name = name1 or name2 or "anonymous"
 
-        # Count function pointers
-        func_ptr_pattern = r'\(\s*\*\s*(\w+)\s*\)'
-        func_ptrs = re.findall(func_ptr_pattern, struct_body)
-        
-        # Check for nested structs 
-        nested_struct_pattern = r'struct\s+(\w+)\s+(\w+);'
-        nested_structs = re.findall(nested_struct_pattern, struct_body)
+        # function pointers
+        func_ptrs = re.findall(r'\(\s*\*\s*(\w+)\s*\)', body)
+
+        # nested structs
+        nested_structs = re.findall(r'struct\s+(\w+)\s+(\w+);', body)
         
         # Extract bases 
         bases = []
-        first_member_pattern = r'^\s*struct\s+(\w+)\s+\w+;'
-        first_member = re.search(first_member_pattern, struct_body.strip())
+        first_member = re.search(r'^\s*struct\s+(\w+)\s+\w+;', body.strip())
         if first_member:
             bases.append(first_member.group(1))
         
@@ -79,17 +74,18 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
         
         # Determine if has constructor
         has_constructor = False
-        for ctor_pat in CONSTRUCTOR_PATTERNS:
-            struct_ctor_pattern = ctor_pat.replace('.*', struct_name.lower())
-            if re.search(struct_ctor_pattern, source.lower()):
+        struct_l = struct_name.lower()
+        for pat in CONSTRUCTOR_PATTERNS:
+            pat_fixed = re.sub(r'\.\*', struct_l, pat.lower())
+            if re.search(pat_fixed, source_l):
                 has_constructor = True
                 break
         
         special_methods = []
         special_func_names = ['compare', 'equals', 'hash', 'clone', 'destroy', 'init']
-        for fp in func_ptrs:
-            if any(special in fp.lower() for special in special_func_names):
-                special_methods.append(fp)
+        for name in func_ptrs:
+            if any(special in name.lower() for special in special_func_names):
+                special_methods.append(name)
         
 
         struct_info.append({
@@ -100,15 +96,16 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
             "methods": func_ptrs,  # function pointers are methods
             "has_constructor": has_constructor,
             "special_methods": special_methods,
-            "private_attrs": [],  # C structs don't have private attrs (encapsulation via opaque ptrs)
-            "public_attrs": [],   # We don't count individual members here
+            "private_attrs": [],  # C structs don't have private attrs
+            "public_attrs": [],
             "is_vtable": is_vtable and has_multiple_func_ptrs,
+            "nested_structs": nested_structs,
         })
 
     # Find function definitions for complexity analysis
-    func_pattern = r'(static\s+)?(\w+)\s+(\w+)\s*\([^)]*\)'
+    func_pattern =r'(static\s+)?(\w[\w\s\*]+?)\s+(\w+)\s*\([^;]*\)\s*\{'
     for match in re.finditer(func_pattern, source):
-        is_static = match.group(1) is not None
+        is_static = bool(match.group(1))
         func_name = match.group(3)
         
         if is_static:
@@ -121,39 +118,31 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
         total_functions += 1
         
         # Check for constructor/destructor patterns
-        is_constructor = any(re.match(pat, func_name) for pat in CONSTRUCTOR_PATTERNS)
-        is_destructor = any(re.match(pat, func_name) for pat in DESTRUCTOR_PATTERNS)
-        
-        if is_constructor:
+        if any(re.match(p, func_name.lower()) for p in CONSTRUCTOR_PATTERNS):
             constructor_funcs.add(func_name)
-        if is_destructor:
+
+        if any(re.match(p, func_name.lower()) for p in DESTRUCTOR_PATTERNS):
             destructor_funcs.add(func_name)
         
         func_start = match.end()
-        brace_depth = 0
-        func_body_start = -1
-        func_body_end = -1
+        brace_depth = 1
+        end = func_start
         
-        for i in range(func_start, min(func_start + 50, len(source))):
+        for i in range(func_start, len(source)):
             if source[i] == '{':
-                func_body_start = i
-                break
-        
-        if func_body_start > 0:
-            brace_depth = 1
-            for i in range(func_body_start + 1, len(source)):
-                if source[i] == '{':
-                    brace_depth += 1
-                elif source[i] == '}':
-                    brace_depth -= 1
-                    if brace_depth == 0:
-                        func_body_end = i
-                        break
-            
-            if func_body_end > func_body_start:
-                func_body = source[func_body_start:func_body_end]
-                max_loop_depth_overall = max(max_loop_depth_overall, loop_depth)
+                brace_depth += 1
+            elif source[i] == '}':
+                brace_depth -= 1
+                if brace_depth == 0:
+                    end = i
+                    break
 
+        func_body = source[func_start:end]
+        loop_depth = calc_loop_depth(func_body)
+
+        max_loop_depth_overall = max(max_loop_depth_overall, loop_depth)
+        if loop_depth >= 2:
+            functions_with_nested_loops += 1
     
         # Data structure detection from includes and code
         ds = {
@@ -204,6 +193,7 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
         # Additional C-specific data 
         c_spec = {
             "static_functions": static_function_count,
+            "opaque_pointers": num_opaque_pointers(source),
             "vtable_structs": sum(1 for s in struct_info if s.get("is_vtable", False)),
             "constructor_functions": len(constructor_funcs),
             "destructor_functions": len(destructor_funcs),
@@ -220,3 +210,93 @@ def analyze_source(source: str, path: Path) -> Dict[str, Any]:
         "c_spec": c_spec,  # Extra data for C-specific reports
     }
 
+def calc_loop_depth(code: str) -> int:
+    """
+    Calculate maximum nesting depth of loops in code snippet.
+    
+    Args:
+        code: C code string to analyze.
+        
+    Returns:
+        Maximum loop nesting depth.
+    """
+    max_depth = 0
+    current_depth = 0
+    
+    # Find all loop keywords
+    loop_keywords = ['for', 'while', 'do']
+    
+    # Track brace depth to understand nesting
+    for line in code.split('\n'):
+        line = line.strip()
+        
+        # Check if line starts a loop
+        for keyword in loop_keywords:
+            if re.match(rf'\b{keyword}\s*\(', line):
+                current_depth += 1
+                max_depth = max(max_depth, current_depth)
+                break
+        
+        # Track when we exit scopes (closing braces)
+        if '}' in line and current_depth > 0:
+            # Simple heuristic: closing brace might end a loop
+            current_depth = max(0, current_depth - line.count('}'))    
+    return max_depth
+
+def num_opaque_pointers(source: str) -> int:
+    """
+    Count opaque pointer typedefs (a key encapsulation pattern in C).
+    Pattern: typedef struct foo *foo_t;
+    
+    Args:
+        source: C source code string.
+        
+    Returns:
+        Count of opaque pointer typedefs.
+    """
+    opaque_pattern = r'typedef\s+struct\s+\w+\s*\*\s*\w+;'
+    return len(re.findall(opaque_pattern, source))
+
+def analyze_c_project_oop(root: Path, extensions: List[str] = None) -> List[Dict[str, Any]]:
+    """
+    Analyze all C files in a project directory and return canonical reports.
+    
+    Args:
+        root: Root directory path.
+        extensions: List of file extensions to analyze (default: ['.c', '.h']).
+        
+    Returns:
+        List of canonical per-file reports suitable for oop_aggregator.
+    """
+    if extensions is None:
+        extensions = ['.c', '.h']
+    
+    root = Path(root).resolve()
+    ignore_dirs = {".git", "__pycache__", ".venv", "venv", "env", "build", "dist", "obj"}
+    
+    canonical_reports = []
+    
+    for ext in extensions:
+        for path in root.rglob(f"*{ext}"):
+            # ignored directories
+            if any(part in ignore_dirs for part in path.parts):
+                continue
+            
+            try:
+                source = path.read_text(encoding="utf-8", errors='ignore')
+                report = analyze_source(source, path)
+                canonical_reports.append(report)
+            except Exception as e:
+                # Return error report
+                canonical_reports.append({
+                    "file": str(path),
+                    "module": "",
+                    "classes": [],
+                    "imports": [],
+                    "data_structures": {},
+                    "complexity": {},
+                    "syntax_ok": False,
+                    "syntax_error": str(e),
+                })
+    
+    return canonical_reports
