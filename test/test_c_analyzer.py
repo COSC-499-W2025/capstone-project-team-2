@@ -10,7 +10,7 @@ from src.c_oop_analyzer import (analyze_source, analyze_c_project)
 class TestCAnalyzer:
 
     def test_c_file_analysis(self):
-        file_path = Path("test/small_test_scripts/c_sample.c")
+        file_path = Path(__file__).parent / "small_test_scripts" / "c_sample.c"
 
         source = file_path.read_text()
 
