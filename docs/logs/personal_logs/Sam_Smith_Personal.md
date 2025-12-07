@@ -1,3 +1,60 @@
+## Week 14 (12/01/2025- 12/07/2025)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+<<img width="1275" height="731" alt="image" src="https://github.com/user-attachments/assets/ad5ae7c4-9aa2-45ee-b16f-1114b7f8d2b8" />
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: added Gemini resume line integration
+  * #2: added patch to fix broken tests in test_analysis_service.py and test_AI_generated_resume.py
+    
+## Associated Tasks from Project Board:
+
+| Task ID | Description                     | Feature                   | Assigned To | Status   |
+| ------- | ------------------------------- | ------------------------- | ----------- | -------- |
+|  230 | [Gemini resume line integration]   | [User can now generate resume line using AI]      | [ssmith86]  | [complete]   |
+| 128  | test patch]   | [tests now function correctly]      | [ssmith86]  | [complete]   |
+
+### Progress Update (since 10/26/2025) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td> Gemini resume line integration
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>added integration of collaboration percentage into CLI output
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td> patch to fix broken tests in test_analysis_service.py and test_AI_generated_resume.py
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+This week we finalized everything for milestone 1, completed the in class presentation of our project, created a demo video and did our team contract. The feedback from the TA last week told me that I needed to make my PR reviews more meaningful, so I tried to take that into account by adding my thoughts on how code could be improved or refactored even when I didn't think there was anything that necessarily needed to be changed. 
+
+### Tasks for Next Sprint:
+- Bonus tasks for winter break: learn streamlet for GUI creation.
+
 ## Week 13 (11/24/2025- 11/30/2025)
 
 ### Task Types Worked On (Screenshot from Peer Eval)
