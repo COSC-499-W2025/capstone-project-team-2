@@ -6,44 +6,74 @@
 
 ## 📚 Table of Contents
 
-1. [Project Overview](#project-overview)  
-2. [Features](#features)  
-3. [System Architecture](#system-architecture)  
-4. [DFD Level 1](#dfd-level-1)  
-5. [Work Breakdown Structure](#work-breakdown-structure)  
+1. [Project Overview](#project-overview)
+2. [Features](#features)
+3. [Video Demo](#video-demo)
+4. [System Architecture](#system-architecture)
+5. [Project Setup](#project-setup)
+   - [Cloning the Repository](#cloning-the-repository)
+   - [Docker Setup](#docker-setup)
+   - [Python Setup](#python-setup)
+6. [DFD Level 1](#dfd-level-1)
+7. [Work Breakdown Structure](#work-breakdown-structure)
+8. [Team Contract](#team-contract)
+
+
 
 
 ---
 
 ## 📝 Project Overview
 
+![Course](https://img.shields.io/badge/Course-COSC%20499-blue)
+![Term](https://img.shields.io/badge/Term-Winter%202025-green)
+![Tech Stack](https://img.shields.io/badge/Tech%20Stack-Python-yellow)
+
 This project is being developed as part of **COSC 499: Capstone Project** at UBCO.  
-The project, titled **Mining Digital Work Artifacts**, is a tool designed to help individuals analyze and reflect on their digtal creative and professional output. The main focus is on extracting and analyzing artifacts generated during the course of everyday work activites, including **Programming code**, **Repositories**, **documents**, **notes**, **desgin sketches** and **media files**. Through the collection of the users data and associated metadata, the system will provide insight into the user's contribution, creative direction, and project evolution. This will allow the user/individual to gain better insight into their work habits, showcase their contributions, and highlight their personal growth. 
+The project, titled **Mining Digital Work Artifacts**, is a tool designed to help individuals analyze and reflect on their digital creative and professional output. The main focus is on extracting and analyzing artifacts generated during the course of everyday work activities, including **Programming code**, **Repositories**, **documents**, **notes**, **design sketches** and **media files**. Through the collection of the users data and associated metadata, the system will provide insight into the user's contribution, creative direction, and project evolution. This will allow the user/individual to gain better insight into their work habits, showcase their contributions, and highlight their personal growth.
+
 
 The platforms target users are **graduating students** and **early career professionals** who want to improve their **personal portfolio**
 
-- **Course:** COSC 499 (Winter 2025)  
-- **Team:** Team 2  
-- **Tech Stack:** Python
-- **Team Members**:
-   - Immanuel Wiessler
-   - Sam Smith
-   - Puneet Maan
-   - Samantha Manranda
-   - Cameron Gillespie
-   - Mahi Gangal
 
----
+
+
+
+### 👥 Team Members
+
+- Immanuel Wiessler
+- Sam Smith
+- Puneet Maan
+- Samantha Manranda
+- Cameron Gillespie
+- Mahi Gangal
+
 
 ## ✨ Features
 
-- Modular backend and frontend architecture  
-- Streamlined user interface and authentication system  
-- Structured project documentation (WBS, DFDs, Architecture diagrams)  
-- CI/CD deployment pipelines  
-- Database integration with MySQL + Docker
+- 🏗️ **Modular Architecture** — Scalable backend and frontend design
+- 🎨 **User Interface** — Streamlined UI with intuitive navigation
+- 📄 **Documentation** — Comprehensive WBS, DFDs, and architecture diagrams
+- 🔄 **CI/CD Pipelines** — Automated deployment workflows
+- 🗄️ **Database** — MySQL integration with Docker containerization
+- 🤖 **AI Integration** — Ollama (local LLM) and Google Gemini for code analysis
+- 🔍 **Local Analysis** — Offline code analysis without AI dependencies
+- 📝 **Resume Generator** — PDF resume and portfolio generation (AI-powered or offline)
 
----
+
+
+
+
+
+## 🎬 Video Demo
+
+<a href="https://youtu.be/zAoHiW9vn-U">
+  <img src="https://img.shields.io/badge/▶️%20Watch%20Demo-Click%20Here-red?style=for-the-badge&logo=youtube" alt="Watch Demo">
+</a>
+
+> *A complete walkthrough demonstrating project setup, features, and usage.*
+
+
 
 ## 🏗️ System Architecture
 
@@ -53,70 +83,159 @@ This system architecture illustrates the structural design of the application, s
 
 
 
-## Project setup
 
-Please look at our video demo otherwise follow the steps below:
+## Project Setup
 
 
-**Docker setup**:
-1. `docker-compose down -v` to remove previous containers and volumes
-2. `docker-compose build --no-cache` to build the Docker containers
-3. `docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b` to pull the LLM model
-4. `docker exec -it ollama2 ollama list` and qwen2.5-coder:1.5b should be in the list
-![alt text](image.png) 
-6. `docker compose up -d app_database ollama2` to start the containers
-7. `docker ps` to check the status of the containers and you should see the following
+### Cloning the Repository
+
+**Main branch:**
 ```bash
-CONTAINER ID   IMAGE                  COMMAND                  CREATED          STATUS                    PORTS                               NAMES
-42a2e9017194   ollama/ollama:latest   "/bin/ollama serve"      17 minutes ago   Up 17 minutes             0.0.0.0:11434->11434/tcp            ollama2
-9c42d7048399   mysql:8.0.44           "docker-entrypoint.s…"   17 minutes ago   Up 17 minutes (healthy)   33060/tcp, 0.0.0.0:3308->3306/tcp   app_database
+git clone https://github.com/COSC-499-W2025/capstone-project-team-2.git
 ```
-Or you can run the following contained line `docker-compose down -v && docker-compose build --no-cache && docker-compose up -d && sleep 5 && docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b && docker exec -it ollama2 ollama list`
 
-
-
-
-**Python setup**:
-
-1. Install dependencies: `pip install -r src/requirements.txt`
-2. Set up Environment Variables in .env file in the project folder: 
-```env
-GOOGLE_API_KEY=your_google_api_key_here
-GITHUB_TOKEN=your_github_token_here
+**Development branch:**
+```bash
+git clone -b development https://github.com/COSC-499-W2025/capstone-project-team-2.git
 ```
-Note: Make sure to replace `your_google_api_key_here` and `your_github_token_here` with your actual API keys.
-because GOOGLE_API_KEY(Required for AI-Powered Resume) and GITHUB_TOKEN(Required for GitHub contributor analysis) are required for the application to work. to get the GOOGLE API_Key please refer to the following PR(#188) and for the GITHUB_API_Key refer to the following PR (#161)
 
-3. To run the program run make sure that your in the project directory(CAPSTONE-PROJECT-TEAM2) and run `python src/main.py` or `python -m src.main`
+**Clone to a specific directory:**
+```bash
+git clone -b development https://github.com/COSC-499-W2025/capstone-project-team-2.git your-folder-name
+```
 
-
-
-
-
+Please look at our [video](https://youtu.be/zAoHiW9vn-U) demo otherwise follow the steps below:
 
 
+### Docker Setup
+
+#### Step-by-Step Instructions
+
+1. **Remove previous containers and volumes:**
+   ```bash
+   docker-compose down -v
+   ```
+
+2. **Build the Docker containers:**
+   ```bash
+   docker-compose build --no-cache
+   ```
+
+3. **Start the Ollama container:**
+   ```bash
+   docker-compose up -d ollama2
+   ```
+
+4. **Pull the LLM model:**
+   ```bash
+   docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b
+   ```
+
+5. **Verify the model is installed:**
+   ```bash
+   docker exec -it ollama2 ollama list
+   ```
+   You should see `qwen2.5-coder:1.5b` in the list:
+   
+   ![alt text](image.png)
+
+6. **Start the database container:**
+   ```bash
+   docker-compose up -d app_database
+   ```
+
+7. **Verify all containers are running:**
+   ```bash
+   docker ps
+   ```
+   Expected output:
+   ```
+   CONTAINER ID   IMAGE                  COMMAND                  CREATED          STATUS                    PORTS                               NAMES
+   42a2e9017194   ollama/ollama:latest   "/bin/ollama serve"      17 minutes ago   Up 17 minutes             0.0.0.0:11434->11434/tcp            ollama2
+   9c42d7048399   mysql:8.0.44           "docker-entrypoint.s…"   17 minutes ago   Up 17 minutes (healthy)   33060/tcp, 0.0.0.0:3308->3306/tcp   app_database
+   ```
+
+---
+
+
+#### Quick Setup (Single Command) Docker Setup
+
+Alternatively, run everything in one command:
+
+**CMD / macOS / Linux:**
+```bash
+docker-compose down -v && docker-compose build --no-cache && docker-compose up -d ollama2 && sleep 5 && docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b && docker-compose up -d app_database
+```
+
+**Windows PowerShell:**
+```powershell
+docker-compose down -v; docker-compose build --no-cache; docker-compose up -d ollama2; Start-Sleep 5; docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b; docker-compose up -d app_database
+```
+
+---
+### Python Setup
+
+1. **Install dependencies:**
+   ```bash
+   pip install -r src/requirements.txt
+   ```
+
+2. **Set up Environment Variables:**
+   
+   Create a `.env` file in the project root folder with the following:
+   
+   ![alt text](image-1.png)
+   
+   ```env
+   GOOGLE_API_KEY=your_google_api_key_here
+   GITHUB_TOKEN=your_github_token_here
+   ```
+
+   > ⚠️ **Important:** Replace the placeholder values with your actual API keys.
+   
+   | Variable | Purpose | Setup Guide |
+   |----------|---------|-------------|
+   | `GOOGLE_API_KEY` | Required for AI-Powered Resume | [PR #188](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/188) |
+   | `GITHUB_TOKEN` | Required for GitHub contributor analysis | [PR #161](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/161) |
+
+
+
+3. **Run the application:**
+   
+   Make sure you're in the project directory, then run:
+```bash
+   cd capstone-project-team-2
+   python src/main.py
+```
+   Or alternatively:
+```bash
+   python -m src.main
+```
+
+   > 📝 **Note:** If you cloned to a custom directory, replace `capstone-project-team-2` with your chosen folder name.
+
+  
 
 **Key Components:**
 
-- **Frontend (Presentation Layer)**: Built using **streamlit** or **FreeSimpleGUI***, offering an intutive menu-driven interface for users to navigate and interact with the application.Key features include:
-  - **Interactive menus**: For project analysis,viewing saved projects, portfolio gneration, and configuration management.
+- **Frontend (Presentation Layer)**: Built using **Streamlit** or **FreeSimpleGUI**, offering an intuitive menu-driven interface for users to navigate and interact with the application. Key features include:
+  - **Interactive menus**: For project analysis, viewing saved projects, portfolio generation, and configuration management.
   - **User consent workflow**: Guides users through the process of providing consent and configuring for external services permissions
   - **Portfolio generation**: Enables users to generate a portfolio-ready resume or portfolio 
 
 
 
 - **Backend (Application Layer)**: The backend powers the core analysis engine, leveraging multiple technologies for comprehensive project insights
-  - **File Processing**: Handles ZIP extraction, directory traversal, and      metadata collection achieved using `os`, `shutil`, `zipfile`, and `pathlib`.
+  - **File Processing**: Handles ZIP extraction, directory traversal, and metadata collection achieved using `os`, `shutil`, `zipfile`, and `pathlib`.
   - **Multi-language OOP Analysis**: Analyzes Python source files via the `ast` module and for Java source files via the `javalang` module. Returning unified metrics on **inheritance**, **encapsulation**, **polymorphism**, and **code complexity**
   - **AI-Powered Analysis**: Integrates with **Ollama**(Via LangChain library) for local LLM-based code review and **Google Gemini** for improved code review and for generating prototype-ready project summaries
-  - **Contributor Detection**: Identifies project collaborators through git history(via **GitPython** and **PyGithub**) or file metadata analysis for non-git project
+  - **Contributor Detection**: Identifies project collaborators through git history (via **GitPython** and **PyGithub**) or file metadata analysis for non-git projects
   - **Stack Detection**: Automatically identifies programming languages, frameworks, and skills through scanning dependency files(`requirements.txt`, `package.json`, `composer.json`) and source file extensions, 
 
 **Database (Storage Layer)**: 
-  - The application uses MySQL as its primary databases for persistent storage and data management.
-  - **Project Data Storage**: stores analyzed project metadata, Json analysis reports, and file blobs for later retrieval.
-  - **Containerized Deployment**: MySQL runs within a Docker container(`app_database`),
- with connection details dynamicly set and found in the `DockerFinder` Utiliy.
+  - The application uses **MySQL** as its primary database for persistent storage and data management.
+  - **Project Data Storage**: Stores analyzed project metadata, JSON analysis reports, and file blobs for later retrieval.
+  - **Containerized Deployment**: MySQL runs within a Docker container (`app_database`), with connection details dynamically set and found in the `DockerFinder` utility.
  
  - **External Services Integration**:
    - **GitHub API**: Enables commit history analysis and contributor statistics for Git-based projects via **PyGithub**
@@ -126,9 +245,9 @@ because GOOGLE_API_KEY(Required for AI-Powered Resume) and GITHUB_TOKEN(Required
   
 **Design Principles**
 
-- Loose coupling – Components interact through well-defined interfaces
-- Scalability through modularity – Each module can be developed and tested independently
-- Reusability and maintainability – Code organization supports easy updates and debugging
+- **Loose coupling** – Components interact through well-defined interfaces
+- **Scalability through modularity** – Each module can be developed and tested independently
+- **Reusability and maintainability** – Code organization supports easy updates and debugging
 
 ---
 
