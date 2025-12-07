@@ -64,13 +64,14 @@ Please look at our video demo otherwise follow the steps below:
 3. `docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b` to pull the LLM model
 4. `docker exec -it ollama2 ollama list` and qwen2.5-coder:1.5b should be in the list
 ![alt text](image.png) 
-5. `docker compose up -d app_database ollama2` to start the containers
-6. `docker ps` to check the status of the containers and you should see the following
+6. `docker compose up -d app_database ollama2` to start the containers
+7. `docker ps` to check the status of the containers and you should see the following
 ```bash
 CONTAINER ID   IMAGE                  COMMAND                  CREATED          STATUS                    PORTS                               NAMES
 42a2e9017194   ollama/ollama:latest   "/bin/ollama serve"      17 minutes ago   Up 17 minutes             0.0.0.0:11434->11434/tcp            ollama2
 9c42d7048399   mysql:8.0.44           "docker-entrypoint.s…"   17 minutes ago   Up 17 minutes (healthy)   33060/tcp, 0.0.0.0:3308->3306/tcp   app_database
 ```
+Or you can run the following contained line `docker-compose down -v && docker-compose build --no-cache && docker-compose up -d && sleep 5 && docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b && docker exec -it ollama2 ollama list`
 
 
 
