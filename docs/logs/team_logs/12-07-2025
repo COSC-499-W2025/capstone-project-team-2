@@ -1,0 +1,97 @@
+# Weekly Team Log  
+---
+## Date Range for this sprint:
+- [12/01/2025] - [12/07/2025]  
+---
+
+## Features in the Project Plan Cycle:
+- PDF creation and integration
+- In depth Java code analysis
+- Updated Readme
+- Gemini ai resume line
+- Ollama scrubbed data integrated into analysis
+- In depth C code analysis
+- dedicated insights menu
+- Option for non-LLM generation of resume items
+
+## Associated Tasks from Kanban Board:
+- [220: Pdf creator + integration](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/220)
+- [224: Java In-depth Code Analysis and Integration into System](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/224)
+- [225: Fix delete menu DB query (issue 221) and preserve zip project names (issue 222)](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/225)
+- [228: test patches to fix test_analysis_service.py and test_AI_generated_resume.py](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/228)
+- [229: Improved readme file](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/229)
+- [230: Added menu item for Gemini ai generated resume line and integrated with backend to produce output](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/230)
+- [231: 204 integrate ollama scrubbed data](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/231)
+- [233: Ai analysis fix] (https://github.com/COSC-499-W2025/capstone-project-team-2/pull/233)
+- [236: C analysis](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/236)
+- [239: Enhance CLI project insights with shared helpers, composite ranking, …](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/239)
+- [242: Ai resume fix to now have local resume generations](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/242)
+
+### Screenshot from Kanban board
+![alt text](screenshots/kanban_board/Dec 07 Kanban.png)
+
+---
+
+## Burn-up Chart (Velocity):
+![alt text](screenshots/Burn_up_charts/Dec 07 burnup.png)
+
+---
+
+## Team Members  
+
+| Name              | Role/Title          | GitHub Username                                          | Responsibilities |
+|-------------------|---------------------|----------------------------------------------------------|------------------|
+| Immanuel Wiessler | Full Stack Developer | [@ThunderIW](https://github.com/ThunderIW)               |ai analysis fix, Improved readme, merge dev to main, demo video, in class presentation|
+| Samantha Maranda  | Full Stack Developer | [@Weebtrian](https://github.com/Weebtrain)               |integrate ollama scrubbed data, in class presentation|
+| Cameron Gillespie | Full Stack Developer | [@Graves067](https://github.com/Graves067)               |PDF creator development and integration, C code analysis, in class presentation|
+| Puneet Maan      | Full Stack Developer | [@Puneet-Maan](https://github.com/Puneet-Maan)           |Enhance CLI project insights, fix menu bugs, in class presentation|
+| Sam Smith         | Full Stack Developer | [@ssmith86](https://github.com/ssmith86)                 |Gemini ai resume line integration, test bug fixes, demo video, in class presentation|
+| Mahi Gangal       | Full Stack Developer | [@mahigangal](https://github.com/mahigangal)             |Java code analysis, team contract writing, in class presentation|
+
+## Completed Tasks:
+
+| Task ID | Description                 | Completed By |
+| ------- | --------------------------- | ------------ |
+| [#220] |(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/220)     | can generate PDF of resume |Cameron Gillespie|
+| [#224](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/2240)    |non LLM OOP analysis for Java|Mahi Gangal|
+| [#225] (https://github.com/COSC-499-W2025/capstone-project-team-2/pull/225)    |Menu DB query bug fixes |Puneet Maan|
+| [#225](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/225)    |Test patches| Sam Smith and Immanuel Wiessler      |
+| [#229](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/229)     |improved Readme|Immanuel Wiessler |
+| [#230](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/230)  |Gemini ai generated resume line|Sam Smith|
+| [#231](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/231) |ollama scrubbed data integration|Samantha Maranda          |    
+| [#233, #242](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/233, https://github.com/COSC-499-W2025/capstone-project-team-2/pull/242) |AI analysis fix| Immanuel Wiessler|
+| [#236](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/236)| C code analysis| Cameron Gillespie|
+|[#239] (https://github.com/COSC-499-W2025/capstone-project-team-2/pull/239) |Enhance CLI project insights| Puneet Maan|
+|[#240, #246, #248] (https://github.com/COSC-499-W2025/capstone-project-team-2/pull/240, https://github.com/COSC-499-W2025/capstone-project-team-2/pull/246, https://github.com/COSC-499-W2025/capstone-project-team-2/pull/248) |move docs from dev branch to main branch| Immanuel Wiessler|
+|[#247](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/247)|update Readme| Immanuel Wiessler|
+
+---
+
+## In Progress Tasks / To Do:
+
+| Task ID | Description        | Assigned To |
+| ------- | ------------------ | ----------- |
+|      |  |   |     
+|      |  |   |
+
+---
+
+## Test Report / Testing Status:
+| Task / PR | Test description / command                                    | Successful |
+| ------- | ------------------ | ----------- |
+| #218   | test_resume_pdf_generator.py |  ✅(100%) |
+| #225    |pytest test/test_saved_projects.py test/test_menus.py test/test_analysis_service.py|✅(100%) |
+| #228     |pytest test test\test_analysis_service.py, pytest test test\test_AI_generated_resume.p
+ |  ✅(100%)              |
+| #231     | pytest test\test_docker_Finder.py, pytest test\test_main.py, | ✅(100%)          |
+| #236|python -m pytest test/test_c_analyzer.py| ✅(100%)          |
+| #239|pytest test/test_menus.py | ✅(100%)          |
+| #242| pytest test/test_local_resume_generator.py| ✅(100%)|
+          
+---
+
+## Overview:
+This week we finalized our submission for Milestone 1, completed an in class presentation on our project, created a Demo video of our project and completed our Team Contract
+
+The **next cycle** will focus on:  
+- Milestone #2
