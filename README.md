@@ -71,7 +71,9 @@ CONTAINER ID   IMAGE                  COMMAND                  CREATED          
 42a2e9017194   ollama/ollama:latest   "/bin/ollama serve"      17 minutes ago   Up 17 minutes             0.0.0.0:11434->11434/tcp            ollama2
 9c42d7048399   mysql:8.0.44           "docker-entrypoint.s…"   17 minutes ago   Up 17 minutes (healthy)   33060/tcp, 0.0.0.0:3308->3306/tcp   app_database
 ```
-Or you can run the following contained line `docker-compose down -v && docker-compose build --no-cache && docker-compose up -d && sleep 5 && docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b && docker exec -it ollama2 ollama list`
+Or you can run the following contained line
+- for cmd run the following comands: `docker-compose down -v && docker-compose build --no-cache && docker-compose up -d ollama2 && sleep 5 && docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b && docker-compose up -d app_database`
+- For Window powershell: `docker-compose down -v; docker-compose build --no-cache; docker-compose up -d ollama2; Start-Sleep 5; docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b; docker-compose up -d app_database`
 
 
 
