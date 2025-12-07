@@ -312,9 +312,11 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
     analysis = convert_datetime_to_string(analysis)
 
     try:
+        storage_path = Path(ctx.legacy_save_dir) / "project_insights.json"
         insight = record_project_insight(
             analysis,
             contributors=contributors_data,
+            storage_path=storage_path,
         )
         print(
             f"[INFO] Insight recorded for project '{insight.project_name}' "
