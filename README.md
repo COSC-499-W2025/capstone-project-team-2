@@ -53,7 +53,13 @@ This system architecture illustrates the structural design of the application, s
 
 
 
+
 ## Project setup
+
+
+### Cloning our repo
+`git https://github.com/COSC-499-W2025/capstone-project-team-2.git `
+or for dev branch `git clone -b development https://github.com/COSC-499-W2025/capstone-project-team-2.git "Project path"`
 
 Please look at our video demo otherwise follow the steps below:
 
