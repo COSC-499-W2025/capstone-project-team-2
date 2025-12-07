@@ -1,3 +1,60 @@
+# Sprint Log: (01/12/2025 – 07/12/2025)
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/07-12-2025_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Goals Recap
+Final M1 polish before break: stabilize delete flows, preserve ZIP names in saved analyses, and surface Project Insights in the CLI with filtering and ranking. Better documentation with clearer module,test docstrings and ensured tests cover new insights behavior.
+
+---
+
+## Key Accomplishments
+**PR #225 – Delete Menu Optimization, ZIP Naming Fixes**
+- Fixed Delete Analysis menu DB query (id,filename,uploaded_at only) to avoid MySQL sort OOM.
+- Passed ZIP stem into analyze_project so saved JSON entries keep original project names instead of temp folders.
+- Updated tests around delete flow, labeling, and menu behavior.
+
+**MPR #239 – Insights Helpers, Dedicated Insights Menu**
+- Added shared insight utilities (insight_helpers.py) for date parsing, filtering, and composite scoring.
+- Introduced a dedicated insights menu (menu_insights.py) exposing chronological projects, skill timelines, rankings, and top summaries.
+- Wired the main menu to the new insights flow and expanded menu tests/docstrings for clarity.
+
+### Code Reviews Completed
+- Reviewed C analysis Coding task (#236 by Graves067).
+- Reviewed Java In-depth Code Analysis and Integration (#224 by mahigangal).
+
+---
+
+## Deliverables Completed
+- Stable Delete Analysis menu and correct ZIP based project naming.
+- CLI Project Insights: chronological views, filters, composite ranking, and top summaries.
+- Shared insight helpers with accompanying tests and documentation updates.
+
+---
+
+## Plan for Next Cycle
+- I will be working on some bonus tasks (not yet decided) but in Milestone 2, the system will run as an API service instead of only a CLI. The goal will be to let users guide the results by making selections, edits, and corrections.
+
+---
+
+## Reflection
+#### What Went Well
+- Significant improvements to stability and correctness through optimized DB queries and cleaned project label handling.
+- The Insights menu elevated the CLI’s usefulness and set a strong base for M2’s analytical API.
+- Strong collaboration and smooth PR review cycles as we closed the semester.
+
+#### What We Can Improve
+- We should avoid letting any one code file become too large. Breaking code into smaller, focused modules will make the system easier to understand, test, and extend.
+- We should try to break large features into smaller PRs to make reviews smoother.
+- Better planning and communication around timing would help the team avoid these bottlenecks in the future.
+
+
+## ====================================================
+
 # Sprint Log: (24/11/2025 – 30/11/2025)
 
 ---
