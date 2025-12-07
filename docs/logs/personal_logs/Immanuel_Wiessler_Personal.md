@@ -858,20 +858,25 @@ The last thing that I focused on was creating the test for these files to make s
 - Integrated with gemini AI to create a formated PDF protfolio and resume
 - Updated the Readme.md to match our current progress
 - Performed a hotfix on the AI Intergation code
+- Pefromed a hotfix so that users can change consent status mid program
 ---
 
 ## 📌 Associated Tasks from Project Board  
 - [PDF- Generator + Integration](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/218)
 - [Improved readme file](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/229)
 - [when program is run AI_anlysis on script is run](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/232)
+- [Consent bug issue](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/245)
+- [Non AI-external resume line generator ](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/241)
 ---
 
-## 📈 Progress Update (since 10/22/2025)  
+## 📈 Progress Update (since 12/6/2025)  
 
 | Task/Issue | Status |
 |------------|--------|
 |**Intergrated with gemini AI to create a formated PDF protfolio and resume** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
-|**Updated the Readme.md to match our current progress**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
+|**Updated the Readme.md to match our current progress**|![Complete](https://img.shields.io/badge/Status-Complete-green)
+|**performed hotfix so that user can change their constent status mid-session** | ![Complete](https://img.shields.io/badge/Status-Complete-green)
+| **Non AI-external resume line generator** |![Complete](https://img.shields.io/badge/Status-Complete-green)
 
 
 ## 🎯 Next Week’s Goals
@@ -880,6 +885,6 @@ The last thing that I focused on was creating the test for these files to make s
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 14)
- **Week 14** was very stressful because it was the final sprint for M1 milestones. I could feel the pressure of the looming deadline, the work that I focused on for this week was added a new feature to create PDF version of the protofilo content and then integrated with the gemini AI to create a formated PDF resume, which was a very fun and exciting experience to work on, to pull this I used a framework called `reportLab` for adding the content to pdf to generate the PDF, Where thanks to me intergrating **dataclass** into the ```ResumeItem``` class this make the process of access the elements of the returned dictonary more convenient to making the PDF easier and fasts. I also worked on the README file to clearly highlight the key parts of our project and added installation instructions. Lastly I ecnocuter a bug with Samantha M. on the AI integration code and perform a hotfix to fix it which was a very simple fix which was to removed some offened lines of code that ran the actually class that was not needed inside of the script that it was created in.
+ **Week 14** was very stressful because it was the final sprint for M1 milestones. I could feel the pressure of the looming deadline, the work that I focused on for this week was added a new feature to create PDF version of the protofilo content and then integrated with the gemini AI to create a formated PDF resume, which was a very fun and exciting experience to work on, to pull this I used a framework called `reportLab` for adding the content to pdf to generate the PDF, Where thanks to me intergrating **dataclass** into the ```ResumeItem``` class this make the process of access the elements of the returned dictonary more convenient to making the PDF easier and fasts. I also worked on the README file to clearly highlight the key parts of our project and added installation instructions. Lastly, I encountered a bug in the AI integration code with Samantha M. I performed a hotfix, which was very simple: I removed some offending lines of code that ran the actual class that wasn't needed inside the script it was created in. One additonal task that I did this week was created our video demo and during our video demo recording I noticed a bug that does not allow user to change their user constent mid-session in other words if they enable external tools and wanted to disabled them they cannot so quickly made a hotfix to solve this issue, additoanlly I also quickly added a non-AI Generated Resume line to our system.
 
- Lastly after taking some advice from the TA I decided to make new coding contributions a bit smaller less than 500 lines of code change
+Lastly, after taking some advice from the TA, I decided to make new coding contributions a bit smaller, less than 500 lines of code change, but for some of the code I was unable to do the complex nature of the system as well, and also the amount of documentation that was needed to explain certian aspects of the code itself.
