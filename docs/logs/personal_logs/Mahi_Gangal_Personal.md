@@ -560,3 +560,69 @@ These changes required updating a some portions of the test suite. I wrote new t
 This sprint I focused on strengthening the analytical depth and reliability of our system. The biggest chunk of work was building the complete Python static-analysis module from scratch, something far beyond basic metrics. The analyzer now interprets classes, inheritance patterns, private attributes, overridden methods, and dunder usage, and pairs this with data-structure patterns and algorithmic/complexity signals. The goal was not just to count things, but to translate them into meaningful insights that reflect a developer’s design decisions and technical ability. I also wrote an extensive set of tests to validate the analyzer’s behavior across edge cases, including syntax errors, empty directories, nested classes, and attribute-detection scenarios. Integrating this module into the main workflow required refactoring parts of the system so results are saved, loaded, and deleted consistently. Alongside this, I completed the PR enabling contribution analysis for non-Git collaborative projects, ensuring consistent behavior across all project types. Overall, this sprint was about raising the intelligence, stability, and polish of the system so it’s ready for the Milestone #1 demo.
     </span>
 </details>
+
+## Dates of Sprint: (12/1/2025 – 12/7/2025) 
+
+### Peer Eval Screenshot: <img width="1098" height="621" alt="week 14" src="https://github.com/user-attachments/assets/edb04fcd-fb36-44d1-9f48-179c84d5ae47" />
+
+---
+
+### Features Worked on this Milestone   
+#### Week 12
+  * Added full Java support for OOP deep-analysis (inheritance, encapsulation, polymorphism, special methods, complexity metrics).
+  * Built the multi-language orchestrator that combines multiple - language static analysis results.
+  * Created the language-agnostic OOP aggregator that computes final scoring and narrative, and enables future language expansion.
+  * Integrated the new multi-language path into the system when external AI is disabled (deep analysis now works without LLMs).
+  * Refactored analysis code (added docstrings, simplified structure).
+  * Wrote and executed Java analysis unit tests.
+  * Integrated the analyzer into the main workflow so insights, metrics, and narratives appear in final reports.
+
+---
+
+## Associated Tasks from Project Board:
+- https://github.com/orgs/COSC-499-W2025/projects/11?pane=issue&itemId=142790394
+
+---
+### Progress Update (since 11/24/2025)
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong></td>
+        <td><strong>STATUS</strong></td>
+    </tr>
+    <tr>
+    <td>Add Java analysis support using javalang</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+    <tr>
+    <td>Create language-agnostic OOP aggregator and scoring system</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+   <tr>
+    <td>Integrate multi-language analysis in workflow when external AI disabled</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+  <tr>
+    <td>Develop & run Java analysis test suite</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+   <tr>
+    <td>Prepare and submit team contract</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+</table>
+
+---
+
+### Next week goals
+
+- Refactor the codebase however required.
+
+---
+
+### Extra Details:
+<details>
+    <summary><span style='font-weight:bold'>Click to expand</span> </summary>
+This sprint I focused on extending our deep-analysis capabilities beyond Python by adding a complete Java static-analysis pathway. Using the javalang parser, I implemented detection for classes, inheritance, polymorphism, encapsulation patterns, overridden methods, and special Java constructs, and paired these with data-structure usage and algorithmic complexity signals. I also built the new multi-language orchestrator and a language-agnostic OOP aggregator, which centralize scoring logic and make it easy to plug in additional languages in the future. This required substantial refactoring to ensure results are integrated across all user flows when external AI is disabled. Alongside this development work, I fixed a narrative calculation bug, added docstrings, and wrote comprehensive tests. Finally, I organized and submitted the team contract after getting all team members to review and sign it.
+    </span>
+</details>
+
