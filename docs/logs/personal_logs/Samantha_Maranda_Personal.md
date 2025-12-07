@@ -376,3 +376,50 @@
 ### Extra Details:
 * Next sprint I'll integrate the scrubbed AI data and save it alongside our other data
 
+---------------------------
+
+## Sunday (30/11 - 07/12)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/07-12-2025_PeerEval_SamM.jpg)
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: AI project analysis: AI analsysis data scrubbing integration
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description        | Feature   | Assigned To | Status   |
+| ------- | ------------------ | --------- | ----------- | -------- |
+| #204   | Integrate AI scrubbed data | AI project analysis | Samantha Maranda  | Completed |
+
+### Progress Update (since 30/11/2025) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Integrate AI scrubbed data
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+     <tr>
+        <!-- Task/Issue # -->
+        <td>Save AI analysis
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+* Did a lot of work attempting to fix repository issues, in the end I ruled out complex but straightforward solutions and a more simple but tedious solution was used.
+* Next sprint and likely from now on I will be building API and refactoring data flow in the backend
+
