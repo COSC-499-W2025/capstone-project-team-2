@@ -6,17 +6,20 @@
 
 ## 📚 Table of Contents
 
-1. [Project Overview](#project-overview)
-2. [Features](#features)
-3. [Video Demo](#video-demo)
-4. [System Architecture](#system-architecture)
+1. [Project Overview](#-project-overview)
+2. [Features](#-features)
+3. [Video Demo](#-video-demo)
+4. [System Architecture](#-system-architecture)
 5. [Project Setup](#project-setup)
    - [Cloning the Repository](#cloning-the-repository)
    - [Docker Setup](#docker-setup)
    - [Python Setup](#python-setup)
-6. [DFD Level 1](#dfd-level-1)
-7. [Work Breakdown Structure](#work-breakdown-structure)
-8. [Team Contract](#team-contract)
+6. [Environment Setup](#set-up-environment-variables)
+   - [Google Gemini API Key Setup](#-google-gemini-api-key-setup)
+   - [GitHub Token Setup](#-github-token-setup)
+7. [DFD Level 1](#dfd-level-1)
+8. [Work Breakdown Structure](#-work-breakdown-structure)
+9. [Team Contract](#team-contract)
 
 
 
@@ -75,7 +78,7 @@ The platforms target users are **graduating students** and **early career profes
 
 
 
-## 🏗️ System Architecture
+## 🔧 System Architecture
 
 This system architecture illustrates the structural design of the application, showing how the frontend, backend, database, and external services interact. It emphasizes modularity, scalability, and maintainability through a three-layered design.
 
@@ -172,15 +175,12 @@ docker-compose down -v && docker-compose build --no-cache && docker-compose up -
 docker-compose down -v; docker-compose build --no-cache; docker-compose up -d ollama2; Start-Sleep 5; docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b; docker-compose up -d app_database
 ```
 
+
+
+
 ---
-### Python Setup
 
-1. **Install dependencies:**
-   ```bash
-   pip install -r src/requirements.txt
-   ```
-
-2. **Set up Environment Variables:**
+### Set up Environment Variables
    
    Create a `.env` file in the project root folder with the following:
    
@@ -198,9 +198,53 @@ docker-compose down -v; docker-compose build --no-cache; docker-compose up -d ol
    | `GOOGLE_API_KEY` | Required for AI-Powered Resume | [PR #188](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/188) |
    | `GITHUB_TOKEN` | Required for GitHub contributor analysis | [PR #161](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/161) |
 
+   
+#### 🔑 Google Gemini API Key Setup
+ <video src="https://github.com/user-attachments/assets/656b3a90-1439-4965-b62a-c0abe32bbd29" controls width="100%"></video>
 
 
-3. **Run the application:**
+   1. Go to [Google AI Studio](https://aistudio.google.com/apikey)
+   2. Sign in with your Google account
+   3. Click **"Create API Key"**
+   4. Select an existing Google Cloud project or create a new one
+   5. Copy the generated API key
+   6. Paste it into your `.env` file as `GOOGLE_API_KEY=your_key_here`
+
+   > 💡 **Tip:** The free tier includes generous usage limits for development and testing.
+
+---
+
+
+#### 🐙 GitHub Token Setup
+  
+https://github.com/user-attachments/assets/d529d9b5-9867-4dee-961d-02bfbdd1f371
+
+   1. Go to [GitHub Settings → Developer Settings → Personal Access Tokens → Fine-grained tokens](https://github.com/settings/tokens?type=beta)
+   2. Click **"Generate new token"**, making sure that you are on a fine-grained token tab
+   3. Give your token a descriptive name (e.g., `capstone-project-analysis`)
+   4. Set an expiration date
+   5. Under **Repository access**, select the repositories you want to analyze (or "All repositories")
+   <img width="1798" height="1209" alt="image" src="https://github.com/user-attachments/assets/87e19535-bd64-4fc2-8428-b7f432943053" />
+
+   6. Under **Permissions**, expand **"Repository permissions"** and set:
+      - `Contents` → **Read and Write**
+      - `Metadata` → **Read-only** (usually enabled by default)
+      - `Administration` → **Read and Write**
+   7. Click **"Generate token"**
+   8. Copy the token immediately (you won't be able to see it again!)
+   9. Paste it into your `.env` file as `GITHUB_TOKEN=your_token_here`
+
+   > ⚠️ **Security Note:** Never commit your `.env` file to version control. Make sure `.env` is listed in your `.gitignore`.
+
+
+### Python Setup
+
+1. **Install dependencies:**
+```bash
+   pip install -r src/requirements.txt
+```
+
+ 2. **Run the application:**
    
    Make sure you're in the project directory, then run:
 ```bash
