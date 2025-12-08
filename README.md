@@ -242,24 +242,24 @@ https://github.com/user-attachments/assets/d529d9b5-9867-4dee-961d-02bfbdd1f371
 
 1. **Navigate to the project folder:**
 ```bash
-   cd capstone-project-team-2
+cd capstone-project-team-2
 ```
    > 📝 **Note:** If you cloned to a custom directory, replace `capstone-project-team-2` with your chosen folder name.
 
 
 2. **Install dependencies:**
 ```bash
-   pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
 3. **Run the application:**
 ```bash
-   python src/main.py
+python src/main.py
 ```
    
    Or alternatively:
 ```bash
-   python -m src.main
+python -m src.main
 ```
   ---
 
