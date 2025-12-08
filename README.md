@@ -220,7 +220,7 @@ docker-compose down -v; docker-compose build --no-cache; docker-compose up -d ol
 
 - **Frontend (Presentation Layer)**: Built using **Streamlit** or **FreeSimpleGUI**, offering an intuitive menu-driven interface for users to navigate and interact with the application. Key features include:
   - **Interactive menus**: For project analysis, viewing saved projects, portfolio generation, and configuration management.
-  - **User consent workflow**: Guides users through the process of providing consent and configuring for external services permissions
+  - **User consent workflow**: Guides users through the process of providing consent and configuring permissions for external services permissions
   - **Portfolio generation**: Enables users to generate a portfolio-ready resume or portfolio 
 
 
@@ -253,7 +253,7 @@ docker-compose down -v; docker-compose build --no-cache; docker-compose up -d ol
 
 ## DFD Level 1
 
-The Level 1 **Data Flow Diagram (DFD)** represents the main system components and how data flows between **external entities**, **core processes**, and **internal data stores**.
+The Level 1 **Data Flow Diagram (DFD)** depicts the main system components and the flow of data between **external entities**, **core processes**, and **internal data stores**.
 
 ![DFD Level 1](<docs/design/level1 dfd updated.png>)
 
@@ -263,8 +263,8 @@ The Level 1 **Data Flow Diagram (DFD)** represents the main system components an
 |---------------------|-------------|
 | **Project Owner**   | Grants consent, uploads zipped folders, provides filters, and retrieves résumé or portfolio-ready outputs. *(Milestone 1–3)* |
 | **Maintainer/Admin**| Performs administrative actions like backups and deletions. *(Milestone 2–3)* |
-| **Local File System** | Supplies input folders/files and stores output artifacts like reports, dashboards, backups. *(Milestone 1–3)* |
-| **External Service** | (Optional) Services like LLMs, used to enhance insights if user consent is given. *(Milestone 2)* |
+| **Local File System** | Supplies input folders/files and stores output artifacts like reports, dashboards, and backups. *(Milestone 1–3)* |
+| **External Service** | Services such as LLMs used to enhance insights, with user consent. *(Milestone 1)* |
 
 ### Core Processes
 
@@ -274,7 +274,7 @@ The Level 1 **Data Flow Diagram (DFD)** represents the main system components an
 | **2.0** | Ingest & Validate        | Validates, scans, and indexes artifacts from zipped folders. Handles file errors, duplicates, and metadata. | 1 |
 | **3.0** | Analyze Projects         | Computes project metrics, contribution roles, timelines, languages, and skills from indexed data. Can interact with external services if consented. | 1–2 |
 | **4.0** | Rank & Summarize         | Ranks projects based on user contributions, skill relevance, and recency. Generates summaries, timelines, and portfolio highlights. | 2 |
-| **5.0** | Customize & Retrieve     | Lets users retrieve, edit, export, or delete items. Supports portfolio customization and resume ready output generation. | 2–3 |
+| **5.0** | Customize & Retrieve     | Lets users retrieve, edit, export, or delete items. Supports portfolio customization and the generation of resume-ready output. | 2–3 |
 
 ### Internal Data Stores
 
@@ -290,8 +290,8 @@ The Level 1 **Data Flow Diagram (DFD)** represents the main system components an
 
 | Milestone | Focus | Key Additions |
 |-----------|-------|----------------|
-| **Milestone 1** | Core ingestion & analysis | Processes 1–3, Data Stores D1–D2 |
-| **Milestone 2** | Personalization & logic | Processes 4–5, Data Stores D3–D5, External Services |
+| **Milestone 1** | Core ingestion,analysis, and External Services  | Processes 1–3, Data Stores D1–D2 |
+| **Milestone 2** | Personalization & logic | Processes 4–5, Data Stores D3–D5, |
 | **Milestone 3** | Frontend & outputs | UX/UI for portfolio and resume customization, deeper use of P5 and D4 |
 
 ---
