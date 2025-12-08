@@ -293,15 +293,6 @@ python -m src.main
 
 ---
 
-  
-**Design Principles**
-
-- **Loose coupling** – Components interact through well-defined interfaces
-- **Scalability through modularity** – Each module can be developed and tested independently
-- **Reusability and maintainability** – Code organization supports easy updates and debugging
-
----
-
 ## DFD Level 1
 
 The Level 1 **Data Flow Diagram (DFD)** depicts the main system components and the flow of data between **external entities**, **core processes**, and **internal data stores**.
