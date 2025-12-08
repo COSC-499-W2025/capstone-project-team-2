@@ -246,10 +246,9 @@ cd capstone-project-team-2
 ```
    > 📝 **Note:** If you cloned to a custom directory, replace `capstone-project-team-2` with your chosen folder name.
 
-
 2. **Install dependencies:**
 ```bash
-pip install -r requirements.txt
+pip install -r src/requirements.txt
 ```
 
 3. **Run the application:**
@@ -261,7 +260,6 @@ python src/main.py
 ```bash
 python -m src.main
 ```
-  ---
 
 ## Key Components
 
