@@ -270,24 +270,28 @@ python -m src.main
   - **User consent workflow**: Guides users through the process of providing consent and configuring permissions for external services permissions
   - **Portfolio generation**: Enables users to generate a portfolio-ready resume or portfolio 
 
-
-
 - **Backend (Application Layer)**: The backend powers the core analysis engine, leveraging multiple technologies for comprehensive project insights
   - **File Processing**: Handles ZIP extraction, directory traversal, and metadata collection achieved using `os`, `shutil`, `zipfile`, and `pathlib`.
   - **Multi-language OOP Analysis**: Analyzes Python source files via the `ast` module and for Java source files via the `javalang` module. Returning unified metrics on **inheritance**, **encapsulation**, **polymorphism**, and **code complexity**
-  - **AI-Powered Analysis**: Integrates with **Ollama**(Via LangChain library) for local LLM-based code review and **Google Gemini** for improved code review and for generating prototype-ready project summaries
+  - **AI-Powered Analysis**: Integrates with **Ollama** (via LangChain library) for local LLM-based code review and **Google Gemini** for improved code review and for generating prototype-ready project summaries
   - **Contributor Detection**: Identifies project collaborators through git history (via **GitPython** and **PyGithub**) or file metadata analysis for non-git projects
-  - **Stack Detection**: Automatically identifies programming languages, frameworks, and skills through scanning dependency files(`requirements.txt`, `package.json`, `composer.json`) and source file extensions, 
+  - **Stack Detection**: Automatically identifies programming languages, frameworks, and skills through scanning dependency files (`requirements.txt`, `package.json`, `composer.json`) and source file extensions
 
-**Database (Storage Layer)**: 
+- **Database (Storage Layer)**: 
   - The application uses **MySQL** as its primary database for persistent storage and data management.
   - **Project Data Storage**: Stores analyzed project metadata, JSON analysis reports, and file blobs for later retrieval.
   - **Containerized Deployment**: MySQL runs within a Docker container (`app_database`), with connection details dynamically set and found in the `DockerFinder` utility.
- 
- - **External Services Integration**:
-   - **GitHub API**: Enables commit history analysis and contributor statistics for Git-based projects via **PyGithub**
 
-   - **Google Gemini API**: Powers AI-generated resume summaries and project descriptions (requires `GOOGLE_API_KEY`)
+- **External Services Integration**:
+  - **Google Gemini API**: Powers AI-generated resume summaries and project descriptions (requires `GOOGLE_API_KEY`)
+
+**Design Principles**
+
+- **Loose coupling** – Components interact through well-defined interfaces
+- **Scalability through modularity** – Each module can be developed and tested independently
+- **Reusability and maintainability** – Code organization supports easy updates and debugging
+
+---
 
   
 **Design Principles**
