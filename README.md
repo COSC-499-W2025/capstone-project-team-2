@@ -17,9 +17,10 @@
      - [Google Gemini API Key Setup](#-google-gemini-api-key-setup)
      - [GitHub Token Setup](#-github-token-setup)
    - [Python Setup](#python-setup)
-6. [DFD Level 1](#dfd-level-1)
-7. [Work Breakdown Structure](#-work-breakdown-structure)
-8. [Team Contract](#team-contract)
+6. [Key Components](#key-components)
+7. [DFD Level 1](#dfd-level-1)
+8. [Work Breakdown Structure](#-work-breakdown-structure)
+9. [Team Contract](#team-contract)
 
 
 
@@ -260,9 +261,9 @@ https://github.com/user-attachments/assets/d529d9b5-9867-4dee-961d-02bfbdd1f371
 ```bash
    python -m src.main
 ```
-  
+  ---
 
-**Key Components:**
+## Key Components
 
 - **Frontend (Presentation Layer)**: Built using **Streamlit** or **FreeSimpleGUI**, offering an intuitive menu-driven interface for users to navigate and interact with the application. Key features include:
   - **Interactive menus**: For project analysis, viewing saved projects, portfolio generation, and configuration management.
