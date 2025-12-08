@@ -13,13 +13,13 @@
 5. [Project Setup](#project-setup)
    - [Cloning the Repository](#cloning-the-repository)
    - [Docker Setup](#docker-setup)
+   - [Environment Setup](#set-up-environment-variables)
+     - [Google Gemini API Key Setup](#-google-gemini-api-key-setup)
+     - [GitHub Token Setup](#-github-token-setup)
    - [Python Setup](#python-setup)
-6. [Environment Setup](#set-up-environment-variables)
-   - [Google Gemini API Key Setup](#-google-gemini-api-key-setup)
-   - [GitHub Token Setup](#-github-token-setup)
-7. [DFD Level 1](#dfd-level-1)
-8. [Work Breakdown Structure](#-work-breakdown-structure)
-9. [Team Contract](#team-contract)
+6. [DFD Level 1](#dfd-level-1)
+7. [Work Breakdown Structure](#-work-breakdown-structure)
+8. [Team Contract](#team-contract)
 
 
 
