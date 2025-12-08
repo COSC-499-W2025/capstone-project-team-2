@@ -237,27 +237,26 @@ https://github.com/user-attachments/assets/d529d9b5-9867-4dee-961d-02bfbdd1f371
    > ⚠️ **Security Note:** Never commit your `.env` file to version control. Make sure `.env` is listed in your `.gitignore`.
 
 
-### Python Setup
-
-1. **Install dependencies:**
-```bash
-   pip install -r src/requirements.txt
-```
-
- 2. **Run the application:**
-   
-   Make sure you're in the project directory, then run:
+1. **Navigate to the project folder:**
 ```bash
    cd capstone-project-team-2
+```
+   > 📝 **Note:** If you cloned to a custom directory, replace `capstone-project-team-2` with your chosen folder name.
+
+2. **Install dependencies:**
+```bash
+   pip install -r requirements.txt
+```
+
+3. **Run the application:**
+```bash
    python src/main.py
 ```
+   
    Or alternatively:
 ```bash
    python -m src.main
 ```
-
-   > 📝 **Note:** If you cloned to a custom directory, replace `capstone-project-team-2` with your chosen folder name.
-
   
 
 **Key Components:**
