@@ -7,7 +7,7 @@ import tempfile
 import shutil
 
 # Add src directory to path
-from src.reporting.Generate_Render_CV_Portfolio import (
+from src.reporting.Generate_RenderCV_Resume import (
     Education,
     Connections,
     Project,
