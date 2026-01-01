@@ -61,6 +61,7 @@ def test_app_context_close_swallows_errors(monkeypatch):
         store=types.SimpleNamespace(),
         legacy_save_dir=Path("/tmp/legacy"),
         default_save_dir=Path("/tmp/default"),
+        external_consent=False
     )
     ctx.close()
     assert conn.closed is True

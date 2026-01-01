@@ -43,8 +43,8 @@ services:
     depends_on:
       app_database:
         condition: service_healthy # health check before app starts
-      #test:
-          #condition: service_completed_successfully
+      test:
+          condition: service_completed_successfully
     environment:
       - DISPLAY=${DISPLAY}
       - DATABASE_URL=mysql+mysqlconnector://appuser:apppassword@app_database:3306/appdb

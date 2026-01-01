@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List, Dict
 from dataclasses import dataclass
 
+import orjson
 from dotenv import load_dotenv
 from docx import Document
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -129,6 +130,8 @@ class GenerateProjectResume:
         load_dotenv()
         self.google_model="gemini-2.5-flash" #Define what Gemini model we are going to be using
         self.folder=folder
+        self.saveToJson=False
+        self.returnResume=None
         self.max_chars: int = 20_000
         self.project_root=Path(self.folder) #Getting the root folder path
         if not self.project_root.exists():
@@ -381,8 +384,19 @@ class GenerateProjectResume:
 
         return "".join(pieces)
 
+    def save_json_orjson(self, save_loc):
+        if self.saveToJson:
+            filePath = Path(save_loc)
+            filePath.parent.mkdir(parents=True, exist_ok=True)
+            json_bytes = orjson.dumps(self.returnResume,
+                                      option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS
 
-    def generate(self)->ResumeItem:
+                                      )
+            filePath.write_bytes(json_bytes)
+
+
+
+    def generate(self,saveToJson=False)->ResumeItem:
         """
         Generates a resume item for the given project root.
 
@@ -395,6 +409,7 @@ class GenerateProjectResume:
         :return: The generated resume item
         :rtype: ResumeItem
         """
+        self.saveToJson=saveToJson
         print(f"running analysis on {self.project_root.name}")
         context=self._build_context()
         result=self.chain.invoke({"project_context":context}) #Here we are invoke the llm to start the analysis process
@@ -411,7 +426,7 @@ class GenerateProjectResume:
             )
 
         # Create ResumeItem from the LLM's JSON response with safe dictionary access
-        resume_item = ResumeItem(
+        self.returnResume = ResumeItem(
             # Project title from the analysis
             project_title=result.get("project_title", ""),
             # Brief project summary in one sentence
@@ -430,25 +445,257 @@ class GenerateProjectResume:
             oop_principles_detected=oop_principles,
 
         )
-        return resume_item
+        if saveToJson:
+            save_path = f"output/{self.project_root.name}_resume.json"
+            self.save_json_orjson(save_path)
+
+        return self.returnResume
 
 
 
-"""
-docker = GenerateProjectResume(r"").generate()
-print(docker.project_title)
-print(docker.one_sentence_summary)
-print(docker.key_skills_used)
-print(docker.tech_stack)
-print(docker.oop_principles_detected.keys())
+class GenerateLocalResume:
+    """
+    Generate a ResumeItem from local OOP analysis data without external AI.
 
-for name, principle in docker.oop_principles_detected.items():
-    print(f"=== {name.upper()} ===")
-    print("present:", principle.present)
-    print("description:", principle.description)
-    for snippet in principle.code_snippets:
-        print("file:", snippet.get("file"))
-        print("code:", snippet.get("code")[:200], "...")
+    This class creates resume content using the metrics from the local analysis
+    system 
+    """
+
+    def __init__(self, analysis_data: dict, project_name: str = "Project"):
+        """
+        Initialize with analysis data from the local OOP analyzer.
+
+        Args:
+            analysis_data: Dict containing resume_item, oop_analysis, etc.
+            project_name: Name of the project.
+        """
+        self.analysis = analysis_data
+        self.project_name = project_name
+
+    def _build_resume_line(self, langs: List[str], frameworks: List[str],
+                           skills: List[str], oop_analysis: dict, duration: str) -> str:
+        """
+        Build a comprehensive one-line resume sentence including all key factors.
+
+        Args:
+            langs: List of programming languages
+            frameworks: List of frameworks used
+            skills: List of skills demonstrated
+            oop_analysis: OOP analysis metrics dict
+            duration: Project duration estimate
+
+        Returns:
+            A single sentence summarizing the project for a resume.
+        """
+        parts = []
+
+        # Start with project name and action verb
+        parts.append(f"Developed {self.project_name}")
+
+        # Add languages
+        if langs:
+            if len(langs) == 1:
+                parts.append(f"using {langs[0]}")
+            else:
+                parts.append(f"using {', '.join(langs[:-1])} and {langs[-1]}")
+
+        # Add frameworks
+        if frameworks:
+            if len(frameworks) == 1:
+                parts.append(f"with {frameworks[0]} framework")
+            else:
+                parts.append(f"with {', '.join(frameworks)} frameworks")
+
+        # Add OOP metrics if available
+        classes_data = oop_analysis.get("classes", {})
+        class_count = classes_data.get("count", 0)
+        complexity = oop_analysis.get("complexity", {})
+        func_count = complexity.get("total_functions", 0)
+
+        if class_count > 0 and func_count > 0:
+            parts.append(f"featuring {class_count} classes and {func_count} functions")
+        elif class_count > 0:
+            parts.append(f"featuring {class_count} classes")
+        elif func_count > 0:
+            parts.append(f"featuring {func_count} functions")
+
+        # Add OOP principles if detected
+        oop_features = []
+        if classes_data.get("with_inheritance", 0) > 0:
+            oop_features.append("inheritance")
+        if oop_analysis.get("encapsulation", {}).get("classes_with_private_attrs", 0) > 0:
+            oop_features.append("encapsulation")
+        if oop_analysis.get("polymorphism", {}).get("classes_overriding_base_methods", 0) > 0:
+            oop_features.append("polymorphism")
+
+        if oop_features:
+            parts.append(f"demonstrating {', '.join(oop_features)}")
+
+        # Add key skills (limit to top 3)
+        if skills:
+            top_skills = skills[:3]
+            if len(top_skills) == 1:
+                parts.append(f"showcasing {top_skills[0]}")
+            else:
+                parts.append(f"showcasing {', '.join(top_skills[:-1])} and {top_skills[-1]}")
+
+        # Add duration if available
+        if duration and duration != "—":
+            parts.append(f"over {duration}")
+
+        # Join parts into a sentence
+        sentence = " ".join(parts) + "."
+        return sentence
+
+    def generate(self, saveToJson: bool = False) -> ResumeItem:
+        """
+        Generate a ResumeItem from local analysis data.
+
+        Args:
+            saveToJson: Whether to save output to JSON (not implemented for local).
+
+        Returns:
+            ResumeItem populated with local analysis data.
+        """
+        resume_data = self.analysis.get("resume_item", {})
+        oop_analysis = self.analysis.get("oop_analysis", {})
+
+        # Extract basic info
+        langs = resume_data.get("languages", [])
+        frameworks = resume_data.get("frameworks", [])
+        skills = resume_data.get("skills", [])
+        summary = resume_data.get("summary", "")
+        duration = self.analysis.get("duration_estimate", "")
+
+        # Build tech stack string
+        tech_parts = []
+        if langs:
+            tech_parts.append(", ".join(langs))
+        if frameworks:
+            tech_parts.append(", ".join(frameworks))
+        tech_stack = "; ".join(tech_parts) if tech_parts else "Not detected"
+
+        # Build comprehensive one-line resume sentence
+        one_sentence = self._build_resume_line(
+            langs, frameworks, skills, oop_analysis, duration
+        )
+
+        # Build detailed summary from OOP narrative
+        narrative = oop_analysis.get("narrative", {})
+        detailed_parts = []
+        if summary:
+            detailed_parts.append(summary)
+        if narrative.get("oop"):
+            detailed_parts.append(narrative["oop"])
+        if narrative.get("data_structures"):
+            detailed_parts.append(narrative["data_structures"])
+        detailed_summary = " ".join(detailed_parts) if detailed_parts else "No detailed analysis available."
+
+        # Build key responsibilities from analysis metrics
+        responsibilities = []
+        score_data = oop_analysis.get("score", {})
+        classes_data = oop_analysis.get("classes", {})
+        complexity = oop_analysis.get("complexity", {})
+
+        if classes_data.get("count", 0) > 0:
+            responsibilities.append(
+                f"Designed and implemented {classes_data['count']} class(es) "
+                f"with an average of {classes_data.get('avg_methods_per_class', 0)} methods per class"
+            )
+        if classes_data.get("with_inheritance", 0) > 0:
+            responsibilities.append(
+                f"Applied inheritance patterns in {classes_data['with_inheritance']} class(es) "
+                "for code reuse and extensibility"
+            )
+        if complexity.get("total_functions", 0) > 0:
+            responsibilities.append(
+                f"Developed {complexity['total_functions']} functions with "
+                f"max loop depth of {complexity.get('max_loop_depth', 0)}"
+            )
+        if oop_analysis.get("encapsulation", {}).get("classes_with_private_attrs", 0) > 0:
+            responsibilities.append("Implemented encapsulation using private attributes for data protection")
+        if oop_analysis.get("polymorphism", {}).get("classes_overriding_base_methods", 0) > 0:
+            responsibilities.append("Utilized polymorphism through method overriding")
+
+        if not responsibilities:
+            responsibilities.append("Developed functional software solution")
+
+        # Build OOP principles detected
+        oop_principles: Dict[str, OOPPrinciple] = {}
+
+        # Abstraction (based on class count and methods)
+        class_count = classes_data.get("count", 0)
+        oop_principles["abstraction"] = OOPPrinciple(
+            present=class_count > 0,
+            description=f"Project uses {class_count} class(es) to abstract functionality" if class_count > 0 else "",
+            code_snippets=[]
+        )
+
+        # Encapsulation
+        encap = oop_analysis.get("encapsulation", {})
+        private_count = encap.get("classes_with_private_attrs", 0)
+        oop_principles["encapsulation"] = OOPPrinciple(
+            present=private_count > 0,
+            description=f"{private_count} class(es) use private attributes for data hiding" if private_count > 0 else "",
+            code_snippets=[]
+        )
+
+        # Inheritance
+        inheritance_count = classes_data.get("with_inheritance", 0)
+        oop_principles["inheritance"] = OOPPrinciple(
+            present=inheritance_count > 0,
+            description=f"{inheritance_count} class(es) extend base classes" if inheritance_count > 0 else "",
+            code_snippets=[]
+        )
+
+        # Polymorphism
+        poly = oop_analysis.get("polymorphism", {})
+        override_count = poly.get("classes_overriding_base_methods", 0)
+        override_methods = poly.get("override_method_count", 0)
+        oop_principles["polymorphism"] = OOPPrinciple(
+            present=override_count > 0,
+            description=f"{override_count} class(es) override {override_methods} method(s) from base classes" if override_count > 0 else "",
+            code_snippets=[]
+        )
+
+        # Build impact statement based on OOP score
+        oop_score = score_data.get("oop_score", 0)
+        rating = score_data.get("rating", "low")
+        if oop_score >= 0.6:
+            impact = (
+                "Demonstrates strong object-oriented design with effective use of "
+                "inheritance, encapsulation, and polymorphism for maintainable code."
+            )
+        elif oop_score >= 0.3:
+            impact = (
+                "Shows moderate application of OOP principles with room for "
+                "deeper abstraction and design pattern usage."
+            )
+        else:
+            impact = (
+                "Functional implementation that achieves project goals with "
+                "opportunities to enhance object-oriented structure."
+            )
+
+        # Combine skills
+        all_skills = list(skills) if skills else list(langs)
+        if rating == "high":
+            all_skills.extend(["Object-Oriented Design", "Software Architecture"])
+        elif rating == "medium":
+            all_skills.append("Object-Oriented Programming")
+
+        return ResumeItem(
+            project_title=self.project_name,
+            one_sentence_summary=one_sentence,
+            detailed_summary=detailed_summary,
+            key_responsibilities=responsibilities,
+            key_skills_used=all_skills,
+            tech_stack=tech_stack,
+            impact=impact,
+            oop_principles_detected=oop_principles
+        )
 
 
-"""
+
+
+

@@ -3,11 +3,15 @@ from pathlib import Path
 
 # Render saved analyses as portfolio-style output, honoring consent settings.
 from src.core.app_context import AppContext
-from src.reporting.Generate_AI_Resume import GenerateProjectResume
+from src.reporting.Generate_AI_Resume import GenerateProjectResume, GenerateLocalResume
 from src.aggregation.oop_aggregator import pretty_print_oop_report
+from src.core import app_context
+from src.reporting.resume_pdf_generator import SimpleResumeGenerator
+import os
 
 
-def display_portfolio(path: Path, ctx: AppContext) -> None:
+
+def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
     """
     Read a saved project JSON file and print a formatted portfolio summary.
 
@@ -24,13 +28,7 @@ def display_portfolio(path: Path, ctx: AppContext) -> None:
         print(f"[ERROR] Could not read {path.name}: {e}")
         return
 
-    config_path = ctx.legacy_save_dir / "UserConfigs.json"
-    try:
-        config_data = json.loads(config_path.read_text(encoding="utf-8"))
-        has_external = config_data.get("consented", {}).get("external", False)
-    except Exception as e:
-        print(f"[WARN] Could not read user config, assuming no external consent: {e}")
-        has_external = False
+    has_external = ctx.external_consent
 
     if not has_external:
         print("\n=== PROJECT SUMMARY (External tools disabled) ===")
@@ -73,7 +71,7 @@ def display_portfolio(path: Path, ctx: AppContext) -> None:
 
     try:
         directory_file_path = data.get("project_root")
-        docker = GenerateProjectResume(directory_file_path).generate()
+        docker = GenerateProjectResume(directory_file_path).generate(saveToJson=False)
     except Exception as e:
         print(f"[ERROR] Could not generate portfolio: {e}")
         return
@@ -123,3 +121,28 @@ def display_portfolio(path: Path, ctx: AppContext) -> None:
                 print(f"Code:\n{code[:200]}...\n")
 
     print("============================================\n")
+    generate_pdf_input=input("Would you like to generate a PDF? (y/n): ")
+    if generate_pdf_input.upper()=="Y":
+        attempts = 0
+        max_attempts = 3
+        while attempts < max_attempts:
+            folder_path=str(input("Enter the folder path where you want to save the PDF: "))
+            if os.path.exists(folder_path):
+                break
+            else:
+                attempts += 1
+                if attempts < max_attempts:
+                    print(f"Folder does not exist. Please enter a valid folder path. ({attempts}/{max_attempts} attempts)")
+                else:
+                    print("Maximum attempts reached. Returning to menu.")
+                    return
+        name_of_file=str(input("Enter the name of the PDF file or press enter to use default name (Portfolio): ")) or "Portfolio"
+        SimpleResumeGenerator(folder_path,data=docker,fileName=name_of_file).display_and_run()
+
+
+
+
+
+
+
+

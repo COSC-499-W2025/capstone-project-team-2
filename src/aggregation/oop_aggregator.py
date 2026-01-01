@@ -455,7 +455,7 @@ def pretty_print_oop_report(metrics: dict):
     print(f"• Total classes             : {metrics['classes']['count']}")
     print(f"• Avg methods per class     : {metrics['classes']['avg_methods_per_class']}")
     print(f"• Classes using inheritance : {metrics['classes']['with_inheritance']}")
-    print(f"• Classes with __init__     : {metrics['classes']['with_init']}")
+    print(f"• Classes with constructor  : {metrics['classes']['with_init']}")
 
     print("\n Encapsulation")
     print("-"*60)

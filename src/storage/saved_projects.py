@@ -119,6 +119,15 @@ def show_saved_summary(path: Path) -> None:
     print(f"Languages    : {', '.join(langs) or '—'}")
     print(f"Frameworks   : {', '.join(frws) or '—'}")
     print(f"Skills       : {', '.join(skills) or '—'}")
+    if "ai_analysis" in analysis.keys():
+        print( "  AI Data:")
+        print(f"   Structures        : {', '.join(analysis['ai_analysis']['structures_used'])}")
+        print(f"   Skills            : {', '.join(analysis['ai_analysis']['design_concepts'])}")
+        print(f"   Time Complexities : {', '.join(analysis['ai_analysis']['time_complexities_recorded'])}")
+        print(f"   Space Complexities: {', '.join(analysis['ai_analysis']['space_complexities_recorded'])}")
+        print(f"   Control Flows     : {', '.join(analysis['ai_analysis']['control_flow_and_error_handling_patterns'])}")
+        print(f"   Libraries         : {', '.join(analysis['ai_analysis']['libraries_detected'])}")
+        print(f"   Strengths         : {', '.join(analysis['ai_analysis']['inferred_strengths'])}")
     print(f"Duration     : {duration}")
     print()
 

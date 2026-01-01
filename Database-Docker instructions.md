@@ -2,6 +2,7 @@ Database/docker instructions
 
  for docker set up run:
 
+docker-compsoe build --no-cache
 docker-compose up
 docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b
 docker-compose up
