@@ -7,8 +7,8 @@ import zipfile
 import unittest
 from pathlib import Path
 
-from src.extraction import extractInfo
-from src.CLI_interface_for_file_extraction import zipExtractionCLI
+from src.core.extraction import extractInfo
+from src.cli.CLI_interface_for_file_extraction import zipExtractionCLI
 from unittest.mock import patch, MagicMock, call
 
 

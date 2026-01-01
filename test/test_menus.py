@@ -10,7 +10,7 @@ from datetime import datetime, timezone, timedelta
 import pytest
 
 # Smoke tests for menu dispatch flows using monkeypatched input.
-import src.menus as mod
+import src.cli.menus as mod
 from src import insight_helpers
 
 def _inputs(values):

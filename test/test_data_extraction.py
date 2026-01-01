@@ -11,7 +11,7 @@ from io import StringIO
 from unittest.mock import patch
 import pytest
 
-from src.data_extraction import FileMetadataExtractor
+from src.core.data_extraction import FileMetadataExtractor
 
 class TestDataExtract(unittest.TestCase):
 

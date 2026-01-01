@@ -2,8 +2,8 @@ from pathlib import Path
 import shutil
 import sys
 sys.path.append(str(Path(__file__).parent.parent))
-from src.get_contributors_percentage_per_person import contribution_summary, contribution_percentages_from_local
-from src.individual_contribution_detection import UNATTRIBUTED
+from src.analysis.get_contributors_percentage_per_person import contribution_summary, contribution_percentages_from_local
+from src.analysis.individual_contribution_detection import UNATTRIBUTED
 import unittest
 import tempfile
 from git import Repo, Actor

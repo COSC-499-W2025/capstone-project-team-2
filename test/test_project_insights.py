@@ -16,7 +16,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from src.project_insights import (
+from src.reporting.project_insights import (
     list_project_insights,
     list_skill_history,
     rank_projects_by_contribution,

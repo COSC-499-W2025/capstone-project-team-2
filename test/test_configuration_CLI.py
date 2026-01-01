@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock, call
-from src.CLI_Interface_for_user_config import ConfigurationForUsersUI
+from src.cli.CLI_Interface_for_user_config import ConfigurationForUsersUI
 import os
 import shutil
 from pathlib import Path

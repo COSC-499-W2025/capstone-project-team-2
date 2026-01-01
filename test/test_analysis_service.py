@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 import pytest
 
 # Validates analysis orchestration, export, and consent-aware OOP analysis helpers.
-import src.analysis_service as mod
+import src.core.analysis_service as mod
 
 
 def test_convert_datetime_to_string_handles_nested():

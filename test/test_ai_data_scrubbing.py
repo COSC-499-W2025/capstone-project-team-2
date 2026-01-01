@@ -1,6 +1,6 @@
 import unittest
 from pathlib import Path
-from src.ai_data_scrubbing import ai_data_scrubber
+from src.core.ai_data_scrubbing import ai_data_scrubber
 import pytest
 
 class TestAIDataScrubbing(unittest.TestCase):

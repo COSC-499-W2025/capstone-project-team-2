@@ -8,7 +8,7 @@ from git import Repo, Actor
 
 # Add the src directory to the Python path
 sys.path.append(str(Path(__file__).parent.parent))
-import src.project_type_detection as project_type_detection
+import src.core.project_type_detection as project_type_detection
 
 
 class TestProjectTypeDetection(unittest.TestCase):

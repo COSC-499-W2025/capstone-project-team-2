@@ -5,7 +5,7 @@ from pathlib import Path
 
 # Add the src directory to the Python path
 sys.path.append(str(Path(__file__).parent.parent))
-from src.user_consent import UserConsent
+from src.config.user_consent import UserConsent
 
 class TestUserConsent(unittest.TestCase):
     def setUp(self):
