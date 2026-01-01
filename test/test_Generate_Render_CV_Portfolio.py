@@ -170,6 +170,28 @@ class TestCreateRenderCVEducation(unittest.TestCase):
         self.cv.add_education(edu)
         self.assertIn('education', self.cv.data['cv']['sections'])
 
+    def test_delete_education_success(self):
+        """Test deleting an education entry successfully."""
+        result = self.cv.delete_education("University Name")
+        self.assertEqual(result, "Successfully deleted education")
+
+    def test_delete_education_not_found(self):
+        """Test deleting a non-existent education entry."""
+        result = self.cv.delete_education("Nonexistent University")
+        self.assertEqual(result, "Education Nonexistent University not found.")
+
+    def test_delete_education_without_data_raises_error(self):
+        """Test that deleting education without loaded data raises ValueError."""
+        cv = create_Render_CV()
+        with self.assertRaises(ValueError):
+            cv.delete_education("Test")
+
+    def test_delete_education_no_education_section(self):
+        """Test deleting when no education section exists."""
+        del self.cv.data['cv']['sections']['education']
+        result = self.cv.delete_education("Test")
+        self.assertEqual(result, "No education to be deleted")
+
 
 class TestCreateRenderCVProjects(unittest.TestCase):
     """Tests for project-related methods."""
