@@ -9,7 +9,7 @@ services:
     networks:
       - app_network
 
-#test runner on compose/start
+# test runner on compose/start
   test:
     build: .
     container_name: test_runner
