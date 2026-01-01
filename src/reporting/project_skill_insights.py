@@ -7,7 +7,7 @@ from typing import List, Mapping, Optional, Set
 import sys
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from src.project_stack_detection import detect_project_stack
+from src.core.project_stack_detection import detect_project_stack
 
 """
 project_skill_insights.py

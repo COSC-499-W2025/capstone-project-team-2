@@ -24,9 +24,9 @@ from typing import Dict, List
 
 # These helpers are expected to be provided by sibling modules.
 from .project_skill_insights import identify_skills
-from .project_stack_detection import detect_project_stack
-from .project_type_detection import detect_project_type
-from .get_contributors_percentage_per_person import contribution_summary
+from ..core.project_stack_detection import detect_project_stack
+from ..core.project_type_detection import detect_project_type
+from ..analysis.get_contributors_percentage_per_person import contribution_summary
 
 @dataclass(frozen=True)
 class ResumeItem:

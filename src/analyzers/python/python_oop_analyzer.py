@@ -14,8 +14,8 @@ from collections import defaultdict
 # Add parent to path for imports
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from src.oop_aggregator import aggregate_canonical_reports
-from src.oop_aggregator import build_narrative
+from src.aggregation.oop_aggregator import aggregate_canonical_reports
+from src.aggregation.oop_aggregator import build_narrative
 
 @dataclass
 class ClassInfo:

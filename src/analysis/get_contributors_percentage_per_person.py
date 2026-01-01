@@ -7,7 +7,7 @@ import sys
 from dotenv import load_dotenv
 from typing import Any, Dict
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-from src.individual_contribution_detection import detect_individual_contributions, UNATTRIBUTED
+from src.analysis.individual_contribution_detection import detect_individual_contributions, UNATTRIBUTED
 class get_contributors_percentages_per_person:
 
     """

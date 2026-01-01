@@ -4,8 +4,8 @@ import sys
 import textwrap
 
 sys.path.append(str(Path(__file__).parent.parent))
-from src.java_analyzer import analyze_source
-from src.oop_aggregator import aggregate_canonical_reports
+from src.analyzers.java.java_analyzer import analyze_source
+from src.aggregation.oop_aggregator import aggregate_canonical_reports
 
 class TestJavaAnalyzer(unittest.TestCase):
 

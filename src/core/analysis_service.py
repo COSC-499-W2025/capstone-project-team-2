@@ -1,20 +1,20 @@
 import copy
 import datetime
-import json
 from pathlib import Path
 from typing import Any, Dict, Optional
 
 # Analysis helpers used by the CLI menus for project ingestion and persistence.
-from src.app_context import AppContext
-from src.data_extraction import FileMetadataExtractor
-from src.extraction import extractInfo
-from src.get_contributors_percentage_per_person import contribution_summary
-from src.project_duration_estimation import Project_Duration_Estimator
-from src.project_insights import record_project_insight
-from src.multilang_orchestrator import MultiLangOrchestrator
-from src.oop_aggregator import pretty_print_oop_report
-from src.resume_item_generator import generate_resume_item
-from src.file_data_saving import SaveFileAnalysisAsJSON
+from src.core.app_context import AppContext
+from src.core.data_extraction import FileMetadataExtractor
+from src.core.extraction import extractInfo
+from src.analysis.get_contributors_percentage_per_person import contribution_summary
+from src.core.project_duration_estimation import Project_Duration_Estimator
+from src.reporting.project_insights import record_project_insight
+from src.analyzers.multilang_orchestrator import MultiLangOrchestrator
+from src.aggregation.oop_aggregator import pretty_print_oop_report
+from src.reporting.resume_item_generator import generate_resume_item
+from src.storage.file_data_saving import SaveFileAnalysisAsJSON
+from src.config.user_startup_config import ConfigLoader
 
 
 def input_path(prompt: str, allow_blank: bool = False) -> Optional[Path]:
@@ -110,7 +110,7 @@ def convert_datetime_to_string(obj):
     return obj
 
 
-def oop_analysis(root: Path, resume, legacy_save_dir: Path) -> Dict[str, Any] | None:
+def oop_analysis(root: Path, resume) -> Dict[str, Any] | None:
     """
     Run OOP analysis when external AI is disabled and Python/Java is present.
     Uses MultiLangOrchestrator to analyze projects containing Python and/or Java.
@@ -123,31 +123,32 @@ def oop_analysis(root: Path, resume, legacy_save_dir: Path) -> Dict[str, Any] | 
     Returns:
         dict | None: OOP metrics if executed, otherwise None.
     """
-    config_path = legacy_save_dir / "UserConfigs.json"
     try:
-        config_data = json.loads(config_path.read_text(encoding="utf-8"))
+        config_data = ConfigLoader().load()
         has_external = config_data.get("consented", {}).get("external", False)
     except Exception as e:
         print(f"[WARN] Could not read user config, assuming no external consent: {e}")
         has_external = False
 
-    # Check if project has Python or Java
     supported_languages = {"Python", "Java"}
     detected_languages = set(resume.languages) & supported_languages
 
     if not has_external and detected_languages:
+        
         try:
+            
             langs = ", ".join(sorted(detected_languages))
             print(f"[INFO] External AI is disabled. Running non-LLM OOP analysis for {langs}...\n")
             oop_metrics = MultiLangOrchestrator(root).analyze()
             pretty_print_oop_report(oop_metrics)
             return oop_metrics
-        except Exception as e:
+        
+        except (FileNotFoundError, ValueError) as e: 
+            
             print(f"[ERROR] OOP analysis failed: {e}")
             return None
 
     return None
-
 
 def export_json(project_name: str, analysis: Dict[str, Any], ctx: AppContext) -> None:
     """
@@ -283,7 +284,7 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
     if resume.summary:
         print(f"  Résumé line: {resume.summary}\n")
 
-    oop_metrics = oop_analysis(root, resume, ctx.legacy_save_dir)
+    oop_metrics = oop_analysis(root, resume)
 
     if oop_metrics is not None:
         analysis["oop_analysis"] = oop_metrics

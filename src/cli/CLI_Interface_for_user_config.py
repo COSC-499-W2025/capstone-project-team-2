@@ -1,7 +1,7 @@
 import time
 import orjson
-from src.Configuration import configuration_for_users
-from src.user_startup_config import ConfigLoader
+from src.config.Configuration import configuration_for_users
+from src.config.user_startup_config import ConfigLoader
 import pathlib as pa
 import os
 

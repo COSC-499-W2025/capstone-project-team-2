@@ -7,7 +7,7 @@ from git import Actor, Repo
 
 # Add the src directory to the Python path
 sys.path.append(str(Path(__file__).parent.parent))
-import src.individual_contribution_detection as contribution_detection
+import src.analysis.individual_contribution_detection as contribution_detection
 
 def make_fake_extractor(mapping: dict, project_root: Path) -> MagicMock:
     """

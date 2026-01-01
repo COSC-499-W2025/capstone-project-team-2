@@ -10,7 +10,7 @@ except ImportError:
     NoSuchPathError = Exception
 
 # Keep this after the optional git import so src import works regardless of GitPython
-from src.data_extraction import FileMetadataExtractor
+from src.core.data_extraction import FileMetadataExtractor
 
 
 """

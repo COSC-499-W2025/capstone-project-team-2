@@ -17,12 +17,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src.resume_exporter import (
+from src.reporting.resume_exporter import (
     build_resume_items,
     discover_projects,
     export_resume_items,
 )
-from src.resume_item_generator import ResumeItem
+from src.reporting.resume_item_generator import ResumeItem
 
 
 class TestResumeExporter(unittest.TestCase):

@@ -1,11 +1,6 @@
-import json
 import os
-import pathlib as pa
-
+from pathlib import Path
 import orjson
-
-
-
 
 class configuration_for_users:
 
@@ -25,9 +20,13 @@ class configuration_for_users:
         :param jsonfile: User Configuration **json file**
         """
         self.jsonfile = jsonfile
-        self.project_Root = pa.Path(__file__).parent.parent #Here I am assigning the project root to variable called project Root
-        self.loc_to_save=pa.Path(os.path.join(self.project_Root,loc_to_save,"UserConfigs.json"))# Here I am creating the location path by combing the project root, the classes loc_save and file name itself
 
+        project_root = Path(__file__).resolve().parents[2]
+
+        self.config_dir = project_root / "User_config_files"
+        self.loc_to_save = self.config_dir / "UserConfigs.json"
+
+        self.config_dir.mkdir(parents=True, exist_ok=True)
 
     def save_with_consent(self, external_consent:bool=False,data_consent:bool=False):
         """

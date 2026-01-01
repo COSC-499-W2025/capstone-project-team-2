@@ -7,8 +7,8 @@ from git import Repo, InvalidGitRepositoryError
 # Add parent to path for imports
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from src.data_extraction import FileMetadataExtractor
-from src.project_type_detection import (
+from src.core.data_extraction import FileMetadataExtractor
+from src.core.project_type_detection import (
     detect_project_type,
     find_contributor_files,
     extract_names_from_text,

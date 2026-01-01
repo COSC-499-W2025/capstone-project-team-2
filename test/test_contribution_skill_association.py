@@ -7,7 +7,7 @@ import logging
 
 # Add the src directory to the Python path
 sys.path.append(str(Path(__file__).parent.parent))
-from src.contribution_skill_association import (
+from src.analysis.contribution_skill_association import (
     associate_contribution_skills,
     get_skills_for_file_subset,
     dedupe_ordered,

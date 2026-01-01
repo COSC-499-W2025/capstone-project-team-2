@@ -12,8 +12,8 @@ import sys
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from src.python_analyzer import PythonOOPAstAnalyzer, ClassInfo
-from src.java_analyzer import analyze_source as analyze_java_source, per_file_to_classinfo_list
+from src.analyzers.python.python_oop_analyzer import PythonOOPAstAnalyzer, ClassInfo
+from src.analyzers.java.java_analyzer import analyze_source as analyze_java_source, per_file_to_classinfo_list
 
 class MultiLangOrchestrator:
     """Orchestrator for analyzing multi-language (Python + Java) projects.

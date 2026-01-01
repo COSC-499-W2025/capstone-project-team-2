@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from src.extraction import extractInfo
+from src.core.extraction import extractInfo
 
 #Todo:
 # - Have the ability for user to upload multiple zip files at once (Optional)

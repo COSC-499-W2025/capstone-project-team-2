@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import pytest
 
 # Smoke tests for menu dispatch flows using monkeypatched input.
-import src.menus as mod
+import src.cli.menus as mod
 
 
 def _inputs(values):

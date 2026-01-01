@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import pytest
 
 # Exercises portfolio display paths for consent on/off.
-import src.portfolio as mod
+import src.reporting.portfolio as mod
 
 
 def test_display_portfolio_external_disabled_uses_saved_oop(monkeypatch, tmp_path, capsys):

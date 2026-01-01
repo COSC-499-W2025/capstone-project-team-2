@@ -19,7 +19,7 @@ from pathlib import Path
 from datetime import datetime
 from subprocess import run, PIPE
 
-from src.resume_exporter import export_resume_items
+from src.reporting.resume_exporter import export_resume_items
 
 
 def _is_iso8601_with_tz(value: str) -> bool:

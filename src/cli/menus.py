@@ -1,22 +1,22 @@
 from pathlib import Path
 
 # Menu flows for the CLI, delegating to analysis, saved-project, and portfolio helpers.
-from src.CLI_Interface_for_user_config import ConfigurationForUsersUI
-from src.analysis_service import (
+from src.cli.CLI_Interface_for_user_config import ConfigurationForUsersUI
+from src.core.analysis_service import (
     input_path,
     analyze_project,
     extract_if_zip,
 )
-from src.app_context import AppContext
-from src.portfolio import display_portfolio
-from src.saved_projects import (
+from src.core.app_context import AppContext
+from src.reporting.portfolio import display_portfolio
+from src.storage.saved_projects import (
     delete_file_from_disk,
     delete_from_database_by_id,
     get_saved_projects_from_db,
     list_saved_projects,
     show_saved_summary,
 )
-from src.user_startup_config import ConfigLoader
+from src.config.user_startup_config import ConfigLoader
 
 
 def settings_menu() -> None:

@@ -12,13 +12,13 @@ class ConfigLoader:
         This method locates the project and configuration file
 
         """
-        # locate project root (the parent of "src")
-        self.project_root = Path(__file__).resolve().parents[1]
+        
+        project_root = Path(__file__).resolve().parents[2]
 
-        # config file paths (located directly in root)
-        self.user_config_path = self.project_root /"User_config_files"/ "UserConfigs.json"
-        self.default_config_path = self.project_root /"User_config_files"/ "default_user_configuration.json"
-
+        self.config_dir = project_root / "User_config_files"
+        self.user_config_path = self.config_dir / "UserConfigs.json"
+        self.default_config_path = self.config_dir / "default_user_configuration.json"
+        
     def _load_file(self, path: Path) -> Dict[str, Any]:
         """
         This method takes a file path, opens it in binary mode, 

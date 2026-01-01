@@ -1,7 +1,7 @@
 import unittest
 import datetime
 
-from src.project_duration_estimation import Project_Duration_Estimator
+from src.core.project_duration_estimation import Project_Duration_Estimator
 
 class TestDurationEstimator(unittest.TestCase):
     '''

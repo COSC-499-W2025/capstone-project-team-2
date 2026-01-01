@@ -5,7 +5,7 @@ import unittest
 import json
 from pathlib import Path
 import orjson 
-from src.user_startup_config import ConfigLoader
+from src.config.user_startup_config import ConfigLoader
 
 
 class TestStartupConfigPull(unittest.TestCase):

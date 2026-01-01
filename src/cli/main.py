@@ -4,11 +4,11 @@ from pathlib import Path
 # CLI entrypoint that wires consent/config into the shared menu flow.
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from src.Configuration import configuration_for_users
-from src.app_context import create_app_context
-from src.menus import main_menu
-from src.user_consent import UserConsent
-from src.user_startup_config import ConfigLoader
+from src.config.Configuration import configuration_for_users
+from src.core.app_context import create_app_context
+from src.cli.menus import main_menu
+from src.config.user_consent import UserConsent
+from src.config.user_startup_config import ConfigLoader
 
 
 def run() -> int:

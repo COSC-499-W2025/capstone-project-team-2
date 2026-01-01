@@ -8,8 +8,8 @@ import logging
 import sys
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-from src.project_skill_insights import identify_skills
-from src.individual_contribution_detection import detect_individual_contributions
+from src.reporting.project_skill_insights import identify_skills
+from src.analysis.individual_contribution_detection import detect_individual_contributions
 
 logger = logging.getLogger(__name__)
 

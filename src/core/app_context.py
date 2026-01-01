@@ -6,8 +6,8 @@ from mysql.connector import Error
 import sys
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from src.Docker_finder import DockerFinder
-from src.db_helper_function import HelperFunct
+from src.core.Docker_finder import DockerFinder
+from src.storage.db_helper_function import HelperFunct
 
 
 @dataclass
