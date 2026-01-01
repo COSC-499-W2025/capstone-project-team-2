@@ -25,14 +25,9 @@ class Education:
     gpa: Optional[str] = None
     highlights: Optional[List[str]] = None
 
-
-
     def to_dict(self):
         """Convert to dictionary, excluding None values"""
         return {k: v for k, v in asdict(self).items() if v is not None}
-
-
-
 
 
 @dataclass
@@ -45,6 +40,7 @@ class Connections:
     def to_dict(self) -> dict:
         """Convert to dictionary, excluding None values."""
         return {k: v for k, v in asdict(self).items() if v is not None}
+
 
 @dataclass
 class Project:
@@ -59,8 +55,7 @@ class Project:
 
     def to_dict(self) -> dict:
         """Convert to dictionary, excluding None values."""
-        return {key:value for key,value in asdict(self).items() if value is not None}
-
+        return {key: value for key, value in asdict(self).items() if value is not None}
 
 
 class create_Render_CV:
@@ -91,6 +86,7 @@ class create_Render_CV:
         """
         self.resume_section = None  # List of section names (populated by load_starter_file)
         self.current_projects = None  # Cached list of project dictionaries
+        self.current_education = None
         self.name = None  # Sanitized name for filename
         self.yaml = ruamel.yaml.YAML()  # YAML parser instance
         self.yaml.preserve_quotes = True  # Maintain original quote style when saving
@@ -100,8 +96,7 @@ class create_Render_CV:
         self.auto_save = auto_save  # Flag for automatic saving
         self.output_dir = Path(output_dir)  # Directory for rendered output
 
-
-    def generate_starter_file(self, overwrite: bool = False,name:str="Jane Doe"):
+    def generate_starter_file(self, overwrite: bool = False, name: str = "Jane Doe"):
         """Generate a starter resume YAML file.
 
         Creates a minimal resume template with essential sections:
@@ -113,8 +108,8 @@ class create_Render_CV:
         Returns:
             None
         """
-        self.name=name.replace(" ", "_")
-        self.yaml_file=Path(f"{self.name}_CV.yaml")
+        self.name = name.replace(" ", "_")
+        self.yaml_file = Path(f"{self.name}_CV.yaml")
         if self.yaml_file.exists():
             if overwrite:
                 # Remove existing file before regenerating
@@ -211,13 +206,10 @@ class create_Render_CV:
         Raises:
             FileNotFoundError: If the YAML file doesn't exist.
         """
-        #print(self.yaml_file)
+        # print(self.yaml_file)
         if not self.yaml_file.exists():
             raise FileNotFoundError(f"File {self.yaml_file} does not exist "
                                     f"Run generate_starter_file() first.")
-
-
-
 
         # Parse YAML file into data structure
         with open(self.yaml_file, 'r') as f:
@@ -229,9 +221,9 @@ class create_Render_CV:
         self.current_projects = self.data['cv']['sections']['projects']
         # Restore spaces in name for display
         self.data['cv']['name'] = str(self.name).replace("_", " ")
+        self.current_education = self.data['cv']['sections']['education']
 
         return self.data
-
 
     def save(self, filename: str = None):
         """Save the CV data to a YAML file.
@@ -248,10 +240,10 @@ class create_Render_CV:
         if self.data is None:
             raise ValueError("No data loaded")
 
-        output_file=Path(filename) if filename else self.yaml_file
+        output_file = Path(filename) if filename else self.yaml_file
 
-        with open(output_file,'w') as f:
-            self.yaml.dump(self.data,f)
+        with open(output_file, 'w') as f:
+            self.yaml.dump(self.data, f)
 
         # print(f"✓ Saved to {output_file}")
         return output_file
@@ -260,7 +252,6 @@ class create_Render_CV:
         """Save the CV if auto_save is enabled."""
         if self.auto_save and self.data is not None:
             self.save()
-
 
     def render_CV(self, output_dir: str = None, filename: str = None):
         """Render the CV to PDF and other output formats.
@@ -294,8 +285,7 @@ class create_Render_CV:
             default_output = Path('rendercv_output')
             source_filename = f"{self.name}_CV.pdf"
             source_pdf = default_output / source_filename
-            return "successfully rendered",source_pdf
-
+            return "successfully rendered", source_pdf
 
     def remove_section(self, section_to_remove_num: int):
         """Remove a section from the CV by its index.
@@ -324,8 +314,8 @@ class create_Render_CV:
             del self.data['cv']['sections'][section_name]
             self._auto_save_if_enabled()
 
-    def modify_projects_info(self,project_name:str, field:str,new_value):
-        valid_fields=["name", "start_date", "end_date", "location", "summary", 'highlights']
+    def modify_projects_info(self, project_name: str, field: str, new_value):
+        valid_fields = ["name", "start_date", "end_date", "location", "summary", 'highlights']
 
         if self.data is None:
             raise ValueError("No data loaded")
@@ -333,14 +323,13 @@ class create_Render_CV:
         if field not in valid_fields:
             return f"Invalid field {field}. Valid fields are: {', '.join(valid_fields)}"
 
-        for idx,project in enumerate(self.current_projects):
+        for idx, project in enumerate(self.current_projects):
             if project.get("name") == project_name:
                 self.current_projects[idx][field] = new_value
                 self._auto_save_if_enabled()
                 return f"Successfully modified {field} to {new_value}"
 
         return f"Project {project_name} not found."
-
 
     def add_education(self, education_info: Education):
         """Add an education entry to the CV.
@@ -365,17 +354,31 @@ class create_Render_CV:
         existing_institutions = [e['institution'] for e in self.data['cv']['sections']['education']]
 
         if education_info.institution in existing_institutions:
-            #print(f"⚠ Education at '{education_info.institution}' already in resume. Skipping.")
+            # print(f"⚠ Education at '{education_info.institution}' already in resume. Skipping.")
             return "Duplicate education entry"
 
         # Append new education entry
         self.data['cv']['sections']['education'].append(education_info.to_dict())
-        #print(f"✓ Added education: {education_info.institution}")
+        # print(f"✓ Added education: {education_info.institution}")
         self._auto_save_if_enabled()
         return "Successfully added education"
 
+    def delete_education(self, InstutionName):
+        """Delete an education entry from the CV."""
+        if self.data is None:
+            raise ValueError("No data loaded")
+        if 'education' not in self.data['cv']['sections'] or not self.data['cv']['sections']['education']:
+            return "No education to be deleted"
 
-    def delete_project(self,project_name):
+        for pos, education in enumerate(self.current_education):
+            if education.get('institution') == InstutionName:
+                del self.current_education[pos]
+                self._auto_save_if_enabled()
+                return "Successfully deleted education"
+
+        return f"Education {InstutionName} not found."
+
+    def delete_project(self, project_name):
         """Delete a project from the resume or CV.
 
         Displays existing projects and prompts the user to select one for deletion.
@@ -393,15 +396,13 @@ class create_Render_CV:
         if 'projects' not in self.data['cv']['sections'] or not self.data['cv']['sections']['projects']:
             return "No projects to delete"
 
-        projects=self.data['cv']['sections']['projects']
-        for pos,project in enumerate(projects):
+        # projects=self.data['cv']['sections']['projects']
+        for pos, project in enumerate(self.current_projects):
             if project.get('name') == project_name:
-                del projects[pos]
-                self.current_projects = projects
+                del self.current_projects[pos]
                 self._auto_save_if_enabled()
                 return f"Successfully deleted: {project_name}"
         return f"Project not found: {project_name}"
-
 
     def add_project(self, projectInfo: Project):
         """Add a project entry to the CV.
@@ -496,7 +497,7 @@ class create_Render_CV:
             resume = create_Render_CV.analyze_project_with_ai("path/to/project")
             print(resume.key_skills_used)
             print(resume.oop_principles_detected)
-      
+
         return GenerateProjectResume(project_folder).generate()
     '''
 
@@ -534,8 +535,7 @@ class create_Render_CV:
         self._auto_save_if_enabled()
         return self
 
-
-    def update_contact(self, email=None, phone=None, location=None, website=None,name=None):
+    def update_contact(self, email=None, phone=None, location=None, website=None, name=None):
         """Update contact information in the CV.
 
         Only updates fields that are provided (non-None). Existing values
