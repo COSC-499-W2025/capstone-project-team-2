@@ -8,7 +8,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from src.Generate_AI_Resume import ResumeItem,GenerateProjectResume
+from src.reporting.Generate_AI_Resume import ResumeItem,GenerateProjectResume
 from tqdm import tqdm
 import os
 
