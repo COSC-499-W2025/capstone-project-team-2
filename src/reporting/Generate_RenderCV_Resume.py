@@ -34,7 +34,7 @@ class Education:
 class Connections:
     """Represents a social network or professional connection link."""
 
-    networkName: Optional[str] = None
+    network: Optional[str] = None
     username: Optional[str] = None
 
     def to_dict(self) -> dict:
@@ -66,15 +66,8 @@ class create_Render_CV:
     """
 
     # Available RenderCV themes
-    THEMES = {
-        'classic': 'Classic CV theme',
-        'engineeringclassic': 'Engineering-focused CV theme',
-        'engineeringresumes': 'Engineering resume theme (recommended for resumes)',
-        'moderncv': 'Modern CV theme',
-        'sb2nov': 'Clean resume theme (recommended for resumes)',
-    }
 
-    def __init__(self, auto_save: bool = True, theme: str = 'sb2nov', output_dir: str = 'rendercv_output'):
+    def __init__(self, auto_save: bool = True, output_dir: str = 'rendercv_output'):
         """Initialize the CV/Resume builder.
 
         Args:
@@ -87,11 +80,18 @@ class create_Render_CV:
         self.resume_section = None  # List of section names (populated by load_starter_file)
         self.current_projects = None  # Cached list of project dictionaries
         self.current_education = None
+        self.current_connections = None
         self.name = None  # Sanitized name for filename
         self.yaml = ruamel.yaml.YAML()  # YAML parser instance
         self.yaml.preserve_quotes = True  # Maintain original quote style when saving
         self.data = None  # Loaded YAML data structure
-        self.theme = theme if theme in self.THEMES else 'engineeringresumes'  # Selected theme
+        self.chosen_theme = "sb2nov"  # Selected theme
+        self.themes = {
+            'classic': 'Classic CV theme',
+            'engineeringclassic': 'Engineering-focused CV theme',
+            'engineeringresumes': 'Engineering resume theme (recommended for resumes)',
+            'moderncv': 'Modern CV theme',
+            'sb2nov': 'Clean resume theme (recommended for resumes)', }
         self.yaml_file = None  # Path to the YAML file
         self.auto_save = auto_save  # Flag for automatic saving
         self.output_dir = Path(output_dir)  # Directory for rendered output
@@ -180,7 +180,7 @@ class create_Render_CV:
                 }
             },
             'design': {
-                'theme': self.theme
+                'theme': self.chosen_theme
             },
             'locale': {
                 'language': 'english'
@@ -191,7 +191,7 @@ class create_Render_CV:
         with open(self.yaml_file, 'w') as f:
             self.yaml.dump(resume_template, f)
 
-        print(f"Starter resume file has been generated with '{self.theme}' theme")
+        print(f"Starter resume file has been generated with '{self.chosen_theme}' theme")
         return "Success"
 
     def load_starter_file(self):
@@ -206,7 +206,6 @@ class create_Render_CV:
         Raises:
             FileNotFoundError: If the YAML file doesn't exist.
         """
-        # print(self.yaml_file)
         if not self.yaml_file.exists():
             raise FileNotFoundError(f"File {self.yaml_file} does not exist "
                                     f"Run generate_starter_file() first.")
@@ -222,6 +221,7 @@ class create_Render_CV:
         # Restore spaces in name for display
         self.data['cv']['name'] = str(self.name).replace("_", " ")
         self.current_education = self.data['cv']['sections']['education']
+        self.current_connections = self.data['cv']['social_networks']
 
         return self.data
 
@@ -254,6 +254,7 @@ class create_Render_CV:
             self.save()
 
     def render_CV(self, output_dir: str = None, filename: str = None):
+
         """Render the CV to PDF and other output formats.
 
         Args:
@@ -274,6 +275,8 @@ class create_Render_CV:
         target_dir = Path(output_dir).absolute() if output_dir else self.output_dir.absolute()
 
         # Render to default rendercv_output folder
+
+        # print(self.yaml_file)
         result_for_rendering = subprocess.run(
             ['rendercv', 'render', str(self.yaml_file)],
             capture_output=True,
@@ -523,17 +526,21 @@ class create_Render_CV:
             self.data['cv']['social_networks'] = []
 
         # Check for duplicates based on network name
-        existing_networks = [c['network'] for c in self.data['cv']['social_networks']]
+        existing_social_networks = [c['network'] for c in self.current_connections]
+        if connectionInfo.network in existing_social_networks:
+            return "Connection already exists in Resume"
 
-        if connectionInfo.networkName in existing_networks:
-            print(f"⚠ Connection for '{connectionInfo.networkName}' already exists. Skipping.")
-            return self
+        if connectionInfo.network not in existing_social_networks:
+            self.data['cv']['social_networks'].append(connectionInfo.to_dict())
+            self._auto_save_if_enabled()
+            return f"Successfully added: {connectionInfo.network}"
 
-        # Append new connection entry
-        self.data['cv']['social_networks'].append(connectionInfo.to_dict())
-        print(f"✓ Added connection: {connectionInfo.networkName}")
+        return "error cannot add New connection"
+
+    def update_theme(self, selected_theme: str):
+        self.data['design']['theme'] = selected_theme
         self._auto_save_if_enabled()
-        return self
+        return f"Successfully updated: {selected_theme}"
 
     def update_contact(self, email=None, phone=None, location=None, website=None, name=None):
         """Update contact information in the CV.
