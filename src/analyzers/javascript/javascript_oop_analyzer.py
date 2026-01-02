@@ -14,6 +14,33 @@ from src.analyzers.class_info import ClassInfo
 from src.aggregation.oop_aggregator import aggregate_canonical_reports
 from src.aggregation.oop_aggregator import build_narrative
 
+def iter_js_nodes(node):
+    """
+    Depth-first traversal of an Esprima AST.
+
+    Safely yields AST nodes while skipping primitives.
+    """
+    if node is None:
+        return
+
+    stack = [node]
+
+    while stack:
+        n = stack.pop()
+        yield n
+
+        if isinstance(n, (list, tuple)):
+            stack.extend(reversed(n))
+            continue
+
+        if not hasattr(n, "__dict__"):
+            continue
+
+        for v in n.__dict__.values():
+            if isinstance(v, (list, tuple)):
+                stack.extend(reversed(v))
+            elif hasattr(v, "__dict__"):
+                stack.append(v)
 class JavaScriptOOPAnalyzer:
     """
     AST-based JavaScript OOP analyzer using Esprima.
@@ -38,7 +65,7 @@ class JavaScriptOOPAnalyzer:
         self.root = root.resolve()
         self.js_files: List[Path] = []
         self.class_infos: List[ClassInfo] = []
-        
+        self.syntax_errors: List[Path] = []
         
         # Data structure usage counters 
         # These fields are kept for cross-language schema compatibility.
@@ -83,6 +110,7 @@ class JavaScriptOOPAnalyzer:
         self.discover_js_files()
         
         self.class_infos.clear()
+        self.syntax_errors.clear()
         self.ds_counts = {k: 0 for k in self.ds_counts}
         self.complexity_stats = {k: 0 for k in self.complexity_stats}
 
@@ -113,7 +141,8 @@ class JavaScriptOOPAnalyzer:
             source = path.read_text(encoding="utf-8", errors="ignore")
             tree = esprima.parseModule(source, tolerant=True)
         except Exception:
-            # Skip files that cannot be parsed
+            # Track unparseable files
+            self.syntax_errors.append(path)
             return
 
         # Class analysis (OOP) 
@@ -121,20 +150,22 @@ class JavaScriptOOPAnalyzer:
             if node.type == "ClassDeclaration":
                 self._handle_class(node, path)
 
-        # Global AST walk for DS + complexity 
-        for node in esprima.walk(tree):
-            # Count all functions (class + non-class)
-            if node.type in {
+        # Global AST walk for complexity + data structures
+        for node in iter_js_nodes(tree):
+
+            # Function counting (exclude MethodDefinition to avoid double-counting with class methods)
+            if getattr(node, "type", None) in {
                 "FunctionDeclaration",
                 "FunctionExpression",
                 "ArrowFunctionExpression",
             }:
                 self.complexity_stats["total_functions"] += 1
 
-            if node.type == "ArrayExpression":
+            # Data structures
+            if getattr(node, "type", None) == "ArrayExpression":
                 self.ds_counts["list_literals"] += 1
 
-            elif node.type == "ObjectExpression":
+            elif getattr(node, "type", None) == "ObjectExpression":
                 self.ds_counts["dict_literals"] += 1
 
     def _handle_class(self, node, path: Path):
@@ -173,6 +204,7 @@ class JavaScriptOOPAnalyzer:
             if element.type == "MethodDefinition":
                 method_name = element.key.name
                 methods.add(method_name)
+                self.complexity_stats["total_functions"] += 1
 
                 if method_name == "constructor":
                     has_constructor = True
@@ -183,13 +215,6 @@ class JavaScriptOOPAnalyzer:
                 )
                 if depth >= 2:
                     self.complexity_stats["functions_with_nested_loops"] += 1
-
-            if element.type == "PropertyDefinition":
-                key = element.key.name
-                if key.startswith("#"):
-                    private_attrs.add(key)
-                else:
-                    public_attrs.add(key)
 
         self.class_infos.append(
             ClassInfo(
@@ -213,7 +238,7 @@ class JavaScriptOOPAnalyzer:
             node: AST node representing a method body.
 
         Returns:
-            int: Maximum nesting depth of for/while loops.
+            int: Maximum nesting depth of loops.
         """
         
         max_depth = 0
@@ -222,16 +247,22 @@ class JavaScriptOOPAnalyzer:
             nonlocal max_depth
             if n is None:
                 return
+            
+            # List of nodes
             if isinstance(n, list):
                 for x in n:
                     visit(x, depth)
+                return
+            
+            # Only process Esprima AST nodes
+            if not hasattr(n, "__dict__"):
                 return
 
             if getattr(n, "type", None) in { "ForStatement", "WhileStatement", "ForOfStatement", "ForInStatement"}:
                 depth += 1
                 max_depth = max(max_depth, depth)
 
-            for attr in vars(n).values():
+            for attr in n.__dict__.values():
                 visit(attr, depth)
 
         visit(node, 0)
