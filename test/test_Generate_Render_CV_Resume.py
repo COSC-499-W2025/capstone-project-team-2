@@ -33,22 +33,16 @@ class TestCreateRenderCV(unittest.TestCase):
         """Test initialization with default values."""
         cv = create_Render_CV()
         self.assertTrue(cv.auto_save)
-        self.assertEqual(cv.theme, 'sb2nov')
+        self.assertEqual(cv.chosen_theme, 'sb2nov')
         self.assertEqual(cv.output_dir, Path('rendercv_output'))
         self.assertIsNone(cv.data)
         self.assertIsNone(cv.yaml_file)
 
     def test_init_custom_values(self):
         """Test initialization with custom values."""
-        cv = create_Render_CV(auto_save=False, theme='classic', output_dir='custom_output')
+        cv = create_Render_CV(auto_save=False, output_dir='custom_output')
         self.assertFalse(cv.auto_save)
-        self.assertEqual(cv.theme, 'classic')
         self.assertEqual(cv.output_dir, Path('custom_output'))
-
-    def test_init_invalid_theme_defaults_to_engineeringresumes(self):
-        """Test that invalid theme defaults to engineeringresumes."""
-        cv = create_Render_CV(theme='invalid_theme')
-        self.assertEqual(cv.theme, 'engineeringresumes')
 
     def test_generate_starter_file_creates_file(self):
         """Test that generate_starter_file creates a YAML file."""
@@ -395,15 +389,21 @@ class TestCreateRenderCVConnections(unittest.TestCase):
     def test_add_connection_without_data_raises_error(self):
         """Test that adding connection without loaded data raises ValueError."""
         cv = create_Render_CV()
-        conn = Connections(networkName="Twitter", username="testuser")
+        conn = Connections(network="Twitter", username="testuser")
         with self.assertRaises(ValueError):
             cv.add_connection(conn)
 
-    def test_add_connection_returns_self(self):
-        """Test that add_connection returns self for method chaining."""
-        conn = Connections(networkName="Twitter", username="testuser")
+    def test_add_connection_success(self):
+        """Test that add_connection adds a new connection successfully."""
+        conn = Connections(network="Twitter", username="testuser")
         result = self.cv.add_connection(conn)
-        self.assertIs(result, self.cv)
+        self.assertEqual(result, "Successfully added: Twitter")
+
+    def test_add_connection_duplicate_rejected(self):
+        """Test that duplicate connections are rejected."""
+        conn = Connections(network="LinkedIn", username="testuser")
+        result = self.cv.add_connection(conn)
+        self.assertEqual(result, "Connection already exists in Resume")
 
 
 class TestCreateRenderCVAutoSave(unittest.TestCase):
@@ -481,22 +481,37 @@ class TestCreateRenderCVRender(unittest.TestCase):
 class TestThemes(unittest.TestCase):
     """Tests for theme functionality."""
 
+    def setUp(self):
+        """Set up test fixtures."""
+        self.test_dir = tempfile.mkdtemp()
+        self.original_cwd = os.getcwd()
+        os.chdir(self.test_dir)
+        self.cv = create_Render_CV(auto_save=False)
+        self.cv.generate_starter_file(name="Test User")
+        self.cv.load_starter_file()
+
+    def tearDown(self):
+        """Clean up test fixtures."""
+        os.chdir(self.original_cwd)
+        shutil.rmtree(self.test_dir, ignore_errors=True)
+
     def test_available_themes(self):
-        """Test that THEMES dictionary contains expected themes."""
+        """Test that themes dictionary contains expected themes."""
+        cv = create_Render_CV()
         expected_themes = ['classic', 'engineeringclassic', 'engineeringresumes', 'moderncv', 'sb2nov']
         for theme in expected_themes:
-            self.assertIn(theme, create_Render_CV.THEMES)
+            self.assertIn(theme, cv.themes)
 
-    def test_valid_theme_is_used(self):
-        """Test that valid theme is used."""
-        cv = create_Render_CV(theme='classic')
-        self.assertEqual(cv.theme, 'classic')
+    def test_default_theme_is_sb2nov(self):
+        """Test that default theme is sb2nov."""
+        cv = create_Render_CV()
+        self.assertEqual(cv.chosen_theme, 'sb2nov')
 
-    def test_all_valid_themes_accepted(self):
-        """Test that all valid themes are accepted."""
-        for theme in create_Render_CV.THEMES.keys():
-            cv = create_Render_CV(theme=theme)
-            self.assertEqual(cv.theme, theme)
+    def test_update_theme_success(self):
+        """Test updating theme successfully."""
+        result = self.cv.update_theme('classic')
+        self.assertEqual(result, "Successfully updated: classic")
+        self.assertEqual(self.cv.data['design']['theme'], 'classic')
 
 
 if __name__ == '__main__':
