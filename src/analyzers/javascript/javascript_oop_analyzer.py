@@ -41,6 +41,7 @@ class JavaScriptOOPAnalyzer:
         
         
         # Data structure usage counters 
+        # These fields are kept for cross-language schema compatibility.
         self.ds_counts = {
             "list_literals": 0,
             "dict_literals": 0,
@@ -80,6 +81,10 @@ class JavaScriptOOPAnalyzer:
             Dict[str, Any]: Aggregated OOP, data-structure, and complexity metrics.
         """
         self.discover_js_files()
+        
+        self.class_infos.clear()
+        self.ds_counts = {k: 0 for k in self.ds_counts}
+        self.complexity_stats = {k: 0 for k in self.complexity_stats}
 
         for file in self.js_files:
             self._analyze_file(file)
@@ -88,6 +93,7 @@ class JavaScriptOOPAnalyzer:
         metrics = aggregate_canonical_reports(reports, total_files=len(self.js_files))
         
         # Inject JavaScript-specific metrics
+        metrics["reports"] = reports
         metrics["data_structures"] = self.ds_counts
         metrics["complexity"] = self.complexity_stats
         metrics["narrative"] = build_narrative(metrics)
@@ -110,22 +116,26 @@ class JavaScriptOOPAnalyzer:
             # Skip files that cannot be parsed
             return
 
-        # Analyze top-level AST nodes
+        # Class analysis (OOP) 
         for node in tree.body:
             if node.type == "ClassDeclaration":
                 self._handle_class(node, path)
 
-        # Data-structure heuristics based on token stream
-        for node in esprima.tokenize(source):
-            if node.type == "Punctuator" and node.value == "[":
-                self.ds_counts["list_literals"] += 1
-            if node.type == "Punctuator" and node.value == "{":
-                self.ds_counts["dict_literals"] += 1
-                
-        # Count top-level functions (non-class)
-        for node in tree.body:
-            if node.type in {"FunctionDeclaration"}:
+        # Global AST walk for DS + complexity 
+        for node in esprima.walk(tree):
+            # Count all functions (class + non-class)
+            if node.type in {
+                "FunctionDeclaration",
+                "FunctionExpression",
+                "ArrowFunctionExpression",
+            }:
                 self.complexity_stats["total_functions"] += 1
+
+            if node.type == "ArrayExpression":
+                self.ds_counts["list_literals"] += 1
+
+            elif node.type == "ObjectExpression":
+                self.ds_counts["dict_literals"] += 1
 
     def _handle_class(self, node, path: Path):
         """
@@ -163,7 +173,6 @@ class JavaScriptOOPAnalyzer:
             if element.type == "MethodDefinition":
                 method_name = element.key.name
                 methods.add(method_name)
-                self.complexity_stats["total_functions"] += 1
 
                 if method_name == "constructor":
                     has_constructor = True
