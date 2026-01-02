@@ -147,12 +147,11 @@ class MultiLangOrchestrator:
             cx.get("max_loop_depth", 0),
         )
 
-
     def analyze(self) -> Dict[str, Any]:
         """Analyze all Python, Java, Javascript and C files and return unified OOP metrics."""
         py_files, java_files, js_files, c_files = self.discover_files()
         
-        # Include all files for accurate file count
+        # Track all source files for accurate file count
         self.py_analyzer.python_files = py_files + java_files + js_files + c_files
 
         # Analyze Python files
