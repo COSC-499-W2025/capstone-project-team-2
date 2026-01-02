@@ -134,6 +134,10 @@ def toggle_external_services(ctx: AppContext) -> None:
 def analyze_project_menu(ctx: AppContext) -> None:
     """
     Ask user if their project is in a directory or zip file and analyze it.
+    
+    Supports analysis of Python, Java, C, and JavaScript projects. When external AI is
+    disabled, the system will automatically run OOP analysis to detect classes, inheritance,
+    encapsulation, and other object-oriented design patterns across all supported languages.
 
     Args:
         ctx (AppContext): Shared DB/store context.
