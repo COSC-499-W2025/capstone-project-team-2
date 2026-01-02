@@ -191,7 +191,7 @@ class create_Render_CV:
         with open(self.yaml_file, 'w') as f:
             self.yaml.dump(resume_template, f)
 
-        print(f"Starter resume file has been generated with '{self.chosen_theme}' theme")
+        print(f"Starter resume file has been generated with '{self.theme}' theme")
         return "Success"
 
     def load_starter_file(self):
@@ -504,19 +504,89 @@ class create_Render_CV:
         return GenerateProjectResume(project_folder).generate()
     '''
 
+    def modify_connection(self, network_name: str, new_username: str):
+        """Modify the username for an existing social network connection.
+
+        Updates the username associated with a specific social network
+        (e.g., LinkedIn, GitHub) in the CV.
+
+        Args:
+            network_name: The name of the social network to modify (e.g., 'LinkedIn', 'GitHub').
+            new_username: The new username to set for the specified network.
+
+        Returns:
+            str: Success message if the connection was updated, or error message
+                 if the network was not found.
+
+        Raises:
+            ValueError: If no data has been loaded.
+        """
+        if self.data is None:
+            raise ValueError("No data loaded")
+
+        # Search for the matching network and update its username
+        for idx, connection in enumerate(self.current_connections):
+            if connection.get("network") == network_name:
+                self.current_connections[idx]["username"] = new_username
+                self._auto_save_if_enabled()
+                return f"Successfully updated connection {network_name}"
+
+        return f"Network {network_name} Cannot be found."
+
+    def delete_connection(self, connectionName: str):
+        """Delete a social network connection from the CV.
+
+        Removes a social network entry (e.g., LinkedIn, GitHub) from the
+        CV's social_networks list.
+
+        Args:
+            connectionName: The name of the social network to delete
+                            (e.g., 'LinkedIn', 'GitHub').
+
+        Returns:
+            str: Success message if the connection was deleted, or error message
+                 if no connections exist or the specified network was not found.
+
+        Raises:
+            ValueError: If no data has been loaded.
+        """
+        if self.data is None:
+            raise ValueError("No data loaded")
+
+        # Check if social_networks section exists and has entries
+        if "social_networks" not in self.data['cv'] or not self.data['cv']['social_networks']:
+            return "No connections to delete"
+
+        # Search for and remove the matching connection
+        for pos, connection in enumerate(self.current_connections):
+            if connection.get("network") == connectionName:
+                del self.current_connections[pos]
+                self._auto_save_if_enabled()
+                return f"Successfully deleted connection: {connectionName}"
+
+        return f"Connection '{connectionName}' not found"
+
     def add_connection(self, connectionInfo: Connections):
         """Add a social network connection to the CV.
 
         Adds links to professional networks like LinkedIn, GitHub, etc.
+        Duplicate networks (by name) are not allowed.
 
         Args:
-            connectionInfo: Connections dataclass with network details.
+            connectionInfo: Connections dataclass containing:
+                - network: Name of the social network (e.g., 'LinkedIn', 'GitHub')
+                - username: The username/handle on that network
 
         Returns:
-            Self for method chaining.
+            str: Success message if the connection was added, or error message
+                 if the connection already exists.
 
         Raises:
             ValueError: If no data has been loaded.
+
+        Example:
+            >>> cv.add_connection(Connections(network='LinkedIn', username='johndoe'))
+            'Successfully added: LinkedIn'
         """
         if self.data is None:
             raise ValueError("No data loaded")
@@ -530,12 +600,10 @@ class create_Render_CV:
         if connectionInfo.network in existing_social_networks:
             return "Connection already exists in Resume"
 
-        if connectionInfo.network not in existing_social_networks:
-            self.data['cv']['social_networks'].append(connectionInfo.to_dict())
-            self._auto_save_if_enabled()
-            return f"Successfully added: {connectionInfo.network}"
-
-        return "error cannot add New connection"
+        # Add the new connection and save
+        self.data['cv']['social_networks'].append(connectionInfo.to_dict())
+        self._auto_save_if_enabled()
+        return f"Successfully added: {connectionInfo.network}"
 
     def update_theme(self, selected_theme: str):
         self.data['design']['theme'] = selected_theme
@@ -577,5 +645,3 @@ class create_Render_CV:
             cv['name'] = name
         self._auto_save_if_enabled()
         return self
-
-
