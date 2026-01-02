@@ -9,6 +9,7 @@ Produces canonical reports compatible with oop_aggregator.
 from pathlib import Path
 from typing import Dict, Any, List, Set
 import javalang
+from src.analyzers.class_info import ClassInfo
 
 from javalang.tree import (
     ClassDeclaration, MethodDeclaration, ConstructorDeclaration,
@@ -88,7 +89,7 @@ def find_this_assignments(method_node) -> Set[str]:
     attrs = set()
     for n in iter_nodes(method_node):
         if isinstance(n, Assignment):
-            lhs = n.expressionl
+            lhs = getattr(n, "expressionl", None)
             try:
                 if isinstance(lhs, MemberReference) and lhs.qualifier == 'this' and lhs.member:
                     attrs.add(lhs.member)
