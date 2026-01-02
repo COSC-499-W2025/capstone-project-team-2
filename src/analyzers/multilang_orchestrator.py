@@ -1,7 +1,7 @@
 """
 Multi-Language OOP Orchestrator
 
-Analyzes projects containing Python, Java, and C source files,
+Analyzes projects containing Python, Java, Javascript and C source files,
 merging results into a single unified OOP metrics report.
 """
 
@@ -15,10 +15,10 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 from src.analyzers.c.c_oop_analyzer import analyze_source as analyze_c_source
 from src.analyzers.python.python_oop_analyzer import PythonOOPAstAnalyzer, ClassInfo
 from src.analyzers.java.java_analyzer import analyze_source as analyze_java_source, per_file_to_classinfo_list
-
+from src.analyzers.javascript.javascript_oop_analyzer import JavaScriptOOPAnalyzer
 
 class MultiLangOrchestrator:
-    """Orchestrator for analyzing multi-language (Python + Java + C) projects.
+    """Orchestrator for analyzing multi-language (Python + Java + C + Javascript) projects.
     Merges analysis results into a unified OOP metrics report.
     """
 
@@ -28,10 +28,13 @@ class MultiLangOrchestrator:
         """Initialize with the project root directory."""
         self.root = Path(project_root).resolve()
         self.py_analyzer = PythonOOPAstAnalyzer(self.root)
+        self.js_analyzer = JavaScriptOOPAnalyzer(self.root)
 
-    def discover_files(self) -> Tuple[List[Path], List[Path], List[Path]]:
-        """Discover all Python, Java, and C files, skipping common ignore dirs."""
-        py_files, java_files, c_files = [], [], []
+    def discover_files(self) -> Tuple[List[Path], List[Path], List[Path], List[Path]]:
+        """Discover all Python, Java, JavaScript, and C files, skipping common ignore dirs."""
+        
+        py_files, java_files, js_files, c_files = [], [], [], []
+
         for p in self.root.rglob("*"):
             if any(part in self.IGNORE_DIRS for part in p.parts) or not p.is_file():
                 continue
@@ -39,9 +42,12 @@ class MultiLangOrchestrator:
                 py_files.append(p)
             elif p.suffix == ".java":
                 java_files.append(p)
+            elif p.suffix == ".js":
+                js_files.append(p)
             elif p.suffix in (".c", ".h"):
                 c_files.append(p)
-        return py_files, java_files, c_files
+
+        return py_files, java_files, js_files, c_files
 
     def _merge_java_file(self, per_file: Dict[str, Any]) -> None:
         """Merge a single Java file's analysis into the Python analyzer."""
@@ -102,12 +108,52 @@ class MultiLangOrchestrator:
             self.py_analyzer.complexity_stats["max_loop_depth"],
             cx.get("max_loop_depth", 0)
         )
+        
+    def _merge_js_metrics(self, js_metrics: Dict[str, Any]) -> None:
+        """
+        Merge JavaScript analyzer metrics into the Python analyzer accumulator.
+        """
+
+        # Merge class infos
+        for report in js_metrics.get("reports", []):
+            for cls in report.get("classes", []):
+                self.py_analyzer.class_infos.append(
+                    ClassInfo(
+                        name=cls["name"],
+                        module=report.get("module", ""),
+                        file_path=Path(report["file"]),
+                        bases=cls.get("bases", []),
+                        methods=set(cls.get("methods", [])),
+                        has_init=cls.get("has_constructor", False),
+                        dunder_methods=len(cls.get("special_methods", [])),
+                        private_attrs=set(cls.get("private_attrs", [])),
+                        public_attrs=set(cls.get("public_attrs", [])),
+                    )
+                )
+
+        # Merge data structures
+        ds = js_metrics.get("data_structures", {})
+        for key in ("list_literals", "dict_literals", "set_literals"):
+            self.py_analyzer.ds_counts[key] += ds.get(key, 0)
+
+        # Merge complexity
+        cx = js_metrics.get("complexity", {})
+        self.py_analyzer.complexity_stats["total_functions"] += cx.get("total_functions", 0)
+        self.py_analyzer.complexity_stats["functions_with_nested_loops"] += cx.get(
+            "functions_with_nested_loops", 0
+        )
+        self.py_analyzer.complexity_stats["max_loop_depth"] = max(
+            self.py_analyzer.complexity_stats["max_loop_depth"],
+            cx.get("max_loop_depth", 0),
+        )
+
 
     def analyze(self) -> Dict[str, Any]:
-        """Analyze all Python, Java, and C files and return unified OOP metrics."""
-        py_files, java_files, c_files = self.discover_files()
-        # Include all files in the count for accurate "files_analyzed" metric
-        self.py_analyzer.python_files = py_files + java_files + c_files
+        """Analyze all Python, Java, Javascript and C files and return unified OOP metrics."""
+        py_files, java_files, js_files, c_files = self.discover_files()
+        
+        # Include all files for accurate file count
+        self.py_analyzer.python_files = py_files + java_files + js_files + c_files
 
         # Analyze Python files
         for p in py_files:
@@ -136,6 +182,11 @@ class MultiLangOrchestrator:
                 self._merge_c_file(per_file)
             else:
                 self.py_analyzer.syntax_errors.append(cpath)
+                
+        # Analyze JavaScript files
+        if js_files:
+            js_metrics = self.js_analyzer.analyze()
+            self._merge_js_metrics(js_metrics)
 
         return self.py_analyzer.compute_metrics()
 
