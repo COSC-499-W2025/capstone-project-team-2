@@ -1,6 +1,6 @@
 import unittest
-from src.resume_pdf_generator import SimpleResumeGenerator
-from src.Generate_AI_Resume import GenerateProjectResume
+from src.reporting.resume_pdf_generator import SimpleResumeGenerator
+from src.reporting.Generate_AI_Resume import GenerateProjectResume
 from pathlib import Path
 import tempfile
 import os
