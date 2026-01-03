@@ -11,6 +11,7 @@ from src.reporting.Generate_RenderCV_Resume import (
     Education,
     Connections,
     Project,
+    Skills,
     create_Render_CV
 )
 
@@ -512,6 +513,165 @@ class TestThemes(unittest.TestCase):
         result = self.cv.update_theme('classic')
         self.assertEqual(result, "Successfully updated: classic")
         self.assertEqual(self.cv.data['design']['theme'], 'classic')
+
+
+class TestCreateRenderCVSkills(unittest.TestCase):
+    """Tests for skill-related methods."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        self.test_dir = tempfile.mkdtemp()
+        self.original_cwd = os.getcwd()
+        os.chdir(self.test_dir)
+        self.cv = create_Render_CV(auto_save=False)
+        self.cv.generate_starter_file(name="Test User")
+        self.cv.load_starter_file()
+
+    def tearDown(self):
+        """Clean up test fixtures."""
+        os.chdir(self.original_cwd)
+        shutil.rmtree(self.test_dir, ignore_errors=True)
+
+    def test_add_skills_success(self):
+        """Test adding a skill successfully."""
+        skill = Skills(label="Testing", details="Unit testing, Integration testing")
+        result = self.cv.add_skills(skill)
+        self.assertEqual(result, "Successfully added skills")
+
+    def test_add_skills_without_data_raises_error(self):
+        """Test that adding skill without loaded data raises ValueError."""
+        cv = create_Render_CV()
+        skill = Skills(label="Testing", details="Unit testing")
+        with self.assertRaises(ValueError):
+            cv.add_skills(skill)
+
+    def test_add_skills_duplicate_rejected(self):
+        """Test that duplicate skills are rejected."""
+        skill = Skills(label="Languages", details="Python, Java")  # Already exists in starter
+        result = self.cv.add_skills(skill)
+        self.assertEqual(result, "Duplicate label/skills")
+
+    def test_add_skills_creates_section_if_missing(self):
+        """Test that skills section is created if it doesn't exist."""
+        del self.cv.data['cv']['sections']['skills']
+        self.cv.current_skills = []
+        skill = Skills(label="New Skill", details="Details here")
+        self.cv.add_skills(skill)
+        self.assertIn('skills', self.cv.data['cv']['sections'])
+
+    def test_modify_skill_success(self):
+        """Test modifying a skill successfully."""
+        result = self.cv.modify_skill("Languages", "Python, Java, Go, Rust")
+        self.assertEqual(result, "Successfully modified skill")
+        # Verify the skill was actually modified
+        skill = next((s for s in self.cv.current_skills if s.get('label') == 'Languages'), None)
+        self.assertEqual(skill['details'], "Python, Java, Go, Rust")
+
+    def test_modify_skill_without_data_raises_error(self):
+        """Test that modifying skill without loaded data raises ValueError."""
+        cv = create_Render_CV()
+        with self.assertRaises(ValueError):
+            cv.modify_skill("Languages", "Python")
+
+    def test_modify_skill_not_found(self):
+        """Test modifying a non-existent skill."""
+        result = self.cv.modify_skill("Nonexistent Skill", "Some details")
+        self.assertEqual(result, "Skill not found.")
+
+    def test_delete_skill_success(self):
+        """Test deleting a skill successfully."""
+        result = self.cv.delete_skill("Languages")
+        self.assertEqual(result, "Successfully deleted chosen skill")
+        # Verify the skill was actually deleted
+        skill = next((s for s in self.cv.current_skills if s.get('label') == 'Languages'), None)
+        self.assertIsNone(skill)
+
+    def test_delete_skill_without_data_raises_error(self):
+        """Test that deleting skill without loaded data raises ValueError."""
+        cv = create_Render_CV()
+        with self.assertRaises(ValueError):
+            cv.delete_skill("Languages")
+
+    def test_delete_skill_not_found(self):
+        """Test deleting a non-existent skill."""
+        result = self.cv.delete_skill("Nonexistent Skill")
+        self.assertEqual(result, "skill not found")
+
+    def test_delete_skill_no_skills_section(self):
+        """Test deleting when no skills section exists."""
+        del self.cv.data['cv']['sections']['skills']
+        self.cv.current_skills = []
+        result = self.cv.delete_skill("Languages")
+        self.assertEqual(result, "No skills found to be deleted.")
+
+
+class TestCreateRenderCVConnectionModifications(unittest.TestCase):
+    """Tests for connection modification and deletion methods."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        self.test_dir = tempfile.mkdtemp()
+        self.original_cwd = os.getcwd()
+        os.chdir(self.test_dir)
+        self.cv = create_Render_CV(auto_save=False)
+        self.cv.generate_starter_file(name="Test User")
+        self.cv.load_starter_file()
+
+    def tearDown(self):
+        """Clean up test fixtures."""
+        os.chdir(self.original_cwd)
+        shutil.rmtree(self.test_dir, ignore_errors=True)
+
+    def test_modify_connection_success(self):
+        """Test modifying a connection username successfully."""
+        result = self.cv.modify_connection("LinkedIn", "new_linkedin_user")
+        self.assertEqual(result, "Successfully updated connection LinkedIn")
+        # Verify the connection was actually modified
+        conn = next((c for c in self.cv.current_connections if c.get('network') == 'LinkedIn'), None)
+        self.assertEqual(conn['username'], "new_linkedin_user")
+
+    def test_modify_connection_without_data_raises_error(self):
+        """Test that modifying connection without loaded data raises ValueError."""
+        cv = create_Render_CV()
+        with self.assertRaises(ValueError):
+            cv.modify_connection("LinkedIn", "newuser")
+
+    def test_modify_connection_not_found(self):
+        """Test modifying a non-existent connection."""
+        result = self.cv.modify_connection("Twitter", "testuser")
+        self.assertEqual(result, "Network Twitter Cannot be found.")
+
+    def test_delete_connection_success(self):
+        """Test deleting a connection successfully."""
+        result = self.cv.delete_connection("LinkedIn")
+        self.assertEqual(result, "Successfully deleted connection: LinkedIn")
+        # Verify the connection was actually deleted
+        conn = next((c for c in self.cv.current_connections if c.get('network') == 'LinkedIn'), None)
+        self.assertIsNone(conn)
+
+    def test_delete_connection_without_data_raises_error(self):
+        """Test that deleting connection without loaded data raises ValueError."""
+        cv = create_Render_CV()
+        with self.assertRaises(ValueError):
+            cv.delete_connection("LinkedIn")
+
+    def test_delete_connection_not_found(self):
+        """Test deleting a non-existent connection."""
+        result = self.cv.delete_connection("Twitter")
+        self.assertEqual(result, "Connection 'Twitter' not found")
+
+    def test_delete_connection_no_connections(self):
+        """Test deleting when no social_networks section exists."""
+        del self.cv.data['cv']['social_networks']
+        result = self.cv.delete_connection("LinkedIn")
+        self.assertEqual(result, "No connections to delete")
+
+    def test_delete_connection_empty_list(self):
+        """Test deleting when social_networks is empty list."""
+        self.cv.data['cv']['social_networks'] = []
+        self.cv.current_connections = []
+        result = self.cv.delete_connection("LinkedIn")
+        self.assertEqual(result, "No connections to delete")
 
 
 if __name__ == '__main__':
