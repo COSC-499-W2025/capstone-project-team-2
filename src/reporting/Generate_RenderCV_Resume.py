@@ -14,6 +14,17 @@ from typing import Optional, List, Any
 
 
 @dataclass()
+class Skills:
+    """Represents a skills section in a CV/Resume YAML file."""
+    label: str
+    details: str
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary, excluding None values"""
+        return {k: v for k, v in asdict(self).items() if v is not None}
+
+
+@dataclass()
 class Education:
     """Represents an education entry in a CV."""
     institution: str
@@ -81,6 +92,7 @@ class create_Render_CV:
         self.current_projects = None  # Cached list of project dictionaries
         self.current_education = None
         self.current_connections = None
+        self.current_skills = None
         self.name = None  # Sanitized name for filename
         self.yaml = ruamel.yaml.YAML()  # YAML parser instance
         self.yaml.preserve_quotes = True  # Maintain original quote style when saving
@@ -191,7 +203,7 @@ class create_Render_CV:
         with open(self.yaml_file, 'w') as f:
             self.yaml.dump(resume_template, f)
 
-        print(f"Starter resume file has been generated with '{self.theme}' theme")
+        print(f"Starter resume file has been generated with '{self.chosen_theme}' theme")
         return "Success"
 
     def load_starter_file(self):
@@ -222,6 +234,7 @@ class create_Render_CV:
         self.data['cv']['name'] = str(self.name).replace("_", " ")
         self.current_education = self.data['cv']['sections']['education']
         self.current_connections = self.data['cv']['social_networks']
+        self.current_skills = self.data['cv']['sections']['skills']
 
         return self.data
 
@@ -334,6 +347,113 @@ class create_Render_CV:
 
         return f"Project {project_name} not found."
 
+    def add_skills(self, skillToAdd: Skills):
+        """Add a skill entry to the CV.
+
+        Adds a new skill category with its associated details to the skills
+        section. Duplicate skill labels are not allowed.
+
+        Args:
+            skillToAdd: Skills dataclass containing:
+                - label: The skill category name (e.g., 'Languages', 'Frameworks')
+                - details: Comma-separated list of specific skills
+
+        Returns:
+            str: "Successfully added skills" if added successfully,
+                 "Duplicate label/skills" if the skill label already exists.
+
+        Raises:
+            ValueError: If no data has been loaded.
+
+        Example:
+            >>> cv.add_skills(Skills(label='Databases', details='PostgreSQL, MongoDB'))
+            'Successfully added skills'
+        """
+        if self.data is None:
+            raise ValueError("No data loaded")
+
+        current_skills = [s['label'] for s in self.current_skills]
+
+        if 'skills' not in self.data['cv']['sections']:
+            self.data['cv']['sections']['skills'] = []
+
+        if skillToAdd.label in current_skills:
+            return "Duplicate label/skills"
+
+        if skillToAdd.label not in current_skills:
+            self.current_skills.append(skillToAdd.to_dict())
+            self._auto_save_if_enabled()
+
+        return "Successfully added skills"
+
+    def modify_skill(self, skillToModify: str, new_value: str):
+        """Modify the details of an existing skill in the CV.
+
+        Updates the details (specific skills list) for a skill category
+        identified by its label.
+
+        Args:
+            skillToModify: The label of the skill category to modify
+                           (e.g., 'Languages', 'Frameworks').
+            new_value: The new details string to replace the existing one.
+
+        Returns:
+            str: "Successfully modified skill" if updated successfully,
+                 "Skill not found." if the specified skill label doesn't exist.
+
+        Raises:
+            ValueError: If no data has been loaded.
+
+        Example:
+            >>> cv.modify_skill('Languages', 'Python, Java, Go, Rust')
+            'Successfully modified skill'
+        """
+        if self.data is None:
+            raise ValueError("No data loaded")
+        skill_to_update = next((skill for skill in self.current_skills if skill.get('label') == skillToModify), None)
+        if skill_to_update:
+            skill_to_update["details"] = new_value
+            self._auto_save_if_enabled()
+            return "Successfully modified skill"
+
+        return "Skill not found."
+
+    def delete_skill(self, skillName: str):
+        """Delete a skill entry from the CV.
+
+        Removes a skill category and its associated details from the
+        skills section.
+
+        Args:
+            skillName: The label of the skill category to delete
+                       (e.g., 'Languages', 'Frameworks').
+
+        Returns:
+            str: "Successfully deleted chosen skill" if deleted successfully,
+                 "skill not found" if the specified skill label doesn't exist,
+                 "No skills found to be deleted." if the skills section is empty.
+
+        Raises:
+            ValueError: If no data has been loaded.
+
+        Example:
+            >>> cv.delete_skill('Frameworks')
+            'Successfully deleted chosen skill'
+        """
+        if self.data is None:
+            raise ValueError("No data loaded")
+
+        if 'skills' not in self.data['cv']['sections'] or not self.current_skills:
+            return "No skills found to be deleted."
+        skill_to_remove = next((skill for skill in self.current_skills if skill.get('label') == skillName), None)
+
+        if skill_to_remove:
+            self.current_skills.remove(skill_to_remove)
+            self._auto_save_if_enabled()
+            return "Successfully deleted chosen skill"
+
+        return "skill not found"
+
     def add_education(self, education_info: Education):
         """Add an education entry to the CV.
 
@@ -373,11 +493,13 @@ class create_Render_CV:
         if 'education' not in self.data['cv']['sections'] or not self.data['cv']['sections']['education']:
             return "No education to be deleted"
 
-        for pos, education in enumerate(self.current_education):
-            if education.get('institution') == InstutionName:
-                del self.current_education[pos]
-                self._auto_save_if_enabled()
-                return "Successfully deleted education"
+        education_to_remove_from_system = next(
+            (edu for edu in self.current_education if edu.get("institution") == InstutionName), None
+        )
+        if education_to_remove_from_system:
+            self.current_education.remove(education_to_remove_from_system)
+            self._auto_save_if_enabled()
+            return "Successfully deleted education"
 
         return f"Education {InstutionName} not found."
 
