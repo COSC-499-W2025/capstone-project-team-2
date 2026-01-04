@@ -103,6 +103,7 @@ class create_Render_CV:
                    'engineeringresumes', 'moderncv', 'sb2nov'. Defaults to 'sb2nov' (resume).
             output_dir: Directory for rendered output files. Defaults to 'rendercv_output'.
         """
+        self.summary = None
         self.current_experience = None
         self.resume_section = None  # List of section names (populated by load_starter_file)
         self.current_projects = None  # Cached list of project dictionaries
@@ -252,6 +253,7 @@ class create_Render_CV:
         self.current_connections = self.data['cv']['social_networks']
         self.current_skills = self.data['cv']['sections']['skills']
         self.current_experience = self.data['cv']['sections']['experience']
+        self.summary = self.data['cv']['sections']['summary']
 
         return self.data
 
@@ -320,6 +322,17 @@ class create_Render_CV:
             source_pdf = default_output / source_filename
             return "successfully rendered", source_pdf
 
+    def Update_summary(self, new_content_summary: str):
+        if self.data is None:
+            raise ValueError("No data loaded")
+
+        if 'summary' not in self.data['cv']['sections']:
+            self.data['cv']['sections']['summary'] = []
+
+        self.data['cv']['summary'] = new_content_summary
+        self._auto_save_if_enabled()
+        return "summary has been updated successfully"
+
     def remove_section(self, section_to_remove_num: int):
         """Remove a section from the CV by its index.
 
@@ -365,20 +378,6 @@ class create_Render_CV:
         return f"Project {project_name} not found."
 
     def add_skills(self, skillToAdd: Skills):
-        """Add a skill entry to the CV.
-
-        Args:
-            skillToAdd: Skills dataclass containing:
-                - label: Category name for the skill (e.g., 'Languages', 'Frameworks')
-                - details: Comma-separated list of skills in that category
-
-        Returns:
-            str: 'Successfully added skills' if added, or 'Duplicate label/skills'
-                 if a skill with the same label already exists.
-
-        Raises:
-            ValueError: If no data has been loaded.
-        """
         if self.data is None:
             raise ValueError("No data loaded")
 
@@ -397,23 +396,6 @@ class create_Render_CV:
         return "Successfully added skills"
 
     def modify_skill(self, skillToModify: str, new_value: str):
-        """Modify the details of an existing skill entry.
-
-        Updates the details/content of a skill category while preserving
-        the label.
-
-        Args:
-            skillToModify: The label of the skill category to modify
-                           (e.g., 'Languages', 'Frameworks').
-            new_value: The new details string to replace the existing one.
-
-        Returns:
-            str: 'Successfully modified skill' if updated, or 'Skill not found.'
-                 if no skill with the given label exists.
-
-        Raises:
-            ValueError: If no data has been loaded.
-        """
         if self.data is None:
             raise ValueError("No data loaded")
         skill_to_update = next((skill for skill in self.current_skills if skill.get('label') == skillToModify), None)
@@ -425,23 +407,6 @@ class create_Render_CV:
         return "Skill not found."
 
     def delete_skill(self, skillName: str):
-        """Delete a skill entry from the CV.
-
-        Removes a skill category and its associated details from the
-        CV's skills section.
-
-        Args:
-            skillName: The label of the skill category to delete
-                       (e.g., 'Languages', 'Frameworks').
-
-        Returns:
-            str: 'Successfully deleted chosen skill' if removed,
-                 'No skills found to be deleted.' if skills section is empty,
-                 or 'skill not found' if no skill with the given label exists.
-
-        Raises:
-            ValueError: If no data has been loaded.
-        """
         if self.data is None:
             raise ValueError("No data loaded")
 
@@ -478,6 +443,37 @@ class create_Render_CV:
         self.current_experience.append(experienceToAdd.to_dict())
         self._auto_save_if_enabled()
         return "Successfully added experience"
+
+    def remove_experience(self, experience_name: str):
+        """Remove a work experience entry from the CV by company name.
+
+        Searches for an experience entry matching the given company name
+        and removes it from the CV's experience section.
+
+        Args:
+            experience_name: The company name of the experience entry to remove.
+
+        Returns:
+            str: Success message if the experience was removed, or error message
+                 if no experience section exists or the company was not found.
+
+        Raises:
+            ValueError: If no CV data is currently loaded.
+        """
+        if self.data is None:
+            raise ValueError("No data loaded")
+
+        if 'experience' not in self.data['cv']['sections'] or not self.data['cv']['sections']['experience']:
+            return "Experience not found."
+
+        experience_to_remove_from_system = next(
+            (ex for ex in self.current_experience if ex.get("company") == experience_name), None)
+
+        if experience_to_remove_from_system:
+            self.current_experience.remove(experience_to_remove_from_system)
+            self._auto_save_if_enabled()
+            return "Successfully removed experience from system"
+        return f"Experience {experience_name} not found."
 
     def add_education(self, education_info: Education):
         """Add an education entry to the CV.
