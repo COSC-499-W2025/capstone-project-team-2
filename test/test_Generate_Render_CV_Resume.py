@@ -58,7 +58,7 @@ class TestCreateRenderCV(unittest.TestCase):
         cv = create_Render_CV()
         cv.generate_starter_file(name="John Doe")
         self.assertEqual(cv.name, "John_Doe")
-        self.assertEqual(cv.yaml_file, Path("John_Doe_CV.yaml"))
+        self.assertEqual(cv.yaml_file, Path("RenderedCV/John_Doe_CV.yaml"))
 
     def test_generate_starter_file_skip_existing(self):
         """Test that existing file is skipped when overwrite is False."""
@@ -97,6 +97,19 @@ class TestCreateRenderCV(unittest.TestCase):
         cv.load_starter_file()
         self.assertIsNotNone(cv.resume_section)
         self.assertIn('education', cv.resume_section)
+
+    def test_load_starter_file_with_name_parameter(self):
+        """Test loading a file by name without calling generate_starter_file first."""
+        # First create a file
+        cv1 = create_Render_CV()
+        cv1.generate_starter_file(name="Named User")
+
+        # Now load it using only the name parameter
+        cv2 = create_Render_CV()
+        data = cv2.load_starter_file(name="Named User")
+        self.assertIsNotNone(data)
+        self.assertEqual(cv2.name, "Named_User")
+        self.assertEqual(cv2.yaml_file, Path("RenderedCV/Named_User_CV.yaml"))
 
     def test_save_without_data_raises_error(self):
         """Test that saving without loaded data raises ValueError."""
