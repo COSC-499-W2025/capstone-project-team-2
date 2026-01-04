@@ -12,6 +12,7 @@ from src.reporting.Generate_RenderCV_Resume import (
     Connections,
     Project,
     Skills,
+    Experience,
     create_Render_CV
 )
 
@@ -186,6 +187,84 @@ class TestCreateRenderCVEducation(unittest.TestCase):
         del self.cv.data['cv']['sections']['education']
         result = self.cv.delete_education("Test")
         self.assertEqual(result, "No education to be deleted")
+
+
+class TestCreateRenderCVExperience(unittest.TestCase):
+    """Tests for experience-related methods."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        self.test_dir = tempfile.mkdtemp()
+        self.original_cwd = os.getcwd()
+        os.chdir(self.test_dir)
+        self.cv = create_Render_CV(auto_save=False)
+        self.cv.generate_starter_file(name="Test User")
+        self.cv.load_starter_file()
+
+    def tearDown(self):
+        """Clean up test fixtures."""
+        os.chdir(self.original_cwd)
+        shutil.rmtree(self.test_dir, ignore_errors=True)
+
+    def test_add_experience_success(self):
+        """Test adding an experience entry successfully."""
+        exp = Experience(
+            company="New Company",
+            position="Software Engineer",
+            start_date="2023-01",
+            end_date="2023-12",
+            location="Remote",
+            highlights=["Built features", "Fixed bugs"]
+        )
+        result = self.cv.add_experience(exp)
+        self.assertEqual(result, "Successfully added experience")
+
+    def test_add_experience_without_data_raises_error(self):
+        """Test that adding experience without loaded data raises ValueError."""
+        cv = create_Render_CV()
+        exp = Experience(company="Test Company", position="Developer")
+        with self.assertRaises(ValueError):
+            cv.add_experience(exp)
+
+    def test_add_experience_creates_section_if_missing(self):
+        """Test that experience section is created if it doesn't exist."""
+        del self.cv.data['cv']['sections']['experience']
+        self.cv.current_experience = []
+        exp = Experience(company="New Company", position="Developer")
+        self.cv.add_experience(exp)
+        self.assertIn('experience', self.cv.data['cv']['sections'])
+
+    def test_remove_experience_success(self):
+        """Test removing an experience entry successfully."""
+        result = self.cv.remove_experience("Company Name")
+        self.assertEqual(result, "Successfully removed experience from system")
+        # Verify the experience was actually removed
+        exp = next((e for e in self.cv.current_experience if e.get('company') == 'Company Name'), None)
+        self.assertIsNone(exp)
+
+    def test_remove_experience_without_data_raises_error(self):
+        """Test that removing experience without loaded data raises ValueError."""
+        cv = create_Render_CV()
+        with self.assertRaises(ValueError):
+            cv.remove_experience("Test Company")
+
+    def test_remove_experience_not_found(self):
+        """Test removing a non-existent experience entry."""
+        result = self.cv.remove_experience("Nonexistent Company")
+        self.assertEqual(result, "Experience Nonexistent Company not found.")
+
+    def test_remove_experience_no_experience_section(self):
+        """Test removing when no experience section exists."""
+        del self.cv.data['cv']['sections']['experience']
+        result = self.cv.remove_experience("Test Company")
+        self.assertEqual(result, "Experience not found.")
+
+    def test_remove_experience_empty_list(self):
+        """Test removing when experience section is empty."""
+        self.cv.data['cv']['sections']['experience'] = []
+        self.cv.current_experience = []
+        result = self.cv.remove_experience("Test Company")
+        self.assertEqual(result, "Experience not found.")
 
 
 class TestCreateRenderCVProjects(unittest.TestCase):
