@@ -138,7 +138,12 @@ class create_Render_CV:
             None
         """
         self.name = name.replace(" ", "_")
-        self.yaml_file = Path(f"{self.name}_CV.yaml")
+
+        # Create RenderedCV folder if it doesn't exist
+        rendered_cv_dir = Path("RenderedCV")
+        rendered_cv_dir.mkdir(exist_ok=True)
+
+        self.yaml_file = rendered_cv_dir / f"{self.name}_CV.yaml"
         if self.yaml_file.exists():
             if overwrite:
                 # Remove existing file before regenerating
@@ -223,11 +228,15 @@ class create_Render_CV:
         print(f"Starter resume file has been generated with '{self.chosen_theme}' theme")
         return "Success"
 
-    def load_starter_file(self):
+    def load_starter_file(self, name: str = None):
         """Load the YAML file into memory for editing.
 
         Parses the YAML file and initializes instance attributes for
         sections and projects. Must be called before any modification methods.
+
+        Args:
+            name: Optional name to load an existing file from RenderedCV folder
+                  without calling generate_starter_file() first.
 
         Returns:
             dict: The loaded YAML data structure.
@@ -235,6 +244,12 @@ class create_Render_CV:
         Raises:
             FileNotFoundError: If the YAML file doesn't exist.
         """
+        # If name is provided, set yaml_file path to RenderedCV folder
+        if name:
+            self.name = name.replace(" ", "_")
+            rendered_cv_dir = Path("RenderedCV")
+            self.yaml_file = rendered_cv_dir / f"{self.name}_CV.yaml"
+
         if not self.yaml_file.exists():
             raise FileNotFoundError(f"File {self.yaml_file} does not exist "
                                     f"Run generate_starter_file() first.")
@@ -445,21 +460,6 @@ class create_Render_CV:
         return "Successfully added experience"
 
     def remove_experience(self, experience_name: str):
-        """Remove a work experience entry from the CV by company name.
-
-        Searches for an experience entry matching the given company name
-        and removes it from the CV's experience section.
-
-        Args:
-            experience_name: The company name of the experience entry to remove.
-
-        Returns:
-            str: Success message if the experience was removed, or error message
-                 if no experience section exists or the company was not found.
-
-        Raises:
-            ValueError: If no CV data is currently loaded.
-        """
         if self.data is None:
             raise ValueError("No data loaded")
 
