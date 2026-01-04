@@ -91,18 +91,15 @@ class create_Render_CV:
     the RenderCV command-line tool.
     """
 
-    # Available RenderCV themes
-
     def __init__(self, auto_save: bool = True, output_dir: str = 'rendercv_output'):
         """Initialize the CV/Resume builder.
 
         Args:
-            name: The name to use for the file (spaces will be replaced with underscores).
             auto_save: If True, automatically save after each modification. Defaults to True.
-            theme: RenderCV theme to use. Options: 'classic', 'engineeringclassic',
-                   'engineeringresumes', 'moderncv', 'sb2nov'. Defaults to 'sb2nov' (resume).
             output_dir: Directory for rendered output files. Defaults to 'rendercv_output'.
         """
+        # CV files directory
+        self.cv_files_dir = Path(__file__).parent.parent.parent / "User_config_files" / "Generate_render_CV_files"
         self.summary = None
         self.current_experience = None
         self.resume_section = None  # List of section names (populated by load_starter_file)
@@ -139,11 +136,10 @@ class create_Render_CV:
         """
         self.name = name.replace(" ", "_")
 
-        # Create RenderedCV folder if it doesn't exist
-        rendered_cv_dir = Path("RenderedCV")
-        rendered_cv_dir.mkdir(exist_ok=True)
+        # Create CV files directory if it doesn't exist
+        self.cv_files_dir.mkdir(parents=True, exist_ok=True)
 
-        self.yaml_file = rendered_cv_dir / f"{self.name}_CV.yaml"
+        self.yaml_file = self.cv_files_dir / f"{self.name}_CV.yaml"
         if self.yaml_file.exists():
             if overwrite:
                 # Remove existing file before regenerating
@@ -244,11 +240,10 @@ class create_Render_CV:
         Raises:
             FileNotFoundError: If the YAML file doesn't exist.
         """
-        # If name is provided, set yaml_file path to RenderedCV folder
+        # If name is provided, set yaml_file path to CV files directory
         if name:
             self.name = name.replace(" ", "_")
-            rendered_cv_dir = Path("RenderedCV")
-            self.yaml_file = rendered_cv_dir / f"{self.name}_CV.yaml"
+            self.yaml_file = self.cv_files_dir / f"{self.name}_CV.yaml"
 
         if not self.yaml_file.exists():
             raise FileNotFoundError(f"File {self.yaml_file} does not exist "
@@ -321,9 +316,7 @@ class create_Render_CV:
         # Use instance output_dir if not specified
         target_dir = Path(output_dir).absolute() if output_dir else self.output_dir.absolute()
 
-        # Render to default rendercv_output folder
-
-        # print(self.yaml_file)
+        # Render to rendercv_output folder (created next to the YAML file)
         result_for_rendering = subprocess.run(
             ['rendercv', 'render', str(self.yaml_file)],
             capture_output=True,
@@ -331,11 +324,19 @@ class create_Render_CV:
             encoding='utf-8',
             errors='replace'
         )
-        if result_for_rendering.returncode != 0:
-            default_output = Path('rendercv_output')
-            source_filename = f"{self.name}_CV.pdf"
-            source_pdf = default_output / source_filename
+        # rendercv creates output folder next to the yaml file
+        # Use absolute path to ensure we find the file regardless of working directory
+        yaml_file_absolute = self.yaml_file.resolve()
+        default_output = yaml_file_absolute.parent / 'rendercv_output'
+        source_filename = f"{self.name}_CV.pdf"
+        source_pdf = default_output / source_filename
+
+        # Check if PDF exists (rendercv may return non-zero due to Windows console encoding issues
+        # even when the PDF was successfully generated)
+        if source_pdf.exists():
             return "successfully rendered", source_pdf
+        else:
+            return f"render failed - PDF not found at {source_pdf}", None
 
     def Update_summary(self, new_content_summary: str):
         if self.data is None:
