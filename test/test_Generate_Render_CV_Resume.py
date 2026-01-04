@@ -30,6 +30,11 @@ class TestCreateRenderCV(unittest.TestCase):
         """Clean up test fixtures."""
         os.chdir(self.original_cwd)
         shutil.rmtree(self.test_dir, ignore_errors=True)
+        # Clean up test files from project directory
+        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
+        for pattern in ["Test_User_CV.yaml", "John_Doe_CV.yaml", "Named_User_CV.yaml"]:
+            for f in cv_dir.glob(pattern):
+                f.unlink(missing_ok=True)
 
     def test_init_default_values(self):
         """Test initialization with default values."""
@@ -58,7 +63,8 @@ class TestCreateRenderCV(unittest.TestCase):
         cv = create_Render_CV()
         cv.generate_starter_file(name="John Doe")
         self.assertEqual(cv.name, "John_Doe")
-        self.assertEqual(cv.yaml_file, Path("RenderedCV/John_Doe_CV.yaml"))
+        # Check that the yaml_file path ends with the correct structure
+        self.assertTrue(str(cv.yaml_file).endswith("User_config_files/Generate_render_CV_files/John_Doe_CV.yaml".replace("/", os.sep)))
 
     def test_generate_starter_file_skip_existing(self):
         """Test that existing file is skipped when overwrite is False."""
@@ -109,7 +115,8 @@ class TestCreateRenderCV(unittest.TestCase):
         data = cv2.load_starter_file(name="Named User")
         self.assertIsNotNone(data)
         self.assertEqual(cv2.name, "Named_User")
-        self.assertEqual(cv2.yaml_file, Path("RenderedCV/Named_User_CV.yaml"))
+        # Check that the yaml_file path ends with the correct structure
+        self.assertTrue(str(cv2.yaml_file).endswith("User_config_files/Generate_render_CV_files/Named_User_CV.yaml".replace("/", os.sep)))
 
     def test_save_without_data_raises_error(self):
         """Test that saving without loaded data raises ValueError."""
@@ -152,6 +159,10 @@ class TestCreateRenderCVEducation(unittest.TestCase):
         """Clean up test fixtures."""
         os.chdir(self.original_cwd)
         shutil.rmtree(self.test_dir, ignore_errors=True)
+        # Clean up test files from project directory
+        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
+        for f in cv_dir.glob("Test_User_CV.yaml"):
+            f.unlink(missing_ok=True)
 
     def test_add_education_success(self):
         """Test adding education entry successfully."""
@@ -218,6 +229,10 @@ class TestCreateRenderCVExperience(unittest.TestCase):
         """Clean up test fixtures."""
         os.chdir(self.original_cwd)
         shutil.rmtree(self.test_dir, ignore_errors=True)
+        # Clean up test files from project directory
+        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
+        for f in cv_dir.glob("Test_User_CV.yaml"):
+            f.unlink(missing_ok=True)
 
     def test_add_experience_success(self):
         """Test adding an experience entry successfully."""
@@ -296,6 +311,10 @@ class TestCreateRenderCVProjects(unittest.TestCase):
         """Clean up test fixtures."""
         os.chdir(self.original_cwd)
         shutil.rmtree(self.test_dir, ignore_errors=True)
+        # Clean up test files from project directory
+        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
+        for f in cv_dir.glob("Test_User_CV.yaml"):
+            f.unlink(missing_ok=True)
 
     def test_add_project_success(self):
         """Test adding a project successfully."""
@@ -383,6 +402,10 @@ class TestCreateRenderCVSections(unittest.TestCase):
         """Clean up test fixtures."""
         os.chdir(self.original_cwd)
         shutil.rmtree(self.test_dir, ignore_errors=True)
+        # Clean up test files from project directory
+        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
+        for f in cv_dir.glob("Test_User_CV.yaml"):
+            f.unlink(missing_ok=True)
 
     def test_remove_section_success(self):
         """Test removing a section successfully."""
@@ -413,6 +436,10 @@ class TestCreateRenderCVContact(unittest.TestCase):
         """Clean up test fixtures."""
         os.chdir(self.original_cwd)
         shutil.rmtree(self.test_dir, ignore_errors=True)
+        # Clean up test files from project directory
+        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
+        for f in cv_dir.glob("Test_User_CV.yaml"):
+            f.unlink(missing_ok=True)
 
     def test_update_contact_email(self):
         """Test updating email."""
@@ -478,6 +505,10 @@ class TestCreateRenderCVConnections(unittest.TestCase):
         """Clean up test fixtures."""
         os.chdir(self.original_cwd)
         shutil.rmtree(self.test_dir, ignore_errors=True)
+        # Clean up test files from project directory
+        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
+        for f in cv_dir.glob("Test_User_CV.yaml"):
+            f.unlink(missing_ok=True)
 
     def test_add_connection_without_data_raises_error(self):
         """Test that adding connection without loaded data raises ValueError."""
@@ -512,6 +543,10 @@ class TestCreateRenderCVAutoSave(unittest.TestCase):
         """Clean up test fixtures."""
         os.chdir(self.original_cwd)
         shutil.rmtree(self.test_dir, ignore_errors=True)
+        # Clean up test files from project directory
+        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
+        for f in cv_dir.glob("Test_User_CV.yaml"):
+            f.unlink(missing_ok=True)
 
     def test_auto_save_enabled_saves_on_modification(self):
         """Test that auto_save triggers save on modification."""
@@ -552,6 +587,10 @@ class TestCreateRenderCVRender(unittest.TestCase):
         """Clean up test fixtures."""
         os.chdir(self.original_cwd)
         shutil.rmtree(self.test_dir, ignore_errors=True)
+        # Clean up test files from project directory
+        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
+        for f in cv_dir.glob("Test_User_CV.yaml"):
+            f.unlink(missing_ok=True)
 
     def test_render_cv_file_not_found(self):
         """Test that render raises error when file doesn't exist."""
@@ -587,6 +626,10 @@ class TestThemes(unittest.TestCase):
         """Clean up test fixtures."""
         os.chdir(self.original_cwd)
         shutil.rmtree(self.test_dir, ignore_errors=True)
+        # Clean up test files from project directory
+        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
+        for f in cv_dir.glob("Test_User_CV.yaml"):
+            f.unlink(missing_ok=True)
 
     def test_available_themes(self):
         """Test that themes dictionary contains expected themes."""
@@ -623,6 +666,10 @@ class TestCreateRenderCVSkills(unittest.TestCase):
         """Clean up test fixtures."""
         os.chdir(self.original_cwd)
         shutil.rmtree(self.test_dir, ignore_errors=True)
+        # Clean up test files from project directory
+        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
+        for f in cv_dir.glob("Test_User_CV.yaml"):
+            f.unlink(missing_ok=True)
 
     def test_add_skills_success(self):
         """Test adding a skill successfully."""
@@ -713,6 +760,10 @@ class TestCreateRenderCVConnectionModifications(unittest.TestCase):
         """Clean up test fixtures."""
         os.chdir(self.original_cwd)
         shutil.rmtree(self.test_dir, ignore_errors=True)
+        # Clean up test files from project directory
+        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
+        for f in cv_dir.glob("Test_User_CV.yaml"):
+            f.unlink(missing_ok=True)
 
     def test_modify_connection_success(self):
         """Test modifying a connection username successfully."""
