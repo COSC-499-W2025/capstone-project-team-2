@@ -14,6 +14,21 @@ from typing import Optional, List, Any
 
 
 @dataclass()
+class Experience:
+    """Represents an experience entry in a CV."""
+    company: str
+    position: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    location: Optional[str] = None
+    highlights: Optional[List[str]] = None
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary, excluding None values"""
+        return {k: v for k, v in asdict(self).items() if v is not None}
+
+
+@dataclass()
 class Skills:
     """Represents a skills section in a CV/Resume YAML file."""
     label: str
@@ -88,6 +103,7 @@ class create_Render_CV:
                    'engineeringresumes', 'moderncv', 'sb2nov'. Defaults to 'sb2nov' (resume).
             output_dir: Directory for rendered output files. Defaults to 'rendercv_output'.
         """
+        self.current_experience = None
         self.resume_section = None  # List of section names (populated by load_starter_file)
         self.current_projects = None  # Cached list of project dictionaries
         self.current_education = None
@@ -235,6 +251,7 @@ class create_Render_CV:
         self.current_education = self.data['cv']['sections']['education']
         self.current_connections = self.data['cv']['social_networks']
         self.current_skills = self.data['cv']['sections']['skills']
+        self.current_experience = self.data['cv']['sections']['experience']
 
         return self.data
 
@@ -350,24 +367,17 @@ class create_Render_CV:
     def add_skills(self, skillToAdd: Skills):
         """Add a skill entry to the CV.
 
-        Adds a new skill category with its associated details to the skills
-        section. Duplicate skill labels are not allowed.
-
         Args:
             skillToAdd: Skills dataclass containing:
-                - label: The skill category name (e.g., 'Languages', 'Frameworks')
-                - details: Comma-separated list of specific skills
+                - label: Category name for the skill (e.g., 'Languages', 'Frameworks')
+                - details: Comma-separated list of skills in that category
 
         Returns:
-            str: "Successfully added skills" if added successfully,
-                 "Duplicate label/skills" if the skill label already exists.
+            str: 'Successfully added skills' if added, or 'Duplicate label/skills'
+                 if a skill with the same label already exists.
 
         Raises:
             ValueError: If no data has been loaded.
-
-        Example:
-            >>> cv.add_skills(Skills(label='Databases', details='PostgreSQL, MongoDB'))
-            'Successfully added skills'
         """
         if self.data is None:
             raise ValueError("No data loaded")
@@ -387,10 +397,10 @@ class create_Render_CV:
         return "Successfully added skills"
 
     def modify_skill(self, skillToModify: str, new_value: str):
-        """Modify the details of an existing skill in the CV.
+        """Modify the details of an existing skill entry.
 
-        Updates the details (specific skills list) for a skill category
-        identified by its label.
+        Updates the details/content of a skill category while preserving
+        the label.
 
         Args:
             skillToModify: The label of the skill category to modify
@@ -398,15 +408,11 @@ class create_Render_CV:
             new_value: The new details string to replace the existing one.
 
         Returns:
-            str: "Successfully modified skill" if updated successfully,
-                 "Skill not found." if the specified skill label doesn't exist.
+            str: 'Successfully modified skill' if updated, or 'Skill not found.'
+                 if no skill with the given label exists.
 
         Raises:
             ValueError: If no data has been loaded.
-
-        Example:
-            >>> cv.modify_skill('Languages', 'Python, Java, Go, Rust')
-            'Successfully modified skill'
         """
         if self.data is None:
             raise ValueError("No data loaded")
@@ -422,23 +428,19 @@ class create_Render_CV:
         """Delete a skill entry from the CV.
 
         Removes a skill category and its associated details from the
-        skills section.
+        CV's skills section.
 
         Args:
             skillName: The label of the skill category to delete
                        (e.g., 'Languages', 'Frameworks').
 
         Returns:
-            str: "Successfully deleted chosen skill" if deleted successfully,
-                 "skill not found" if the specified skill label doesn't exist,
-                 "No skills found to be deleted." if the skills section is empty.
+            str: 'Successfully deleted chosen skill' if removed,
+                 'No skills found to be deleted.' if skills section is empty,
+                 or 'skill not found' if no skill with the given label exists.
 
         Raises:
             ValueError: If no data has been loaded.
-
-        Example:
-            >>> cv.delete_skill('Frameworks')
-            'Successfully deleted chosen skill'
         """
         if self.data is None:
             raise ValueError("No data loaded")
@@ -453,6 +455,29 @@ class create_Render_CV:
             return "Successfully deleted chosen skill"
 
         return "skill not found"
+
+    def add_experience(self, experienceToAdd: Experience):
+        """Add a work experience entry to the CV.
+
+        Args:
+            experienceToAdd: Experience dataclass containing job details such as
+                company, position, dates, location, and highlights.
+
+        Returns:
+            str: Success message confirming the experience was added.
+
+        Raises:
+            ValueError: If no CV data is currently loaded.
+        """
+        if self.data is None:
+            raise ValueError("No data loaded")
+
+        if "experience" not in self.data['cv']['sections']:
+            self.data['cv']['sections']['experience'] = []
+
+        self.current_experience.append(experienceToAdd.to_dict())
+        self._auto_save_if_enabled()
+        return "Successfully added experience"
 
     def add_education(self, education_info: Education):
         """Add an education entry to the CV.
