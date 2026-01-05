@@ -23,39 +23,44 @@ from src.reporting.Generate_RenderCV_Resume import (
 )
 
 
-class TestCreateRenderCV(unittest.TestCase):
-    """Tests for the create_Render_CV class."""
+class BaseRenderCVTest(unittest.TestCase):
+    """Base class with common setup/teardown for all RenderCV tests."""
 
     def setUp(self):
         """Set up test fixtures."""
         self.test_dir = tempfile.mkdtemp()
         self.original_cwd = os.getcwd()
         os.chdir(self.test_dir)
-        # Force garbage collection to release file handles (Windows fix)
         gc.collect()
-        # Clean up any leftover test files from previous runs
-        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
-        for pattern in ["Test_User_CV.yaml", "John_Doe_CV.yaml", "Named_User_CV.yaml"]:
-            for f in cv_dir.glob(pattern):
-                try:
-                    f.unlink(missing_ok=True)
-                except PermissionError:
-                    pass  # File still locked, will be cleaned up later
+        self._cleanup_cv_files()
 
     def tearDown(self):
         """Clean up test fixtures."""
         os.chdir(self.original_cwd)
         shutil.rmtree(self.test_dir, ignore_errors=True)
-        # Force garbage collection to release file handles (Windows fix)
         gc.collect()
-        # Clean up test files from project directory
+        self._cleanup_cv_files()
+
+    def _cleanup_cv_files(self):
+        """Remove test CV files from the project directory."""
         cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
         for pattern in ["Test_User_CV.yaml", "John_Doe_CV.yaml", "Named_User_CV.yaml"]:
             for f in cv_dir.glob(pattern):
                 try:
                     f.unlink(missing_ok=True)
                 except PermissionError:
-                    pass  # File still locked, will be cleaned up in next test run
+                    pass
+
+    def create_loaded_cv(self, auto_save=False):
+        """Create a CV instance with starter file generated and loaded."""
+        cv = create_Render_CV(auto_save=auto_save)
+        cv.generate_starter_file(name="Test User")
+        cv.load_starter_file()
+        return cv
+
+
+class TestCreateRenderCV(BaseRenderCVTest):
+    """Tests for the create_Render_CV class."""
 
     def test_init_default_values(self):
         """Test initialization with default values."""
@@ -177,26 +182,12 @@ class TestCreateRenderCV(unittest.TestCase):
         self.assertTrue(output_file.exists())
 
 
-class TestCreateRenderCVEducation(unittest.TestCase):
+class TestCreateRenderCVEducation(BaseRenderCVTest):
     """Tests for education-related methods."""
 
     def setUp(self):
-        """Set up test fixtures."""
-        self.test_dir = tempfile.mkdtemp()
-        self.original_cwd = os.getcwd()
-        os.chdir(self.test_dir)
-        self.cv = create_Render_CV(auto_save=False)
-        self.cv.generate_starter_file(name="Test User")
-        self.cv.load_starter_file()
-
-    def tearDown(self):
-        """Clean up test fixtures."""
-        os.chdir(self.original_cwd)
-        shutil.rmtree(self.test_dir, ignore_errors=True)
-        # Clean up test files from project directory
-        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
-        for f in cv_dir.glob("Test_User_CV.yaml"):
-            f.unlink(missing_ok=True)
+        super().setUp()
+        self.cv = self.create_loaded_cv()
 
     def test_add_education_success(self):
         """Test adding education entry successfully."""
@@ -247,26 +238,12 @@ class TestCreateRenderCVEducation(unittest.TestCase):
         self.assertEqual(result, "No education to be deleted")
 
 
-class TestCreateRenderCVExperience(unittest.TestCase):
+class TestCreateRenderCVExperience(BaseRenderCVTest):
     """Tests for experience-related methods."""
 
     def setUp(self):
-        """Set up test fixtures."""
-        self.test_dir = tempfile.mkdtemp()
-        self.original_cwd = os.getcwd()
-        os.chdir(self.test_dir)
-        self.cv = create_Render_CV(auto_save=False)
-        self.cv.generate_starter_file(name="Test User")
-        self.cv.load_starter_file()
-
-    def tearDown(self):
-        """Clean up test fixtures."""
-        os.chdir(self.original_cwd)
-        shutil.rmtree(self.test_dir, ignore_errors=True)
-        # Clean up test files from project directory
-        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
-        for f in cv_dir.glob("Test_User_CV.yaml"):
-            f.unlink(missing_ok=True)
+        super().setUp()
+        self.cv = self.create_loaded_cv()
 
     def test_add_experience_success(self):
         """Test adding an experience entry successfully."""
@@ -329,26 +306,12 @@ class TestCreateRenderCVExperience(unittest.TestCase):
         self.assertEqual(result, "Experience not found.")
 
 
-class TestCreateRenderCVProjects(unittest.TestCase):
+class TestCreateRenderCVProjects(BaseRenderCVTest):
     """Tests for project-related methods."""
 
     def setUp(self):
-        """Set up test fixtures."""
-        self.test_dir = tempfile.mkdtemp()
-        self.original_cwd = os.getcwd()
-        os.chdir(self.test_dir)
-        self.cv = create_Render_CV(auto_save=False)
-        self.cv.generate_starter_file(name="Test User")
-        self.cv.load_starter_file()
-
-    def tearDown(self):
-        """Clean up test fixtures."""
-        os.chdir(self.original_cwd)
-        shutil.rmtree(self.test_dir, ignore_errors=True)
-        # Clean up test files from project directory
-        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
-        for f in cv_dir.glob("Test_User_CV.yaml"):
-            f.unlink(missing_ok=True)
+        super().setUp()
+        self.cv = self.create_loaded_cv()
 
     def test_add_project_success(self):
         """Test adding a project successfully."""
@@ -420,26 +383,12 @@ class TestCreateRenderCVProjects(unittest.TestCase):
             cv.modify_projects_info("Test", "summary", "value")
 
 
-class TestAddProjectFromAI(unittest.TestCase):
+class TestAddProjectFromAI(BaseRenderCVTest):
     """Tests for the add_project_from_ai method."""
 
     def setUp(self):
-        """Set up test fixtures."""
-        self.test_dir = tempfile.mkdtemp()
-        self.original_cwd = os.getcwd()
-        os.chdir(self.test_dir)
-        self.cv = create_Render_CV(auto_save=False)
-        self.cv.generate_starter_file(name="Test User")
-        self.cv.load_starter_file()
-
-    def tearDown(self):
-        """Clean up test fixtures."""
-        os.chdir(self.original_cwd)
-        shutil.rmtree(self.test_dir, ignore_errors=True)
-        # Clean up test files from project directory
-        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
-        for f in cv_dir.glob("Test_User_CV.yaml"):
-            f.unlink(missing_ok=True)
+        super().setUp()
+        self.cv = self.create_loaded_cv()
 
     def test_add_project_from_ai_without_data_raises_error(self):
         """Test that adding project from AI without loaded data raises ValueError."""
@@ -577,26 +526,12 @@ class TestAddProjectFromAI(unittest.TestCase):
         self.assertEqual(added_project['highlights'], expected_highlights)
 
 
-class TestCreateRenderCVSections(unittest.TestCase):
+class TestCreateRenderCVSections(BaseRenderCVTest):
     """Tests for section-related methods."""
 
     def setUp(self):
-        """Set up test fixtures."""
-        self.test_dir = tempfile.mkdtemp()
-        self.original_cwd = os.getcwd()
-        os.chdir(self.test_dir)
-        self.cv = create_Render_CV(auto_save=False)
-        self.cv.generate_starter_file(name="Test User")
-        self.cv.load_starter_file()
-
-    def tearDown(self):
-        """Clean up test fixtures."""
-        os.chdir(self.original_cwd)
-        shutil.rmtree(self.test_dir, ignore_errors=True)
-        # Clean up test files from project directory
-        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
-        for f in cv_dir.glob("Test_User_CV.yaml"):
-            f.unlink(missing_ok=True)
+        super().setUp()
+        self.cv = self.create_loaded_cv()
 
     def test_remove_section_success(self):
         """Test removing a section successfully."""
@@ -611,26 +546,12 @@ class TestCreateRenderCVSections(unittest.TestCase):
             cv.remove_section(0)
 
 
-class TestCreateRenderCVContact(unittest.TestCase):
+class TestCreateRenderCVContact(BaseRenderCVTest):
     """Tests for contact-related methods."""
 
     def setUp(self):
-        """Set up test fixtures."""
-        self.test_dir = tempfile.mkdtemp()
-        self.original_cwd = os.getcwd()
-        os.chdir(self.test_dir)
-        self.cv = create_Render_CV(auto_save=False)
-        self.cv.generate_starter_file(name="Test User")
-        self.cv.load_starter_file()
-
-    def tearDown(self):
-        """Clean up test fixtures."""
-        os.chdir(self.original_cwd)
-        shutil.rmtree(self.test_dir, ignore_errors=True)
-        # Clean up test files from project directory
-        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
-        for f in cv_dir.glob("Test_User_CV.yaml"):
-            f.unlink(missing_ok=True)
+        super().setUp()
+        self.cv = self.create_loaded_cv()
 
     def test_update_contact_email(self):
         """Test updating email."""
@@ -680,26 +601,12 @@ class TestCreateRenderCVContact(unittest.TestCase):
         self.assertIs(result, self.cv)
 
 
-class TestCreateRenderCVConnections(unittest.TestCase):
+class TestCreateRenderCVConnections(BaseRenderCVTest):
     """Tests for connection-related methods."""
 
     def setUp(self):
-        """Set up test fixtures."""
-        self.test_dir = tempfile.mkdtemp()
-        self.original_cwd = os.getcwd()
-        os.chdir(self.test_dir)
-        self.cv = create_Render_CV(auto_save=False)
-        self.cv.generate_starter_file(name="Test User")
-        self.cv.load_starter_file()
-
-    def tearDown(self):
-        """Clean up test fixtures."""
-        os.chdir(self.original_cwd)
-        shutil.rmtree(self.test_dir, ignore_errors=True)
-        # Clean up test files from project directory
-        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
-        for f in cv_dir.glob("Test_User_CV.yaml"):
-            f.unlink(missing_ok=True)
+        super().setUp()
+        self.cv = self.create_loaded_cv()
 
     def test_add_connection_without_data_raises_error(self):
         """Test that adding connection without loaded data raises ValueError."""
@@ -721,23 +628,8 @@ class TestCreateRenderCVConnections(unittest.TestCase):
         self.assertEqual(result, "Connection already exists in Resume")
 
 
-class TestCreateRenderCVAutoSave(unittest.TestCase):
+class TestCreateRenderCVAutoSave(BaseRenderCVTest):
     """Tests for auto-save functionality."""
-
-    def setUp(self):
-        """Set up test fixtures."""
-        self.test_dir = tempfile.mkdtemp()
-        self.original_cwd = os.getcwd()
-        os.chdir(self.test_dir)
-
-    def tearDown(self):
-        """Clean up test fixtures."""
-        os.chdir(self.original_cwd)
-        shutil.rmtree(self.test_dir, ignore_errors=True)
-        # Clean up test files from project directory
-        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
-        for f in cv_dir.glob("Test_User_CV.yaml"):
-            f.unlink(missing_ok=True)
 
     def test_auto_save_enabled_saves_on_modification(self):
         """Test that auto_save triggers save on modification."""
@@ -762,26 +654,12 @@ class TestCreateRenderCVAutoSave(unittest.TestCase):
             mock_save.assert_not_called()
 
 
-class TestCreateRenderCVRender(unittest.TestCase):
+class TestCreateRenderCVRender(BaseRenderCVTest):
     """Tests for render functionality."""
 
     def setUp(self):
-        """Set up test fixtures."""
-        self.test_dir = tempfile.mkdtemp()
-        self.original_cwd = os.getcwd()
-        os.chdir(self.test_dir)
-        self.cv = create_Render_CV(auto_save=False)
-        self.cv.generate_starter_file(name="Test User")
-        self.cv.load_starter_file()
-
-    def tearDown(self):
-        """Clean up test fixtures."""
-        os.chdir(self.original_cwd)
-        shutil.rmtree(self.test_dir, ignore_errors=True)
-        # Clean up test files from project directory
-        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
-        for f in cv_dir.glob("Test_User_CV.yaml"):
-            f.unlink(missing_ok=True)
+        super().setUp()
+        self.cv = self.create_loaded_cv()
 
     def test_render_cv_file_not_found(self):
         """Test that render raises error when file doesn't exist."""
@@ -801,26 +679,12 @@ class TestCreateRenderCVRender(unittest.TestCase):
         self.assertIn('render', call_args[0][0])
 
 
-class TestThemes(unittest.TestCase):
+class TestThemes(BaseRenderCVTest):
     """Tests for theme functionality."""
 
     def setUp(self):
-        """Set up test fixtures."""
-        self.test_dir = tempfile.mkdtemp()
-        self.original_cwd = os.getcwd()
-        os.chdir(self.test_dir)
-        self.cv = create_Render_CV(auto_save=False)
-        self.cv.generate_starter_file(name="Test User")
-        self.cv.load_starter_file()
-
-    def tearDown(self):
-        """Clean up test fixtures."""
-        os.chdir(self.original_cwd)
-        shutil.rmtree(self.test_dir, ignore_errors=True)
-        # Clean up test files from project directory
-        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
-        for f in cv_dir.glob("Test_User_CV.yaml"):
-            f.unlink(missing_ok=True)
+        super().setUp()
+        self.cv = self.create_loaded_cv()
 
     def test_available_themes(self):
         """Test that themes dictionary contains expected themes."""
@@ -841,26 +705,12 @@ class TestThemes(unittest.TestCase):
         self.assertEqual(self.cv.data['design']['theme'], 'classic')
 
 
-class TestCreateRenderCVSkills(unittest.TestCase):
+class TestCreateRenderCVSkills(BaseRenderCVTest):
     """Tests for skill-related methods."""
 
     def setUp(self):
-        """Set up test fixtures."""
-        self.test_dir = tempfile.mkdtemp()
-        self.original_cwd = os.getcwd()
-        os.chdir(self.test_dir)
-        self.cv = create_Render_CV(auto_save=False)
-        self.cv.generate_starter_file(name="Test User")
-        self.cv.load_starter_file()
-
-    def tearDown(self):
-        """Clean up test fixtures."""
-        os.chdir(self.original_cwd)
-        shutil.rmtree(self.test_dir, ignore_errors=True)
-        # Clean up test files from project directory
-        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
-        for f in cv_dir.glob("Test_User_CV.yaml"):
-            f.unlink(missing_ok=True)
+        super().setUp()
+        self.cv = self.create_loaded_cv()
 
     def test_add_skills_success(self):
         """Test adding a skill successfully."""
@@ -935,26 +785,12 @@ class TestCreateRenderCVSkills(unittest.TestCase):
         self.assertEqual(result, "No skills found to be deleted.")
 
 
-class TestCreateRenderCVConnectionModifications(unittest.TestCase):
+class TestCreateRenderCVConnectionModifications(BaseRenderCVTest):
     """Tests for connection modification and deletion methods."""
 
     def setUp(self):
-        """Set up test fixtures."""
-        self.test_dir = tempfile.mkdtemp()
-        self.original_cwd = os.getcwd()
-        os.chdir(self.test_dir)
-        self.cv = create_Render_CV(auto_save=False)
-        self.cv.generate_starter_file(name="Test User")
-        self.cv.load_starter_file()
-
-    def tearDown(self):
-        """Clean up test fixtures."""
-        os.chdir(self.original_cwd)
-        shutil.rmtree(self.test_dir, ignore_errors=True)
-        # Clean up test files from project directory
-        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
-        for f in cv_dir.glob("Test_User_CV.yaml"):
-            f.unlink(missing_ok=True)
+        super().setUp()
+        self.cv = self.create_loaded_cv()
 
     def test_modify_connection_success(self):
         """Test modifying a connection username successfully."""
