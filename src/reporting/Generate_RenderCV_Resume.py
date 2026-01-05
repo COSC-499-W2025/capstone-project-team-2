@@ -11,6 +11,9 @@ from pathlib import Path
 import ruamel.yaml
 from dataclasses import dataclass, asdict
 from typing import Optional, List, Any
+import orjson
+
+from src.reporting.Generate_AI_Resume import GenerateProjectResume
 
 
 @dataclass()
@@ -100,6 +103,7 @@ class create_Render_CV:
         """
         # CV files directory
         self.cv_files_dir = Path(__file__).parent.parent.parent / "User_config_files" / "Generate_render_CV_files"
+        self.project_insight_folder=Path(__file__).parent.parent.parent / "User_config_files" / "project_insights"
         self.summary = None
         self.current_experience = None
         self.resume_section = None  # List of section names (populated by load_starter_file)
@@ -581,8 +585,8 @@ class create_Render_CV:
         self._auto_save_if_enabled()
         return f"Successfully added: {projectInfo.name}"
 
-    '''
-    def add_project_from_ai(self, project_folder: str) -> "create_Render_CV":
+
+    def add_project_from_ai(self, project_folder: str):
         """Generate project info using AI and add it to the CV.
 
         Analyzes the given project folder using Google Gemini AI to extract
@@ -602,10 +606,14 @@ class create_Render_CV:
         """
         if self.data is None:
             raise ValueError("No data loaded. Run load_starter_file() first.")
+        with open(project_folder,'rb') as f:
+            data=orjson.loads(f.read())
+        project_loc=data.get('project_root')
 
         # Generate AI resume from project folder
-        print(f"Analyzing project folder: {project_folder}")
-        ai_resume = GenerateProjectResume(project_folder).generate()
+        #print(f"Analyzing project folder: {project_folder}")
+
+        ai_resume = GenerateProjectResume(project_loc).generate()
 
         # Build enhanced summary with tech stack
         summary = ai_resume.one_sentence_summary
@@ -625,31 +633,15 @@ class create_Render_CV:
 
         # Add to CV using existing method
         return self.add_project(project)
-    '''
-    '''
-    @staticmethod
-    def analyze_project_with_ai(project_folder: str) -> ResumeItem:
-        """Analyze a project folder with AI and return the raw ResumeItem.
 
-        Use this method when you need access to the full AI analysis
-        (skills, impact, OOP principles, etc.) before adding to CV.
 
-        Args:
-            project_folder: Path to the project directory to analyze.
 
-        Returns:
-            ResumeItem containing full AI analysis results.
 
-        Example:
-            resume = create_Render_CV.analyze_project_with_ai("path/to/project")
-            print(resume.key_skills_used)
-            print(resume.oop_principles_detected)
 
-        return GenerateProjectResume(project_folder).generate()
-    '''
 
     def modify_connection(self, network_name: str, new_username: str):
-        """Modify the username for an existing social network connection.
+        """"
+        Modify the username for an existing social network connection.
 
         Updates the username associated with a specific social network
         (e.g., LinkedIn, GitHub) in the CV.
@@ -693,7 +685,8 @@ class create_Render_CV:
 
         Raises:
             ValueError: If no data has been loaded.
-        """
+         """
+
         if self.data is None:
             raise ValueError("No data loaded")
 
