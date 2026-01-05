@@ -843,6 +843,5 @@ class TestCreateRenderCVConnectionModifications(BaseRenderCVTest):
         result = self.cv.delete_connection("LinkedIn")
         self.assertEqual(result, "No connections to delete")
 
-
 if __name__ == '__main__':
     unittest.main()
