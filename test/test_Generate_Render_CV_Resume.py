@@ -1,6 +1,7 @@
 import unittest
 import sys
 import os
+import gc
 import warnings
 from pathlib import Path
 from unittest.mock import patch, MagicMock
@@ -30,21 +31,31 @@ class TestCreateRenderCV(unittest.TestCase):
         self.test_dir = tempfile.mkdtemp()
         self.original_cwd = os.getcwd()
         os.chdir(self.test_dir)
+        # Force garbage collection to release file handles (Windows fix)
+        gc.collect()
         # Clean up any leftover test files from previous runs
         cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
         for pattern in ["Test_User_CV.yaml", "John_Doe_CV.yaml", "Named_User_CV.yaml"]:
             for f in cv_dir.glob(pattern):
-                f.unlink(missing_ok=True)
+                try:
+                    f.unlink(missing_ok=True)
+                except PermissionError:
+                    pass  # File still locked, will be cleaned up later
 
     def tearDown(self):
         """Clean up test fixtures."""
         os.chdir(self.original_cwd)
         shutil.rmtree(self.test_dir, ignore_errors=True)
+        # Force garbage collection to release file handles (Windows fix)
+        gc.collect()
         # Clean up test files from project directory
         cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
         for pattern in ["Test_User_CV.yaml", "John_Doe_CV.yaml", "Named_User_CV.yaml"]:
             for f in cv_dir.glob(pattern):
-                f.unlink(missing_ok=True)
+                try:
+                    f.unlink(missing_ok=True)
+                except PermissionError:
+                    pass  # File still locked, will be cleaned up in next test run
 
     def test_init_default_values(self):
         """Test initialization with default values."""
@@ -87,7 +98,12 @@ class TestCreateRenderCV(unittest.TestCase):
         """Test that existing file is overwritten when overwrite is True."""
         cv = create_Render_CV()
         cv.generate_starter_file(name="Test User")
-        result = cv.generate_starter_file(name="Test User", overwrite=True)
+        # Release the first cv instance and force garbage collection (Windows fix)
+        del cv
+        gc.collect()
+        # Create new instance for overwrite test
+        cv2 = create_Render_CV()
+        result = cv2.generate_starter_file(name="Test User", overwrite=True)
         self.assertEqual(result, "Success")
 
     def test_load_starter_file_success(self):
