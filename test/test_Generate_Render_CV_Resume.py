@@ -1,10 +1,15 @@
 import unittest
 import sys
 import os
+import warnings
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 import tempfile
 import shutil
+
+# Suppress third-party library warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="langsmith")
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="google.genai")
 
 # Add src directory to path
 from src.reporting.Generate_RenderCV_Resume import (
@@ -25,6 +30,11 @@ class TestCreateRenderCV(unittest.TestCase):
         self.test_dir = tempfile.mkdtemp()
         self.original_cwd = os.getcwd()
         os.chdir(self.test_dir)
+        # Clean up any leftover test files from previous runs
+        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
+        for pattern in ["Test_User_CV.yaml", "John_Doe_CV.yaml", "Named_User_CV.yaml"]:
+            for f in cv_dir.glob(pattern):
+                f.unlink(missing_ok=True)
 
     def tearDown(self):
         """Clean up test fixtures."""
@@ -103,6 +113,14 @@ class TestCreateRenderCV(unittest.TestCase):
         cv.load_starter_file()
         self.assertIsNotNone(cv.resume_section)
         self.assertIn('education', cv.resume_section)
+
+    def test_load_starter_file_populates_summary(self):
+        """Test that summary is populated after loading."""
+        cv = create_Render_CV()
+        cv.generate_starter_file(name="Test User")
+        cv.load_starter_file()
+        self.assertIsNotNone(cv.summary)
+        self.assertIsInstance(cv.summary, list)
 
     def test_load_starter_file_with_name_parameter(self):
         """Test loading a file by name without calling generate_starter_file first."""
@@ -384,6 +402,163 @@ class TestCreateRenderCVProjects(unittest.TestCase):
         cv = create_Render_CV()
         with self.assertRaises(ValueError):
             cv.modify_projects_info("Test", "summary", "value")
+
+
+class TestAddProjectFromAI(unittest.TestCase):
+    """Tests for the add_project_from_ai method."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        self.test_dir = tempfile.mkdtemp()
+        self.original_cwd = os.getcwd()
+        os.chdir(self.test_dir)
+        self.cv = create_Render_CV(auto_save=False)
+        self.cv.generate_starter_file(name="Test User")
+        self.cv.load_starter_file()
+
+    def tearDown(self):
+        """Clean up test fixtures."""
+        os.chdir(self.original_cwd)
+        shutil.rmtree(self.test_dir, ignore_errors=True)
+        # Clean up test files from project directory
+        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
+        for f in cv_dir.glob("Test_User_CV.yaml"):
+            f.unlink(missing_ok=True)
+
+    def test_add_project_from_ai_without_data_raises_error(self):
+        """Test that adding project from AI without loaded data raises ValueError."""
+        cv = create_Render_CV()
+        with self.assertRaises(ValueError) as context:
+            cv.add_project_from_ai("some_path.json")
+        self.assertIn("No data loaded", str(context.exception))
+
+    @patch('src.reporting.Generate_RenderCV_Resume.GenerateProjectResume')
+    @patch('builtins.open', create=True)
+    @patch('src.reporting.Generate_RenderCV_Resume.orjson.loads')
+    def test_add_project_from_ai_success(self, mock_orjson, mock_open, mock_generate_resume):
+        """Test successfully adding a project from AI analysis."""
+        # Setup mocks
+        mock_orjson.return_value = {'project_root': '/fake/project/path'}
+        mock_file = MagicMock()
+        mock_file.read.return_value = b'{}'
+        mock_open.return_value.__enter__.return_value = mock_file
+
+        mock_ai_resume = MagicMock()
+        mock_ai_resume.project_title = "AI Generated Project"
+        mock_ai_resume.one_sentence_summary = "An amazing AI project"
+        mock_ai_resume.tech_stack = "Python, TensorFlow"
+        mock_ai_resume.key_responsibilities = ["Built ML models", "Deployed to production"]
+        mock_generate_resume.return_value.generate.return_value = mock_ai_resume
+
+        result = self.cv.add_project_from_ai("project_insight.json")
+
+        self.assertEqual(result, "Successfully added: AI Generated Project")
+        mock_generate_resume.assert_called_once_with('/fake/project/path')
+
+    @patch('src.reporting.Generate_RenderCV_Resume.GenerateProjectResume')
+    @patch('builtins.open', create=True)
+    @patch('src.reporting.Generate_RenderCV_Resume.orjson.loads')
+    def test_add_project_from_ai_includes_tech_stack_in_summary(self, mock_orjson, mock_open, mock_generate_resume):
+        """Test that tech stack is appended to the summary."""
+        mock_orjson.return_value = {'project_root': '/fake/path'}
+        mock_file = MagicMock()
+        mock_file.read.return_value = b'{}'
+        mock_open.return_value.__enter__.return_value = mock_file
+
+        mock_ai_resume = MagicMock()
+        mock_ai_resume.project_title = "Tech Project"
+        mock_ai_resume.one_sentence_summary = "A cool project"
+        mock_ai_resume.tech_stack = "React, Node.js"
+        mock_ai_resume.key_responsibilities = ["Feature 1"]
+        mock_generate_resume.return_value.generate.return_value = mock_ai_resume
+
+        self.cv.add_project_from_ai("project.json")
+
+        # Find the added project
+        added_project = next(
+            (p for p in self.cv.current_projects if p['name'] == "Tech Project"), None
+        )
+        self.assertIsNotNone(added_project)
+        self.assertIn("Tech stack: React, Node.js", added_project['summary'])
+
+    @patch('src.reporting.Generate_RenderCV_Resume.GenerateProjectResume')
+    @patch('builtins.open', create=True)
+    @patch('src.reporting.Generate_RenderCV_Resume.orjson.loads')
+    def test_add_project_from_ai_without_tech_stack(self, mock_orjson, mock_open, mock_generate_resume):
+        """Test adding project when tech_stack is empty."""
+        mock_orjson.return_value = {'project_root': '/fake/path'}
+        mock_file = MagicMock()
+        mock_file.read.return_value = b'{}'
+        mock_open.return_value.__enter__.return_value = mock_file
+
+        mock_ai_resume = MagicMock()
+        mock_ai_resume.project_title = "Simple Project"
+        mock_ai_resume.one_sentence_summary = "A simple project"
+        mock_ai_resume.tech_stack = ""  # Empty tech stack
+        mock_ai_resume.key_responsibilities = ["Did something"]
+        mock_generate_resume.return_value.generate.return_value = mock_ai_resume
+
+        self.cv.add_project_from_ai("project.json")
+
+        added_project = next(
+            (p for p in self.cv.current_projects if p['name'] == "Simple Project"), None
+        )
+        self.assertIsNotNone(added_project)
+        self.assertEqual(added_project['summary'], "A simple project")
+        self.assertNotIn("Tech stack", added_project['summary'])
+
+    @patch('src.reporting.Generate_RenderCV_Resume.GenerateProjectResume')
+    @patch('builtins.open', create=True)
+    @patch('src.reporting.Generate_RenderCV_Resume.orjson.loads')
+    def test_add_project_from_ai_duplicate_rejected(self, mock_orjson, mock_open, mock_generate_resume):
+        """Test that duplicate AI-generated projects are rejected."""
+        mock_orjson.return_value = {'project_root': '/fake/path'}
+        mock_file = MagicMock()
+        mock_file.read.return_value = b'{}'
+        mock_open.return_value.__enter__.return_value = mock_file
+
+        # Use the name of an existing project from the starter template
+        mock_ai_resume = MagicMock()
+        mock_ai_resume.project_title = "Project Name"  # Exists in starter template
+        mock_ai_resume.one_sentence_summary = "Summary"
+        mock_ai_resume.tech_stack = ""
+        mock_ai_resume.key_responsibilities = []
+        mock_generate_resume.return_value.generate.return_value = mock_ai_resume
+
+        result = self.cv.add_project_from_ai("project.json")
+
+        self.assertIn("already exists", result)
+
+    def test_add_project_from_ai_file_not_found(self):
+        """Test that FileNotFoundError is raised when project file doesn't exist."""
+        with self.assertRaises(FileNotFoundError):
+            self.cv.add_project_from_ai("nonexistent_file.json")
+
+    @patch('src.reporting.Generate_RenderCV_Resume.GenerateProjectResume')
+    @patch('builtins.open', create=True)
+    @patch('src.reporting.Generate_RenderCV_Resume.orjson.loads')
+    def test_add_project_from_ai_sets_correct_highlights(self, mock_orjson, mock_open, mock_generate_resume):
+        """Test that key_responsibilities are correctly set as highlights."""
+        mock_orjson.return_value = {'project_root': '/fake/path'}
+        mock_file = MagicMock()
+        mock_file.read.return_value = b'{}'
+        mock_open.return_value.__enter__.return_value = mock_file
+
+        expected_highlights = ["Implemented feature A", "Optimized performance by 50%", "Led team of 3"]
+        mock_ai_resume = MagicMock()
+        mock_ai_resume.project_title = "Highlight Test Project"
+        mock_ai_resume.one_sentence_summary = "Test summary"
+        mock_ai_resume.tech_stack = ""
+        mock_ai_resume.key_responsibilities = expected_highlights
+        mock_generate_resume.return_value.generate.return_value = mock_ai_resume
+
+        self.cv.add_project_from_ai("project.json")
+
+        added_project = next(
+            (p for p in self.cv.current_projects if p['name'] == "Highlight Test Project"), None
+        )
+        self.assertIsNotNone(added_project)
+        self.assertEqual(added_project['highlights'], expected_highlights)
 
 
 class TestCreateRenderCVSections(unittest.TestCase):
