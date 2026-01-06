@@ -520,16 +520,6 @@ One last thing to mention is that thanks to sam smith for identifying a key erro
 My goal for the following weeks is to add some optional features to the CLI, which include an idle feature and the option to upload multiple files. Another goal is to start creating the actual LLM integration to pull data from the code files and perform analysis on the code to pull info such as the stucture of the code, what the runtime it performs and so on. 
 
 
-
-
-
-
-
-
-
-
-
-
 # 📝 Personal Log – Week 11 + week12 11/10/2025-11/27/2025
 
 ## 📊 Peer Evaluation
@@ -888,3 +878,54 @@ The last thing that I focused on was creating the test for these files to make s
  **Week 14** was very stressful because it was the final sprint for M1 milestones. I could feel the pressure of the looming deadline, the work that I focused on for this week was added a new feature to create PDF version of the protofilo content and then integrated with the gemini AI to create a formated PDF resume, which was a very fun and exciting experience to work on, to pull this I used a framework called `reportLab` for adding the content to pdf to generate the PDF, Where thanks to me intergrating **dataclass** into the ```ResumeItem``` class this make the process of access the elements of the returned dictonary more convenient to making the PDF easier and fasts. I also worked on the README file to clearly highlight the key parts of our project and added installation instructions. Lastly, I encountered a bug in the AI integration code with Samantha M. I performed a hotfix, which was very simple: I removed some offending lines of code that ran the actual class that wasn't needed inside the script it was created in. One additonal task that I did this week was created our video demo and during our video demo recording I noticed a bug that does not allow user to change their user constent mid-session in other words if they enable external tools and wanted to disabled them they cannot so quickly made a hotfix to solve this issue, additoanlly I also quickly added a non-AI Generated Resume line to our system.
 
 Lastly, after taking some advice from the TA, I decided to make new coding contributions a bit smaller, less than 500 lines of code change, but for some of the code I was unable to do the complex nature of the system as well, and also the amount of documentation that was needed to explain certian aspects of the code itself.
+
+
+
+# 📝 Personal Log – Week 19  01/05/2026-01/11/2026
+
+
+## 📊 Peer Evaluation  
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/12-5-2025.png)
+
+
+---
+
+## 🚀 Features Worked On  
+- Resume/Portfolio Generator Refactor — Rebuilt the resume creation module using RenderCV libary to generate professional, fully-featured resumes instead of basic output snippets. Users can now produce complete, presentation-ready CVs/resume suitable for real-world job applications.
+---
+
+## 📌 Associated Tasks from Project Board  
+- [Resume Generation Improvement using rendercv](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/261)
+
+---
+
+## 📈 Progress Update (since 12/6/2025)  
+
+| Task/Issue | Status |
+|------------|--------|
+|**esume Generation Improvement using rendercvsume** | ![Complete](https://img.shields.io/badge/ |
+
+
+## 🎯 Next Week’s Goals
+
+- Work on adding new requriements listed in milestone 2 requirments
+---
+
+## 🧠 Reflection on Current Cycle (Week 19)
+**Week 19** marked the beginning of the second half of the capstone. My primary focus was refactoring and recreating the resume generator module from milestone 1, which previously produced output insufficient for professional use. The goal was to create a fully-featured resume suitable for real-life settings to showcase users to employers.
+
+I achieved this by integrating [RenderCV](https://github.com/rendercv/rendercv), a CLI-based resume generation library, into our system. This involved developing a comprehensive `Generate_RenderCV_Resume.py` module that serves as the backbone for resume creation and management. Key features include:
+
+- **5 Dataclasses** (`Experience`, `Skills`, `Education`, `Connections`, `Project`) to cleanly structure CV/Resume data
+- **Full CRUD Operations** for each section of the resume/CV
+- **AI Integration** through the `add_project_from_ai` method, which leverages `GenerateProjectResume` to automatically populate project descriptions from the analyzed project 
+
+The code was intentionally designed with modularity in mind for seamless integration into the Streamlit UI interface planned for Milestone 3. By following the single-responsibility principle, allowing for future UI binding to be straightforward.
+
+The main challenge I encountered this week was maintaining the PR size limit of 500 lines despite multiple refactoring attempts. This didn't prove easy due to:
+
+1. **Self-contained module requirement** — The RenderCV Generator requires all components (builder class, dataclasses, AI integration, YAML generation, and rendering logic) to function together as a cohesive unit
+2. **Comprehensive test coverage** — 13 test classes were necessary to ensure reliability across all CRUD operations
+3. **Documentation needs** — Extensive docstrings and comments were required to explain the code's functionality for reviewers
+
+Breaking this into smaller PRs would have created incomplete functionality and increased integration complexity, so I included a justification in the PR description explaining why the size was necessary. For the next sprint, I plan on either working on adding the missing features that are required in milestone 2 
