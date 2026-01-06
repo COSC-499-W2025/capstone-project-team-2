@@ -421,6 +421,29 @@ class create_Render_CV:
         return f"Experience {experience_name} not found."
 
     @requires_data
+    def modify_experience(self, company_name: str, field: str, new_value):
+        """Modify a field of an existing experience entry.
+
+        Args:
+            company_name: The company name to identify the experience entry.
+            field: The field to modify (company, position, start_date, end_date, location, highlights).
+            new_value: The new value for the field.
+
+        Returns:
+            Success or error message.
+        """
+        valid_fields = ["company", "position", "start_date", "end_date", "location", "summary", "highlights"]
+        if field not in valid_fields:
+            return f"Invalid field '{field}'. Valid fields are: {', '.join(valid_fields)}"
+        experience_to_update = next(
+            (exp for exp in self.current_experience if exp.get("company") == company_name), None)
+        if experience_to_update:
+            experience_to_update[field] = new_value
+            self._auto_save_if_enabled()
+            return f"Successfully modified {field} to {new_value}"
+        return f"Experience with company '{company_name}' not found."
+
+    @requires_data
     def add_education(self, education_info: Education):
         """Add an education entry to the CV."""
         if 'education' not in self.data['cv']['sections']:
