@@ -8,6 +8,15 @@ import os
 
 class ConfigurationForUsersUI:
     def __init__(self, Configuration_json):
+        """Initialize the ConfigurationForUsersUI with configuration data.
+
+        Args:
+            Configuration_json: Dictionary containing configuration key-value pairs
+                that will be displayed and can be modified through the CLI interface
+
+        Returns:
+            None: Initializes instance attributes
+        """
         self.Configuration_json = Configuration_json
 
 
