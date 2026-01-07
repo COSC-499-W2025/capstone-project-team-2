@@ -10,8 +10,8 @@ from datetime import datetime, timezone, timedelta
 import pytest
 
 # Smoke tests for menu dispatch flows using monkeypatched input.
-import src.menus as mod
-from src import insight_helpers
+import src.cli.menus as mod
+from src.analysis import insight_helpers
 
 def _inputs(values):
     """Yield successive inputs to simulate user interaction across menu prompts."""
@@ -249,7 +249,7 @@ def test_project_insights_menu_lists_projects(monkeypatch, tmp_path):
             )
         ]
 
-    import src.menu_insights as mi
+    import src.cli.menu_insights as mi
     monkeypatch.setattr(mi, "list_project_insights", fake_list_projects)
     monkeypatch.setattr(mi, "list_skill_history", lambda storage_path: [])
     monkeypatch.setattr(mi, "rank_projects_by_contribution", lambda **kwargs: [])
@@ -305,7 +305,7 @@ def test_project_insights_menu_ranks_projects(monkeypatch, tmp_path):
         return insights
 
     # Patch inside menu_insights module so delegation picks up the fake
-    import src.menu_insights as mi
+    import src.cli.menu_insights as mi
     monkeypatch.setattr(mi, "rank_projects_by_contribution", fake_rank)
     monkeypatch.setattr(mi, "list_project_insights", lambda storage_path: insights)
     monkeypatch.setattr(mi, "list_skill_history", lambda storage_path: [])

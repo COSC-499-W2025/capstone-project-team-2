@@ -4,7 +4,7 @@ import json
 
 import unittest
 
-from src.file_data_saving import SaveFileAnalysisAsJSON
+from src.storage.file_data_saving import SaveFileAnalysisAsJSON
 
 class Test_JSON_saving(unittest.TestCase):
     '''

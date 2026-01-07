@@ -3,7 +3,7 @@ import sys
 import pytest
 
 sys.path.append(str(Path(__file__).parent.parent))
-from src.c_oop_analyzer import (analyze_source, analyze_c_project)
+from src.analyzers.c.c_oop_analyzer import (analyze_source, analyze_c_project)
 
 
 

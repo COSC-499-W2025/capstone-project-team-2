@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 # Tests for listing, summarizing, and safely deleting saved analysis artifacts.
-import src.saved_projects as mod
+import src.storage.saved_projects as mod
 
 
 def test_list_saved_projects_filters_config_and_dedupes(tmp_path):

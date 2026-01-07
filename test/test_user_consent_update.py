@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 
-from src.Configuration import configuration_for_users
+from src.config.Configuration import configuration_for_users
 import orjson
 import tempfile
 from pathlib import Path

@@ -1,5 +1,5 @@
 
-from src.Docker_finder import DockerFinder
+from src.core.Docker_finder import DockerFinder
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import PromptTemplate
 import mysql.connector

@@ -1,6 +1,6 @@
 import unittest
 from pathlib import Path
-from src.AI_analysis_code import codeAnalysisAI
+from src.core.AI_analysis_code import codeAnalysisAI
 import pytest
 
 

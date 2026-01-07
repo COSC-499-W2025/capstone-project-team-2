@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src import project_skill_insights
+from src.reporting import project_skill_insights
 
 
 class TestProjectSkillInsights(unittest.TestCase):
