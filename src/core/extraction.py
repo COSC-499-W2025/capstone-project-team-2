@@ -17,6 +17,17 @@ class extractInfo:
     NOT_ZIP_ERROR_TEXT = "Error! File at path is not a ZIP file:\n"
     BAD_FILE_ERROR_TEXT = "Error! Zip file contains bad file: "
     BAD_ZIP_ERROR_TEXT = "Error! Zip file is bad!"
+    CORRUPT_FILE_ERROR_TEXT = "Error! Corrupt file detected - invalid header: "
+
+    # Magic bytes for file type validation
+    MAGIC_BYTES = {
+        '.png': b'\x89PNG\r\n\x1a\n',
+        '.jpg': b'\xff\xd8\xff',
+        '.jpeg': b'\xff\xd8\xff',
+        '.gif': b'GIF8',
+        '.pdf': b'%PDF',
+        '.zip': b'PK\x03\x04',
+    }
 
     def __init__(self, zipfilePath):
 
@@ -40,7 +51,11 @@ class extractInfo:
         if error != None:
             return error
         self.extractFiles()
-        return os.path.join(os.getcwd(), "temp")
+        temp_path = os.path.join(os.getcwd(), "temp")
+        error = self.validateExtractedFiles(temp_path)
+        if error != None:
+            return error
+        return temp_path
 
     def extractFiles(self):
         """
@@ -91,5 +106,27 @@ class extractInfo:
         except zipfile.BadZipFile:  #Catches corrupted zip files
             return self.BAD_ZIP_ERROR_TEXT
 
+    def validateExtractedFiles(self, temp_path: str) -> str:
+        """
+        Validates extracted files by checking their magic bytes (file signatures).
+
+        :param temp_path: Path to the directory containing extracted files
+        :return: None if all files are valid, or error text if a corrupt file is detected
+        """
+        for root, dirs, files in os.walk(temp_path):
+            for file in files:
+                filepath = os.path.join(root, file)
+                ext = os.path.splitext(file)[1].lower()
+
+                if ext in self.MAGIC_BYTES:
+                    expected_magic = self.MAGIC_BYTES[ext]
+                    try:
+                        with open(filepath, 'rb') as f:
+                            header = f.read(len(expected_magic))
+                            if header != expected_magic:
+                                return self.CORRUPT_FILE_ERROR_TEXT + filepath
+                    except Exception:
+                        return self.CORRUPT_FILE_ERROR_TEXT + filepath
+        return None
 
 
