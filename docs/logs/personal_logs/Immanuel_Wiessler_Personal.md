@@ -881,7 +881,7 @@ Lastly, after taking some advice from the TA, I decided to make new coding contr
 
 
 
-# 📝 Personal Log – Week 19  01/05/2026-01/11/2026
+# 📝 Personal Log – Week 15  01/05/2026-01/11/2026
 
 
 ## 📊 Peer Evaluation  
@@ -911,21 +911,24 @@ Lastly, after taking some advice from the TA, I decided to make new coding contr
 - Work on adding new requriements listed in milestone 2 requirments
 ---
 
-## 🧠 Reflection on Current Cycle (Week 19)
-**Week 19** marked the beginning of the second half of the capstone. My primary focus was refactoring and recreating the resume generator module from milestone 1, which previously produced output insufficient for professional use. The goal was to create a fully-featured resume suitable for real-life settings to showcase users to employers.
+## 🧠 Reflection on Current Cycle (Week 15)
+
+**Week 15** marked continued progress in the second half of the capstone. My primary focus was refactoring and recreating the resume generator module from Milestone 1, which previously produced output insufficient for professional use. The goal was to create a fully-featured resume suitable for real-world settings to showcase users to potential employers.
 
 I achieved this by integrating [RenderCV](https://github.com/rendercv/rendercv), a CLI-based resume generation library, into our system. This involved developing a comprehensive `Generate_RenderCV_Resume.py` module that serves as the backbone for resume creation and management. Key features include:
 
-- **5 Dataclasses** (`Experience`, `Skills`, `Education`, `Connections`, `Project`) to cleanly structure CV/Resume data
+- **5 Dataclasses** (`Experience`, `Skills`, `Education`, `Connections`, `Project`) to cleanly structure CV/resume data
 - **Full CRUD Operations** for each section of the resume/CV
-- **AI Integration** through the `add_project_from_ai` method, which leverages `GenerateProjectResume` to automatically populate project descriptions from the analyzed project 
+- **AI Integration** through the `add_project_from_ai` method, which leverages `GenerateProjectResume` to automatically populate project descriptions from the analyzed project
 
-The code was intentionally designed with modularity in mind for seamless integration into the Streamlit UI interface planned for Milestone 3. By following the single-responsibility principle, allowing for future UI binding to be straightforward.
+The code was intentionally designed with modularity in mind for seamless integration into the Streamlit UI interface planned for Milestone 3. By following the single-responsibility principle, future UI binding should be straightforward.
 
-The main challenge I encountered this week was maintaining the PR size limit of 500 lines despite multiple refactoring attempts. This didn't prove easy due to:
+The main challenge I encountered this week was maintaining the PR size limit of 500 lines despite multiple refactoring attempts. This proved difficult due to:
 
 1. **Self-contained module requirement** — The RenderCV Generator requires all components (builder class, dataclasses, AI integration, YAML generation, and rendering logic) to function together as a cohesive unit
 2. **Comprehensive test coverage** — 13 test classes were necessary to ensure reliability across all CRUD operations
 3. **Documentation needs** — Extensive docstrings and comments were required to explain the code's functionality for reviewers
 
-Breaking this into smaller PRs would have created incomplete functionality and increased integration complexity, so I included a justification in the PR description explaining why the size was necessary. For the next sprint, I plan on either working on adding the missing features that are required in milestone 2 
+Breaking this into smaller PRs would have created incomplete functionality and increased integration complexity, so I included a justification in the PR description explaining why the size was necessary. 
+
+For the next sprint, I plan to work on adding the missing features required for Milestone 2. Additionally, I worked on fixing and improving a colleague's code to ensure that the refactoring allows the modified tests to pass without problems.
