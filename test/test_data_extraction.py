@@ -112,7 +112,7 @@ class TestDataExtract(unittest.TestCase):
     @patch("platform.system", return_value="Windows")
     def test_no_win32(self, mock_system):
         # Testing system output when Win32 is not installed
-        with patch("src.data_extraction.win32security", None):
+        with patch("src.core.data_extraction.win32security", None):
             with patch("getpass.getuser", return_value="FallbackUser"):
                 extractor = FileMetadataExtractor("test/path")
                 author = extractor.get_author(Path("file.txt"))
