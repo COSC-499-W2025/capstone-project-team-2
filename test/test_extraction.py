@@ -273,8 +273,8 @@ class TestExtraction(unittest.TestCase):
 
 
 
-    @patch('src.CLI_interface_for_file_extraction.extractInfo')
-    @patch('src.CLI_interface_for_file_extraction.input')
+    @patch('src.cli.CLI_interface_for_file_extraction.extractInfo')
+    @patch('src.cli.CLI_interface_for_file_extraction.input')
     @patch('builtins.print')
     def test_valid_zip_file_extraction_cli(self,mock_print, mock_input, mock_extract_Info):
         """
@@ -293,8 +293,8 @@ class TestExtraction(unittest.TestCase):
         mock_instance.runExtraction.assert_called_once()
         mock_print.assert_any_call(f"{test_file_name} has been extracted successfully")
 
-    @patch('src.CLI_interface_for_file_extraction.extractInfo')
-    @patch('src.CLI_interface_for_file_extraction.input')
+    @patch('src.cli.CLI_interface_for_file_extraction.extractInfo')
+    @patch('src.cli.CLI_interface_for_file_extraction.input')
     @patch('builtins.print')
     def test_invalid_zip_file_extraction_CLI(self, mock_print, mock_input, mock_extract_Info):
         """
@@ -329,8 +329,8 @@ class TestExtraction(unittest.TestCase):
 
 
 
-    @patch('src.CLI_interface_for_file_extraction.extractInfo')
-    @patch('src.CLI_interface_for_file_extraction.input')
+    @patch('src.cli.CLI_interface_for_file_extraction.extractInfo')
+    @patch('src.cli.CLI_interface_for_file_extraction.input')
     @patch('builtins.print')
     def test_invalid_zip_file_extraction_minimum_retries_CLI(self, mock_print, mock_input, mock_extract_Info):
         """

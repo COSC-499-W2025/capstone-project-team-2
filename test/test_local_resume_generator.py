@@ -20,7 +20,7 @@ warnings.filterwarnings(
 )
 
 import unittest
-from src.Generate_AI_Resume import GenerateLocalResume, ResumeItem, OOPPrinciple
+from src.reporting.Generate_AI_Resume import GenerateLocalResume, ResumeItem, OOPPrinciple
 
 
 class TestGenerateLocalResume(unittest.TestCase):

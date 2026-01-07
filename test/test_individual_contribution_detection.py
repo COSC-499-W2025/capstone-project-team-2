@@ -46,7 +46,7 @@ class TestIndividualContributionDetection(unittest.TestCase):
         path.write_text(content, encoding="utf-8")
         return path
 
-    @patch('src.individual_contribution_detection.detect_project_type',
+    @patch('src.analysis.individual_contribution_detection.detect_project_type',
            return_value={"project_type": "individual", "mode": "local"})
     
     def test_non_collaborative_project_raises_error(self, _):
@@ -93,8 +93,8 @@ class TestIndividualContributionDetection(unittest.TestCase):
         self.assertEqual(result["Alice"]["file_count"], 1)
         self.assertEqual(result["Bob"]["file_count"], 1)
 
-    @patch('src.individual_contribution_detection.detect_project_type')
-    @patch('src.individual_contribution_detection.FileMetadataExtractor')
+    @patch('src.analysis.individual_contribution_detection.detect_project_type')
+    @patch('src.analysis.individual_contribution_detection.FileMetadataExtractor')
     
     def test_entrypoint_uses_local_detector_with_patched_extractor(self, mock_extractor_cls, mock_detect):
         """
@@ -165,7 +165,7 @@ class TestIndividualContributionDetection(unittest.TestCase):
         self.assertIn("orphan.py", result["<unattributed>"]["files_owned"])
         self.assertEqual(result["<unattributed>"]["file_count"], 1)
         
-    @patch('src.individual_contribution_detection.detect_project_type')
+    @patch('src.analysis.individual_contribution_detection.detect_project_type')
     def test_git_multiple_distinct_authors(self, mock_detect):
         """
         Two different authors (different emails & different names) should be separate contributors.
@@ -197,7 +197,7 @@ class TestIndividualContributionDetection(unittest.TestCase):
         self.assertEqual(found_files, 2)
 
 
-    @patch('src.individual_contribution_detection.detect_project_type')
+    @patch('src.analysis.individual_contribution_detection.detect_project_type')
     def test_git_untracked_file_becomes_unattributed(self, mock_detect):
         """
         A file that exists but was never committed should be reported as <unattributed>.
@@ -222,7 +222,7 @@ class TestIndividualContributionDetection(unittest.TestCase):
         self.assertIn("untracked_file.py", contributors["<unattributed>"]["files_owned"])
 
 
-    @patch('src.individual_contribution_detection.detect_project_type')
+    @patch('src.analysis.individual_contribution_detection.detect_project_type')
     def test_git_subdirectory_files_tracked(self, mock_detect):
         """
         Files inside nested subdirectories should be attributed correctly.
@@ -246,7 +246,7 @@ class TestIndividualContributionDetection(unittest.TestCase):
         self.assertIn("src/utils/helpers.py", contributors[canon]["files_owned"])
 
 
-    @patch('src.individual_contribution_detection.detect_project_type')
+    @patch('src.analysis.individual_contribution_detection.detect_project_type')
     def test_git_same_email_base_with_decorators_merged(self, mock_detect):
         """
         Email decorators (+ aliases like chris+one, chris+two) should be stripped,
@@ -278,7 +278,7 @@ class TestIndividualContributionDetection(unittest.TestCase):
         self.assertIn("x2.py", contributors[canon]["files_owned"])
 
 
-    @patch('src.individual_contribution_detection.detect_project_type')
+    @patch('src.analysis.individual_contribution_detection.detect_project_type')
     def test_git_merge_via_contributors_file(self, mock_detect):
         """
         If CONTRIBUTORS lists a canonical name, commits by different emails/names should map to that contributor.

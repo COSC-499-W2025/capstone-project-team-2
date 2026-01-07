@@ -104,7 +104,7 @@ class TestUserConsent(unittest.TestCase):
         self.assertTrue(data_consent)
         self.assertFalse(external_consent)
 
-    @patch('src.user_consent.show_consent_file')  
+    @patch('src.config.user_consent.show_consent_file')  
     @patch('builtins.input', side_effect=['view', 'y', 'y'])  
     def test_view_then_full_consent(self, mock_input, mock_show):
         """
@@ -118,7 +118,7 @@ class TestUserConsent(unittest.TestCase):
         self.assertTrue(ec)
         mock_show.assert_called()
 
-    @patch('src.user_consent.show_consent_file')
+    @patch('src.config.user_consent.show_consent_file')
     @patch('builtins.input', side_effect=['y', 'view', 'y'])
     def test_view_at_external_prompt_then_yes(self, mock_input, mock_show):
         """
@@ -132,7 +132,7 @@ class TestUserConsent(unittest.TestCase):
         self.assertTrue(ec)
         mock_show.assert_called()
 
-    @patch('src.user_consent.show_consent_file')
+    @patch('src.config.user_consent.show_consent_file')
     @patch('builtins.input', side_effect=['y', 'n', 'view', 'y'])
     def test_view_at_basic_confirm_then_continue_locally(self, mock_input, mock_show):
         """
