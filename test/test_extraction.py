@@ -172,11 +172,11 @@ class TestExtraction(unittest.TestCase):
         """
         path = os.path.join(self.original_cwd, "test")
         path = os.path.join(path, "TestZIPs")
-        path = os.path.join(path, "TEST.zip")
+        path = os.path.join(path, "CorruptInternalZIP.zip")
         extractInfo_instance = extractInfo(path)
         text = extractInfo_instance.verifyZIP()
         print(text)
-        self.assertTrue(extractInfo_instance.BAD_ZIP_ERROR_TEXT in text)
+        self.assertTrue(extractInfo_instance.BAD_FILE_ERROR_TEXT in text)
 
     def test_verifyZIP_not_bad_not_zip(self):
         """
@@ -231,11 +231,11 @@ class TestExtraction(unittest.TestCase):
         """
         path = os.path.join(self.original_cwd, "test")
         path = os.path.join(path, "TestZIPs")
-        path = os.path.join(path, "TEST.zip")
+        path = os.path.join(path, "CorruptInternalZIP.zip")
         extractInfo_instance = extractInfo(path)
         text = extractInfo_instance.runExtraction()
         print(text)
-        self.assertTrue(extractInfo_instance.BAD_ZIP_ERROR_TEXT in text)
+        self.assertTrue(extractInfo_instance.BAD_FILE_ERROR_TEXT in text)
 
     def test_runExtraction_empty_zip(self):
         """
