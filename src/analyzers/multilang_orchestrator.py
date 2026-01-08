@@ -145,7 +145,7 @@ class MultiLangOrchestrator:
                         "syntax_error": str(e),
                         "c_spec": {},
                     })
-            from src.oop_aggregator import aggregate_canonical_reports 
+            from src.aggregation.oop_aggregator import aggregate_canonical_reports 
             # Get Python/Java metrics first 
             py_java_metrics = self.py_analyzer.compute_metrics() 
             # Create a pseudo-canonical report for Python/Java 
