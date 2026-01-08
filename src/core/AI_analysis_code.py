@@ -325,6 +325,14 @@ class codeAnalysisAI():
         Ensures inferred_strengths, growth_areas, and recommended_refactorings
         exist at the top level. If the model incorrectly placed them inside
         code_quality_and_maintainability, extract and move them.
+
+        Args:
+            data: The parsed JSON response dictionary from the LLM containing
+                  the AI analysis results for a single file.
+
+        Returns:
+            The normalized dictionary with inferred_strengths, growth_areas,
+            and recommended_refactorings guaranteed to exist at the top level.
         """
         nested = data.get("code_quality_and_maintainability", {})
 
