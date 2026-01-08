@@ -76,7 +76,7 @@ def create_app_context(external_consent_value=False) -> AppContext:
 
     store = HelperFunct(conn)
 
-    root_folder = Path(__file__).absolute().resolve().parents[1]
+    root_folder = Path(__file__).absolute().resolve().parents[2]
     legacy_save_dir = root_folder / "User_config_files"
     default_save_dir = legacy_save_dir / "project_insights"
 

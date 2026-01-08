@@ -22,3 +22,6 @@ pendulum
 reportlab
 tqdm
 javalang
+rendercv[full]
+ruamel.yaml
+streamlit
