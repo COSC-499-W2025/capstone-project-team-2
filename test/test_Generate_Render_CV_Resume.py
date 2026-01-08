@@ -24,7 +24,17 @@ from src.reporting.Generate_RenderCV_Resume import (
 
 
 class BaseRenderCVTest(unittest.TestCase):
-    """Base class with common setup/teardown for all RenderCV tests."""
+    """
+    Base class with common setup/teardown for all RenderCV tests.
+
+    Provides shared test infrastructure including temporary directory creation,
+    working directory management, and cleanup of generated CV files. All test
+    classes inherit from this base to ensure consistent test environment setup.
+
+    Attributes:
+        test_dir (str): Path to temporary directory for test file operations.
+        original_cwd (str): Original working directory to restore after tests.
+    """
 
     def setUp(self):
         """Set up test fixtures."""
@@ -60,7 +70,14 @@ class BaseRenderCVTest(unittest.TestCase):
 
 
 class TestCreateRenderCV(BaseRenderCVTest):
-    """Tests for the create_Render_CV class."""
+    """
+    Tests for the create_Render_CV class initialization and core functionality.
+
+    Validates the CV creation workflow including initialization with default
+    and custom values, starter file generation, file loading, and saving.
+    Tests ensure proper handling of file operations, name formatting,
+    and error conditions when files don't exist.
+    """
 
     def test_init_default_values(self):
         """Test initialization with default values."""
@@ -183,7 +200,13 @@ class TestCreateRenderCV(BaseRenderCVTest):
 
 
 class TestCreateRenderCVEducation(BaseRenderCVTest):
-    """Tests for education-related methods."""
+    """
+    Tests for education-related methods in the create_Render_CV class.
+
+    Validates adding, deleting, and managing education entries in the CV.
+    Tests cover successful operations, duplicate detection, error handling
+    when data isn't loaded, and automatic section creation when missing.
+    """
 
     def setUp(self):
         super().setUp()
@@ -239,7 +262,13 @@ class TestCreateRenderCVEducation(BaseRenderCVTest):
 
 
 class TestCreateRenderCVExperience(BaseRenderCVTest):
-    """Tests for experience-related methods."""
+    """
+    Tests for experience-related methods in the create_Render_CV class.
+
+    Validates adding and removing work experience entries from the CV.
+    Tests cover successful operations, error handling when data isn't loaded,
+    automatic section creation, and handling of non-existent or empty entries.
+    """
 
     def setUp(self):
         super().setUp()
@@ -307,7 +336,13 @@ class TestCreateRenderCVExperience(BaseRenderCVTest):
 
 
 class TestCreateRenderCVProjects(BaseRenderCVTest):
-    """Tests for project-related methods."""
+    """
+    Tests for project-related methods in the create_Render_CV class.
+
+    Validates adding, deleting, and modifying project entries in the CV.
+    Tests cover successful CRUD operations, duplicate detection, invalid
+    field handling, automatic section creation, and proper error responses.
+    """
 
     def setUp(self):
         super().setUp()
@@ -384,7 +419,14 @@ class TestCreateRenderCVProjects(BaseRenderCVTest):
 
 
 class TestAddProjectFromAI(BaseRenderCVTest):
-    """Tests for the add_project_from_ai method."""
+    """
+    Tests for the add_project_from_ai method in the create_Render_CV class.
+
+    Validates AI-powered project generation from analyzed project files.
+    Tests cover successful project addition, tech stack integration into
+    summaries, handling of missing tech stacks, duplicate rejection,
+    file not found errors, and proper highlight/responsibility mapping.
+    """
 
     def setUp(self):
         super().setUp()
@@ -527,7 +569,13 @@ class TestAddProjectFromAI(BaseRenderCVTest):
 
 
 class TestCreateRenderCVSections(BaseRenderCVTest):
-    """Tests for section-related methods."""
+    """
+    Tests for section-related methods in the create_Render_CV class.
+
+    Validates CV section management including removal of sections.
+    Tests ensure proper error handling when data isn't loaded and
+    verify section count changes after removal operations.
+    """
 
     def setUp(self):
         super().setUp()
@@ -547,7 +595,14 @@ class TestCreateRenderCVSections(BaseRenderCVTest):
 
 
 class TestCreateRenderCVContact(BaseRenderCVTest):
-    """Tests for contact-related methods."""
+    """
+    Tests for contact-related methods in the create_Render_CV class.
+
+    Validates updating contact information fields including email, phone,
+    location, website, and name. Tests cover individual field updates,
+    multiple simultaneous updates, error handling when data isn't loaded,
+    and method chaining support via return value verification.
+    """
 
     def setUp(self):
         super().setUp()
@@ -602,7 +657,13 @@ class TestCreateRenderCVContact(BaseRenderCVTest):
 
 
 class TestCreateRenderCVConnections(BaseRenderCVTest):
-    """Tests for connection-related methods."""
+    """
+    Tests for connection-related methods in the create_Render_CV class.
+
+    Validates adding social network connections (LinkedIn, GitHub, etc.)
+    to the CV. Tests cover successful additions, duplicate detection,
+    and error handling when data isn't loaded.
+    """
 
     def setUp(self):
         super().setUp()
@@ -629,7 +690,13 @@ class TestCreateRenderCVConnections(BaseRenderCVTest):
 
 
 class TestCreateRenderCVAutoSave(BaseRenderCVTest):
-    """Tests for auto-save functionality."""
+    """
+    Tests for auto-save functionality in the create_Render_CV class.
+
+    Validates that the auto_save feature correctly triggers or skips
+    automatic file saves when CV data is modified. Tests verify behavior
+    for both enabled and disabled auto_save configurations.
+    """
 
     def test_auto_save_enabled_saves_on_modification(self):
         """Test that auto_save triggers save on modification."""
@@ -655,7 +722,13 @@ class TestCreateRenderCVAutoSave(BaseRenderCVTest):
 
 
 class TestCreateRenderCVRender(BaseRenderCVTest):
-    """Tests for render functionality."""
+    """
+    Tests for render functionality in the create_Render_CV class.
+
+    Validates the CV rendering process that converts YAML to PDF output.
+    Tests cover error handling for missing files and verification that
+    the rendercv subprocess is called with correct arguments.
+    """
 
     def setUp(self):
         super().setUp()
@@ -680,7 +753,13 @@ class TestCreateRenderCVRender(BaseRenderCVTest):
 
 
 class TestThemes(BaseRenderCVTest):
-    """Tests for theme functionality."""
+    """
+    Tests for theme functionality in the create_Render_CV class.
+
+    Validates CV theme selection and configuration. Tests verify that
+    expected themes are available, the default theme is correctly set,
+    and theme updates are properly applied to the CV data structure.
+    """
 
     def setUp(self):
         super().setUp()
@@ -706,7 +785,14 @@ class TestThemes(BaseRenderCVTest):
 
 
 class TestCreateRenderCVSkills(BaseRenderCVTest):
-    """Tests for skill-related methods."""
+    """
+    Tests for skill-related methods in the create_Render_CV class.
+
+    Validates adding, modifying, and deleting skills entries in the CV.
+    Tests cover successful CRUD operations, duplicate detection, automatic
+    section creation when missing, and proper error handling for missing
+    data or non-existent skill entries.
+    """
 
     def setUp(self):
         super().setUp()
@@ -786,7 +872,14 @@ class TestCreateRenderCVSkills(BaseRenderCVTest):
 
 
 class TestCreateRenderCVConnectionModifications(BaseRenderCVTest):
-    """Tests for connection modification and deletion methods."""
+    """
+    Tests for connection modification and deletion methods in the create_Render_CV class.
+
+    Validates updating and removing social network connections from the CV.
+    Tests cover successful modifications, deletion operations, error handling
+    when data isn't loaded, and proper responses for non-existent connections
+    or empty connection lists.
+    """
 
     def setUp(self):
         super().setUp()
