@@ -32,10 +32,14 @@ from typing import List, Dict, Any, Set
 def aggregate_canonical_reports(canonical_reports: List[Dict[str, Any]], total_files: int = None) -> Dict[str, Any]:
     """
     Turn a list of canonical per-file reports into the full project-level metrics dict
+    
     Args:
         canonical_reports (List[Dict[str, Any]]): List of per-file canonical reports.
-        total_files (int, optional): Total number of files analyzed (including syntax errors).
-                                     If None, defaults to len(canonical_reports).
+        total_files (int, optional): Total number of files analyzed (including syntax errors). If None, defaults to len(canonical_reports).
+                                     
+    Returns:
+        Dict[str, Any]: A dictionary containing aggregated project-level object-oriented
+        metrics, complexity statistics, data structure usage, and an overall OOP score.
     """
     # Flatten classes
     all_classes = []
@@ -238,7 +242,13 @@ def aggregate_canonical_reports(canonical_reports: List[Dict[str, Any]], total_f
 def build_narrative(metrics: Dict[str, Any]) -> Dict[str, str]:
     """
     Build the three-part narrative (oop, data_structures, complexity).
-    Returns dict { "oop": "...", "data_structures": "...", "complexity": "..." }
+
+    Args:
+        metrics: Dictionary containing aggregated project metrics used to generate narrative summaries.
+
+    Returns:
+        Dict[str, str]: A dictionary containing narrative summaries for object-oriented
+            design, data structure usage, and algorithmic complexity.
     """
     classes = metrics["classes"]
     encaps = metrics["encapsulation"]

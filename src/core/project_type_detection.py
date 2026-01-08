@@ -82,7 +82,16 @@ def detect_git_collaboration(path: Path) -> dict:
 
 
 def collect_authors(root: Path) -> set[str]:
-    """Collect unique authors using FileMetadataExtractor."""
+    """
+    Collect unique authors using FileMetadataExtractor.
+
+    Args:
+        root: Root directory to scan for files with author metadata.
+
+    Returns:
+        set[str]: A set of unique author names extracted from file metadata.
+    
+    """
     extractor = FileMetadataExtractor(root)
     authors = set()
 
@@ -113,6 +122,12 @@ def extract_names_from_text(file_path: Path) -> set[str]:
     - Handles CamelCase tokens like McLovin or MacArthur
     - Processes line-by-line to avoid merging unrelated lines
     - Normalizes curly apostrophes to straight ones
+    
+    Args:
+        file_path: Path to the text file to scan for names.
+
+    Returns:
+        set[str]: A set of extracted personal names found in the text file.
     """
     found = set()
     try:
@@ -148,7 +163,17 @@ def extract_names_from_text(file_path: Path) -> set[str]:
 
 
 def detect_collaboration_by_metadata(authors: set[str]) -> dict:
-    """Detect collaboration via file metadata authors."""
+    """
+    Detect collaboration via file metadata authors.
+    
+    Args:
+        authors: Set of author names extracted from file metadata.
+
+    Returns:
+        dict: Dictionary indicating project type ("collaborative", "individual",
+            or "unknown") and analysis mode.
+    """
+    
     if len(authors) > 1:
         return {"project_type": "collaborative", "mode": "local"}
     elif len(authors) == 1:
@@ -157,7 +182,17 @@ def detect_collaboration_by_metadata(authors: set[str]) -> dict:
 
 
 def detect_collaboration_by_text(files: list[Path]) -> dict:
-    """Detect collaboration via contributor text files."""
+    """
+    Detect collaboration via contributor text files.
+    
+    Args:
+        files: List of text file paths to scan for contributor names.
+
+    Returns:
+        dict: Dictionary indicating project type ("collaborative", "individual",
+            or "unknown") and analysis mode.
+        
+    """
     all_names = set()
     for file_path in files:
         all_names.update(extract_names_from_text(file_path))
