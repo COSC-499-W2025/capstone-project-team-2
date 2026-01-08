@@ -19,7 +19,7 @@ from pathlib import Path
 
 from git import Actor, Repo
 
-from src.resume_item_generator import ResumeItem, generate_resume_item
+from src.reporting.resume_item_generator import ResumeItem, generate_resume_item
 
 
 class TestResumeItemGenerator(unittest.TestCase):

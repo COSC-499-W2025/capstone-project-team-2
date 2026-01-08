@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src.project_stack_detection import detect_project_stack
+from src.core.project_stack_detection import detect_project_stack
 
 
 class TestProjectStackDetection(unittest.TestCase):

@@ -2,7 +2,7 @@ import pytest
 from types import SimpleNamespace
 
 # Tests for the CLI entrypoint orchestration and consent flow.
-import src.main as main_mod
+import src.cli.main as main_mod
 
 
 class DummyContext:
@@ -39,7 +39,7 @@ def test_run_persists_consent_and_calls_menu(monkeypatch):
     monkeypatch.setattr(main_mod, "configuration_for_users", lambda data: cfg_obj)
 
     ctx = DummyContext()
-    monkeypatch.setattr(main_mod, "create_app_context", lambda: ctx)
+    monkeypatch.setattr(main_mod, "create_app_context", lambda external_consent_value=False: ctx)
 
     menu_calls = {}
 
@@ -72,7 +72,7 @@ def test_run_closes_context_when_menu_raises(monkeypatch):
     monkeypatch.setattr(main_mod, "configuration_for_users", lambda data: cfg_obj)
 
     ctx = DummyContext()
-    monkeypatch.setattr(main_mod, "create_app_context", lambda: ctx)
+    monkeypatch.setattr(main_mod, "create_app_context", lambda external_consent_value=False: ctx)
 
     def boom(_):
         raise RuntimeError("menu failed")
