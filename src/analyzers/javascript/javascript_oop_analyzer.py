@@ -19,6 +19,12 @@ def iter_js_nodes(node):
     Depth-first traversal of an Esprima AST.
 
     Safely yields AST nodes while skipping primitives.
+    
+    Args:
+        node: Root node of the Esprima AST to traverse.
+
+    Returns:
+        Iterator[Any]: An iterator yielding AST nodes in depth-first order.
     """
     if node is None:
         return
