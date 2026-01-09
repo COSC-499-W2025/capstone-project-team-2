@@ -5,7 +5,6 @@ import textwrap
 
 sys.path.append(str(Path(__file__).parent.parent))
 from src.analyzers.java.java_analyzer import analyze_source
-from src.aggregation.oop_aggregator import aggregate_canonical_reports
 
 class TestJavaAnalyzer(unittest.TestCase):
 
