@@ -104,7 +104,7 @@ class TestResumeExporterJSONValidation(unittest.TestCase):
         """Ensure CLI invocation writes valid JSON file."""
         print("[Resume JSON Test] Verifying CLI export functionality...", flush=True)
 
-        cmd = [sys.executable, "-m", "src.resume_exporter", str(self.root), "-o", str(self.output_path)]
+        cmd = [sys.executable, "-m", "src.reporting.resume_exporter", str(self.root), "-o", str(self.output_path)]
         proc = run(cmd, stdout=PIPE, stderr=PIPE, text=True)
 
         self.assertEqual(proc.returncode, 0, f"CLI failed: {proc.stderr}")

@@ -165,18 +165,18 @@ class TestExtraction(unittest.TestCase):
     def test_verifyZIP_bad_zip(self):
         """
         Positive Test
-        Test for when zip file is bad (Corrupted or such)
+        Test for when zip file contains a corrupt file (invalid magic bytes)
 
         Verifies that:
-        - Correct error text is returned when zip file is bad
+        - Correct error text is returned when extracted file has invalid header
         """
         path = os.path.join(self.original_cwd, "test")
         path = os.path.join(path, "TestZIPs")
-        path = os.path.join(path, "TEST.zip")
+        path = os.path.join(path, "CorruptInternalZIP.zip")
         extractInfo_instance = extractInfo(path)
-        text = extractInfo_instance.verifyZIP()
+        text = extractInfo_instance.runExtraction()
         print(text)
-        self.assertTrue(extractInfo_instance.BAD_ZIP_ERROR_TEXT in text)
+        self.assertTrue(extractInfo_instance.CORRUPT_FILE_ERROR_TEXT in text)
 
     def test_verifyZIP_not_bad_not_zip(self):
         """
@@ -224,18 +224,18 @@ class TestExtraction(unittest.TestCase):
     def test_runExtraction_bad_zip(self):
         """
         Positive Test
-        Test for when zip file is bad (Corrupted or such)
+        Test for when zip file contains a corrupt file (invalid magic bytes)
 
         Verifies that:
-        - Correct error text is returned when zip file is bad
+        - Correct error text is returned when extracted file has invalid header
         """
         path = os.path.join(self.original_cwd, "test")
         path = os.path.join(path, "TestZIPs")
-        path = os.path.join(path, "TEST.zip")
+        path = os.path.join(path, "CorruptInternalZIP.zip")
         extractInfo_instance = extractInfo(path)
         text = extractInfo_instance.runExtraction()
         print(text)
-        self.assertTrue(extractInfo_instance.BAD_ZIP_ERROR_TEXT in text)
+        self.assertTrue(extractInfo_instance.CORRUPT_FILE_ERROR_TEXT in text)
 
     def test_runExtraction_empty_zip(self):
         """
@@ -273,8 +273,8 @@ class TestExtraction(unittest.TestCase):
 
 
 
-    @patch('src.CLI_interface_for_file_extraction.extractInfo')
-    @patch('src.CLI_interface_for_file_extraction.input')
+    @patch('src.cli.CLI_interface_for_file_extraction.extractInfo')
+    @patch('src.cli.CLI_interface_for_file_extraction.input')
     @patch('builtins.print')
     def test_valid_zip_file_extraction_cli(self,mock_print, mock_input, mock_extract_Info):
         """
@@ -293,8 +293,8 @@ class TestExtraction(unittest.TestCase):
         mock_instance.runExtraction.assert_called_once()
         mock_print.assert_any_call(f"{test_file_name} has been extracted successfully")
 
-    @patch('src.CLI_interface_for_file_extraction.extractInfo')
-    @patch('src.CLI_interface_for_file_extraction.input')
+    @patch('src.cli.CLI_interface_for_file_extraction.extractInfo')
+    @patch('src.cli.CLI_interface_for_file_extraction.input')
     @patch('builtins.print')
     def test_invalid_zip_file_extraction_CLI(self, mock_print, mock_input, mock_extract_Info):
         """
@@ -329,8 +329,8 @@ class TestExtraction(unittest.TestCase):
 
 
 
-    @patch('src.CLI_interface_for_file_extraction.extractInfo')
-    @patch('src.CLI_interface_for_file_extraction.input')
+    @patch('src.cli.CLI_interface_for_file_extraction.extractInfo')
+    @patch('src.cli.CLI_interface_for_file_extraction.input')
     @patch('builtins.print')
     def test_invalid_zip_file_extraction_minimum_retries_CLI(self, mock_print, mock_input, mock_extract_Info):
         """

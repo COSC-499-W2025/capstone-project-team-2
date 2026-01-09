@@ -23,3 +23,7 @@ reportlab
 tqdm
 javalang
 esprima
+esprima
+rendercv[full]
+ruamel.yaml
+streamlit
