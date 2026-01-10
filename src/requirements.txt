@@ -23,3 +23,8 @@ reportlab
 tqdm
 javalang
 Pillow>=10.0.0
+esprima
+esprima
+rendercv[full]
+ruamel.yaml
+streamlit

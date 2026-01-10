@@ -16,34 +16,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from src.aggregation.oop_aggregator import aggregate_canonical_reports
 from src.aggregation.oop_aggregator import build_narrative
-
-@dataclass
-class ClassInfo:
-    """
-    Holds OOP-related information for a single Python class.
-    
-    Attributes:
-        name: Class name.
-        module: Module path 
-        file_path: Path to the source file.
-        bases: List of base class names.
-        methods: Set of method names defined in the class.
-        has_init: Whether the class has an __init__ method.
-        dunder_methods: Count of dunder methods 
-        private_attrs: Set of private attributes 
-        public_attrs: Set of public attributes.
-    """
-    
-    name: str
-    module: str
-    file_path: Path
-    bases: List[str] = field(default_factory=list)
-    methods: Set[str] = field(default_factory=set)
-    has_init: bool = False
-    dunder_methods: int = 0
-    private_attrs: Set[str] = field(default_factory=set)
-    public_attrs: Set[str] = field(default_factory=set)
-
+from src.analyzers.class_info import ClassInfo
 class ClassVisitor(ast.NodeVisitor):
     """
     AST visitor that collects class definitions and OOP signals.
