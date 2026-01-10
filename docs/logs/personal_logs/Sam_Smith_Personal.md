@@ -2,7 +2,7 @@
 
 ### Task Types Worked On (Screenshot from Peer Eval)
 
-<<<img width="1278" height="741" alt="image" src="https://github.com/user-attachments/assets/6480ad3f-e200-4bb6-abbd-896cbd165c57" />
+<img width="1278" height="741" alt="image" src="https://github.com/user-attachments/assets/6480ad3f-e200-4bb6-abbd-896cbd165c57" />
 
 ### Features Worked on this Milestone (Provide sufficient detail)
   * #1: added feature to allow thumbnails to be uploaded for saved projects
