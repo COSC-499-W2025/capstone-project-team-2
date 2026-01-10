@@ -403,9 +403,9 @@ def aggregate_c_reports(canonical_reports: List[Dict[str, Any]], total_files: in
     # Score calculation (adapted for C)
     richness = min(avg_methods / 5.0, 1.0)
     inheritance_ratio = inheritance_classes / n_classes if n_classes else 0.0
-    encapsulation_ratio = c_specific["opaque_pointers"] / max(n_classes, 1)  # Use opaque pointers for C
-    polymorphism_ratio = vtable_structs / max(n_classes, 1)  # Use vtables for C polymorphism
-    lifecycle_ratio = (c_specific["constructor_functions"] + c_specific["destructor_functions"]) / max(total_funcs, 1)
+    encapsulation_ratio = min(c_specific["opaque_pointers"] / max(n_classes, 1), 1.0)  # Use opaque pointers for C
+    polymorphism_ratio = min(vtable_structs / max(n_classes, 1), 1.0)  # Use vtables for C polymorphism
+    lifecycle_ratio = min((c_specific["constructor_functions"] + c_specific["destructor_functions"]) / max(total_funcs, 1), 1.0)
 
     oop_score = (
         0.20 * richness +
