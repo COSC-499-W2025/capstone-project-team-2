@@ -28,7 +28,9 @@ from src.storage.saved_projects import (
     list_saved_projects,
     show_saved_summary,
 )
+from src.config.project_thumbnails import ThumbnailManager
 from src.cli.menu_insights import project_insights_menu
+from src.reporting.project_insights import list_project_insights
 
 from src.config.user_startup_config import ConfigLoader
 from src.config.Configuration import configuration_for_users
@@ -425,6 +427,7 @@ def main_menu(ctx: AppContext) -> int:
         print("6) AI Resume Line Generator")
         print("7) Local Resume Generator (No External AI)")
         print("8) Project insights")
+        print("9) Manage Thumbnails")
         print("0) Exit")
         choice = input("Select an option: ").strip()
 
@@ -445,11 +448,13 @@ def main_menu(ctx: AppContext) -> int:
                 local_resume_menu(ctx)
             elif choice == "8":
                 project_insights_menu(ctx)
+            elif choice == "9":
+                thumbnail_management_menu(ctx)
             elif choice == "0":
                 print("Goodbye!")
                 return 0
             else:
-                print("Please choose a valid option (0-8).")
+                print("Please choose a valid option (0-9).")
         except KeyboardInterrupt:
             print("\n[Interrupted] Returning to menu.")
         except Exception as e:
@@ -654,3 +659,220 @@ def local_resume_menu(ctx: AppContext) -> None:
             print(f"[ERROR] Could not generate PDF: {e}")
 
     input("\nPress Enter to return to main menu...")
+    
+def thumbnail_management_menu(ctx: AppContext) -> None:
+    """
+    Interactive menu for managing project thumbnails.
+    
+    Args:
+        ctx: Application context with storage paths
+    """
+    storage_path = Path(ctx.legacy_save_dir) / "project_insights.json"
+    thumbnail_manager = ThumbnailManager()
+    
+    while True:
+        print("\n=== Thumbnail Management ===")
+        print("1) Add/Update thumbnail for a project")
+        print("2) View projects with thumbnails")
+        print("3) Remove thumbnail from a project")
+        print("4) View all thumbnails")
+        print("0) Back to Main Menu")
+        
+        choice = input("\nSelect an option: ").strip()
+        
+        try:
+            if choice == "1":
+                _add_thumbnail_workflow(storage_path, thumbnail_manager)
+            elif choice == "2":
+                _view_projects_with_thumbnails(storage_path, thumbnail_manager)
+            elif choice == "3":
+                _remove_thumbnail_workflow(storage_path, thumbnail_manager)
+            elif choice == "4":
+                _view_all_thumbnails(thumbnail_manager)
+            elif choice == "0":
+                return
+            else:
+                print("[ERROR] Invalid option. Please choose 0-4.")
+        
+        except KeyboardInterrupt:
+            print("\n[Interrupted] Returning to thumbnail menu...")
+            continue
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            input("Press Enter to continue...")
+            
+def _add_thumbnail_workflow(
+    storage_path: Path,
+    thumbnail_manager: ThumbnailManager
+) -> None:
+    """Guide user through adding a thumbnail to a project."""
+    insights = list_project_insights(storage_path=storage_path)
+    
+    if not insights:
+        print("[INFO] No projects found. Analyze a project first.")
+        input("Press Enter to continue...")
+        return
+    
+    print("\n=== Available Projects ===\n")
+    for i, insight in enumerate(insights, start=1):
+        has_thumbnail = thumbnail_manager.get_thumbnail_path(insight.id) is not None
+        thumbnail_status = "✓ Has thumbnail" if has_thumbnail else "✗ No thumbnail"
+        print(f"{i}) {insight.project_name} ({thumbnail_status})")
+        print(f"    ID: {insight.id}")
+        print(f"    Analyzed: {insight.analyzed_at}")
+        print()
+    
+    try:
+        selection = input("Select a project number (or 0 to cancel): ").strip()
+        if selection == "0":
+            return
+        
+        idx = int(selection) - 1
+        if idx < 0 or idx >= len(insights):
+            print("[ERROR] Invalid selection.")
+            input("Press Enter to continue...")
+            return
+        
+        selected_insight = insights[idx]
+        
+    except ValueError:
+        print("[ERROR] Please enter a valid number.")
+        input("Press Enter to continue...")
+        return
+    
+    image_path_str = input("\nEnter path to thumbnail image: ").strip()
+    if not image_path_str:
+        print("[INFO] Cancelled.")
+        input("Press Enter to continue...")
+        return
+    
+    image_path = Path(image_path_str).expanduser().resolve()
+    
+    resize_input = input("Resize to standard thumbnail size (400x300)? (y/n) [y]: ").strip().lower()
+    resize = resize_input != 'n'
+    
+    print("\n[INFO] Processing thumbnail...")
+    success, error, thumb_path = thumbnail_manager.add_thumbnail(
+        selected_insight.id,
+        image_path,
+        resize=resize
+    )
+    
+    if success:
+        print(f"[SUCCESS] Thumbnail added for '{selected_insight.project_name}'")
+        print(f"[INFO] Saved to: {thumb_path}")
+    else:
+        print(f"[ERROR] Failed to add thumbnail: {error}")
+    
+    input("\nPress Enter to continue...")
+
+
+def _view_projects_with_thumbnails(
+    storage_path: Path,
+    thumbnail_manager: ThumbnailManager
+) -> None:
+    """Display projects that have thumbnails."""
+    insights = list_project_insights(storage_path=storage_path)
+    
+    projects_with_thumbnails = [
+        insight for insight in insights
+        if thumbnail_manager.get_thumbnail_path(insight.id) is not None
+    ]
+    
+    if not projects_with_thumbnails:
+        print("\n[INFO] No projects have thumbnails yet.")
+        input("Press Enter to continue...")
+        return
+    
+    print(f"\n=== Projects with Thumbnails ({len(projects_with_thumbnails)}) ===\n")
+    
+    for insight in projects_with_thumbnails:
+        thumb_path = thumbnail_manager.get_thumbnail_path(insight.id)
+        file_size = thumb_path.stat().st_size / 1024  # KB
+        
+        print(f"• {insight.project_name}")
+        print(f"  ID: {insight.id}")
+        print(f"  Thumbnail: {thumb_path.name} ({file_size:.1f} KB)")
+        print(f"  Path: {thumb_path}")
+        print()
+    
+    input("Press Enter to continue...")
+
+
+def _remove_thumbnail_workflow(
+    storage_path: Path,
+    thumbnail_manager: ThumbnailManager
+) -> None:
+    """Guide user through removing a thumbnail from a project."""
+    insights = list_project_insights(storage_path=storage_path)
+    
+    projects_with_thumbnails = [
+        insight for insight in insights
+        if thumbnail_manager.get_thumbnail_path(insight.id) is not None
+    ]
+    
+    if not projects_with_thumbnails:
+        print("\n[INFO] No projects have thumbnails to remove.")
+        input("Press Enter to continue...")
+        return
+    
+    print("\n=== Projects with Thumbnails ===\n")
+    for i, insight in enumerate(projects_with_thumbnails, start=1):
+        thumb_path = thumbnail_manager.get_thumbnail_path(insight.id)
+        print(f"{i}) {insight.project_name}")
+        print(f"    Thumbnail: {thumb_path.name}")
+        print()
+    
+    try:
+        selection = input("Select a project number (or 0 to cancel): ").strip()
+        if selection == "0":
+            return
+        
+        idx = int(selection) - 1
+        if idx < 0 or idx >= len(projects_with_thumbnails):
+            print("[ERROR] Invalid selection.")
+            input("Press Enter to continue...")
+            return
+        
+        selected_insight = projects_with_thumbnails[idx]
+        
+    except ValueError:
+        print("[ERROR] Please enter a valid number.")
+        input("Press Enter to continue...")
+        return
+    
+    confirm = input(
+        f"\nAre you sure you want to remove the thumbnail for '{selected_insight.project_name}'? (y/n): "
+    ).strip().lower()
+    
+    if confirm == 'y':
+        if thumbnail_manager.delete_thumbnail(selected_insight.id):
+            print(f"[SUCCESS] Thumbnail removed for '{selected_insight.project_name}'")
+        else:
+            print("[ERROR] Failed to remove thumbnail.")
+    else:
+        print("[INFO] Cancelled.")
+    
+    input("\nPress Enter to continue...")
+
+
+def _view_all_thumbnails(thumbnail_manager: ThumbnailManager) -> None:
+    """Display all stored thumbnails."""
+    thumbnails = thumbnail_manager.list_thumbnails()
+    
+    if not thumbnails:
+        print("\n[INFO] No thumbnails stored.")
+        input("Press Enter to continue...")
+        return
+    
+    print(f"\n=== All Thumbnails ({len(thumbnails)}) ===\n")
+    
+    for project_id, thumb_path in sorted(thumbnails.items()):
+        file_size = thumb_path.stat().st_size / 1024  # KB
+        print(f"• {thumb_path.name}")
+        print(f"  Project ID: {project_id}")
+        print(f"  Size: {file_size:.1f} KB")
+        print(f"  Path: {thumb_path}")
+        print()
+    
+    input("Press Enter to continue...")
