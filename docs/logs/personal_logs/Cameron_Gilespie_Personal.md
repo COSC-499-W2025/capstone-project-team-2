@@ -1,3 +1,35 @@
+## Dates of Sprint: (1/4/2025 – 1/11/2025)
+
+### Peer Eval Screenshot:
+
+<img width="1092" height="626" alt="image" src= "https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Cameron-Personal-Logs/docs/logs/peer_eval_screenshots/PL_Cameron_1-9-2026.png" />
+
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: Refactor C anlyzer 
+
+
+## Associated Tasks from Project Board:
+
+| Description        | Status   |
+| ------------------ | -------- |
+| [Refactor C file analyzer]  | [Complete] |
+
+
+
+---
+## Next week goals
+- complete documentation write up
+---
+
+### Extra Details:
+
+<details>
+  This week I set out to refactoring the C analyzer, I initiated some of the refactoring prior to the break but during the week I reworked a few sections and ensured it was compadible with the refactoring done by fellow teammates before merging it with the base project. the original analyzer had alot of errors when it came to formatting and calculations. the corrections were made included creating an entirely seperate aggregator for C specific language  as well as some small language detectors to change between file designations so propper aggregation can be done per file.
+
+
+</details>
+
 ## Dates of Sprint: (12/1/2025 – 12/7/2025)
 
 ### Peer Eval Screenshot:
