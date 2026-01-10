@@ -324,6 +324,33 @@ class TestProjectInsights(unittest.TestCase):
         backups = list(self.storage.parent.glob("insights.json.corrupt-*"))
         self.assertEqual(len(backups), 1)
 
+    def test_entry_to_dataclass_loads_thumbnail_field(self) -> None:
+        """Verify that thumbnail data in JSON is loaded into ProjectInsight dataclass."""
+        self._announce("Testing thumbnail field loading from JSON entry.")
+
+        thumbnail_data = {
+            "path": "User_config_files/thumbnails/abc-123.jpg",
+            "filename": "abc-123.jpg",
+            "exists": True,
+            "added_at": "2026-01-10T19:17:10.199176+00:00",
+        }
+
+        record_project_insight(
+            _analysis_payload("ThumbnailTest"),
+            storage_path=self.storage,
+            insight_id="thumb-test",
+        )
+
+        disk_data = json.loads(self.storage.read_text(encoding="utf-8"))
+        disk_data[0]["thumbnail"] = thumbnail_data
+        self.storage.write_text(json.dumps(disk_data, indent=2), encoding="utf-8")
+
+        loaded = list_project_insights(self.storage)
+        self.assertEqual(len(loaded), 1)
+        self.assertIsNotNone(loaded[0].thumbnail)
+        self.assertEqual(loaded[0].thumbnail["path"], thumbnail_data["path"])
+        self.assertEqual(loaded[0].thumbnail["filename"], thumbnail_data["filename"])
+        self.assertTrue(loaded[0].thumbnail["exists"])
 
 if __name__ == "__main__":
     unittest.main()

@@ -311,6 +311,7 @@ class ProjectInsight:
     contributors: ContributorData = field(default_factory=dict)
     stats: JsonEntry = field(default_factory=dict)
     file_analysis: JsonEntry = field(default_factory=dict)
+    thumbnail: Optional[Dict[str, Any]] = None
 
     def contribution_score(self, contributor: Optional[str] = None) -> int:
         """
@@ -382,6 +383,7 @@ def _entry_to_dataclass(entry: JsonEntry) -> ProjectInsight:
         contributors=contributors,
         stats=stats,
         file_analysis=file_analysis,
+        thumbnail=entry.get("thumbnail"),
     )
 
 
@@ -568,6 +570,97 @@ def summaries_for_top_ranked_projects(
         for insight in ranked
     ]
 
+def update_thumbnail_in_insights(
+    project_id: str,
+    thumbnail_path: Path,
+    storage_path: PathLike = DEFAULT_STORAGE,
+) -> bool:
+    """
+    Update thumbnail information for a project in the insights JSON.
+    
+    Args:
+        project_id: Project ID (UUID from insights)
+        thumbnail_path: Path to the saved thumbnail file
+        storage_path: Path to project_insights.json
+        
+    Returns:
+        True if updated successfully, False otherwise
+    """
+    path = Path(storage_path)
+    entries = _read_entries(path)
+    
+    updated = False
+    for entry in entries:
+        if entry.get("id") == project_id:
+            entry["thumbnail"] = {
+                "path": str(thumbnail_path),
+                "filename": thumbnail_path.name,
+                "exists": True,
+                "added_at": _now_iso(),
+            }
+            updated = True
+            break
+    
+    if updated:
+        _write_entries(path, entries)
+    
+    return updated
+
+
+def remove_thumbnail_from_insights(
+    project_id: str,
+    storage_path: PathLike = DEFAULT_STORAGE,
+) -> bool:
+    """
+    Remove thumbnail information from a project in the insights JSON.
+    
+    Args:
+        project_id: Project ID (UUID from insights)
+        storage_path: Path to project_insights.json
+        
+    Returns:
+        True if removed successfully, False otherwise
+    """
+    path = Path(storage_path)
+    entries = _read_entries(path)
+    
+    updated = False
+    for entry in entries:
+        if entry.get("id") == project_id:
+            entry["thumbnail"] = None
+            updated = True
+            break
+    
+    if updated:
+        _write_entries(path, entries)
+    
+    return updated
+
+def get_thumbnail_from_insight(
+    insight: ProjectInsight
+) -> Optional[Path]:
+    """
+    Get thumbnail path from a ProjectInsight if it exists.
+    
+    Args:
+        insight: ProjectInsight instance
+        
+    Returns:
+        Path to thumbnail or None
+    """
+    if not insight.thumbnail:
+        return None
+    
+    thumb_info = insight.thumbnail
+    if not isinstance(thumb_info, dict):
+        return None
+    
+    thumb_path = thumb_info.get("path")
+    if not thumb_path:
+        return None
+    
+    path = Path(thumb_path)
+    return path if path.exists() else None
 
 __all__ = [
     "ProjectInsight",
@@ -576,4 +669,7 @@ __all__ = [
     "rank_projects_by_contribution",
     "list_skill_history",
     "summaries_for_top_ranked_projects",
+    "update_thumbnail_in_insights",      
+    "remove_thumbnail_from_insights", 
+    "get_thumbnail_from_insight",
 ]
