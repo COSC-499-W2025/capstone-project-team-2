@@ -11,6 +11,20 @@ from pathlib import Path
 
 
 class testUserConstentUpdate(unittest.TestCase):
+    """
+    Test suite for user consent update functionality.
+
+    This class tests the `configuration_for_users` class's ability to handle
+    user consent preferences for external sharing and data consent. It verifies
+    that consent flags are properly saved to configuration files and that
+    original user data is preserved after consent updates.
+
+    Attributes:
+        sample_json (dict): Sample user data used for testing.
+        instance (configuration_for_users): Instance of the configuration class.
+        temp_dir (str): Temporary directory for test file storage.
+        test_file_path (Path): Path to the temporary test configuration file.
+    """
 
     def setUp(self):
 

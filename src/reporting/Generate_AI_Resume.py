@@ -243,6 +243,15 @@ class GenerateProjectResume:
 
 
     def _is_text_file(self, path: Path) -> bool:
+        """
+        Checks if a file is a valid UTF-8 text file by attempting to decode its contents.
+
+        Args:
+            path: The file path to check for text content.
+
+        Returns:
+            bool: True if the file can be read and decoded as UTF-8, False otherwise.
+        """
         try:
             with path.open("rb") as f:
                 f.read(2048).decode("utf-8")
