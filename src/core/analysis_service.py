@@ -132,8 +132,8 @@ def oop_analysis(root: Path, resume) -> Dict[str, Any] | None:
         print(f"[WARN] Could not read user config, assuming no external consent: {e}")
         has_external = False
 
-    # Check if project has Python, Java, or C
-    supported_languages = {"Python", "Java", "C"}
+    # Check if project has Python, Java, C, or JavaScript
+    supported_languages = {"Python", "Java", "C", "JavaScript"}
     detected_languages = set(resume.languages) & supported_languages
 
     if not has_external and detected_languages:
