@@ -199,7 +199,7 @@ class MultiLangOrchestrator:
                               "classes": [], # Already processed
                               "imports": [], 
                               "data_structures": py_java_metrics.get("data_structures", {}), 
-                              "complexity": py_java_metrics.get("complexity", {}), ""
+                              "complexity": py_java_metrics.get("complexity", {}), 
                               "syntax_ok": True, 
                               } 
             # Combine and use aggregator 

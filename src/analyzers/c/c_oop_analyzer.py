@@ -303,7 +303,6 @@ def analyze_c_project(root: Path, extensions: List[str] = None) -> List[Dict[str
             try:
                 source = path.read_text(encoding="utf-8", errors='ignore')
                 report = analyze_source(source, path)
-                print(f"[PROJECT DEBUG] Report keys after analyze_source: {report.keys()}")
                 canonical_reports.append(report)
             except Exception as e:
                 # Return error report
