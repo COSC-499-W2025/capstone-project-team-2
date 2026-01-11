@@ -66,4 +66,4 @@ def test_display_portfolio_external_enabled_calls_generator(monkeypatch, tmp_pat
     out = capsys.readouterr().out
 
     assert "PROJECT: DemoProj" in out
-    assert "One-Sentence Summary: Summary" in out
+    assert "One-Sentence Summary: Summary" in out    

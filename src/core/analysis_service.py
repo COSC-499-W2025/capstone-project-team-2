@@ -17,7 +17,11 @@ from src.storage.file_data_saving import SaveFileAnalysisAsJSON
 from src.config.user_startup_config import ConfigLoader
 from src.core.ai_data_scrubbing import ai_data_scrubber
 from src.core.AI_analysis_code import codeAnalysisAI
-
+from src.core.portfolio_service import (
+    load_portfolio_showcase,
+    build_portfolio_showcase,
+    display_portfolio_showcase,
+)
 
 def input_path(prompt: str, allow_blank: bool = False) -> Optional[Path]:
     """
@@ -189,7 +193,7 @@ def export_json(project_name: str, analysis: Dict[str, Any], ctx: AppContext) ->
         print(f"[WARNING] Could not save to database: {e}")
 
 
-def analyze_project(root: Path, ctx: AppContext, project_label: str | None = None, use_ai_analysis=False) -> None:
+def analyze_project(root: Path, ctx: AppContext, project_label: str | None = None, use_ai_analysis=False, portfolio_mode: bool = False,) -> None:
     """
     Analyze a project folder and optionally persist results.
 
@@ -198,6 +202,11 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
         ctx (AppContext): Shared DB/store handles.
         project_label (str | None): Optional override for saved project name.
         use_ai_analysis (bool): If true, uses ollama AI analysis
+        portfolio_mode (bool):
+            If True, suppresses full technical reporting and persistence,
+            and instead generates and prints a curated portfolio showcase
+            derived from analysis results and optional user-authored YAML
+            overrides. Defaults to False.
 
     Returns:
         None
@@ -255,21 +264,13 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
     if contributors_data:
         analysis["contributors"] = contributors_data
 
-    print("[SUMMARY]")
-    print(f"  Type       : {resume.project_type} (mode={resume.detection_mode})")
-    print(f"  Languages  : {', '.join(resume.languages) or '—'}")
-    print(f"  Frameworks : {', '.join(resume.frameworks) or '—'}")
-    print(f"  Skills     : {', '.join(resume.skills) or '—'}")
-    if "ai_analysis" in analysis.keys():
-        print( "  AI Data:")
-        print(f"   Structures        : {', '.join(analysis['ai_analysis']['structures_used'])}")
-        print(f"   Skills            : {', '.join(analysis['ai_analysis']['design_concepts'])}")
-        print(f"   Time Complexities : {', '.join(analysis['ai_analysis']['time_complexities_recorded'])}")
-        print(f"   Space Complexities: {', '.join(analysis['ai_analysis']['space_complexities_recorded'])}")
-        print(f"   Control Flows     : {', '.join(analysis['ai_analysis']['control_flow_and_error_handling_patterns'])}")
-        print(f"   Libraries         : {', '.join(analysis['ai_analysis']['libraries_detected'])}")
-        print(f"   Strengths         : {', '.join(analysis['ai_analysis']['inferred_strengths'])}")
-    print(f"  Duration   : {duration}\n")
+    if not portfolio_mode:
+        print("[SUMMARY]")
+        print(f"  Type       : {resume.project_type} (mode={resume.detection_mode})")
+        print(f"  Languages  : {', '.join(resume.languages) or '—'}")
+        print(f"  Frameworks : {', '.join(resume.frameworks) or '—'}")
+        print(f"  Skills     : {', '.join(resume.skills) or '—'}")
+        print(f"  Duration   : {duration}\n")
 
     if contributors_data:
         metric = (contrib_summary or {}).get("metric", "items")
@@ -306,8 +307,10 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
     if resume.summary:
         print(f"  Résumé line: {resume.summary}\n")
 
-    oop_metrics = oop_analysis(root, resume)
-
+    oop_metrics = None
+    if not portfolio_mode:
+        oop_metrics = oop_analysis(root, resume)
+        
     if oop_metrics is not None:
         analysis["oop_analysis"] = oop_metrics
 
@@ -325,4 +328,13 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
     except Exception as e:
         print(f"[WARN] Failed to record project insight: {e}")
 
+    portfolio_yaml = load_portfolio_showcase(display_name)
+    analysis["portfolio_showcase"] = build_portfolio_showcase(analysis, portfolio_yaml)
+    
+    if portfolio_mode:
+        ps = analysis["portfolio_showcase"]
+        display_portfolio_showcase(ps)
+        return
     export_json(display_name, analysis, ctx)
+
+

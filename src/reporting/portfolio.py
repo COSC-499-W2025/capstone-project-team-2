@@ -7,9 +7,13 @@ from src.reporting.Generate_AI_Resume import GenerateProjectResume, GenerateLoca
 from src.aggregation.oop_aggregator import pretty_print_oop_report
 from src.core import app_context
 from src.reporting.resume_pdf_generator import SimpleResumeGenerator
+from src.core.portfolio_service import (
+    load_portfolio_showcase,
+    build_portfolio_showcase,
+    display_portfolio_showcase,
+    PortfolioData,
+)
 import os
-
-
 
 def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
     """
@@ -31,11 +35,39 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
     has_external = ctx.external_consent
 
     if not has_external:
-        print("\n=== PROJECT SUMMARY (External tools disabled) ===")
-
         analysis = data if isinstance(data, dict) else {}
         if "analysis" in analysis and isinstance(analysis["analysis"], dict):
             analysis = analysis["analysis"]
+
+        if "portfolio_showcase" in analysis:
+            ps = analysis["portfolio_showcase"]
+            display_portfolio_showcase(ps)
+
+            # Ask about PDF generation
+            print("=" * 50)
+            generate_pdf_input = input("Would you like to generate a PDF? (y/n): ").strip().upper()
+            if generate_pdf_input == "Y":
+                attempts = 0
+                max_attempts = 3
+                while attempts < max_attempts:
+                    folder_path = str(input("Enter the folder path where you want to save the PDF: ")).strip()
+                    if os.path.exists(folder_path):
+                        break
+                    else:
+                        attempts += 1
+                        if attempts < max_attempts:
+                            print(f"Folder does not exist. Please enter a valid folder path. ({attempts}/{max_attempts} attempts)")
+                        else:
+                            print("Maximum attempts reached. Returning to menu.")
+                            return
+                name_of_file = str(input("Enter the name of the PDF file or press enter to use default name (Portfolio): ")).strip() or "Portfolio"
+                
+                portfolio_data = PortfolioData(ps, analysis)
+                SimpleResumeGenerator(folder_path, data=portfolio_data, fileName=name_of_file).display_and_run(portfolio_only=True)
+            return
+
+        # Fallback to old format if portfolio_showcase not present
+        print("\n=== PROJECT SUMMARY (External tools disabled) ===")
 
         pt = (
             analysis.get("resume_item", {}).get("project_type")
@@ -126,7 +158,7 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
         attempts = 0
         max_attempts = 3
         while attempts < max_attempts:
-            folder_path=str(input("Enter the folder path where you want to save the PDF: "))
+            folder_path = str(input("Enter the folder path where you want to save the PDF: ")).strip()
             if os.path.exists(folder_path):
                 break
             else:
@@ -136,8 +168,8 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
                 else:
                     print("Maximum attempts reached. Returning to menu.")
                     return
-        name_of_file=str(input("Enter the name of the PDF file or press enter to use default name (Portfolio): ")) or "Portfolio"
-        SimpleResumeGenerator(folder_path,data=docker,fileName=name_of_file).display_and_run()
+        name_of_file = str(input("Enter the name of the PDF file or press enter to use default name (Portfolio): ")).strip() or "Portfolio"
+        SimpleResumeGenerator(folder_path, data=docker, fileName=name_of_file).display_and_run(portfolio_only=True)
 
 
 
