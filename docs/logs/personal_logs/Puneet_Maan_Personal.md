@@ -1,3 +1,47 @@
+# Sprint Log: (05/01/2026 – 11/01/2026)
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/11-01-2026_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Goals Recap
+I was sick this sprint and was not able to contribute meaningfully. I focused on recovery and communicated my status to the team.
+
+---
+
+## Key Accomplishments
+- I was sick this sprint, so my contribution was limited.
+- Standardized test docstrings to the team format across several test files.
+
+### Code Reviews Completed
+- Performed analysis API (#272 by Samantha) (limited contribution due to illness).
+
+---
+
+## Deliverables Completed
+- Updated test docstrings to explain purpose and expected behavior (limited contribution due to illness).
+
+---
+
+## Plan for Next Cycle
+- Recover fully and catch up on any missed updates or review requests.
+- Rejoin active development and coordinate with the team on next priorities.
+
+---
+
+## Reflection
+#### What Went Well
+- I communicated early about being sick so the team could adjust.
+
+#### What We Can Improve
+- Build a clearer backup plan for coverage when someone is unexpectedly out.
+
+
+## ====================================================
+
 # Sprint Log: (01/12/2025 – 07/12/2025)
 
 ---
