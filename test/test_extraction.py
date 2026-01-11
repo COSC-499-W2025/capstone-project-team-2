@@ -50,7 +50,7 @@ class TestExtraction(unittest.TestCase):
         self.sample_files={"file1.txt":"Content 1","file2.txt":"Content 2","file3.txt":"Content 3"}
         self.temp_dir = tempfile.mkdtemp()
         self.original_cwd = os.getcwd()
-        self.temp_path = os.path.join(self.temp_dir, "temp")
+        #self.temp_path = os.path.join(self.temp_dir, "temp")
         os.chdir(self.temp_dir)
 
         self.test_zip_file_path = os.path.join(self.temp_dir, "test.zip")
@@ -85,7 +85,8 @@ class TestExtraction(unittest.TestCase):
 
         empty_zip_path=extractInfo(self.empty_zip_path)
         empty_zip_path.extractFiles()
-        self.assertEqual(os.listdir(self.temp_path),[])
+        temp_path = os.path.join(self.temp_dir, Path(self.empty_zip_path).stem)
+        self.assertEqual(os.listdir(temp_path),[])
 
 
     def test_extract_all_files(self):
@@ -101,8 +102,9 @@ class TestExtraction(unittest.TestCase):
         """
 
         self.instance.extractFiles()
-        for file in os.listdir(self.temp_path):
-            file_path = os.path.join(self.temp_path, file)
+        temp_path = os.path.join(self.temp_dir, Path(self.test_zip_file_path).stem)
+        for file in os.listdir(temp_path):
+            file_path = os.path.join(temp_path, file)
             self.assertTrue(os.path.exists(file_path))
 
     def test_invalid_zip_file(self):
@@ -249,8 +251,8 @@ class TestExtraction(unittest.TestCase):
         """
 
         empty_zip_path=extractInfo(self.empty_zip_path)
-        empty_zip_path.runExtraction()
-        self.assertEqual(os.listdir(self.temp_path),[])
+        temp_path = empty_zip_path.runExtraction()
+        self.assertEqual(os.listdir(temp_path),[])
 
     def test_runExtraction_extract_all_files(self):
 
@@ -264,9 +266,9 @@ class TestExtraction(unittest.TestCase):
 
 
         """
-        self.instance.runExtraction()
-        for file in os.listdir(self.temp_path):
-            file_path = os.path.join(self.temp_path, file)
+        temp_path = self.instance.runExtraction()
+        for file in os.listdir(temp_path):
+            file_path = os.path.join(temp_path, file)
             self.assertTrue(os.path.exists(file_path))
 
 

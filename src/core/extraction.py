@@ -39,7 +39,7 @@ class extractInfo:
 
         """
 
-        self.zipfilePath = zipfilePath
+        self.zipfilePath = Path(zipfilePath)
 
     def runExtraction(self) -> str:
         """
@@ -51,7 +51,7 @@ class extractInfo:
         if error != None:
             return error
         self.extractFiles()
-        temp_path = os.path.join(os.getcwd(), "temp")
+        temp_path = os.path.join(os.getcwd(), self.zipfilePath.stem)
         error = self.validateExtractedFiles(temp_path)
         if error != None:
             return error
@@ -82,8 +82,8 @@ class extractInfo:
 
 
         workingdirectory = os.getcwd()
-        os.makedirs("temp", exist_ok=True)
-        temp_file_path = os.path.join(workingdirectory, "temp")
+        os.makedirs(self.zipfilePath.stem, exist_ok=True)
+        temp_file_path = os.path.join(workingdirectory, self.zipfilePath.stem)
         with zipfile.ZipFile(self.zipfilePath, 'r') as zip_ref:
             zip_ref.extractall(temp_file_path)
 
@@ -94,9 +94,9 @@ class extractInfo:
         Return None if file is validated, or error text if file invalid
         """
         if not os.path.exists(self.zipfilePath):    #Checks filepath
-            return self.PATH_ERROR_TEXT + self.zipfilePath
+            return self.PATH_ERROR_TEXT + str(self.zipfilePath)
         if not zipfile.is_zipfile(self.zipfilePath):    #checks if zip file is a zip file
-            return self.NOT_ZIP_ERROR_TEXT + self.zipfilePath
+            return self.NOT_ZIP_ERROR_TEXT + str(self.zipfilePath)
         try:
             with zipfile.ZipFile(self.zipfilePath, 'r') as zip_test:
                 bad_file = zip_test.testzip()   #Checks for corruption in zip file
