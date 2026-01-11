@@ -1,3 +1,42 @@
+## T2 Week 1 (01/05/2025- 01/11/2025)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+<img width="1278" height="741" alt="image" src="https://github.com/user-attachments/assets/6480ad3f-e200-4bb6-abbd-896cbd165c57" />
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: added feature to allow thumbnails to be uploaded for saved projects
+ 
+## Associated Tasks from Project Board:
+
+| Task ID | Description                     | Feature                   | Assigned To | Status   |
+| ------- | ------------------------------- | ------------------------- | ----------- | -------- |
+|  271 | [266 project thumbnails]   | [User can now upload thumbnail for saved projects]      | [ssmith86]  | [complete]   |
+
+### Progress Update (since 10/26/2025) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td> 266 project thumbnails
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+    </table>
+
+### Extra Details:
+This was the first week after Winter Break and we quickly found that we all needed to brush up on where we were at with the project. @Weebtrain and I did a bit of housekeeping by checking the entire codebase for correct docstrings (undocumented and poorly documented code became a bit of an issue at the end of last semester, so we wanted to make sure we're starting this semester from a good place). She did the working code and I did the test files. This week for my coding contribution I also created a feature that allows the user to upload a thumbnail to previously saved projects.
+
+### Tasks for Next Sprint:
+Improve the feature by allowing the user to upload the thumbnail at the same time they upload the file that will be analyzed.
+
 ## Week 14 (12/01/2025- 12/07/2025)
 
 ### Task Types Worked On (Screenshot from Peer Eval)
