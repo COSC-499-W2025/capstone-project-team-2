@@ -909,7 +909,7 @@ Lastly, after taking some advice from the TA, I decided to make new coding contr
 ## 🎯 Next Week’s Goals
 
 - Work on adding new requriements listed in milestone 2 requirments
-- Work on creating on RenderCV version of a protifolo using AI anlysis  
+- Work on creating a RenderCV version of a portfolio using AI analysis  
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 15)
