@@ -22,6 +22,7 @@ pendulum
 reportlab
 tqdm
 javalang
+Pillow>=10.0.0
 esprima
 rendercv[full]
 ruamel.yaml

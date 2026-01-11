@@ -8,6 +8,8 @@ from types import SimpleNamespace
 from datetime import datetime, timezone, timedelta
 
 import pytest
+import json
+from typing import Any
 
 # Smoke tests for menu dispatch flows using monkeypatched input.
 import src.cli.menus as mod
@@ -442,3 +444,60 @@ def test_main_menu_routes_to_settings_menu(monkeypatch):
     monkeypatch.setattr(mod, "settings_menu", lambda ctx: called.setdefault("hit", True))
     mod.main_menu(SimpleNamespace(external_consent=True))
     assert called.get("hit") is True
+
+def test_settings_menu_routes_to_thumbnail_management(monkeypatch):
+    """Option 3 in settings menu should dispatch to thumbnail_management_menu."""
+    called = {}
+    monkeypatch.setattr("builtins.input", _inputs(["3", "0"]))
+    monkeypatch.setattr(
+        mod,
+        "thumbnail_management_menu",
+        lambda ctx: called.setdefault("hit", True),
+    )
+
+    ctx = SimpleNamespace(external_consent=True, legacy_save_dir=Path("/tmp"))
+    mod.settings_menu(ctx)
+
+    assert called.get("hit") is True
+
+
+def _initialize_insights_from_saved_files(
+    ctx_or_folder: Any,
+    storage_path: Path,
+) -> None:
+    """
+    Create project_insights.json from individual saved analysis files.
+    Called when project_insights.json doesn't exist but we have saved analyses.
+
+    Accepts either:
+      - ctx_or_folder = AppContext (has .default_save_dir), OR
+      - ctx_or_folder = Path to the folder containing saved analyses (used in tests)
+    """
+    # Robust import (in case module was moved/renamed)
+    try:
+        from src.reporting.project_insights import record_project_insight
+    except Exception:
+        from src.reporting.project_insights import record_project_insight
+
+    # Determine where saved analyses live
+    if hasattr(ctx_or_folder, "default_save_dir"):
+        folder = Path(ctx_or_folder.default_save_dir).resolve()
+    else:
+        folder = Path(ctx_or_folder).resolve()
+
+    items = list_saved_projects(folder)
+    if not items:
+        return
+
+    for p in items:
+        try:
+            analysis = json.loads(p.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+
+        # Append to insights log at *storage_path*
+        try:
+            record_project_insight(analysis, storage_path=storage_path)
+        except Exception:
+            # don't crash initialization if one file is malformed
+            continue
