@@ -7,6 +7,14 @@ from src.core.project_stack_detection import detect_project_stack
 
 
 class TestProjectStackDetection(unittest.TestCase):
+    """Check that stack detection matches common project layouts.
+
+    Args:
+        None: No arguments are required for this test case class.
+
+    Returns:
+        None: This class defines unit tests and does not return values.
+    """
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.project_path = Path(self.temp_dir.name)
@@ -15,6 +23,14 @@ class TestProjectStackDetection(unittest.TestCase):
         self.temp_dir.cleanup()
 
     def test_detects_python_flask_project(self):
+        """Check that Flask is detected from requirements.
+
+        Args:
+            self: Test instance.
+
+        Returns:
+            None: Assertions validate stack detection.
+        """
         (self.project_path / "app.py").write_text("print('hello')", encoding="utf-8")
         (self.project_path / "requirements.txt").write_text(
             "Flask==2.3.2\nrequests==2.32.0\n", encoding="utf-8"
@@ -27,6 +43,14 @@ class TestProjectStackDetection(unittest.TestCase):
         self.assertEqual(result["framework_sources"], {"Flask": ["requirements.txt"]})
 
     def test_detects_js_react_project(self):
+        """Check that React is detected from package.json.
+
+        Args:
+            self: Test instance.
+
+        Returns:
+            None: Assertions validate stack detection.
+        """
         src_dir = self.project_path / "src"
         src_dir.mkdir()
         (src_dir / "index.js").write_text("console.log('hi');", encoding="utf-8")
@@ -46,6 +70,14 @@ class TestProjectStackDetection(unittest.TestCase):
         self.assertEqual(result["framework_sources"], {"React": ["package.json"]})
 
     def test_detects_node_express_project(self):
+        """Check that Express is detected from dependencies.
+
+        Args:
+            self: Test instance.
+
+        Returns:
+            None: Assertions validate stack detection.
+        """
         api_dir = self.project_path / "api"
         api_dir.mkdir()
         (api_dir / "server.js").write_text("require('express');", encoding="utf-8")
@@ -65,6 +97,14 @@ class TestProjectStackDetection(unittest.TestCase):
         self.assertEqual(result["framework_sources"], {"Express": ["package.json"]})
 
     def test_detects_c_and_cpp_sources(self):
+        """Check that C and C++ files are detected.
+
+        Args:
+            self: Test instance.
+
+        Returns:
+            None: Assertions validate stack detection.
+        """
         (self.project_path / "main.c").write_text("int main() {return 0;}", encoding="utf-8")
         (self.project_path / "lib.cpp").write_text("int add(int a, int b){return a+b;}", encoding="utf-8")
         (self.project_path / "header.hpp").write_text("#pragma once", encoding="utf-8")
@@ -76,6 +116,14 @@ class TestProjectStackDetection(unittest.TestCase):
         self.assertEqual(result["framework_sources"], {})
 
     def test_detects_infrastructure_frameworks(self):
+        """Check that infra tools are detected from config files.
+
+        Args:
+            self: Test instance.
+
+        Returns:
+            None: Assertions validate stack detection.
+        """
         (self.project_path / "Dockerfile").write_text("FROM python:3.11", encoding="utf-8")
         (self.project_path / "docker-compose.yml").write_text("version: '3.9'", encoding="utf-8")
         infra = self.project_path / "infra"
@@ -96,6 +144,14 @@ class TestProjectStackDetection(unittest.TestCase):
         )
 
     def test_skips_ignored_directories(self):
+        """Check that ignored folders do not affect results.
+
+        Args:
+            self: Test instance.
+
+        Returns:
+            None: Assertions validate stack detection.
+        """
         node_modules = self.project_path / "node_modules" / "react"
         node_modules.mkdir(parents=True)
         (node_modules / "index.js").write_text("console.log('ignored');", encoding="utf-8")
@@ -107,6 +163,14 @@ class TestProjectStackDetection(unittest.TestCase):
         self.assertEqual(result["framework_sources"], {})
 
     def test_detects_multiple_languages_and_frameworks(self):
+        """Check that mixed stacks include all languages/frameworks.
+
+        Args:
+            self: Test instance.
+
+        Returns:
+            None: Assertions validate stack detection.
+        """
         (self.project_path / "backend").mkdir()
         (self.project_path / "backend" / "service.py").write_text(
             "import django\n", encoding="utf-8"
@@ -139,6 +203,14 @@ class TestProjectStackDetection(unittest.TestCase):
         )
 
     def test_empty_project_returns_empty_lists(self):
+        """Check that empty projects return empty results.
+
+        Args:
+            self: Test instance.
+
+        Returns:
+            None: Assertions validate empty detection output.
+        """
         (self.project_path / "README.md").write_text("# Empty project", encoding="utf-8")
 
         result = detect_project_stack(self.project_path)

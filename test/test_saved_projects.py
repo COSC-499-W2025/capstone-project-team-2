@@ -9,6 +9,14 @@ import src.storage.saved_projects as mod
 
 
 def test_list_saved_projects_filters_config_and_dedupes(tmp_path):
+    """Check that config files are ignored and duplicates removed.
+
+    Args:
+        tmp_path: Pytest fixture providing a temporary directory.
+
+    Returns:
+        None: Assertions validate filtering and deduplication.
+    """
     new_dir = tmp_path / "project_insights"
     new_dir.mkdir()
     legacy_file = tmp_path / "legacy.json"
@@ -34,6 +42,16 @@ def test_list_saved_projects_filters_config_and_dedupes(tmp_path):
 
 
 def test_show_saved_summary_prints_contributors(monkeypatch, tmp_path, capsys):
+    """Check that contributor summaries are printed.
+
+    Args:
+        monkeypatch: Pytest fixture for patching module attributes.
+        tmp_path: Pytest fixture providing a temporary directory.
+        capsys: Pytest fixture for capturing stdout/stderr.
+
+    Returns:
+        None: Assertions validate printed summary content.
+    """
     file_path = tmp_path / "analysis.json"
     data = {
         "analysis": {
@@ -67,6 +85,14 @@ def test_show_saved_summary_prints_contributors(monkeypatch, tmp_path, capsys):
 
 
 def test_get_saved_projects_from_db_uses_cursor(monkeypatch):
+    """Check that the DB cursor is used and closed.
+
+    Args:
+        monkeypatch: Pytest fixture for patching module attributes.
+
+    Returns:
+        None: Assertions validate cursor usage.
+    """
     rows = [(1, "file.json", "2024-01-01")]
 
     class FakeCursor:
@@ -94,6 +120,15 @@ def test_get_saved_projects_from_db_uses_cursor(monkeypatch):
 
 
 def test_delete_file_from_disk_respects_references(monkeypatch, tmp_path):
+    """Check that referenced files are not deleted.
+
+    Args:
+        monkeypatch: Pytest fixture for patching module attributes.
+        tmp_path: Pytest fixture providing a temporary directory.
+
+    Returns:
+        None: Assertions validate safe delete behavior.
+    """
     ctx = SimpleNamespace(
         default_save_dir=tmp_path / "project_insights",
         store=SimpleNamespace(count_file_references=MagicMock(return_value=1)),
@@ -109,6 +144,15 @@ def test_delete_file_from_disk_respects_references(monkeypatch, tmp_path):
 
 
 def test_delete_file_from_disk_deletes_when_no_references(monkeypatch, tmp_path):
+    """Check that unreferenced files are deleted.
+
+    Args:
+        monkeypatch: Pytest fixture for patching module attributes.
+        tmp_path: Pytest fixture providing a temporary directory.
+
+    Returns:
+        None: Assertions validate deletion behavior.
+    """
     ctx = SimpleNamespace(
         default_save_dir=tmp_path / "project_insights",
         store=SimpleNamespace(count_file_references=MagicMock(return_value=0)),

@@ -10,6 +10,14 @@ import src.core.analysis_service as mod
 
 
 def test_convert_datetime_to_string_handles_nested():
+    """Check that nested dates are converted to strings for JSON.
+
+    Args:
+        None: This test does not accept arguments.
+
+    Returns:
+        None: Assertions validate the converted output.
+    """
     now = datetime.datetime(2025, 1, 1, 12, 0, 0)
     delta = datetime.timedelta(days=2, hours=3)
     data = {
@@ -26,6 +34,14 @@ def test_convert_datetime_to_string_handles_nested():
 
 
 def test_extract_if_zip_raises_on_error(monkeypatch):
+    """Check that zip errors raise ValueError.
+
+    Args:
+        monkeypatch: Pytest fixture for patching module attributes.
+
+    Returns:
+        None: Assertions validate error handling.
+    """
     class FakeExtractor:
         def __init__(self, path):
             self.path = path
@@ -40,6 +56,15 @@ def test_extract_if_zip_raises_on_error(monkeypatch):
 
 
 def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypatch):
+    """Check that export saves files and writes to the DB.
+
+    Args:
+        tmp_path: Pytest fixture providing a temporary directory.
+        monkeypatch: Pytest fixture for patching module attributes.
+
+    Returns:
+        None: Assertions validate save and insert behavior.
+    """
     ctx = SimpleNamespace(
         default_save_dir=tmp_path / "saves",
         store=SimpleNamespace(insert_json=MagicMock(return_value=42)),
@@ -67,6 +92,15 @@ def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypat
 
 @pytest.mark.skip
 def test_oop_analysis_runs_when_external_disabled(tmp_path, monkeypatch):
+    """Check that local OOP analysis runs without external consent.
+
+    Args:
+        tmp_path: Pytest fixture providing a temporary directory.
+        monkeypatch: Pytest fixture for patching module attributes.
+
+    Returns:
+        None: Assertions validate OOP analysis execution.
+    """
     cfg_dir = tmp_path / "User_config_files"
     cfg_dir.mkdir(parents=True)
     (cfg_dir / "UserConfigs.json").write_text('{"consented": {"external": false}}')
@@ -91,6 +125,15 @@ def test_oop_analysis_runs_when_external_disabled(tmp_path, monkeypatch):
 
 @pytest.mark.skip
 def test_oop_analysis_skips_when_external_enabled(tmp_path, monkeypatch):
+    """Check that local OOP analysis is skipped with external consent.
+
+    Args:
+        tmp_path: Pytest fixture providing a temporary directory.
+        monkeypatch: Pytest fixture for patching module attributes.
+
+    Returns:
+        None: Assertions validate skip behavior.
+    """
     cfg_dir = tmp_path / "User_config_files"
     cfg_dir.mkdir(parents=True)
     (cfg_dir / "UserConfigs.json").write_text('{"consented": {"external": true}}')
@@ -106,6 +149,15 @@ def test_oop_analysis_skips_when_external_enabled(tmp_path, monkeypatch):
 
 @pytest.mark.skip
 def test_analyze_project_builds_analysis_and_exports(tmp_path, monkeypatch):
+    """Check that analysis builds results and triggers export.
+
+    Args:
+        tmp_path: Pytest fixture providing a temporary directory.
+        monkeypatch: Pytest fixture for patching module attributes.
+
+    Returns:
+        None: Assertions validate export behavior.
+    """
     ctx = SimpleNamespace(
         default_save_dir=tmp_path / "saves",
         legacy_save_dir=tmp_path / "legacy",
