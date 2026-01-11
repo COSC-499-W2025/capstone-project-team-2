@@ -626,3 +626,74 @@ This sprint I focused on extending our deep-analysis capabilities beyond Python 
     </span>
 </details>
 
+## Dates of Sprint: (1/5/2026 – 1/11/2026) 
+
+### Peer Eval Screenshot: <img width="1074" height="613" alt="mg10" src="https://github.com/user-attachments/assets/89c5d3a1-0998-4b4b-80d5-7659dce01b31" />
+
+---
+
+### Features Worked on this Milestone   
+#### T2 Week 1
+  * Redesigned the portfolio showcase system to clearly separate analysis output, resume content, and portfolio-facing narratives, displaying textual information about a project as a portfolio showcase.
+  * Added PDF generation support for portfolios, aligned with resume export behavior.
+  * Wrote and validated automated tests for portfolio construction, display, and PDF generation.
+  * Added missing docstrings for functions implemented by me in Milestone 1 across the codebase.
+
+#### Winter Break (Bonus Weeks)
+  * Refactored the src/ directory into a modular architecture to improve maintainability and extensibility.
+  * Added full JavaScript OOP static analysis and integrated it into the multi-language orchestrator with comprehensive tests.
+
+---
+
+## Associated Tasks from Project Board:
+- https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=148866882
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/268
+- https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=147316787
+- https://github.com/orgs/COSC-499-W2025/projects/11/views/2?filterQuery=java&pane=issue&itemId=147317376
+
+---
+### Progress Update (since 12/7/2025)
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong></td>
+        <td><strong>STATUS</strong></td>
+    </tr>
+    <tr>
+    <td>Display textual information about a project as a portfolio showcase</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+    <tr>
+    <td>Add missing docstrings for Milestone 1 code</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+   <tr>
+    <td>Implemented OOP Analysis Module for JavaScript Projects</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+  <tr>
+    <td>Develop and validate corresponding test cases</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+   <tr>
+    <td>Refactor the src/ directory into a modular architecture</span> </td>
+        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
+    </tr>
+</table>
+
+---
+
+### Next week goals
+
+I will discuss the remaining requirements for Milestone 2 and the API design with the team in our weekly meeting and will pickup a coding contribution after out discussion.
+
+---
+
+### Extra Details:
+<details>
+    <summary><span style='font-weight:bold'>Click to expand</span> </summary>
+This week, I focused on improving how project information is presented to users by redesigning the portfolio showcase system to be clearly distinct from analysis output and resume content. I implemented a structured portfolio format that transforms analysis results into a readable, portfolio-facing narrative and added PDF generation support to align portfolios with existing resume export functionality. To ensure reliability, I wrote and validated automated tests covering portfolio construction, display, and PDF generation workflows. In parallel, I completed documentation improvements by adding missing and clarifying existing docstrings for code I implemented in Milestone 1. During the winter break, I also contributed bonus work by refactoring the src/ directory into a modular architecture and implementing full JavaScript OOP static analysis with comprehensive test coverage, integrating it into the multi-language analysis pipeline.
+    </span>
+</details>
+
+
+
