@@ -18,6 +18,15 @@ from src.analysis.contribution_skill_association import (
 )
 
 class TestContributionSkills(unittest.TestCase):
+    
+    """
+    Unit tests for contribution-to-skill association logic.
+
+    These tests verify correct skill detection and aggregation at both the
+    project and contributor levels, including caching behavior, duplicate
+    handling, missing files, exception safety, and cross-platform path handling.
+    """
+    
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.project_root = Path(self.temp_dir.name)

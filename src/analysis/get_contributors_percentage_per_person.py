@@ -60,6 +60,20 @@ class get_contributors_percentages_per_person:
         self._remote_repo = None
 
     def _ensure_repo(self):
+        """
+        Ensures that a remote GitHub repository object is available for the current
+        instance.
+
+        Args:
+            None
+
+        Returns:
+            Repository: The GitHub repository object associated with the resolved
+                remote URL.
+
+        Raises:
+            RuntimeError: If the remote GitHub repository URL cannot be determined.
+        """
         if self.final_url is None:
             self.get_repo_link()
 
@@ -73,6 +87,16 @@ class get_contributors_percentages_per_person:
         return self._remote_repo
 
     def get_repo_link(self):
+        """
+        Extracts the remote GitHub repository identifier from a local Git repository and counts unique commit contributors.
+
+        Args:
+            None
+
+        Returns:
+            str: Status message indicating success or that the path is not a Git repository.
+        """
+
         try:
             local_repo = Repo(self.file_path) # Here I am using the gitpython library to initialize the repo
             counter=Counter()
@@ -91,7 +115,7 @@ class get_contributors_percentages_per_person:
         except InvalidGitRepositoryError:
             self.final_url = None
             return "Not a git repository"
-        return "Successfully  created repo url"
+        return "Successfully created repo url"
 
     def get_repo_info(self):
         """
@@ -114,6 +138,9 @@ class get_contributors_percentages_per_person:
         print(f"Rate Limit: {core.limit}")
         print(f"Remaining: {core.remaining}")
         print(f"Resets at: {core.reset}")
+        
+        Returns:
+            str: Status message indicating whether repository data was successfully collected.
         """
 
         if self.final_url is not None:
@@ -150,6 +177,13 @@ class get_contributors_percentages_per_person:
 
         """
         Retrieve per-author file modification statistics from a GitHub repository.
+        
+        Args:
+            None
+
+        Returns:
+            dict: A nested dictionary keyed by author, where each entry contains file-wise
+                additions, deletions, and changes, along with the author's total change count.
 
         """
 
@@ -205,7 +239,13 @@ class get_contributors_percentages_per_person:
         """
         Here we are talking the metadata we received and then output in dictionary format to be used
         in other parts of the program
-        :return:
+        
+        Args:
+            None
+
+        Returns:
+            dict or str: A dictionary containing project-level and contributor statistics
+                if data collection succeeds, otherwise a failure status message.
         """
         self.state_1=self.get_repo_link()
         self.state_2=self.get_repo_info()
@@ -238,8 +278,17 @@ class get_contributors_percentages_per_person:
     
 def contribution_percentages_from_local(project_path: str | Path, *, include_unattributed: bool = True, project_name: str = None,) -> Dict[str, Any]:
     """
-    Compute contribution percentages for a non-Git collaborative project using the output of detect_individual_contributions().
-    
+    Calculates per-contributor percentage contributions for a local, non-Git project
+    based on detected individual file ownership.
+
+    Args:
+        project_path: Path to the local project directory.
+        include_unattributed: Whether to include unattributed files in calculations.
+        project_name: Optional display name for the project.
+
+    Returns:
+        Dict[str, Any]: A summary dictionary containing project metadata and
+            per-contributor file-based contribution percentages.
     """
     
     root = Path(project_path)
@@ -276,11 +325,18 @@ def contribution_percentages_from_local(project_path: str | Path, *, include_una
     
 def contribution_summary(project_path: str | Path) -> Dict[str, Any]:
     """
-    Entry point for contribution analysis:
+    Determines the appropriate contribution analysis method and returns a unified
+    contribution summary for the given project path.
 
-    - If `project_path` is a Git repo with a GitHub remote, use commit-based percentages via get_contributors_percentages_git
-    - Otherwise use local (non-Git) contribution detection and percentage calculation.
+    Args:
+        project_path: Path to the project directory to analyze.
+
+    Returns:
+        Dict[str, Any]: A normalized summary dictionary containing project metadata
+            and per-contributor contribution percentages, using either Git- or
+            file-based metrics.
     """
+    
     root = Path(project_path)
     project_name = root.name
 

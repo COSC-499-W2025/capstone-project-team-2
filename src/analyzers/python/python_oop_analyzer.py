@@ -26,13 +26,30 @@ class ClassVisitor(ast.NodeVisitor):
     """
 
     def __init__(self, file_path: Path, module_name: str):
-        """Initialize the visitor with file path and module name."""
+        """
+        Initialize the visitor with file path and module name.
+
+        Args:
+            file_path: Path to the source file being visited.
+            module_name: Logical module identifier associated with the file (typically
+                derived from the package or import context, not the filesystem name).
+        """
+        
         self.file_path = file_path
         self.module_name = module_name
         self.classes: List[ClassInfo] = []
 
     def visit_ClassDef(self, node: ast.ClassDef) -> Any:
-        """Process a class definition node and extract OOP information."""
+        """
+        Process a class definition node and extract OOP information.
+
+        Args:
+            node: AST node representing a Python class definition.
+
+        Returns:
+            Any: This visitor method returns None explicitly and records extracted class information as side effects on the visitor instance.
+        """
+    
         bases = []
         for b in node.bases:
             # Handle simple cases: BaseClass, module.BaseClass
@@ -72,6 +89,13 @@ class ClassVisitor(ast.NodeVisitor):
         
         """
         Look for `self.x = value` inside a method to approximate encapsulation and attribute design.
+        
+        Args:
+            info: ClassInfo object being populated with detected attributes.
+            func: AST node representing a method definition to analyze.
+
+        Returns:
+            None
         """
         for node in ast.walk(func):
             # `self.foo = ...`
@@ -83,7 +107,17 @@ class ClassVisitor(ast.NodeVisitor):
                 self.record_attr_target(info, node.target)
 
     def record_attr_target(self, info: ClassInfo, target: ast.AST) -> None:
-        """Record an attribute assignment to self as private or public."""
+        """
+        Record an attribute assignment to self as private or public.
+        
+        Args:
+            info: ClassInfo object being updated with detected attribute information.
+            target: AST node representing the assignment target to inspect.
+
+        Returns:
+            None
+        
+        """
         if isinstance(target, ast.Attribute) and isinstance(target.value, ast.Name):
             if target.value.id == "self":  # self.<attr>
                 attr_name = target.attr
@@ -158,6 +192,17 @@ class _DataStructureAndComplexityVisitor(ast.NodeVisitor):
 
     # Imports 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> Any:
+        
+        """
+        Process a from-import statement to detect usage of specific standard library
+        data structures and algorithms.
+
+        Args:
+            node: AST node representing a from-import statement.
+
+        Returns:
+            None
+        """
         module = node.module or ""
         if module.startswith("collections"):
             for alias in node.names:
@@ -172,6 +217,17 @@ class _DataStructureAndComplexityVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Import(self, node: ast.Import) -> Any:
+        
+        """
+        Process an import statement to detect usage of specific standard library
+        modules related to data structures and algorithms.
+
+        Args:
+            node: AST node representing an import statement.
+
+        Returns:
+            None
+        """
         for alias in node.names:
             name = alias.name
             if name == "heapq":
@@ -185,6 +241,16 @@ class _DataStructureAndComplexityVisitor(ast.NodeVisitor):
 
     # complexity 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> Any:
+        
+        """
+        Analyze a function definition to collect basic complexity metrics.
+
+        Args:
+            node: AST node representing a function definition.
+
+        Returns:
+            None
+        """
         self.total_functions += 1
         max_depth = self._max_loop_depth(node)
         self.max_loop_depth_overall = max(self.max_loop_depth_overall, max_depth)
@@ -196,6 +262,13 @@ class _DataStructureAndComplexityVisitor(ast.NodeVisitor):
         
         """
         measure max nesting of for/while loops inside a function.
+
+        Args:
+            node: AST node to analyze for loop nesting.
+            current_depth: Current loop nesting depth during recursive traversal.
+
+        Returns:
+            int: Maximum depth of nested for/while/async-for loops found.
         """
         max_depth = current_depth
         for child in ast.iter_child_nodes(node):
@@ -209,6 +282,16 @@ class _DataStructureAndComplexityVisitor(ast.NodeVisitor):
 
     # Advanced algorithms usage
     def visit_Call(self, node: ast.Call) -> Any:
+        
+        """
+        Detect usage of advanced algorithmic utilities within function calls.
+
+        Args:
+            node: AST node representing a function or method call.
+
+        Returns:
+            None
+        """
         func = node.func
         # sorted(...)
         if isinstance(func, ast.Name) and func.id == "sorted":
@@ -324,7 +407,16 @@ class PythonOOPAstAnalyzer:
         )
         
     def to_canonical_reports(self) -> List[Dict[str, Any]]:
-        """Convert class_infos into canonical per-file reports for the aggregator."""
+        """
+        Convert class_infos into canonical per-file reports for the aggregator.
+
+        Args:
+            None
+
+        Returns:
+            List[Dict[str, Any]]: A list of per-file canonical reports containing
+                class information and placeholders for aggregated metrics.
+        """
         files_map = defaultdict(list)
         for ci in self.class_infos:
             files_map[str(ci.file_path)].append(ci)
@@ -342,7 +434,17 @@ class PythonOOPAstAnalyzer:
         return reports
     
     def compute_metrics(self) -> Dict[str, Any]:
-        """Delegate scoring to aggregator, then inject project-level stats."""
+        """
+        Delegate scoring to aggregator, then inject project-level stats.
+
+        Args:
+            None
+
+        Returns:
+            Dict[str, Any]: A dictionary containing aggregated project-level metrics,
+                including data structures, complexity statistics, syntax errors,
+                and narrative summaries.
+        """
         canonical_reports = self.to_canonical_reports()
         metrics = aggregate_canonical_reports(canonical_reports, total_files=len(self.python_files))
 
@@ -375,7 +477,16 @@ class PythonOOPAstAnalyzer:
         return metrics
     
     def analyze(self) -> Dict[str, Any]:
-        """Run the analysis pipeline and return computed metrics."""
+        """
+        Run the analysis pipeline and return computed metrics.
+
+        Args:
+            None
+
+        Returns:
+            Dict[str, Any]: A dictionary containing the final computed analysis
+                metrics for the project.
+        """        
         if not self.python_files:
             self.discover_python_files()
         

@@ -97,8 +97,15 @@ def contributor_names_from_files(root: Path) -> List[str]:
 def files_to_owner_map(root: Path, extractor: FileMetadataExtractor) -> Dict[str, Optional[str]]:
     
     """
-    Return a mapping of POSIX relative file paths to file owners from metadata.
-    Skips .git and known contributor text files.
+    Builds a mapping of relative file paths to detected file owners using metadata.
+
+    Args:
+        root: Root directory of the project to scan.
+        extractor: Metadata extractor used to determine file authorship.
+
+    Returns:
+        Dict[str, Optional[str]]: A dictionary mapping POSIX-style relative file paths
+            to owner names, or None if ownership cannot be determined.
     """
     
     ignore = {"CONTRIBUTORS", "AUTHORS", "README", "README.MD", "README.TXT"}
@@ -119,11 +126,15 @@ def files_to_owner_map(root: Path, extractor: FileMetadataExtractor) -> Dict[str
 def build_canonical(metadata_owners: Iterable[str], contribs: Iterable[str]) -> Tuple[Dict[str, str], Dict[str, str]]:
     
     """
-    Build unified name mappings to link contributor names and file metadata owners.
+    Creates canonical name mappings to reconcile contributor names with file metadata owner names.
+    
+    Args:
+        metadata_owners: Iterable of raw owner names extracted from file metadata.
+        contribs: Iterable of contributor names detected from contribution analysis.
 
     Returns:
-        (owner_to_canonical, contrib_to_canonical)
-        Each maps raw names to a single canonical display name.
+        Tuple[Dict[str, str], Dict[str, str]]: Two dictionaries mapping raw owner names and contributor names to their 
+        canonical display names.
     """
     
     owner_to_canonical: Dict[str, str] = {}
@@ -155,12 +166,22 @@ def detect_individual_contributions_local(
 ) -> Dict[str, Dict]:
     
     """
-    Detect and summarize individual contributions in a local (non-Git) project.
-
+   Detect and summarize individual contributions in a local (non-Git) project.
+   
     Combines:
-      - File metadata authorship
-      - Contributor names from text files
-      - Filename heuristics for unmatched files
+    - File metadata authorship
+    - Contributor names from text files
+    - Filename heuristics for unmatched files
+
+    Args:
+        project_root: Root directory of the local project.
+        extractor: Optional metadata extractor used to determine file authorship.
+        include_unattributed: Whether to include files that cannot be attributed
+            to a specific contributor.
+
+    Returns:
+        Dict[str, Dict]: A dictionary keyed by contributor name, where each value
+            contains file lists and file counts describing individual contributions.
     """
     
     extractor = extractor or FileMetadataExtractor(project_root)
@@ -225,6 +246,15 @@ def canonical_for_git(name: Optional[str], email: Optional[str], contribs: List[
     4. Use email local part (keeps different emails separate)
     5. Use name as-is
     6. Return "<unknown>"
+    
+    Args:
+        name: Author name from Git commit metadata.
+        email: Author email from Git commit metadata.
+        contribs: List of contributor names from CONTRIBUTORS-style sources.
+        owner_to_canon: Mapping of metadata owner names to canonical contributor names.
+
+    Returns:
+        str: Canonical contributor name resolved using the defined priority rules.
     """
     
     #1: Check if name matches any CONTRIBUTORS entry
@@ -268,6 +298,14 @@ def detect_individual_contributions_git(project_root: Path, *, repo: Optional[Re
     - Different emails are treated as separate contributors UNLESS they match a CONTRIBUTORS entry
     - CONTRIBUTORS file provides canonical names that merge multiple identities
     - Untracked files are placed in <unattributed>
+    
+    Args:
+        project_root: Root directory of the Git project to analyze.
+        repo: Optional pre-initialized Git repository instance.
+
+    Returns:
+        Dict[str, Dict]: A dictionary keyed by contributor name, where each value
+            contains file lists and file counts describing individual contributions.
     """
     
     try:
@@ -366,6 +404,14 @@ def detect_individual_contributions(project_path: str | Path, *, extractor: Opti
     Raises ValueError if:
         path is invalid
         project is not marked as collaborative
+        
+    Args:
+        project_path: Path to the project directory to analyze.
+        extractor: Optional metadata extractor used for local contribution detection.
+
+    Returns:
+        Dict: A dictionary containing collaboration status, detection mode
+            ("git" or "local"), and per-contributor contribution details.
     """
     
     root = Path(project_path)

@@ -220,6 +220,12 @@ def test_analyze_project_builds_analysis_and_exports(tmp_path, monkeypatch):
 
 @pytest.mark.skip
 def test_analyze_project_honors_project_label(tmp_path, monkeypatch):
+    
+    """
+    Verify that analyze_project uses the provided project_label for both
+    resume generation and exported analysis output.
+    """
+    
     ctx = SimpleNamespace(
         default_save_dir=tmp_path / "saves",
         legacy_save_dir=tmp_path / "legacy",
@@ -239,6 +245,12 @@ def test_analyze_project_honors_project_label(tmp_path, monkeypatch):
     captured = {}
 
     def fake_resume(root, project_name):
+        
+        """
+        Fake resume item generator used to capture and validate the project label
+        passed into analyze_project during testing.
+        """
+    
         captured["resume_name"] = project_name
         return SimpleNamespace(
             project_name=project_name,
