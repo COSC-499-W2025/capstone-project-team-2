@@ -11,10 +11,6 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from src.reporting.Generate_AI_Resume import ResumeItem,GenerateProjectResume
 from tqdm import tqdm
 import os
-
-
-
-
 class SimpleResumeGenerator:
 
     """
@@ -208,7 +204,7 @@ class SimpleResumeGenerator:
         print(f"Portfolio Generated at: {self.folder_path}")
 
 
-    def display_and_run(self):
+    def display_and_run(self, portfolio_only=False):
         """
         Generate both the portfolio and resume line PDFs with confirmation messages.
 
@@ -217,6 +213,8 @@ class SimpleResumeGenerator:
         to create the condensed one-line resume PDF. Upon successful completion, it prints
         confirmation messages indicating where the files were saved.
 
+        :param portfolio_only: If True, only generate the portfolio PDF. If False, generate both.
+        :type portfolio_only: bool
         :return: None
         :rtype: None
         """
@@ -225,12 +223,12 @@ class SimpleResumeGenerator:
         self.display_portfolio()
         print("Portfolio has been created")
 
-
-        #for i in tqdm(range(20), desc=f"Creating Resume PDF Line for {self.project_title}", unit="step"):
-        #    time.sleep(1)
-        self.display_resume_line()
-        print(f"Resume Line has been created")
-        print(f"Resume Line and Portfolio has been saved to {self.folder_path}")
+        if not portfolio_only:
+            #for i in tqdm(range(20), desc=f"Creating Resume PDF Line for {self.project_title}", unit="step"):
+            #    time.sleep(1)
+            self.display_resume_line()
+            print(f"Resume Line has been created")
+            print(f"Resume Line and Portfolio has been saved to {self.folder_path}")
+        else:
+            print(f"Portfolio has been saved to {self.folder_path}")
        
-
-

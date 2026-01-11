@@ -33,6 +33,15 @@ def make_fake_extractor(mapping: dict, project_root: Path) -> MagicMock:
 
 
 class TestIndividualContributionDetection(unittest.TestCase):
+    
+    """
+    Unit tests for individual contribution detection logic.
+
+    These tests validate both local (non-Git) and Git-based contribution
+    detection, including canonical name resolution, unattributed file handling,
+    filename-based inference, and contributor merging rules.
+    """
+    
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.project_root = Path(self.temp_dir.name)
