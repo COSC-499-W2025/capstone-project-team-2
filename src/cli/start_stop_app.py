@@ -7,10 +7,6 @@ class StartDockerApp:
         self.docker_compose_file_path = Path(__file__).resolve().parent 
         #getting the location of where the docker-compose file is and which folder it's
 
-
-
-
-
     def run_app(self):
         print(self.docker_compose_file_path)
         # step 1 we run   docker compose down -v

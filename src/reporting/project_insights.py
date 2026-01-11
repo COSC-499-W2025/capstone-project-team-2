@@ -24,7 +24,9 @@ JsonEntry = Dict[str, Any]
 ContributorData = Dict[str, Dict[str, Any]]
 PathLike = Union[str, Path]
 
-DEFAULT_STORAGE = Path("User_config_files/project_insights.json")
+# Use absolute path based on project root to avoid CWD-dependent path issues
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_STORAGE = _PROJECT_ROOT / "User_config_files" / "project_insights.json"
 
 
 def _now_iso(ts: Optional[datetime] = None) -> str:
