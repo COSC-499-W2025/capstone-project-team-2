@@ -421,5 +421,52 @@
 
 ### Extra Details:
 * Did a lot of work attempting to fix repository issues, in the end I ruled out complex but straightforward solutions and a more simple but tedious solution was used.
-* Next sprint and likely from now on I will be building API and refactoring data flow in the backend
+* Next sprint and likely from 
+
+---------------------------
+
+## Sunday (4/01/2026 - 11/01/2026)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/10-01-2026_PeerEval_SamM.jpg)
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: API: Performing Analysis
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description        | Feature   | Assigned To | Status   |
+| ------- | ------------------ | --------- | ----------- | -------- |
+| #269   | Perform Analysis API | API call for performing project analysis | Samantha Maranda  | Completed |
+
+### Progress Update (since 4/01/2026) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Perform Analysis API
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+     <tr>
+        <!-- Task/Issue # -->
+        <td>Identify missing documentation in src code
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+* Spent a lot of time combing through documentation to identify where it was lacking, which reduced the time I could work on coding tasks.
+* Will spend next week primarily working on converting more of our spaghetti CLI into API for our future UI. Would like to specifically work on returning all saved analysis, and changing our save system to include timestamps to allow analysis of the same file without overwriting previous analysis and resume/portfolio items.
 
