@@ -8,6 +8,8 @@ from types import SimpleNamespace
 from datetime import datetime, timezone, timedelta
 
 import pytest
+import json
+from typing import Any
 
 # Smoke tests for menu dispatch flows using monkeypatched input.
 import src.cli.menus as mod
@@ -475,7 +477,7 @@ def _initialize_insights_from_saved_files(
     try:
         from src.reporting.project_insights import record_project_insight
     except Exception:
-        from src.project_insights import record_project_insight  # fallback
+        from src.reporting.project_insights import record_project_insight
 
     # Determine where saved analyses live
     if hasattr(ctx_or_folder, "default_save_dir"):
