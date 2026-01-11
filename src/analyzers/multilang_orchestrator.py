@@ -31,7 +31,17 @@ class MultiLangOrchestrator:
         self.js_analyzer = JavaScriptOOPAnalyzer(self.root)
 
     def discover_files(self) -> Tuple[List[Path], List[Path], List[Path], List[Path]]:
-        """Discover all Python, Java, JavaScript, and C files, skipping common ignore dirs."""
+        """
+        Discover all Python, Java, JavaScript, and C files, skipping common ignore dirs.
+
+        Args:
+            None
+
+        Returns:
+            Tuple[List[Path], List[Path], List[Path], List[Path]]:
+                Four lists containing discovered Python, Java, JavaScript,
+                and C/C header files, respectively.
+        """
         
         py_files, java_files, js_files, c_files = [], [], [], []
 
@@ -50,7 +60,15 @@ class MultiLangOrchestrator:
         return py_files, java_files, js_files, c_files
 
     def _merge_java_file(self, per_file: Dict[str, Any]) -> None:
-        """Merge a single Java file's analysis into the Python analyzer."""
+        """
+        Merge a single Java file's analysis into the Python analyzer.
+
+        Args:
+            per_file: Dictionary containing analysis results for a single Java file.
+
+        Returns:
+            None
+        """
         # Merge class infos
         self.py_analyzer.class_infos.extend(
             per_file_to_classinfo_list(per_file, ClassInfo)
@@ -74,7 +92,14 @@ class MultiLangOrchestrator:
         )
 
     def _merge_c_file(self, per_file: Dict[str, Any]) -> None:
-        """Merge a single C file's analysis into the Python analyzer."""
+        """Merge a single C file's analysis into the Python analyzer.
+        
+        Args:
+            per_file: Dictionary containing analysis results for a single C file.
+
+        Returns:
+            None
+    """
         # Convert C structs to ClassInfo objects
         for struct in per_file.get("classes", []):
             # Count special methods as dunder_methods equivalent
@@ -112,6 +137,13 @@ class MultiLangOrchestrator:
     def _merge_js_metrics(self, js_metrics: Dict[str, Any]) -> None:
         """
         Merge JavaScript analyzer metrics into the Python analyzer accumulator.
+        
+        Args:
+            js_metrics: Dictionary containing aggregated analysis metrics produced by the
+                JavaScript analyzer.
+
+        Returns:
+            None
         """
 
         # Merge class infos
@@ -148,7 +180,15 @@ class MultiLangOrchestrator:
         )
 
     def analyze(self) -> Dict[str, Any]:
-        """Analyze all Python, Java, Javascript and C files and return unified OOP metrics."""
+        """Analyze all Python, Java, Javascript and C files and return unified OOP metrics.
+        
+        Args:
+            None
+
+        Returns:
+            Dict[str, Any]: A dictionary containing unified object-oriented
+                programming metrics computed across all analyzed source files.
+        """
         py_files, java_files, js_files, c_files = self.discover_files()
         
         # Track all source files for accurate file count

@@ -74,9 +74,20 @@ def associate_contribution_skills(project_root: Path | str) -> Dict[str, Dict]:
 def get_skills_for_file_subset(root: Path, files: List[str]) -> List[str]:
     
     """
-    Detect skills shown in a contributor's subset of files.
+    Extracts and identifies technical skills demonstrated within a specific subset
+    of files from a larger project directory.
 
-    Copies only those files into a temporary directory and runs identify_skills().
+    The function copies only the specified files into a temporary directory and
+    runs skill detection on that isolated subset. Results are cached to avoid
+    reprocessing the same file combinations.
+
+    Args:
+        root: Path to the root directory of the original project.
+        files: List of file paths (relative to root) that represent the contributor's
+            subset of work to analyze.
+
+    Returns:
+        List[str]: A sorted list of unique skills detected from the specified files.
     """
     
     if not files:

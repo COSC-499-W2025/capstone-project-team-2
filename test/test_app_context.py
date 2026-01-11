@@ -20,6 +20,14 @@ class FakeConnection:
 
 
 def test_create_app_context_success(monkeypatch):
+    """Check that a successful DB connection builds the context.
+
+    Args:
+        monkeypatch: Pytest fixture for patching module attributes.
+
+    Returns:
+        None: Assertions validate context initialization.
+    """
     monkeypatch.setattr(mod.DockerFinder, "get_mysql_host_information", lambda self: (3306, "127.0.0.1"))
 
     fake_conn = FakeConnection()
@@ -43,6 +51,14 @@ def test_create_app_context_success(monkeypatch):
 
 
 def test_create_app_context_failure_after_retries(monkeypatch):
+    """Check that repeated DB failures raise an error.
+
+    Args:
+        monkeypatch: Pytest fixture for patching module attributes.
+
+    Returns:
+        None: Assertions validate error handling.
+    """
     monkeypatch.setattr(mod.DockerFinder, "get_mysql_host_information", lambda self: (3306, "127.0.0.1"))
 
     def fail_connect(**kwargs):
@@ -55,6 +71,14 @@ def test_create_app_context_failure_after_retries(monkeypatch):
 
 
 def test_app_context_close_swallows_errors(monkeypatch):
+    """Check that closing the context does not raise errors.
+
+    Args:
+        monkeypatch: Pytest fixture for patching module attributes.
+
+    Returns:
+        None: Assertions validate safe cleanup.
+    """
     conn = FakeConnection()
     ctx = mod.AppContext(
         conn=conn,
