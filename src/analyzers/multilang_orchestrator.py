@@ -211,23 +211,42 @@ class MultiLangOrchestrator:
                 self.py_analyzer.syntax_errors.append(jpath)
 
         # Analyze C files and merge
-        for cpath in c_files:
-            try:
-                src = cpath.read_text(encoding="utf-8", errors="ignore")
-            except Exception:
-                continue
-            per_file = analyze_c_source(src, cpath)
-            if per_file.get("syntax_ok", True):
-                self._merge_c_file(per_file)
-            else:
-                self.py_analyzer.syntax_errors.append(cpath)
-                
-        # Analyze JavaScript files
-        if js_files:
-            js_metrics = self.js_analyzer.analyze()
-            self._merge_js_metrics(js_metrics)
-
-        return self.py_analyzer.compute_metrics()
+        if c_files:
+            c_reports = []
+            for cpath in c_files:
+                try:
+                    src = cpath.read_text(encoding="utf-8", errors="ignore")
+                    per_file = analyze_c_source(src, cpath)
+                    c_reports.append(per_file)
+                except Exception as e:
+                    c_reports.append({
+                        "file": str(cpath),
+                        "module": "",
+                        "classes": [],
+                        "imports": [],
+                        "data_structures": {},
+                        "complexity": {},
+                        "syntax_ok": False,
+                        "syntax_error": str(e),
+                        "c_spec": {},
+                    })
+            from src.aggregation.oop_aggregator import aggregate_canonical_reports 
+            # Get Python/Java metrics first 
+            py_java_metrics = self.py_analyzer.compute_metrics() 
+            # Create a pseudo-canonical report for Python/Java 
+            py_java_report = { "file": "python_java_combined", 
+                              "module": "N/A", 
+                              "classes": [], # Already processed
+                              "imports": [], 
+                              "data_structures": py_java_metrics.get("data_structures", {}), 
+                              "complexity": py_java_metrics.get("complexity", {}), 
+                              "syntax_ok": True, 
+                              } 
+            # Combine and use aggregator 
+            all_reports = [py_java_report] + c_reports 
+            return aggregate_canonical_reports(all_reports, total_files=len(py_files) + len(java_files) + len(c_files)) 
+        else: # No C files, use existing Python/Java flow 
+            return self.py_analyzer.compute_metrics()
 
 if __name__ == "__main__":
     import argparse
