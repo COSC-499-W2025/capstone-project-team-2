@@ -8,6 +8,16 @@ import src.reporting.portfolio as mod
 
 
 def test_display_portfolio_external_disabled_uses_saved_oop(monkeypatch, tmp_path, capsys):
+    """Check that saved OOP metrics are used without consent.
+
+    Args:
+        monkeypatch: Pytest fixture for patching module attributes.
+        tmp_path: Pytest fixture providing a temporary directory.
+        capsys: Pytest fixture for capturing stdout/stderr.
+
+    Returns:
+        None: Assertions validate output and metrics usage.
+    """
     ctx = SimpleNamespace(legacy_save_dir=tmp_path / "User_config_files", external_consent=False)
     ctx.legacy_save_dir.mkdir(parents=True)
     (ctx.legacy_save_dir / "UserConfigs.json").write_text('{"consented": {"external": false}}')
@@ -39,6 +49,16 @@ def test_display_portfolio_external_disabled_uses_saved_oop(monkeypatch, tmp_pat
 
 
 def test_display_portfolio_external_enabled_calls_generator(monkeypatch, tmp_path, capsys):
+    """Check that resume generation runs with consent.
+
+    Args:
+        monkeypatch: Pytest fixture for patching module attributes.
+        tmp_path: Pytest fixture providing a temporary directory.
+        capsys: Pytest fixture for capturing stdout/stderr.
+
+    Returns:
+        None: Assertions validate generated output.
+    """
     ctx = SimpleNamespace(legacy_save_dir=tmp_path / "User_config_files", external_consent=True)
     ctx.legacy_save_dir.mkdir(parents=True)
     (ctx.legacy_save_dir / "UserConfigs.json").write_text('{"consented": {"external": true}}')
