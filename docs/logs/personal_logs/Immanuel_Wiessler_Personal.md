@@ -909,6 +909,7 @@ Lastly, after taking some advice from the TA, I decided to make new coding contr
 ## 🎯 Next Week’s Goals
 
 - Work on adding new requriements listed in milestone 2 requirments
+- Work on creating on RenderCV version of a protifolo using AI anlysis  
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 15)
@@ -923,7 +924,7 @@ I achieved this by integrating [RenderCV](https://github.com/rendercv/rendercv),
 
 The code was intentionally designed with modularity in mind for seamless integration into the Streamlit UI interface planned for Milestone 3. By following the single-responsibility principle, future UI binding should be straightforward.
 
-The main challenge I encountered this week was maintaining the PR size limit of 500 lines despite multiple refactoring attempts. This proved difficult due to:
+The main challenge I encountered this week was maintaining the PR size limit of 500 lines despite multiple refactoring attempts. This didn't prove easy due to:
 
 1. **Self-contained module requirement** — The RenderCV Generator requires all components (builder class, dataclasses, AI integration, YAML generation, and rendering logic) to function together as a cohesive unit
 2. **Comprehensive test coverage** — 13 test classes were necessary to ensure reliability across all CRUD operations
@@ -931,4 +932,4 @@ The main challenge I encountered this week was maintaining the PR size limit of 
 
 Breaking this into smaller PRs would have created incomplete functionality and increased integration complexity, so I included a justification in the PR description explaining why the size was necessary. 
 
-For the next sprint, I plan to work on adding the missing features required for Milestone 2. Additionally, I worked on fixing and improving a colleague's code to ensure that the refactoring allows the modified tests to pass without problems and also added missing documenation for certian code and test files
+For the next sprint, I plan to add the missing features required for Milestone 2. Additionally, I worked on fixing and improving a colleague's code to ensure that the refactoring allows the modified tests to pass without problems, and also added missing documentation for certian code and test files
