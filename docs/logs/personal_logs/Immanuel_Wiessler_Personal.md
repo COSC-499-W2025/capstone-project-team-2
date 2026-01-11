@@ -903,7 +903,7 @@ Lastly, after taking some advice from the TA, I decided to make new coding contr
 
 | Task/Issue | Status |
 |------------|--------|
-|**esume Generation Improvement using rendercvsume** | ![Complete](https://img.shields.io/badge/ |
+|**resume Generation Improvement using rendercv** | ![Complete](https://img.shields.io/badge/ |
 
 
 ## 🎯 Next Week’s Goals
@@ -931,4 +931,4 @@ The main challenge I encountered this week was maintaining the PR size limit of 
 
 Breaking this into smaller PRs would have created incomplete functionality and increased integration complexity, so I included a justification in the PR description explaining why the size was necessary. 
 
-For the next sprint, I plan to work on adding the missing features required for Milestone 2. Additionally, I worked on fixing and improving a colleague's code to ensure that the refactoring allows the modified tests to pass without problems.
+For the next sprint, I plan to work on adding the missing features required for Milestone 2. Additionally, I worked on fixing and improving a colleague's code to ensure that the refactoring allows the modified tests to pass without problems and also added missing documenation for certian code and test files
