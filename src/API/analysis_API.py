@@ -22,6 +22,6 @@ def perform_analysis_API(ctx: AppContext, folder_path: Path, use_ai: bool):
     Returns:
         None
     """
-    if (folder_path.suffix.lower == ".zip"):
+    if (folder_path.suffix.lower() == ".zip"):
         folder_path = extract_if_zip(folder_path)
     analyze_project(folder_path, ctx, use_ai_analysis=use_ai)
