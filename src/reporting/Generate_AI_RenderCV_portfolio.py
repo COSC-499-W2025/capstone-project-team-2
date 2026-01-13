@@ -142,7 +142,19 @@ class Create_Portfolio_RenderCV:
         self.current_projects.append(projectInfo.to_dict())
         self._auto_save_if_enabled()
         return f"Successfully added: {projectInfo.name}"
-        
+    
+
+    @requires_data
+    def Remove_portfolio_project(self, project_name: str):
+        if 'projects' not in self.data['cv']['sections'] or not self.current_projects:
+            return "No projects to delete"
+
+        project = next((p for p in self.current_projects if p.get('name') == project_name), None)
+        if project is None:
+            return f"Project not found: {project_name}"
+        self.current_projects.remove(project)
+        self._auto_save_if_enabled()
+        return f"Successfully deleted: {project_name}"
 
 
     def render_portfolio(self):
