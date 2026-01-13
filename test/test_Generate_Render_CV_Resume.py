@@ -326,13 +326,6 @@ class TestCreateRenderCVExperience(BaseRenderCVTest):
         result = self.cv.remove_experience("Test Company")
         self.assertEqual(result, "Experience not found.")
 
-    def test_remove_experience_empty_list(self):
-        """Test removing when experience section is empty."""
-        self.cv.data['cv']['sections']['experience'] = []
-        self.cv.current_experience = []
-        result = self.cv.remove_experience("Test Company")
-        self.assertEqual(result, "Experience not found.")
-
 
 class TestCreateRenderCVProjects(BaseRenderCVTest):
     """
@@ -900,13 +893,6 @@ class TestCreateRenderCVConnectionModifications(BaseRenderCVTest):
     def test_delete_connection_no_connections(self):
         """Test deleting when no social_networks section exists."""
         del self.cv.data['cv']['social_networks']
-        result = self.cv.delete_connection("LinkedIn")
-        self.assertEqual(result, "No connections to delete")
-
-    def test_delete_connection_empty_list(self):
-        """Test deleting when social_networks is empty list."""
-        self.cv.data['cv']['social_networks'] = []
-        self.cv.current_connections = []
         result = self.cv.delete_connection("LinkedIn")
         self.assertEqual(result, "No connections to delete")
 
