@@ -1,7 +1,7 @@
 from functools import wraps
 from pathlib import Path
-from Generate_RenderCV_Resume import Project, Connections
-from Generate_AI_Resume import GenerateProjectResume
+from src.reporting.Generate_RenderCV_Resume import Project, Connections
+from src.reporting.Generate_AI_Resume import GenerateProjectResume
 import ruamel.yaml
 import subprocess
 import orjson
