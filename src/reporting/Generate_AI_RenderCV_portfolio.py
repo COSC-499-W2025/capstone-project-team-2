@@ -1,6 +1,6 @@
 from functools import wraps
 from pathlib import Path
-from Generate_RenderCV_Resume import Project
+from Generate_RenderCV_Resume import Project, Connections
 from Generate_AI_Resume import GenerateProjectResume
 import ruamel.yaml
 import subprocess
@@ -38,6 +38,7 @@ class Create_Portfolio_RenderCV:
         self.cv_files_dir = Path(__file__).parent.parent.parent / "User_config_files" / "Generate_render_CV_files"
         self.project_insight_folder=Path(__file__).parent.parent.parent / "User_config_files" / "project_insights"
         self.current_projects=None #Cached list of project dictionaries
+        self.current_connections=None #Cached list of Connections dictionaries
         self.name=None
         self.yaml=ruamel.yaml.YAML()
         self.yaml.preserve_quotes=True
@@ -106,7 +107,7 @@ class Create_Portfolio_RenderCV:
             self.yaml.dump(portfolio_template,f)
 
         return "Success"
-    def load_starter_file(self,name:str=None):
+    def load_Protfolio_starter_file(self,name:str=None):
         if name:
             self.name=name.replace(" ","_")
             self.yaml_file=self.cv_files_dir / f"{self.name}_CV.yaml"
@@ -118,8 +119,12 @@ class Create_Portfolio_RenderCV:
             self.data=self.yaml.load(f)
 
         self.current_projects = self.data['cv']['sections'].get('projects')
+        self.current_connections=self.data['cv'].get('social_networks')
 
         return self.data
+
+
+
 
 
     def save(self,filename:str=None):
@@ -136,6 +141,49 @@ class Create_Portfolio_RenderCV:
     def _auto_save_if_enabled(self):
         if self.auto_save and self.data is not None:
             self.save()
+
+
+    @requires_data
+    def add_new_portfolio_connection(self, connection_info: Connections):
+        if self.current_connections is None:
+            self.data['cv']['social_networks'] = []
+            self.current_connections = self.data['cv']['social_networks']
+
+        existing_networks = {c['network'] for c in self.current_connections}
+        if connection_info.network in existing_networks:
+            return f"Connection '{connection_info.network}' already exists"
+
+        self.current_connections.append(connection_info.to_dict())
+        self._auto_save_if_enabled()
+        return f"Successfully added: {connection_info.network}"
+
+    @requires_data
+    def modify_portfolio_connection(self, network_name: str, new_username: str):
+        if self.current_connections is None or not self.current_connections:
+            return "No connections to modify"
+
+        connection = next((c for c in self.current_connections if c.get('network') == network_name), None)
+        if connection is None:
+            return f"Connection '{network_name}' not found"
+
+        connection['username'] = new_username
+        self._auto_save_if_enabled()
+        return f"Successfully updated: {network_name}"
+
+    @requires_data
+    def remove_portfolio_connection(self, connection_name: str):
+        if self.current_connections is None or not self.current_connections:
+            return "No connections to delete"
+
+        connection = next((c for c in self.current_connections if c.get('network') == connection_name), None)
+        if connection is None:
+            return f"Connection '{connection_name}' not found"
+
+        self.current_connections.remove(connection)
+        self._auto_save_if_enabled()
+        return f"Successfully deleted: {connection_name}"
+
+
 
     @requires_data
     def add_portfolio_project(self, projectInfo: Project):
@@ -163,7 +211,7 @@ class Create_Portfolio_RenderCV:
 
     @requires_data
     def add_portfolio_project_from_AI(self, project_folder: str):
-        
+
         with open(project_folder, 'rb') as f:
             data = orjson.loads(f.read())
         project_loc = data.get('project_root')
