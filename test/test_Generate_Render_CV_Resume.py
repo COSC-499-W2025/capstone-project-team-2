@@ -54,7 +54,7 @@ class BaseRenderCVTest(unittest.TestCase):
     def _cleanup_cv_files(self):
         """Remove test CV files from the project directory."""
         cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
-        for pattern in ["Test_User_CV.yaml", "John_Doe_CV.yaml", "Named_User_CV.yaml"]:
+        for pattern in ["Test_User_Resume_CV.yaml", "John_Doe_Resume_CV.yaml", "Named_User_Resume_CV.yaml"]:
             for f in cv_dir.glob(pattern):
                 try:
                     f.unlink(missing_ok=True)
@@ -107,7 +107,7 @@ class TestCreateRenderCV(BaseRenderCVTest):
         cv.generate_starter_file(name="John Doe")
         self.assertEqual(cv.name, "John_Doe")
         # Check that the yaml_file path ends with the correct structure
-        self.assertTrue(str(cv.yaml_file).endswith("User_config_files/Generate_render_CV_files/John_Doe_CV.yaml".replace("/", os.sep)))
+        self.assertTrue(str(cv.yaml_file).endswith("User_config_files/Generate_render_CV_files/John_Doe_Resume_CV.yaml".replace("/", os.sep)))
 
     def test_generate_starter_file_skip_existing(self):
         """Test that existing file is skipped when overwrite is False."""
@@ -172,7 +172,7 @@ class TestCreateRenderCV(BaseRenderCVTest):
         self.assertIsNotNone(data)
         self.assertEqual(cv2.name, "Named_User")
         # Check that the yaml_file path ends with the correct structure
-        self.assertTrue(str(cv2.yaml_file).endswith("User_config_files/Generate_render_CV_files/Named_User_CV.yaml".replace("/", os.sep)))
+        self.assertTrue(str(cv2.yaml_file).endswith("User_config_files/Generate_render_CV_files/Named_User_Resume_CV.yaml".replace("/", os.sep)))
 
     def test_save_without_data_raises_error(self):
         """Test that saving without loaded data raises ValueError."""

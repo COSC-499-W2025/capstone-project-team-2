@@ -106,7 +106,7 @@ class Create_Portfolio_RenderCV:
         self.name = name.replace(" ", "_")
 
         self.cv_files_dir.mkdir(parents=True,exist_ok=True)
-        self.yaml_file=self.cv_files_dir / f"{self.name}_CV.yaml"
+        self.yaml_file=self.cv_files_dir / f"{self.name}_Portfolio_CV.yaml"
         if self.yaml_file.exists():
             if overwrite:
                 self.yaml_file.unlink()
@@ -171,7 +171,7 @@ class Create_Portfolio_RenderCV:
         """
         if name:
             self.name=name.replace(" ","_")
-            self.yaml_file=self.cv_files_dir / f"{self.name}_CV.yaml"
+            self.yaml_file=self.cv_files_dir / f"{self.name}_Portfolio_CV.yaml"
         if not self.yaml_file.exists():
             raise FileNotFoundError(f"File {self.yaml_file} does not exist"
                                     f"Run generate_portfolio() first")
@@ -448,13 +448,9 @@ class Create_Portfolio_RenderCV:
         )
         yaml_file_absolute = self.yaml_file.resolve()
         default_output = yaml_file_absolute.parent / "rendercv_output"
-        source_filename = f"{self.name}_CV.pdf"
+        source_filename = f"{self.name}_Portfolio_CV.pdf"
         source_pdf = default_output / source_filename
         if source_pdf.exists():
             return source_pdf
         else:
             return f"render failed - PDF not found at {source_pdf}", None
-
-
-
-
