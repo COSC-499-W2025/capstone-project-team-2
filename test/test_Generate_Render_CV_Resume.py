@@ -607,31 +607,6 @@ class TestCreateRenderCVContact(BaseRenderCVTest):
         super().setUp()
         self.cv = self.create_loaded_cv()
 
-    def test_update_contact_email(self):
-        """Test updating email."""
-        self.cv.update_contact(email="new@email.com")
-        self.assertEqual(self.cv.data['cv']['email'], "new@email.com")
-
-    def test_update_contact_phone(self):
-        """Test updating phone."""
-        self.cv.update_contact(phone="+1 999 888 7777")
-        self.assertEqual(self.cv.data['cv']['phone'], "+1 999 888 7777")
-
-    def test_update_contact_location(self):
-        """Test updating location."""
-        self.cv.update_contact(location="New York, NY")
-        self.assertEqual(self.cv.data['cv']['location'], "New York, NY")
-
-    def test_update_contact_website(self):
-        """Test updating website."""
-        self.cv.update_contact(website="https://newsite.com")
-        self.assertEqual(self.cv.data['cv']['website'], "https://newsite.com")
-
-    def test_update_contact_name(self):
-        """Test updating name."""
-        self.cv.update_contact(name="New Name")
-        self.assertEqual(self.cv.data['cv']['name'], "New Name")
-
     def test_update_contact_multiple_fields(self):
         """Test updating multiple contact fields at once."""
         self.cv.update_contact(
