@@ -41,6 +41,8 @@ from src.config.user_startup_config import ConfigLoader
 from src.config.Configuration import configuration_for_users
 from src.reporting.Generate_AI_Resume import GenerateProjectResume, GenerateLocalResume
 from src.reporting.resume_pdf_generator import SimpleResumeGenerator
+from src.reporting.Generate_AI_RenderCV_portfolio import Create_Portfolio_RenderCV
+from src.reporting.Generate_RenderCV_Resume import create_Render_CV, Project, Connections
 import os
 
 
@@ -439,6 +441,7 @@ def main_menu(ctx: AppContext) -> int:
         print("6) AI Resume Line Generator")
         print("7) Local Resume Generator (No External AI)")
         print("8) Project insights")
+        print("9) RenderCV Document Generator")
         print("0) Exit")
         choice = input("Select an option: ").strip()
 
@@ -459,11 +462,13 @@ def main_menu(ctx: AppContext) -> int:
                 local_resume_menu(ctx)
             elif choice == "8":
                 project_insights_menu(ctx)
+            elif choice == "9":
+                rendercv_document_menu(ctx)
             elif choice == "0":
                 print("Goodbye!")
                 return 0
             else:
-                print("Please choose a valid option (0-8).")
+                print("Please choose a valid option (0-9).")
         except KeyboardInterrupt:
             print("\n[Interrupted] Returning to menu.")
         except Exception as e:
@@ -668,7 +673,221 @@ def local_resume_menu(ctx: AppContext) -> None:
             print(f"[ERROR] Could not generate PDF: {e}")
 
     input("\nPress Enter to return to main menu...")
-    
+
+
+def rendercv_document_menu(ctx: AppContext) -> None:
+    """
+    Combined menu for generating professional PDF documents using RenderCV.
+
+    Allows users to choose between creating a portfolio (projects-focused) or
+    a full resume (with education, experience, skills, and projects).
+
+    Args:
+        ctx (AppContext): Shared DB/store context.
+
+    Returns:
+        None
+    """
+    while True:
+        print("\n=== RenderCV Document Generator ===")
+        print("1) Create Portfolio (projects-focused)")
+        print("2) Create Full Resume (education, experience, skills, projects)")
+        print("0) Back to Main Menu")
+
+        doc_type = input("\nSelect document type: ").strip()
+
+        if doc_type == "0":
+            return
+        elif doc_type not in ["1", "2"]:
+            print("[ERROR] Invalid option.")
+            continue
+
+        name = input("Enter your name: ").strip()
+        if not name:
+            print("[INFO] Cancelled.")
+            continue
+
+        # Initialize the appropriate document type
+        if doc_type == "1":
+            doc = Create_Portfolio_RenderCV(auto_save=True)
+            doc.generate_portfolio(name=name, overwrite=True)
+            doc.load_Protfolio_starter_file()
+            doc_name = "Portfolio"
+        else:
+            doc = create_Render_CV(auto_save=True)
+            doc.generate_starter_file(name=name, overwrite=True)
+            doc.load_starter_file()
+            doc_name = "Resume"
+
+        print(f"[SUCCESS] Created {doc_name} for '{name}'")
+
+        # Document editing loop
+        while True:
+            print(f"\n--- {doc_name} Editor ---")
+            print("1) Add project from saved analysis (AI)")
+            print("2) Add project manually")
+            print("3) Add social network connection")
+            if doc_type == "2":  # Resume-only options
+                print("4) Update contact info")
+                print("5) Add education")
+                print("6) Add experience")
+                print("7) Add skills")
+            print("8) View current content")
+            print("9) Remove a project")
+            print("10) Render PDF")
+            print("0) Back")
+
+            choice = input("\nSelect an option: ").strip()
+
+            if choice == "1":
+                folder = Path(ctx.default_save_dir).resolve()
+                items = list_saved_projects(folder)
+                if not items:
+                    print("[INFO] No saved projects.")
+                    continue
+
+                print("\nSaved analyses:")
+                for i, p in enumerate(items, start=1):
+                    print(f"  {i}) {p.name}")
+
+                sel = input("\nSelect project to add (or 0 to cancel): ").strip()
+                if sel == "0":
+                    continue
+                try:
+                    idx = int(sel) - 1
+                    if 0 <= idx < len(items):
+                        if doc_type == "1":
+                            result = doc.add_portfolio_project_from_AI(str(items[idx]))
+                        else:
+                            result = doc.add_project_from_ai(str(items[idx]))
+                        print(f"[RESULT] {result}")
+                    else:
+                        print("[ERROR] Invalid selection.")
+                except ValueError:
+                    print("[ERROR] Please enter a number.")
+                except Exception as e:
+                    print(f"[ERROR] {e}")
+
+            elif choice == "2":
+                proj_name = input("Project name: ").strip()
+                summary = input("Summary: ").strip()
+                highlights_input = input("Highlights (comma-separated): ").strip()
+                highlights = [h.strip() for h in highlights_input.split(",") if h.strip()]
+                proj = Project(name=proj_name, summary=summary, highlights=highlights)
+                if doc_type == "1":
+                    result = doc.add_portfolio_project(proj)
+                else:
+                    result = doc.add_project(proj)
+                print(f"[RESULT] {result}")
+
+            elif choice == "3":
+                network = input("Network name (e.g., LinkedIn, GitHub): ").strip()
+                username = input("Username: ").strip()
+                conn = Connections(network=network, username=username)
+                if doc_type == "1":
+                    result = doc.add_new_portfolio_connection(conn)
+                else:
+                    result = doc.add_connection(conn)
+                print(f"[RESULT] {result}")
+
+            elif choice == "4" and doc_type == "2":
+                print("\nUpdate contact info (press Enter to skip):")
+                email = input("  Email: ").strip() or None
+                phone = input("  Phone: ").strip() or None
+                location = input("  Location: ").strip() or None
+                website = input("  Website: ").strip() or None
+                doc.update_contact(email=email, phone=phone, location=location, website=website)
+                print("[SUCCESS] Contact info updated.")
+
+            elif choice == "5" and doc_type == "2":
+                from src.reporting.Generate_RenderCV_Resume import Education
+                institution = input("Institution: ").strip()
+                area = input("Area of study: ").strip()
+                degree = input("Degree (e.g., BS, MS): ").strip() or None
+                result = doc.add_education(Education(institution=institution, areaOfStudy=area, degree=degree))
+                print(f"[RESULT] {result}")
+
+            elif choice == "6" and doc_type == "2":
+                from src.reporting.Generate_RenderCV_Resume import Experience
+                company = input("Company: ").strip()
+                position = input("Position: ").strip()
+                start_date = input("Start date (YYYY-MM): ").strip() or None
+                end_date = input("End date (YYYY-MM or 'present'): ").strip() or None
+                highlights_input = input("Highlights (comma-separated): ").strip()
+                highlights = [h.strip() for h in highlights_input.split(",") if h.strip()]
+                exp = Experience(company=company, position=position, start_date=start_date, end_date=end_date, highlights=highlights)
+                result = doc.add_experience(exp)
+                print(f"[RESULT] {result}")
+
+            elif choice == "7" and doc_type == "2":
+                from src.reporting.Generate_RenderCV_Resume import Skills
+                label = input("Skill category (e.g., Languages, Frameworks): ").strip()
+                details = input("Skills (e.g., Python, Java, Go): ").strip()
+                result = doc.add_skills(Skills(label=label, details=details))
+                print(f"[RESULT] {result}")
+
+            elif choice == "8":
+                print(f"\n--- Current {doc_name} Content ---")
+                if doc.current_projects:
+                    print(f"Projects: {len(doc.current_projects)}")
+                    for i, p in enumerate(doc.current_projects, start=1):
+                        print(f"  {i}) {p.get('name', 'Unnamed')}")
+                else:
+                    print("Projects: 0")
+                if doc_type == "2":
+                    if hasattr(doc, 'current_education') and doc.current_education:
+                        print(f"Education: {len(doc.current_education)}")
+                    if hasattr(doc, 'current_experience') and doc.current_experience:
+                        print(f"Experience: {len(doc.current_experience)}")
+                    if hasattr(doc, 'current_skills') and doc.current_skills:
+                        print(f"Skills: {len(doc.current_skills)}")
+                if doc.current_connections:
+                    print(f"Connections: {len(doc.current_connections)}")
+
+            elif choice == "9":
+                if not doc.current_projects:
+                    print("[INFO] No projects to remove.")
+                    continue
+                print("\nCurrent projects:")
+                for i, p in enumerate(doc.current_projects, start=1):
+                    print(f"  {i}) {p.get('name', 'Unnamed')}")
+                sel = input("Select project to remove (or 0 to cancel): ").strip()
+                if sel == "0":
+                    continue
+                try:
+                    idx = int(sel) - 1
+                    if 0 <= idx < len(doc.current_projects):
+                        proj_name = doc.current_projects[idx].get('name')
+                        if doc_type == "1":
+                            result = doc.remove_portfolio_project(proj_name)
+                        else:
+                            result = doc.delete_project(proj_name)
+                        print(f"[RESULT] {result}")
+                    else:
+                        print("[ERROR] Invalid selection.")
+                except ValueError:
+                    print("[ERROR] Please enter a number.")
+
+            elif choice == "10":
+                print("\n[INFO] Rendering PDF...")
+                try:
+                    if doc_type == "1":
+                        result = doc.render_portfolio()
+                    else:
+                        result = doc.render_CV()
+                    if isinstance(result, Path):
+                        print(f"[SUCCESS] PDF saved to: {result}")
+                    else:
+                        print(f"[ERROR] {result}")
+                except Exception as e:
+                    print(f"[ERROR] {e}")
+
+            elif choice == "0":
+                break
+            else:
+                print("[ERROR] Invalid option.")
+
+
 def thumbnail_management_menu(ctx) -> None:
     """
     Interactive menu for managing project thumbnails.
