@@ -1,5 +1,4 @@
 import unittest
-import sys
 import os
 import gc
 import warnings
