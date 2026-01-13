@@ -143,6 +143,18 @@ class Create_Portfolio_RenderCV:
         self._auto_save_if_enabled()
         return f"Successfully added: {projectInfo.name}"
     
+    @requires_data
+    def modify_portfolio_project(self,project_name:str,field:str, new_value):
+        valid_fields=['name','start_date','end_date','location','summary','highlights']
+        if field not in valid_fields:
+            return f"Invalid field: {field}. Valid fields are: {', '.join(valid_fields)}"
+        project=next((for p in self.current_projects if p.get("name")==project_name),None)
+        if project is None:
+            return f"Project not found: {project_name}"
+        project[field]=new_value
+        self._auto_save_if_enabled()
+        return f"Successfully modified: {project_name}"
+
 
     @requires_data
     def Remove_portfolio_project(self, project_name: str):
