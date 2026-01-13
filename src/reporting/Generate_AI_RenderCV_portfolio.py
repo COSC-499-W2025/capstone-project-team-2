@@ -1,8 +1,10 @@
 from functools import wraps
 from pathlib import Path
 from Generate_RenderCV_Resume import Project
+from Generate_AI_Resume import GenerateProjectResume
 import ruamel.yaml
 import subprocess
+import orjson
 
 
 
@@ -73,6 +75,10 @@ class Create_Portfolio_RenderCV:
                 'email': 'your.email@example.com',
                 'phone':"+1 234 567 9801",
                 'website': "https://yourwebsite.com",
+                'social_networks':[
+                    {'network': 'LinkedIn', 'username': ''},
+                    {'network': 'GitHub', 'username': ''}
+                ],
                 'sections': {
                     'projects': [
                         {
@@ -155,6 +161,23 @@ class Create_Portfolio_RenderCV:
         self._auto_save_if_enabled()
         return f"Successfully modified: {project_name}"
 
+    @requires_data
+    def add_portfolio_project_from_AI(self, project_folder: str):
+        
+        with open(project_folder, 'rb') as f:
+            data = orjson.loads(f.read())
+        project_loc = data.get('project_root')
+        ai_resume = GenerateProjectResume(project_loc).generate()
+        summary = ai_resume.one_sentence_summary
+        if ai_resume.tech_stack:
+            summary = f"{summary} Tech stack: {ai_resume.tech_stack}"
+        project = Project(
+            name=ai_resume.project_title,
+            summary=summary,
+            highlights=ai_resume.key_responsibilities,
+        )
+        print(f"AI analysis complete for: {ai_resume.project_title}")
+        return self.add_portfolio_project(project)
 
     @requires_data
     def Remove_portfolio_project(self, project_name: str):
