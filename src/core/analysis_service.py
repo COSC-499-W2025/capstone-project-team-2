@@ -17,7 +17,7 @@ from src.storage.file_data_saving import SaveFileAnalysisAsJSON
 from src.config.user_startup_config import ConfigLoader
 from src.core.ai_data_scrubbing import ai_data_scrubber
 from src.core.AI_analysis_code import codeAnalysisAI
-from src.core.portfolio_service import (
+from src.reporting.portfolio_service import (
     load_portfolio_showcase,
     build_portfolio_showcase,
     display_portfolio_showcase,

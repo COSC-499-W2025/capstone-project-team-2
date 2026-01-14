@@ -7,7 +7,7 @@ from src.reporting.Generate_AI_Resume import GenerateProjectResume, GenerateLoca
 from src.aggregation.oop_aggregator import pretty_print_oop_report
 from src.core import app_context
 from src.reporting.resume_pdf_generator import SimpleResumeGenerator
-from src.core.portfolio_service import (
+from src.reporting.portfolio_service import (
     load_portfolio_showcase,
     build_portfolio_showcase,
     display_portfolio_showcase,
