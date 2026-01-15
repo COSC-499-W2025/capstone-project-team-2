@@ -279,6 +279,46 @@ class TestCreateRenderCVEducation(BaseRenderCVTest):
         result = self.cv.delete_education("Test")
         self.assertEqual(result, "No education to be deleted")
 
+    def test_modify_education_success(self):
+        """Test modifying an education entry field successfully."""
+        result = self.cv.modify_education("University Name", "areaOfStudy", "Data Science")
+        self.assertEqual(result, "Successfully modified areaOfStudy to Data Science")
+        # Verify the change was applied
+        edu = next(e for e in self.cv.current_education if e.get("institution") == "University Name")
+        self.assertEqual(edu.get("areaOfStudy"), "Data Science")
+
+    def test_modify_education_without_data_raises_error(self):
+        """Test that modifying education without loaded data raises ValueError."""
+        cv = create_Render_CV()
+        with self.assertRaises(ValueError):
+            cv.modify_education("Test", "areaOfStudy", "New Value")
+
+    def test_modify_education_invalid_field(self):
+        """Test that modifying an invalid field returns error."""
+        result = self.cv.modify_education("University Name", "invalid_field", "New Value")
+        self.assertIn("Invalid field", result)
+
+    def test_modify_education_not_found(self):
+        """Test modifying a non-existent education entry."""
+        result = self.cv.modify_education("Nonexistent University", "areaOfStudy", "New Value")
+        self.assertIn("not found", result)
+
+    def test_modify_education_empty_institution_rejected(self):
+        """Test that modifying institution to empty string is rejected."""
+        result = self.cv.modify_education("University Name", "institution", "")
+        self.assertEqual(result, "Institution name cannot be empty")
+
+    def test_modify_education_whitespace_institution_rejected(self):
+        """Test that modifying institution to whitespace is rejected."""
+        result = self.cv.modify_education("University Name", "institution", "   ")
+        self.assertEqual(result, "Institution name cannot be empty")
+
+    def test_modify_education_highlights(self):
+        """Test modifying education highlights field."""
+        new_highlights = ["Dean's List", "Research Assistant"]
+        result = self.cv.modify_education("University Name", "highlights", new_highlights)
+        self.assertEqual(result, f"Successfully modified highlights to {new_highlights}")
+
 
 class TestCreateRenderCVExperience(BaseRenderCVTest):
     """
