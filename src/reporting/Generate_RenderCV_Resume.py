@@ -45,12 +45,14 @@ def requires_data(method):
         callable: A wrapper function that validates data exists before calling the method.
 
     Raises:
-        ValueError: If self.data is None when the decorated method is called.
+        ValueError: If self.data is None or missing required 'cv' key when the decorated method is called.
     """
     @wraps(method)
     def wrapper(self, *args, **kwargs):
         if self.data is None:
             raise ValueError("No data loaded")
+        if self.data.get('cv') is None:
+            raise ValueError("Invalid data structure: missing required 'cv' key")
         return method(self, *args, **kwargs)
     return wrapper
 
@@ -343,17 +345,21 @@ class create_Render_CV:
         with open(self.yaml_file, 'r') as f:
             self.data = self.yaml.load(f)
 
+        if self.data.get('cv') is None:
+            raise ValueError("Invalid YAML structure: missing required 'cv' key")
+
+        sections = self.data['cv'].get('sections', {})
         # Extract section names (skip first section which is typically 'summary')
-        self.resume_section = list(self.data['cv']['sections'].keys())[1:]
+        self.resume_section = list(sections.keys())[1:] if sections else []
         # Cache projects list for quick access
-        self.current_projects = self.data['cv']['sections']['projects']
+        self.current_projects = sections.get('projects', [])
         # Restore spaces in name for display
         self.data['cv']['name'] = str(self.name).replace("_", " ")
-        self.current_education = self.data['cv']['sections']['education']
-        self.current_connections = self.data['cv']['social_networks']
-        self.current_skills = self.data['cv']['sections']['skills']
-        self.current_experience = self.data['cv']['sections']['experience']
-        self.summary = self.data['cv']['sections']['summary']
+        self.current_education = sections.get('education', [])
+        self.current_connections = self.data['cv'].get('social_networks', [])
+        self.current_skills = sections.get('skills', [])
+        self.current_experience = sections.get('experience', [])
+        self.summary = sections.get('summary', [])
 
         return self.data
 
@@ -881,15 +887,15 @@ class create_Render_CV:
             create_Render_CV: Returns self to allow method chaining.
         """
         cv = self.data['cv']
-        if email:
+        if email and email.strip():
             cv['email'] = email
-        if phone:
+        if phone and phone.strip():
             cv['phone'] = phone
-        if location:
+        if location and location.strip():
             cv['location'] = location
-        if website:
+        if website and website.strip():
             cv['website'] = website
-        if name:
+        if name and name.strip():
             cv['name'] = name
         self._auto_save_if_enabled()
         return self

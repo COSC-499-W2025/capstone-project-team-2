@@ -22,12 +22,14 @@ def requires_data(method):
         callable: A wrapper function that validates data exists before calling the method.
 
     Raises:
-        ValueError: If self.data is None when the decorated method is called.
+        ValueError: If self.data is None or missing required 'cv' key when the decorated method is called.
     """
     @wraps(method)
     def wrapper(self, *args, **kwargs):
         if self.data is None:
             raise ValueError("No data loaded")
+        if self.data.get('cv') is None:
+            raise ValueError("Invalid data structure: missing required 'cv' key")
         return method(self, *args, **kwargs)
     return wrapper
 
@@ -179,7 +181,10 @@ class Create_Portfolio_RenderCV:
         with open(self.yaml_file,'r') as f:
             self.data=self.yaml.load(f)
 
-        self.current_projects = self.data['cv']['sections'].get('projects')
+        if self.data.get('cv') is None:
+            raise ValueError("Invalid YAML structure: missing required 'cv' key")
+
+        self.current_projects = self.data['cv'].get('sections', {}).get('projects')
         self.current_connections=self.data['cv'].get('social_networks')
 
         return self.data
@@ -450,9 +455,12 @@ class Create_Portfolio_RenderCV:
         }
 
         for field_name, value in fields.items():
-            if value is not None:
-                contact_section[field_name] = value
-                updated_fields.append(field_name)
+            if value is None:
+                continue
+            if isinstance(value, str) and not value.strip():
+                continue
+            contact_section[field_name] = value
+            updated_fields.append(field_name)
 
         self._auto_save_if_enabled()
 

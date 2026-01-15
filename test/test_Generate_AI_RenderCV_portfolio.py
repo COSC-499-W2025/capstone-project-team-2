@@ -2,8 +2,12 @@ import unittest
 import os
 import tempfile
 import shutil
+import warnings
 from pathlib import Path
 from unittest.mock import patch, MagicMock, mock_open
+
+# Suppress third-party deprecation warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="google.genai")
 
 from src.reporting.Generate_AI_RenderCV_portfolio import Create_Portfolio_RenderCV
 from src.reporting.Generate_RenderCV_Resume import Project, Connections
@@ -160,6 +164,119 @@ class TestPortfolio(unittest.TestCase):
         # Test no fields updated
         result = portfolio.update_portfolio_contact()
         self.assertEqual(result, "No fields updated")
+
+    def test_update_portfolio_contact_empty_string_ignored(self):
+        """
+        Test that empty strings do not overwrite existing contact information.
+
+        Verifies that passing empty strings or whitespace-only strings to
+        update_portfolio_contact() does not blank out existing values,
+        preventing accidental data loss.
+
+        Args:
+            self: The test case instance
+
+        Returns:
+            None: Asserts pass if empty strings are properly ignored
+        """
+        portfolio = Create_Portfolio_RenderCV(auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate_portfolio(name="Test User")
+        portfolio.load_Protfolio_starter_file()
+
+        # Set initial values
+        portfolio.update_portfolio_contact(email="original@email.com", phone="+1 111 111 1111")
+        self.assertEqual(portfolio.data['cv']['email'], "original@email.com")
+        self.assertEqual(portfolio.data['cv']['phone'], "+1 111 111 1111")
+
+        # Empty string should not overwrite
+        result = portfolio.update_portfolio_contact(email="", phone="")
+        self.assertEqual(result, "No fields updated")
+        self.assertEqual(portfolio.data['cv']['email'], "original@email.com")
+        self.assertEqual(portfolio.data['cv']['phone'], "+1 111 111 1111")
+
+        # Whitespace-only string should not overwrite
+        result = portfolio.update_portfolio_contact(email="   ", phone="\t\n")
+        self.assertEqual(result, "No fields updated")
+        self.assertEqual(portfolio.data['cv']['email'], "original@email.com")
+        self.assertEqual(portfolio.data['cv']['phone'], "+1 111 111 1111")
+
+    def test_load_portfolio_missing_cv_key_raises_error(self):
+        """
+        Test that loading a YAML file without 'cv' key raises ValueError.
+
+        Verifies that malformed YAML files missing the required 'cv' key
+        are properly detected and raise a clear error message instead of
+        a cryptic KeyError.
+
+        Args:
+            self: The test case instance
+
+        Returns:
+            None: Asserts pass if ValueError is raised with correct message
+        """
+        portfolio = Create_Portfolio_RenderCV(auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+
+        # Create a malformed YAML file without 'cv' key
+        malformed_file = Path(self.test_dir) / "Test_User_Portfolio_CV.yaml"
+        malformed_file.write_text("design:\n  theme: sb2nov\n")
+        portfolio.yaml_file = malformed_file
+        portfolio.name = "Test_User"
+
+        with self.assertRaises(ValueError) as context:
+            portfolio.load_Protfolio_starter_file()
+
+        self.assertIn("missing required 'cv' key", str(context.exception))
+
+    def test_add_duplicate_connection_rejected(self):
+        """
+        Test that adding a duplicate social network connection is rejected.
+
+        Verifies that attempting to add a connection with a network name
+        that already exists returns an appropriate error message.
+
+        Args:
+            self: The test case instance
+
+        Returns:
+            None: Asserts pass if duplicate connection is properly rejected
+        """
+        portfolio = Create_Portfolio_RenderCV(auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate_portfolio(name="Test User")
+        portfolio.load_Protfolio_starter_file()
+
+        # LinkedIn already exists in template
+        result = portfolio.add_new_portfolio_connection(
+            Connections(network="LinkedIn", username="newuser")
+        )
+        self.assertEqual(result, "Connection 'LinkedIn' already exists")
+
+    def test_add_duplicate_project_rejected(self):
+        """
+        Test that adding a duplicate project is rejected.
+
+        Verifies that attempting to add a project with a name that already
+        exists returns an appropriate error message.
+
+        Args:
+            self: The test case instance
+
+        Returns:
+            None: Asserts pass if duplicate project is properly rejected
+        """
+        portfolio = Create_Portfolio_RenderCV(auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate_portfolio(name="Test User")
+        portfolio.load_Protfolio_starter_file()
+
+        # Add a project first
+        portfolio.add_portfolio_project(Project(name="My Project", summary="Test"))
+
+        # Try to add duplicate
+        result = portfolio.add_portfolio_project(Project(name="My Project", summary="Different"))
+        self.assertEqual(result, "Project 'My Project' already exists")
 
 
 if __name__ == '__main__':
