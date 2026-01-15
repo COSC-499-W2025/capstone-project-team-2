@@ -1063,4 +1063,5 @@ def modify_portfolio_connection(self, network_name: str, new_username: str):
 This approach replaces traditional `for` loops with index tracking, providing a more Pythonic and readable way to find and modify specific items in a collection. The `next()` function with a default value of `None` elegantly handles the case where no matching connection is found.
 
 
-This refactored approach consolidates multiple methods into one, adds validation to prevent accidental data loss from empty strings, and provides clear feedback on which fields were updated.
+One thing I would like to point out is that the reason my PR reached close to 591 lines is largely due to comprehensive documentation—every function and test includes detailed docstrings explaining purpose, parameters, return values, and edge cases. While this added to the line count, thorough documentation is essential for code maintainability and helps teammates understand the codebase during future development.
+ 
