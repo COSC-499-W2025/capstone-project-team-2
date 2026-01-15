@@ -331,6 +331,7 @@ class create_Render_CV:
 
         Raises:
             FileNotFoundError: If the YAML file doesn't exist.
+            ValueError: If the YAML file is malformed and missing the required 'cv' key.
         """
         # If name is provided, set yaml_file path to CV files directory
         if name:
@@ -434,7 +435,8 @@ class create_Render_CV:
         # Use absolute path to ensure we find the file regardless of working directory
         yaml_file_absolute = self.yaml_file.resolve()
         default_output = yaml_file_absolute.parent / 'rendercv_output'
-        source_filename = f"{self.name}_Resume_CV.pdf"
+        print(default_output)
+        source_filename = f"{self.name}_CV.pdf"
         source_pdf = default_output / source_filename
 
         # Check if PDF exists (rendercv may return non-zero due to Windows console encoding issues
@@ -522,9 +524,11 @@ class create_Render_CV:
                 (e.g., 'Languages') and details (e.g., 'Python, JavaScript').
 
         Returns:
-            str: A success message, or 'Duplicate label/skills' if a skill
-                with the same label already exists.
+            str: A success message, or an error message if skill label is empty
+                or a skill with the same label already exists.
         """
+        if not skillToAdd.label or not skillToAdd.label.strip():
+            return "Skill label cannot be empty"
         current_skills = [s['label'] for s in self.current_skills]
         if 'skills' not in self.data['cv']['sections']:
             self.data['cv']['sections']['skills'] = []
@@ -594,8 +598,11 @@ class create_Render_CV:
                 work experience details (company, position, dates, location, highlights).
 
         Returns:
-            str: A success message confirming the experience was added.
+            str: A success message confirming the experience was added, or an
+                error message if company name is empty.
         """
+        if not experienceToAdd.company or not experienceToAdd.company.strip():
+            return "Company name cannot be empty"
         if "experience" not in self.data['cv']['sections']:
             self.data['cv']['sections']['experience'] = []
         self.current_experience.append(experienceToAdd.to_dict())
@@ -667,9 +674,11 @@ class create_Render_CV:
                 education details (institution, area, degree, dates, GPA, highlights).
 
         Returns:
-            str: A success message, or 'Duplicate education entry' if an entry
-                with the same institution already exists.
+            str: A success message, or an error message if institution is empty
+                or an entry with the same institution already exists.
         """
+        if not education_info.institution or not education_info.institution.strip():
+            return "Institution name cannot be empty"
         if 'education' not in self.data['cv']['sections']:
             self.data['cv']['sections']['education'] = []
         existing_institutions = [e['institution'] for e in self.data['cv']['sections']['education']]
@@ -678,6 +687,10 @@ class create_Render_CV:
         self.data['cv']['sections']['education'].append(education_info.to_dict())
         self._auto_save_if_enabled()
         return "Successfully added education"
+
+
+
+
 
     @requires_data
     def delete_education(self, InstutionName):
@@ -702,6 +715,39 @@ class create_Render_CV:
             self._auto_save_if_enabled()
             return "Successfully deleted education"
         return f"Education {InstutionName} not found."
+
+    @requires_data
+    def modify_education(self, institution_name: str, field: str, new_value):
+        """Modify a specific field of an existing education entry.
+
+        Updates a single field of an education entry identified by institution name.
+        Valid fields include institution, areaOfStudy, degree, dates, location, and highlights.
+
+        Args:
+            institution_name: The institution name to identify the education entry.
+            field: The field to modify. Must be one of: institution, areaOfStudy,
+                degree, start_date, end_date, location, or highlights.
+            new_value: The new value for the field. Type depends on the field
+                (str for most, List[str] for highlights).
+
+        Returns:
+            str: A success message with the field and new value, or an error
+                message if the field is invalid or the education entry is not found.
+        """
+        valid_fields = ["institution", "areaOfStudy", "degree", "start_date", "end_date", "location", "highlights"]
+        if field not in valid_fields:
+            return f"Invalid field '{field}'. Valid fields are: {', '.join(valid_fields)}"
+
+        if field == "institution" and (not new_value or not str(new_value).strip()):
+            return "Institution name cannot be empty"
+
+        education_to_update = next(
+            (edu for edu in self.current_education if edu.get("institution") == institution_name), None)
+        if education_to_update:
+            education_to_update[field] = new_value
+            self._auto_save_if_enabled()
+            return f"Successfully modified {field} to {new_value}"
+        return f"Education with institution '{institution_name}' not found."
 
     @requires_data
     def delete_project(self, project_name):
@@ -739,8 +785,10 @@ class create_Render_CV:
 
         Returns:
             str: A success message with the project name, or an error message
-                if a project with the same name already exists.
+                if a project with the same name already exists or name is empty.
         """
+        if not projectInfo.name or not projectInfo.name.strip():
+            return "Project name cannot be empty"
         if 'projects' not in self.data['cv']['sections']:
             self.data['cv']['sections']['projects'] = []
         existing_projects = [p['name'] for p in self.data['cv']['sections']['projects']]
@@ -840,8 +888,10 @@ class create_Render_CV:
 
         Returns:
             str: A success message with the network name, or an error message
-                if a connection with the same network already exists.
+                if a connection with the same network already exists or network name is empty.
         """
+        if not connectionInfo.network or not connectionInfo.network.strip():
+            return "Network name cannot be empty"
         if "social_networks" not in self.data['cv']:
             self.data['cv']['social_networks'] = []
         existing_social_networks = [c['network'] for c in self.current_connections]
@@ -874,14 +924,16 @@ class create_Render_CV:
         """Update contact information fields in the CV.
 
         Updates one or more contact information fields. Only provided (non-None)
-        fields are updated; others remain unchanged. Supports method chaining.
+        and non-empty fields are updated; others remain unchanged. Empty strings
+        and whitespace-only strings are ignored to prevent accidental data loss.
+        Supports method chaining.
 
         Args:
-            email: The email address to display on the CV. Optional.
-            phone: The phone number to display on the CV. Optional.
-            location: The location/address to display (e.g., 'City, State'). Optional.
-            website: The personal website URL to display. Optional.
-            name: The full name to display at the top of the CV. Optional.
+            email: The email address to display on the CV. Ignored if None or empty/whitespace.
+            phone: The phone number to display on the CV. Ignored if None or empty/whitespace.
+            location: The location/address to display (e.g., 'City, State'). Ignored if None or empty/whitespace.
+            website: The personal website URL to display. Ignored if None or empty/whitespace.
+            name: The full name to display at the top of the CV. Ignored if None or empty/whitespace.
 
         Returns:
             create_Render_CV: Returns self to allow method chaining.
