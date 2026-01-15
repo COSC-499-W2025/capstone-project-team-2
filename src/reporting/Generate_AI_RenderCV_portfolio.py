@@ -5,6 +5,7 @@ from src.reporting.Generate_AI_Resume import GenerateProjectResume
 import ruamel.yaml
 import subprocess
 import orjson
+import shutil
 
 
 
@@ -500,18 +501,30 @@ class Create_Portfolio_RenderCV:
         """
         if not self.yaml_file.exists():
             raise FileNotFoundError(f"File {self.yaml_file} does not exist")
-        subprocess.run(
-            ["rendercv", str(self.yaml_file)],
+
+        yaml_file_absolute = self.yaml_file.resolve()
+        default_output = yaml_file_absolute.parent / "rendercv_output"
+        source_filename = f"{self.name}_CV.pdf"
+        source_pdf = default_output / source_filename
+
+        # Clear the entire rendercv_output folder to ensure no stale data
+        if default_output.exists():
+            shutil.rmtree(default_output)
+
+        result = subprocess.run(
+            ["rendercv", "render", str(self.yaml_file)],
             capture_output=True,
             text=True,
             encoding="utf-8",
             errors="replace"
         )
-        yaml_file_absolute = self.yaml_file.resolve()
-        default_output = yaml_file_absolute.parent / "rendercv_output"
-        source_filename = f"{self.name}_CV.pdf"
-        source_pdf = default_output / source_filename
+
+        # Check if PDF exists (rendercv may return non-zero due to Windows console encoding issues
+        # even when the PDF was successfully generated)
         if source_pdf.exists():
             return source_pdf
         else:
+            # PDF doesn't exist - check if rendercv reported an error
+            if result.returncode != 0:
+                return f"render failed (code {result.returncode}): {result.stderr}", None
             return f"render failed - PDF not found at {source_pdf}", None

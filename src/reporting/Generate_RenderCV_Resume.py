@@ -6,6 +6,7 @@ CVs using the RenderCV tool. It handles YAML file creation, modification, and re
 """
 
 import subprocess
+import shutil
 from functools import wraps
 from pathlib import Path
 import ruamel.yaml
@@ -423,27 +424,34 @@ class create_Render_CV:
         # Use instance output_dir if not specified
         target_dir = Path(output_dir).absolute() if output_dir else self.output_dir.absolute()
 
+        # rendercv creates output folder next to the yaml file
+        # Use absolute path to ensure we find the file regardless of working directory
+        yaml_file_absolute = self.yaml_file.resolve()
+        default_output = yaml_file_absolute.parent / 'rendercv_output'
+        source_filename = f"{self.name}_CV.pdf"
+        source_pdf = default_output / source_filename
+
+        # Clear the entire rendercv_output folder to ensure no stale data
+        if default_output.exists():
+            shutil.rmtree(default_output)
+
         # Render to rendercv_output folder (created next to the YAML file)
-        result_for_rendering = subprocess.run(
+        result = subprocess.run(
             ['rendercv', 'render', str(self.yaml_file)],
             capture_output=True,
             text=True,
             encoding='utf-8',
             errors='replace'
         )
-        # rendercv creates output folder next to the yaml file
-        # Use absolute path to ensure we find the file regardless of working directory
-        yaml_file_absolute = self.yaml_file.resolve()
-        default_output = yaml_file_absolute.parent / 'rendercv_output'
-        print(default_output)
-        source_filename = f"{self.name}_CV.pdf"
-        source_pdf = default_output / source_filename
 
         # Check if PDF exists (rendercv may return non-zero due to Windows console encoding issues
         # even when the PDF was successfully generated)
         if source_pdf.exists():
             return "successfully rendered", source_pdf
         else:
+            # PDF doesn't exist - check if rendercv reported an error
+            if result.returncode != 0:
+                return f"render failed (code {result.returncode}): {result.stderr}", None
             return f"render failed - PDF not found at {source_pdf}", None
 
     @requires_data
