@@ -278,6 +278,62 @@ class TestPortfolio(unittest.TestCase):
         result = portfolio.add_portfolio_project(Project(name="My Project", summary="Different"))
         self.assertEqual(result, "Project 'My Project' already exists")
 
+    def test_add_connection_empty_network_rejected(self):
+        """
+        Test that adding a connection with empty network name is rejected.
+
+        Verifies that attempting to add a connection with an empty or
+        whitespace-only network name returns an appropriate error message.
+
+        Args:
+            self: The test case instance
+
+        Returns:
+            None: Asserts pass if empty network name is properly rejected
+        """
+        portfolio = Create_Portfolio_RenderCV(auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate_portfolio(name="Test User")
+        portfolio.load_Protfolio_starter_file()
+
+        # Empty string network name
+        result = portfolio.add_new_portfolio_connection(
+            Connections(network="", username="testuser")
+        )
+        self.assertEqual(result, "Network name cannot be empty")
+
+        # Whitespace-only network name
+        result = portfolio.add_new_portfolio_connection(
+            Connections(network="   ", username="testuser")
+        )
+        self.assertEqual(result, "Network name cannot be empty")
+
+    def test_add_project_empty_name_rejected(self):
+        """
+        Test that adding a project with empty name is rejected.
+
+        Verifies that attempting to add a project with an empty or
+        whitespace-only name returns an appropriate error message.
+
+        Args:
+            self: The test case instance
+
+        Returns:
+            None: Asserts pass if empty project name is properly rejected
+        """
+        portfolio = Create_Portfolio_RenderCV(auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate_portfolio(name="Test User")
+        portfolio.load_Protfolio_starter_file()
+
+        # Empty string project name
+        result = portfolio.add_portfolio_project(Project(name="", summary="Test"))
+        self.assertEqual(result, "Project name cannot be empty")
+
+        # Whitespace-only project name
+        result = portfolio.add_portfolio_project(Project(name="   ", summary="Test"))
+        self.assertEqual(result, "Project name cannot be empty")
+
 
 if __name__ == '__main__':
     unittest.main()
