@@ -197,6 +197,26 @@ class TestCreateRenderCV(BaseRenderCVTest):
         self.assertEqual(output_file, Path("custom_cv.yaml"))
         self.assertTrue(output_file.exists())
 
+    def test_load_starter_file_missing_cv_key_raises_error(self):
+        """Test that loading a YAML file without 'cv' key raises ValueError.
+
+        Verifies that malformed YAML files missing the required 'cv' key
+        are properly detected and raise a clear error message instead of
+        a cryptic KeyError.
+        """
+        cv = create_Render_CV(auto_save=False)
+
+        # Create a malformed YAML file without 'cv' key
+        malformed_file = Path(self.test_dir) / "Test_User_Resume_CV.yaml"
+        malformed_file.write_text("design:\n  theme: sb2nov\n")
+        cv.yaml_file = malformed_file
+        cv.name = "Test_User"
+
+        with self.assertRaises(ValueError) as context:
+            cv.load_starter_file()
+
+        self.assertIn("missing required 'cv' key", str(context.exception))
+
 
 class TestCreateRenderCVEducation(BaseRenderCVTest):
     """
@@ -258,6 +278,46 @@ class TestCreateRenderCVEducation(BaseRenderCVTest):
         del self.cv.data['cv']['sections']['education']
         result = self.cv.delete_education("Test")
         self.assertEqual(result, "No education to be deleted")
+
+    def test_modify_education_success(self):
+        """Test modifying an education entry field successfully."""
+        result = self.cv.modify_education("University Name", "areaOfStudy", "Data Science")
+        self.assertEqual(result, "Successfully modified areaOfStudy to Data Science")
+        # Verify the change was applied
+        edu = next(e for e in self.cv.current_education if e.get("institution") == "University Name")
+        self.assertEqual(edu.get("areaOfStudy"), "Data Science")
+
+    def test_modify_education_without_data_raises_error(self):
+        """Test that modifying education without loaded data raises ValueError."""
+        cv = create_Render_CV()
+        with self.assertRaises(ValueError):
+            cv.modify_education("Test", "areaOfStudy", "New Value")
+
+    def test_modify_education_invalid_field(self):
+        """Test that modifying an invalid field returns error."""
+        result = self.cv.modify_education("University Name", "invalid_field", "New Value")
+        self.assertIn("Invalid field", result)
+
+    def test_modify_education_not_found(self):
+        """Test modifying a non-existent education entry."""
+        result = self.cv.modify_education("Nonexistent University", "areaOfStudy", "New Value")
+        self.assertIn("not found", result)
+
+    def test_modify_education_empty_institution_rejected(self):
+        """Test that modifying institution to empty string is rejected."""
+        result = self.cv.modify_education("University Name", "institution", "")
+        self.assertEqual(result, "Institution name cannot be empty")
+
+    def test_modify_education_whitespace_institution_rejected(self):
+        """Test that modifying institution to whitespace is rejected."""
+        result = self.cv.modify_education("University Name", "institution", "   ")
+        self.assertEqual(result, "Institution name cannot be empty")
+
+    def test_modify_education_highlights(self):
+        """Test modifying education highlights field."""
+        new_highlights = ["Dean's List", "Research Assistant"]
+        result = self.cv.modify_education("University Name", "highlights", new_highlights)
+        self.assertEqual(result, f"Successfully modified highlights to {new_highlights}")
 
 
 class TestCreateRenderCVExperience(BaseRenderCVTest):
@@ -621,6 +681,28 @@ class TestCreateRenderCVContact(BaseRenderCVTest):
         """Test that update_contact returns self for method chaining."""
         result = self.cv.update_contact(email="test@test.com")
         self.assertIs(result, self.cv)
+
+    def test_update_contact_empty_string_ignored(self):
+        """Test that empty strings do not overwrite existing contact information.
+
+        Verifies that passing empty strings or whitespace-only strings to
+        update_contact() does not blank out existing values, preventing
+        accidental data loss.
+        """
+        # Set initial values
+        self.cv.update_contact(email="original@email.com", phone="+1 111 111 1111")
+        self.assertEqual(self.cv.data['cv']['email'], "original@email.com")
+        self.assertEqual(self.cv.data['cv']['phone'], "+1 111 111 1111")
+
+        # Empty string should not overwrite
+        self.cv.update_contact(email="", phone="")
+        self.assertEqual(self.cv.data['cv']['email'], "original@email.com")
+        self.assertEqual(self.cv.data['cv']['phone'], "+1 111 111 1111")
+
+        # Whitespace-only string should not overwrite
+        self.cv.update_contact(email="   ", phone="\t\n")
+        self.assertEqual(self.cv.data['cv']['email'], "original@email.com")
+        self.assertEqual(self.cv.data['cv']['phone'], "+1 111 111 1111")
 
 
 class TestCreateRenderCVConnections(BaseRenderCVTest):

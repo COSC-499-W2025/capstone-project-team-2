@@ -5,6 +5,7 @@ from src.reporting.Generate_AI_Resume import GenerateProjectResume
 import ruamel.yaml
 import subprocess
 import orjson
+import shutil
 
 
 
@@ -22,12 +23,14 @@ def requires_data(method):
         callable: A wrapper function that validates data exists before calling the method.
 
     Raises:
-        ValueError: If self.data is None when the decorated method is called.
+        ValueError: If self.data is None or missing required 'cv' key when the decorated method is called.
     """
     @wraps(method)
     def wrapper(self, *args, **kwargs):
         if self.data is None:
             raise ValueError("No data loaded")
+        if self.data.get('cv') is None:
+            raise ValueError("Invalid data structure: missing required 'cv' key")
         return method(self, *args, **kwargs)
     return wrapper
 
@@ -168,6 +171,7 @@ class Create_Portfolio_RenderCV:
 
         Raises:
             FileNotFoundError: If the YAML file does not exist at the expected path.
+            ValueError: If the YAML file is malformed and missing the required 'cv' key.
         """
         if name:
             self.name=name.replace(" ","_")
@@ -179,7 +183,10 @@ class Create_Portfolio_RenderCV:
         with open(self.yaml_file,'r') as f:
             self.data=self.yaml.load(f)
 
-        self.current_projects = self.data['cv']['sections'].get('projects')
+        if self.data.get('cv') is None:
+            raise ValueError("Invalid YAML structure: missing required 'cv' key")
+
+        self.current_projects = self.data['cv'].get('sections', {}).get('projects')
         self.current_connections=self.data['cv'].get('social_networks')
 
         return self.data
@@ -242,8 +249,12 @@ class Create_Portfolio_RenderCV:
 
         Returns:
             str: A success message with the network name if added, or an error
-                message if a connection with the same network already exists.
+                message if the network name is empty or a connection with the
+                same network already exists.
         """
+        if not connection_info.network or not connection_info.network.strip():
+            return "Network name cannot be empty"
+
         if self.current_connections is None:
             self.data['cv']['social_networks'] = []
             self.current_connections = self.data['cv']['social_networks']
@@ -324,8 +335,12 @@ class Create_Portfolio_RenderCV:
 
         Returns:
             str: A success message with the project name if added, or an error
-                message if a project with the same name already exists.
+                message if the project name is empty or a project with the
+                same name already exists.
         """
+        if not project_info.name or not project_info.name.strip():
+            return "Project name cannot be empty"
+
         if self.current_projects is None:
             self.data['cv']['sections']['projects'] = []
             self.current_projects = self.data['cv']['sections']['projects']
@@ -420,6 +435,53 @@ class Create_Portfolio_RenderCV:
         self._auto_save_if_enabled()
         return f"Successfully deleted: {project_name}"
 
+
+    @requires_data
+    def update_portfolio_contact(self,email: str = None,phone: str = None,location: str = None,website: str = None,name: str = None):
+        """Update contact information in the portfolio.
+
+        Updates one or more contact fields in the CV section. Only fields
+        with non-None and non-empty values are updated. Empty strings and
+        whitespace-only strings are ignored to prevent accidental data loss.
+
+        Args:
+            email: Email address to set. Ignored if None or empty/whitespace.
+            phone: Phone number to set. Ignored if None or empty/whitespace.
+            location: Location string (e.g., 'City, State'). Ignored if None or empty/whitespace.
+            website: Website URL. Ignored if None or empty/whitespace.
+            name: Full name to display. Ignored if None or empty/whitespace.
+
+        Returns:
+            str: A success message listing updated fields, or "No fields updated" if
+                all provided values were None or empty.
+        """
+        contact_section = self.data['cv']
+        updated_fields = []
+
+        fields = {
+            'email': email,
+            'phone': phone,
+            'website': website,
+            'location': location,
+            'name': name
+        }
+
+        for field_name, value in fields.items():
+            if value is None:
+                continue
+            if isinstance(value, str) and not value.strip():
+                continue
+            contact_section[field_name] = value
+            updated_fields.append(field_name)
+
+        self._auto_save_if_enabled()
+
+        if updated_fields:
+            return f"Successfully updated: {', '.join(updated_fields)}"
+        return "No fields updated"
+
+
+
     def render_portfolio(self):
         """Render the portfolio to PDF format using RenderCV.
 
@@ -439,18 +501,30 @@ class Create_Portfolio_RenderCV:
         """
         if not self.yaml_file.exists():
             raise FileNotFoundError(f"File {self.yaml_file} does not exist")
-        subprocess.run(
-            ["rendercv", str(self.yaml_file)],
+
+        yaml_file_absolute = self.yaml_file.resolve()
+        default_output = yaml_file_absolute.parent / "rendercv_output"
+        source_filename = f"{self.name}_CV.pdf"
+        source_pdf = default_output / source_filename
+
+        # Clear the entire rendercv_output folder to ensure no stale data
+        if default_output.exists():
+            shutil.rmtree(default_output)
+
+        result = subprocess.run(
+            ["rendercv", "render", str(self.yaml_file)],
             capture_output=True,
             text=True,
             encoding="utf-8",
             errors="replace"
         )
-        yaml_file_absolute = self.yaml_file.resolve()
-        default_output = yaml_file_absolute.parent / "rendercv_output"
-        source_filename = f"{self.name}_Portfolio_CV.pdf"
-        source_pdf = default_output / source_filename
+
+        # Check if PDF exists (rendercv may return non-zero due to Windows console encoding issues
+        # even when the PDF was successfully generated)
         if source_pdf.exists():
             return source_pdf
         else:
+            # PDF doesn't exist - check if rendercv reported an error
+            if result.returncode != 0:
+                return f"render failed (code {result.returncode}): {result.stderr}", None
             return f"render failed - PDF not found at {source_pdf}", None
