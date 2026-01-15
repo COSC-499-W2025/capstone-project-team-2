@@ -124,6 +124,43 @@ class TestPortfolio(unittest.TestCase):
 
         self.assertEqual(result, "Successfully added: AI Project")
 
+    def test_update_portfolio_contact(self):
+        """
+        Test updating contact information in the portfolio.
+
+        Verifies that contact fields (email, phone, location, website, name)
+        can be updated individually or together, and that only non-None fields
+        are modified.
+
+        Args:
+            self: The test case instance
+
+        Returns:
+            None: Asserts pass if contact fields are updated correctly
+        """
+        portfolio = Create_Portfolio_RenderCV(auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate_portfolio(name="Test User")
+        portfolio.load_Protfolio_starter_file()
+
+        # Test updating single field
+        result = portfolio.update_portfolio_contact(email="new@email.com")
+        self.assertEqual(result, "Successfully updated: email")
+        self.assertEqual(portfolio.data['cv']['email'], "new@email.com")
+
+        # Test updating multiple fields
+        result = portfolio.update_portfolio_contact(
+            phone="+1 555 123 4567",
+            location="New York, NY"
+        )
+        self.assertEqual(result, "Successfully updated: phone, location")
+        self.assertEqual(portfolio.data['cv']['phone'], "+1 555 123 4567")
+        self.assertEqual(portfolio.data['cv']['location'], "New York, NY")
+
+        # Test no fields updated
+        result = portfolio.update_portfolio_contact()
+        self.assertEqual(result, "No fields updated")
+
 
 if __name__ == '__main__':
     unittest.main()
