@@ -420,6 +420,48 @@ class Create_Portfolio_RenderCV:
         self._auto_save_if_enabled()
         return f"Successfully deleted: {project_name}"
 
+
+    @requires_data
+    def update_portfolio_contact(self,email: str = None,phone: str = None,location: str = None,website: str = None,name: str = None):
+        """Update contact information in the portfolio.
+
+        Updates one or more contact fields in the CV section. Only fields
+        with non-None values are updated.
+
+        Args:
+            email: Email address to set.
+            phone: Phone number to set.
+            location: Location string (e.g., 'City, State').
+            website: Website URL.
+            name: Full name to display.
+
+        Returns:
+            str: A success message listing updated fields.
+        """
+        contact_section = self.data['cv']
+        updated_fields = []
+
+        fields = {
+            'email': email,
+            'phone': phone,
+            'website': website,
+            'location': location,
+            'name': name
+        }
+
+        for field_name, value in fields.items():
+            if value is not None:
+                contact_section[field_name] = value
+                updated_fields.append(field_name)
+
+        self._auto_save_if_enabled()
+
+        if updated_fields:
+            return f"Successfully updated: {', '.join(updated_fields)}"
+        return "No fields updated"
+
+
+
     def render_portfolio(self):
         """Render the portfolio to PDF format using RenderCV.
 
