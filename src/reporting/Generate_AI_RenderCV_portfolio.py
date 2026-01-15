@@ -170,6 +170,7 @@ class Create_Portfolio_RenderCV:
 
         Raises:
             FileNotFoundError: If the YAML file does not exist at the expected path.
+            ValueError: If the YAML file is malformed and missing the required 'cv' key.
         """
         if name:
             self.name=name.replace(" ","_")
@@ -247,8 +248,12 @@ class Create_Portfolio_RenderCV:
 
         Returns:
             str: A success message with the network name if added, or an error
-                message if a connection with the same network already exists.
+                message if the network name is empty or a connection with the
+                same network already exists.
         """
+        if not connection_info.network or not connection_info.network.strip():
+            return "Network name cannot be empty"
+
         if self.current_connections is None:
             self.data['cv']['social_networks'] = []
             self.current_connections = self.data['cv']['social_networks']
@@ -329,8 +334,12 @@ class Create_Portfolio_RenderCV:
 
         Returns:
             str: A success message with the project name if added, or an error
-                message if a project with the same name already exists.
+                message if the project name is empty or a project with the
+                same name already exists.
         """
+        if not project_info.name or not project_info.name.strip():
+            return "Project name cannot be empty"
+
         if self.current_projects is None:
             self.data['cv']['sections']['projects'] = []
             self.current_projects = self.data['cv']['sections']['projects']
@@ -431,17 +440,19 @@ class Create_Portfolio_RenderCV:
         """Update contact information in the portfolio.
 
         Updates one or more contact fields in the CV section. Only fields
-        with non-None values are updated.
+        with non-None and non-empty values are updated. Empty strings and
+        whitespace-only strings are ignored to prevent accidental data loss.
 
         Args:
-            email: Email address to set.
-            phone: Phone number to set.
-            location: Location string (e.g., 'City, State').
-            website: Website URL.
-            name: Full name to display.
+            email: Email address to set. Ignored if None or empty/whitespace.
+            phone: Phone number to set. Ignored if None or empty/whitespace.
+            location: Location string (e.g., 'City, State'). Ignored if None or empty/whitespace.
+            website: Website URL. Ignored if None or empty/whitespace.
+            name: Full name to display. Ignored if None or empty/whitespace.
 
         Returns:
-            str: A success message listing updated fields.
+            str: A success message listing updated fields, or "No fields updated" if
+                all provided values were None or empty.
         """
         contact_section = self.data['cv']
         updated_fields = []
@@ -498,7 +509,7 @@ class Create_Portfolio_RenderCV:
         )
         yaml_file_absolute = self.yaml_file.resolve()
         default_output = yaml_file_absolute.parent / "rendercv_output"
-        source_filename = f"{self.name}_Portfolio_CV.pdf"
+        source_filename = f"{self.name}_CV.pdf"
         source_pdf = default_output / source_filename
         if source_pdf.exists():
             return source_pdf
