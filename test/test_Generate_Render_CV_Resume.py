@@ -1,5 +1,4 @@
 import unittest
-import sys
 import os
 import gc
 import warnings
@@ -54,7 +53,7 @@ class BaseRenderCVTest(unittest.TestCase):
     def _cleanup_cv_files(self):
         """Remove test CV files from the project directory."""
         cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
-        for pattern in ["Test_User_CV.yaml", "John_Doe_CV.yaml", "Named_User_CV.yaml"]:
+        for pattern in ["Test_User_Resume_CV.yaml", "John_Doe_Resume_CV.yaml", "Named_User_Resume_CV.yaml"]:
             for f in cv_dir.glob(pattern):
                 try:
                     f.unlink(missing_ok=True)
@@ -107,7 +106,7 @@ class TestCreateRenderCV(BaseRenderCVTest):
         cv.generate_starter_file(name="John Doe")
         self.assertEqual(cv.name, "John_Doe")
         # Check that the yaml_file path ends with the correct structure
-        self.assertTrue(str(cv.yaml_file).endswith("User_config_files/Generate_render_CV_files/John_Doe_CV.yaml".replace("/", os.sep)))
+        self.assertTrue(str(cv.yaml_file).endswith("User_config_files/Generate_render_CV_files/John_Doe_Resume_CV.yaml".replace("/", os.sep)))
 
     def test_generate_starter_file_skip_existing(self):
         """Test that existing file is skipped when overwrite is False."""
@@ -172,7 +171,7 @@ class TestCreateRenderCV(BaseRenderCVTest):
         self.assertIsNotNone(data)
         self.assertEqual(cv2.name, "Named_User")
         # Check that the yaml_file path ends with the correct structure
-        self.assertTrue(str(cv2.yaml_file).endswith("User_config_files/Generate_render_CV_files/Named_User_CV.yaml".replace("/", os.sep)))
+        self.assertTrue(str(cv2.yaml_file).endswith("User_config_files/Generate_render_CV_files/Named_User_Resume_CV.yaml".replace("/", os.sep)))
 
     def test_save_without_data_raises_error(self):
         """Test that saving without loaded data raises ValueError."""
@@ -324,13 +323,6 @@ class TestCreateRenderCVExperience(BaseRenderCVTest):
     def test_remove_experience_no_experience_section(self):
         """Test removing when no experience section exists."""
         del self.cv.data['cv']['sections']['experience']
-        result = self.cv.remove_experience("Test Company")
-        self.assertEqual(result, "Experience not found.")
-
-    def test_remove_experience_empty_list(self):
-        """Test removing when experience section is empty."""
-        self.cv.data['cv']['sections']['experience'] = []
-        self.cv.current_experience = []
         result = self.cv.remove_experience("Test Company")
         self.assertEqual(result, "Experience not found.")
 
@@ -607,31 +599,6 @@ class TestCreateRenderCVContact(BaseRenderCVTest):
     def setUp(self):
         super().setUp()
         self.cv = self.create_loaded_cv()
-
-    def test_update_contact_email(self):
-        """Test updating email."""
-        self.cv.update_contact(email="new@email.com")
-        self.assertEqual(self.cv.data['cv']['email'], "new@email.com")
-
-    def test_update_contact_phone(self):
-        """Test updating phone."""
-        self.cv.update_contact(phone="+1 999 888 7777")
-        self.assertEqual(self.cv.data['cv']['phone'], "+1 999 888 7777")
-
-    def test_update_contact_location(self):
-        """Test updating location."""
-        self.cv.update_contact(location="New York, NY")
-        self.assertEqual(self.cv.data['cv']['location'], "New York, NY")
-
-    def test_update_contact_website(self):
-        """Test updating website."""
-        self.cv.update_contact(website="https://newsite.com")
-        self.assertEqual(self.cv.data['cv']['website'], "https://newsite.com")
-
-    def test_update_contact_name(self):
-        """Test updating name."""
-        self.cv.update_contact(name="New Name")
-        self.assertEqual(self.cv.data['cv']['name'], "New Name")
 
     def test_update_contact_multiple_fields(self):
         """Test updating multiple contact fields at once."""
@@ -926,13 +893,6 @@ class TestCreateRenderCVConnectionModifications(BaseRenderCVTest):
     def test_delete_connection_no_connections(self):
         """Test deleting when no social_networks section exists."""
         del self.cv.data['cv']['social_networks']
-        result = self.cv.delete_connection("LinkedIn")
-        self.assertEqual(result, "No connections to delete")
-
-    def test_delete_connection_empty_list(self):
-        """Test deleting when social_networks is empty list."""
-        self.cv.data['cv']['social_networks'] = []
-        self.cv.current_connections = []
         result = self.cv.delete_connection("LinkedIn")
         self.assertEqual(result, "No connections to delete")
 

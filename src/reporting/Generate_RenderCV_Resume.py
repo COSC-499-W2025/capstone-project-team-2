@@ -229,7 +229,7 @@ class create_Render_CV:
         # Create CV files directory if it doesn't exist
         self.cv_files_dir.mkdir(parents=True, exist_ok=True)
 
-        self.yaml_file = self.cv_files_dir / f"{self.name}_CV.yaml"
+        self.yaml_file = self.cv_files_dir / f"{self.name}_Resume_CV.yaml"
         if self.yaml_file.exists():
             if overwrite:
                 # Remove existing file before regenerating
@@ -333,7 +333,7 @@ class create_Render_CV:
         # If name is provided, set yaml_file path to CV files directory
         if name:
             self.name = name.replace(" ", "_")
-            self.yaml_file = self.cv_files_dir / f"{self.name}_CV.yaml"
+            self.yaml_file = self.cv_files_dir / f"{self.name}_Resume_CV.yaml"
 
         if not self.yaml_file.exists():
             raise FileNotFoundError(f"File {self.yaml_file} does not exist "
@@ -428,7 +428,7 @@ class create_Render_CV:
         # Use absolute path to ensure we find the file regardless of working directory
         yaml_file_absolute = self.yaml_file.resolve()
         default_output = yaml_file_absolute.parent / 'rendercv_output'
-        source_filename = f"{self.name}_CV.pdf"
+        source_filename = f"{self.name}_Resume_CV.pdf"
         source_pdf = default_output / source_filename
 
         # Check if PDF exists (rendercv may return non-zero due to Windows console encoding issues
