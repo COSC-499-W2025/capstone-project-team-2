@@ -8,7 +8,9 @@ does not perform YAML persistence or PDF rendering.
 """
 
 from dataclasses import dataclass
-from typing import List, Dict, Any
+from pathlib import Path
+from typing import List, Dict, Any, Optional
+import ruamel.yaml
 
 @dataclass
 class PortfolioShowcase:
@@ -149,3 +151,45 @@ def display_portfolio_showcase(ps: PortfolioShowcase) -> None:
         for c in ps.contributors:
             print(f"• {c}")
         print()
+
+@dataclass
+class PortfolioData:
+    """Container for portfolio showcase and full analysis data."""
+    
+    showcase: PortfolioShowcase
+    analysis: Dict[str, Any]
+
+
+def load_portfolio_showcase(project_name: str) -> Dict[str, Any]:
+    """
+    Load portfolio YAML overrides for a project.
+    
+    Looks for a YAML file in the User_config_files directory that contains
+    human-authored overrides for portfolio display (title, role, overview, highlights).
+    
+    Args:
+        project_name (str): Name of the project to load overrides for.
+    
+    Returns:
+        dict: Portfolio override data, or empty dict if file not found or invalid.
+    """
+    project_root = Path(__file__).resolve().parents[2]
+    config_dir = project_root / "User_config_files"
+    portfolio_dir = config_dir / "portfolio_overrides"
+    portfolio_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Sanitize project name for filename
+    safe_name = project_name.replace(" ", "_").replace("/", "_")
+    yaml_path = portfolio_dir / f"{safe_name}.yaml"
+    
+    if not yaml_path.exists():
+        return {}
+    
+    try:
+        yaml = ruamel.yaml.YAML()
+        yaml.preserve_quotes = True
+        with open(yaml_path, "r", encoding="utf-8") as f:
+            return yaml.load(f) or {}
+    except Exception as e:
+        print(f"[WARNING] Could not parse portfolio YAML for '{project_name}': {e}")
+        return {}
