@@ -139,7 +139,79 @@ def toggle_external_services(ctx: AppContext) -> None:
         return
     else:
         print("\n[INFO] Invalid option. No changes made.")
+        
+def prompt_thumbnail_upload(project_name: str, ctx: AppContext) -> bool:
+    """
+    Prompt the user to upload a thumbnail for a project after analysis.
 
+    Args:
+        project_name: Human-readable project name (used as thumbnail identifier).
+        ctx: Application context containing storage paths.
+
+    Returns:
+        bool: True if thumbnail was successfully added, False otherwise.
+    """
+    print(f"\n=== Project Thumbnail ===")
+    add_thumbnail = input(f"Would you like to add a thumbnail image for '{project_name}'? (y/n): ").strip().lower()
+    
+    if add_thumbnail != 'y':
+        print("[INFO] You can add or update thumbnails later in Settings > Manage Project Thumbnails.")
+        return False
+    
+    # Initialize thumbnail manager
+    thumbnail_dir = Path(ctx.legacy_save_dir) / "thumbnails"
+    thumbnail_manager = ThumbnailManager(storage_dir=thumbnail_dir)
+    
+    max_attempts = 3
+    attempts = 0
+    
+    while attempts < max_attempts:
+        image_path_str = input("Enter path to thumbnail image (or 'cancel' to skip): ").strip()
+        
+        if not image_path_str or image_path_str.lower() == 'cancel':
+            print("[INFO] Thumbnail upload cancelled. You can add it later in Settings.")
+            return False
+        
+        image_path = Path(image_path_str).expanduser().resolve()
+        
+        if not image_path.exists():
+            attempts += 1
+            remaining = max_attempts - attempts
+            if remaining > 0:
+                print(f"[ERROR] File not found: {image_path}")
+                print(f"        {remaining} attempt(s) remaining.")
+            continue
+        
+        # Validate and add thumbnail
+        is_valid, error = thumbnail_manager.validate_image(image_path)
+        if not is_valid:
+            attempts += 1
+            remaining = max_attempts - attempts
+            if remaining > 0:
+                print(f"[ERROR] {error}")
+                print(f"        {remaining} attempt(s) remaining.")
+            continue
+        
+        # Add the thumbnail using project_name as identifier
+        success, error, thumb_path = thumbnail_manager.add_thumbnail(
+            project_id=project_name,
+            image_path=image_path,
+            resize=True
+        )
+        
+        if success:
+            print(f"[SUCCESS] Thumbnail added for '{project_name}'")
+            print(f"          Saved to: {thumb_path}")
+            return True
+        else:
+            attempts += 1
+            remaining = max_attempts - attempts
+            if remaining > 0:
+                print(f"[ERROR] {error}")
+                print(f"        {remaining} attempt(s) remaining.")
+    
+    print("[INFO] Maximum attempts reached. You can add a thumbnail later in Settings.")
+    return False
 
 def analyze_project_menu(ctx: AppContext) -> None:
     """
@@ -170,10 +242,12 @@ def analyze_project_menu(ctx: AppContext) -> None:
             use_ai = input("Add AI analysis? (y/n): ").strip().lower() == 'y'
 
         try:
+            project_name = None
             if choice == "1":
                 dir_path = input_path("Enter path to project directory: ")
                 if dir_path:
-                    return analyze_project(dir_path, ctx, use_ai_analysis=use_ai)
+                    project_name = dir_path.name
+                    analyze_project(dir_path, ctx, use_ai_analysis=use_ai)
             elif choice == "2":
                 zip_path = input_path("Enter path to ZIP: ")
                 if not zip_path:
@@ -186,7 +260,9 @@ def analyze_project_menu(ctx: AppContext) -> None:
                         "try again."
                     )
                     return None
-                return analyze_project(
+                project_name = zip_path.stem
+                
+                analyze_project(
                     extracted,
                     ctx,
                     project_label=zip_path.stem,
@@ -196,6 +272,16 @@ def analyze_project_menu(ctx: AppContext) -> None:
                 return None
             else:
                 print("Please choose a valid option (0–2).")
+                continue
+                
+               # After successful analysis, prompt for thumbnail upload
+            if project_name:
+                prompt_thumbnail_upload(
+                    project_name=project_name,
+                    ctx=ctx
+                )
+            
+            return
         except KeyboardInterrupt:
             print("\n[Interrupted] Returning to menu.")
             return None
@@ -715,10 +801,16 @@ def _remove_thumbnail_workflow(
     """Guide user through removing a thumbnail from a project."""
     insights = list_project_insights(storage_path=storage_path)
     
-    projects_with_thumbnails = [
-        insight for insight in insights
-        if insight.thumbnail and insight.thumbnail.get("exists")
-    ]
+    # Check both JSON data and filesystem for thumbnails
+    projects_with_thumbnails = []
+    for insight in insights:
+        has_in_json = insight.thumbnail and insight.thumbnail.get("exists")
+        # Check filesystem with both UUID and project_name
+        thumb_path_by_id = thumbnail_manager.get_thumbnail_path(insight.id)
+        thumb_path_by_name = thumbnail_manager.get_thumbnail_path(insight.project_name)
+        thumb_path = thumb_path_by_id or thumb_path_by_name
+        if has_in_json or thumb_path:
+            projects_with_thumbnails.append((insight, thumb_path))
     
     if not projects_with_thumbnails:
         print("\n[INFO] No projects have thumbnails to remove.")
@@ -726,11 +818,14 @@ def _remove_thumbnail_workflow(
         return
     
     print("\n=== Projects with Thumbnails ===\n")
-    for i, insight in enumerate(projects_with_thumbnails, start=1):
+    for i, (insight, thumb_path) in enumerate(projects_with_thumbnails, start=1):
         print(f"{i}) {insight.project_name}")
-        thumb_info = insight.thumbnail or {}
-        thumb_name = Path(thumb_info.get("path", "unknown")).name if thumb_info.get("path") else "unknown"
-        print(f"    Thumbnail: {thumb_name}")
+        if thumb_path:
+            print(f"    Thumbnail: {thumb_path.name}")
+        else:
+            thumb_info = insight.thumbnail or {}
+            thumb_name = Path(thumb_info.get("path", "unknown")).name if thumb_info.get("path") else "unknown"
+            print(f"    Thumbnail: {thumb_name}")
         print()
     
     try:
@@ -744,7 +839,8 @@ def _remove_thumbnail_workflow(
             input("Press Enter to continue...")
             return
         
-        selected_insight = projects_with_thumbnails[idx]
+        # Unpack the tuple to get the insight object
+        selected_insight, _ = projects_with_thumbnails[idx]
         
     except ValueError:
         print("[ERROR] Please enter a valid number.")
@@ -756,13 +852,17 @@ def _remove_thumbnail_workflow(
     ).strip().lower()
     
     if confirm == 'y':
-        # Delete from filesystem
-        if thumbnail_manager.delete_thumbnail(selected_insight.id):
+        # Try to delete using UUID first, then project_name
+        deleted = thumbnail_manager.delete_thumbnail(selected_insight.id)
+        if not deleted:
+            deleted = thumbnail_manager.delete_thumbnail(selected_insight.project_name)
+        
+        if deleted:
             # Update project_insights.json
             remove_thumbnail_from_insights(selected_insight.id, storage_path)
             print(f"[SUCCESS] Thumbnail removed for '{selected_insight.project_name}'")
         else:
-            print("[ERROR] Failed to remove thumbnail.")
+            print("[ERROR] Failed to remove thumbnail from filesystem.")
     else:
         print("[INFO] Cancelled.")
     
@@ -818,11 +918,18 @@ def _add_thumbnail_workflow(
     
     print("\n=== Available Projects ===\n")
     for i, insight in enumerate(insights, start=1):
-        # Check if thumbnail exists in the insight data
-        has_thumbnail = insight.thumbnail is not None and insight.thumbnail.get("exists")
-        thumbnail_status = "✓ Has thumbnail" if has_thumbnail else "✗ No thumbnail"
-        print(f"{i}) {insight.project_name} ({thumbnail_status})")
+        # Check if thumbnail exists in the insight data OR on disk
+        has_thumbnail_in_json = insight.thumbnail is not None and insight.thumbnail.get("exists")
+        # Also check filesystem using both UUID and project_name as potential IDs
+        has_thumbnail_on_disk = (
+            thumbnail_manager.get_thumbnail_path(insight.id) is not None or
+            thumbnail_manager.get_thumbnail_path(insight.project_name) is not None
+        )
+        has_thumbnail = has_thumbnail_in_json or has_thumbnail_on_disk
+        thumbnail_status = "[YES]" if has_thumbnail else "[NO]"
+        print(f"{i}) {insight.project_name} {thumbnail_status}")
     
+
     try:
         selection = input("\nSelect a project number (or 0 to cancel): ").strip()
         if selection == "0":
