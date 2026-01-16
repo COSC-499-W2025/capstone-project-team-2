@@ -1,12 +1,9 @@
 from src.core.analysis_service import (
-    input_path,
     analyze_project,
     extract_if_zip,
 )
 
 from pathlib import Path
-import json
-import os
 
 from fastapi import APIRouter
 

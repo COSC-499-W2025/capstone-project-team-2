@@ -200,7 +200,7 @@ def analyze_project(root: Path, project_label: str | None = None, use_ai_analysi
     Args:
         root (Path): Project root to scan.
         ctx (AppContext): Shared DB/store handles.
-        project_label (str | None): Optional override for saved project name.
+        project_label (str | None): Optional override for saved project name. No longer used.
         use_ai_analysis (bool): If true, uses ollama AI analysis
         portfolio_mode (bool):
             If True, suppresses full technical reporting and persistence,
@@ -213,7 +213,7 @@ def analyze_project(root: Path, project_label: str | None = None, use_ai_analysi
     """
     print(f"\n[INFO] Analyzing: {root}\n")
 
-    display_name = project_label or root.name
+    display_name = root.name
     hierarchy = FileMetadataExtractor(root).file_hierarchy()
     duration = estimate_duration(hierarchy)
     resume = generate_resume_item(root, project_name=display_name)
