@@ -1095,7 +1095,7 @@ Building on the Resume Generator class (`Generate_RenderCV_Resume.py`) completed
 
 ### Reviewing/Collaboration Tasks
 
-- Conducted peer reviews and incorporated feedback into the Portfolio Generator enhancements
+- Conducted peer review on [RenderCV Integration for Portfolio Generation PR #290](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/290) and incorporated feedback into the Portfolio Generator enhancements
 
 -----
 
