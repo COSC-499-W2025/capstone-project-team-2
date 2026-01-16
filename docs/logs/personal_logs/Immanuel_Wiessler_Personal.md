@@ -6,22 +6,22 @@
 
 ### Term 2
 
-- [Week 16 (01/12/2026-01/18/2026)](#-personal-log--week-16-01122026-01182026)
-- [Week 15 (01/05/2026-01/11/2026)](#-personal-log--week-15--0105202601112026)
+- [Week 16 (01/12/2026 – 01/18/2026)](#-personal-log--week-16-01122026--01182026)
+- [Week 15 (01/05/2026 – 01/11/2026)](#-personal-log--week-15-01052026--01112026)
 
 ### Term 1
 
-- [Week 14 (12/01/2025-12/07/2025)](#-personal-log--week-14--1201202512-72025)
-- [Week 13 (11/24/2025-11/28/2025)](#-personal-log--week-13--11242025-11282025)
-- [Week 11-12 (11/10/2025-11/27/2025)](#-personal-log--week-11--week12-11102025-11272025)
-- [Week 10 (11/03/2025-11/07/2025)](#-personal-log--week-10-1132025--1172025)
-- [Week 9 (10/27/2025-10/30/2025)](#-personal-log--week-9-10272025--10302025)
-- [Week 8 (10/20/2025-10/26/2025)](#-personal-log--week-8-10202025--10262025)
-- [Week 7 (10/12/2025-10/18/2025)](#-personal-log--week-7-10122025--10182025)
-- [Week 6 (10/06/2025-10/09/2025)](#-personal-log--week-6-10062025--10092025)
-- [Week 5 (09/29/2025-10/05/2025)](#-personal-log--week-5-09292025--10052025)
-- [Week 4 (09/22/2025-09/28/2025)](#dates-of-sprint-09222025--09282025-week-4)
-- [Week 3 (09/15/2025-09/21/2025)](#dates-of-sprint-09152025--09212025)
+- [Week 14 (12/01/2025 – 12/07/2025)](#-personal-log--week-14-12012025--12072025)
+- [Week 13 (11/24/2025 – 11/28/2025)](#-personal-log--week-13-11242025--11282025)
+- [Week 11-12 (11/10/2025 – 11/27/2025)](#-personal-log--week-11-12-11102025--11272025)
+- [Week 10 (11/03/2025 – 11/07/2025)](#-personal-log--week-10-11032025--11072025)
+- [Week 9 (10/27/2025 – 10/30/2025)](#-personal-log--week-9-10272025--10302025)
+- [Week 8 (10/20/2025 – 10/26/2025)](#-personal-log--week-8-10202025--10262025)
+- [Week 7 (10/12/2025 – 10/18/2025)](#-personal-log--week-7-10122025--10182025)
+- [Week 6 (10/06/2025 – 10/09/2025)](#-personal-log--week-6-10062025--10092025)
+- [Week 5 (09/29/2025 – 10/05/2025)](#-personal-log--week-5-09292025--10052025)
+- [Week 4 (09/22/2025 – 09/28/2025)](#-personal-log--week-4-09222025--09282025)
+- [Week 3 (09/15/2025 – 09/21/2025)](#-personal-log--week-3-09152025--09212025)
 
 ---
 
@@ -624,7 +624,7 @@ This was a significant achievement—applying knowledge from previous mock tests
 --- 
 
 
-# 📝 Personal Log – Week 11 + Week 12 (11/10/2025-11/27/2025)
+# 📝 Personal Log – Week 11-12 (11/10/2025 – 11/27/2025)
 
 ## 📊 Peer Evaluation
 ![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/11-22-2025.png)
@@ -789,7 +789,7 @@ and also adding a system to calculate the contributor percentage if the uploaded
 
 
 
-# 📝 Personal Log – Week 13 (11/24/2025-11/28/2025)
+# 📝 Personal Log – Week 13 (11/24/2025 – 11/28/2025)
 
 ## 📊 Peer Evaluation
 ![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/11-29-2025.png)
@@ -887,7 +887,7 @@ I learned a lot about dataclasses from this implementation. I also enhanced the 
 ---
 
 
-# 📝 Personal Log – Week 14 (12/01/2025-12/07/2025)
+# 📝 Personal Log – Week 14 (12/01/2025 – 12/07/2025)
 
 ## 📊 Peer Evaluation
 ![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/12-5-2025.png)
@@ -972,7 +972,7 @@ Week 13 was stressful due to Milestone 1 deadlines. I successfully implemented t
 
 
 
-# 📝 Personal Log – Week 15 (01/05/2026-01/11/2026)
+# 📝 Personal Log – Week 15 (01/05/2026 – 01/11/2026)
 
 ## 📊 Peer Evaluation
 ![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/01-09-2026.png)
@@ -1017,10 +1017,7 @@ Lastly, after taking some advice from the TA, I decided to make new coding contr
 
 
 
-# 📝 Personal Log – Week 15  01/05/2026-01/11/2026
-
-
-## 📊 Peer Evaluation  
+## 📊 Peer Evaluation
 ![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/01-09-2026.png)
 
 
@@ -1070,7 +1067,7 @@ Breaking this into smaller PRs would have created incomplete functionality and i
 
 For the next sprint, I plan to add the missing features required for Milestone 2. Additionally, I worked on fixing and improving a colleague's code to ensure that the refactoring allows the modified tests to pass without problems, and also added missing documentation for certian code and test 
 
-# 📝 Personal Log – Week 16 (01/12/2026-01/18/2026)
+# 📝 Personal Log – Week 16 (01/12/2026 – 01/18/2026)
 
 ## 📊 Peer Evaluation
 
