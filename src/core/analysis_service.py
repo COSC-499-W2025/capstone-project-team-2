@@ -116,7 +116,7 @@ def convert_datetime_to_string(obj):
     return obj
 
 
-def oop_analysis(root: Path, resume) -> Dict[str, Any] | None:
+def oop_analysis(root: Path, resume, suppress_output: bool = False) -> Dict[str, Any] | None:
     """
     Run OOP analysis when external AI is disabled and Python/Java/C is present.
     Uses MultiLangOrchestrator to analyze projects containing Python, Java, and/or C.
@@ -124,7 +124,7 @@ def oop_analysis(root: Path, resume) -> Dict[str, Any] | None:
     Args:
         root (Path): Project root to scan.
         resume: Resume metadata object with language info.
-        legacy_save_dir (Path): Config directory containing consent flags.
+        suppress_output (bool): If True, suppresses the OOP report printing.
 
     Returns:
         dict | None: OOP metrics if executed, otherwise None.
@@ -145,9 +145,11 @@ def oop_analysis(root: Path, resume) -> Dict[str, Any] | None:
         try:
             
             langs = ", ".join(sorted(detected_languages))
-            print(f"[INFO] External AI is disabled. Running non-LLM OOP analysis for {langs}...\n")
+            if not suppress_output:
+                print(f"[INFO] External AI is disabled. Running non-LLM OOP analysis for {langs}...\n")
             oop_metrics = MultiLangOrchestrator(root).analyze()
-            pretty_print_oop_report(oop_metrics)
+            if not suppress_output:
+                pretty_print_oop_report(oop_metrics)
             return oop_metrics
         
         except (FileNotFoundError, ValueError) as e: 
@@ -307,10 +309,9 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
     if resume.summary:
         print(f"  Résumé line: {resume.summary}\n")
 
-    oop_metrics = None
-    if not portfolio_mode:
-        oop_metrics = oop_analysis(root, resume)
-        
+    # Run OOP analysis - needed for both portfolio mode and regular analysis
+    # Suppress output in portfolio_mode since we show portfolio showcase instead
+    oop_metrics = oop_analysis(root, resume, suppress_output=portfolio_mode)
     if oop_metrics is not None:
         analysis["oop_analysis"] = oop_metrics
 
@@ -329,12 +330,18 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
         print(f"[WARN] Failed to record project insight: {e}")
 
     portfolio_yaml = load_portfolio_showcase(display_name)
-    analysis["portfolio_showcase"] = build_portfolio_showcase(analysis, portfolio_yaml)
     
     if portfolio_mode:
-        ps = analysis["portfolio_showcase"]
-        display_portfolio_showcase(ps)
+        portfolio_input = {
+            "resume_item": analysis.get("resume_item", {}),
+            "contributors": analysis.get("contributors"),
+            "oop_analysis": analysis.get("oop_analysis"),
+        }
+        
+        ps = build_portfolio_showcase(portfolio_input, portfolio_yaml)
+        display_portfolio_and_generate_pdf(ps)
         return
     export_json(display_name, analysis, ctx)
+
 
 
