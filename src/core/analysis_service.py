@@ -32,16 +32,21 @@ def input_path(prompt: str, allow_blank: bool = False) -> Optional[Path]:
         allow_blank (bool): If True, empty input returns None.
 
     Returns:
-        Optional[Path]: Resolved path or None when blank is allowed.
+        Optional[Path]: Resolved path or None when blank is allowed, or if user quits.
     """
     while True:
         p = input(prompt).strip()
-        if not p and allow_blank:
+        if not p:
+            if allow_blank:
+                return None
+            print("[ERROR] Please enter a valid path. (Enter '0' to quit)")
+            continue
+        if p == '0':
             return None
         path = Path(p).expanduser().resolve()
         if path.exists():
             return path
-        print(f"[ERROR] Path not found: {path}")
+        print(f"[ERROR] Path not found: {path} (Enter '0' to quit)")
 
 
 def extract_if_zip(zip_path: Path) -> Path:
