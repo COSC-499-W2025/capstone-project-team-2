@@ -934,41 +934,78 @@ Breaking this into smaller PRs would have created incomplete functionality and i
 
 For the next sprint, I plan to add the missing features required for Milestone 2. Additionally, I worked on fixing and improving a colleague's code to ensure that the refactoring allows the modified tests to pass without problems, and also added missing documentation for certian code and test 
 
+# 📝 Personal Log – Week 16 (01/12/2026-01/18/2026)
 
-# 📝 Personal Log – Week 16  01/12/2026-01/18/2026
+## Quick Navigation
 
+- [Week 16 (01/12/2026-01/18/2026)](#-personal-log--week-16-01122026-01182026)
 
-## 📊 Peer Evaluation  
+<!-- Add Term 2 links above this line, Term 1 links below -->
+
+-----
+
+## 📊 Peer Evaluation
+
 ![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/01-09-2026.png)
 
+-----
 
----
+## 🔗 Connection to Previous Week
 
-## 🚀 Features Worked On  
-- Portfolio Generator: Craeted a new feature to generate a portfolio using the RenderCV library to generate professional, fully-featured resumes instead of basic output snippets. Users can now produce complete, presentation-ready CVs/resume suitable for real-world job applications with full CURD operations.
----
+Building on the Resume Generator class (`Generate_RenderCV_Resume.py`) completed previously, this week I extended it to create a dedicated Portfolio generator (`Generate_AI_RenderCV_portfolio.py`) with enhanced functionality and cleaner code patterns.
 
-## 📌 Associated Tasks from Project Board  
-- [Added missing functionality to Generate_AI_RenderCV_portfolio.py ](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/288)
+-----
+
+## 🚀 Work Completed
+
+### Coding Tasks
+
+- **Portfolio Generator:** Created a new feature to generate a portfolio using the RenderCV library to produce professional, fully-featured resumes instead of basic output snippets. Users can now produce complete, presentation-ready CVs/resumes suitable for real-world job applications with full CRUD operations.
+- Refactored contact update methods from individual setters into a unified `update_portfolio_contact()` function with input validation
+- Implemented `next()` generator expressions for cleaner, more Pythonic collection lookups
+
+### Testing/Debugging Tasks
+
+- Added comprehensive test coverage for `Generate_AI_RenderCV_portfolio.py` with detailed docstrings explaining purpose, parameters, return values, and edge cases
+
+### Reviewing/Collaboration Tasks
+
+- Conducted peer reviews and incorporated feedback into the Portfolio Generator enhancements
+
+-----
+
+## 📌 Associated Tasks from Project Board
+
 - [Added missing functionality to Generate_AI_RenderCV_portfolio.py](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/288)
 
----
+-----
 
-## 📈 Progress Update (since 12/6/2025)  
+## 📈 Progress Update (since 12/6/2025)
 
-| Task/Issue | Status |
-|------------|--------|
-|**Portfolio Generator** | ![Complete](https://img.shields.io/badge/ |
+|Task/Issue         |Status                                                  |
+|-------------------|--------------------------------------------------------|
+|Portfolio Generator|![Complete](https://img.shields.io/badge/Complete-green)|
 
+-----
+
+## ⚠️ Issues/Blockers
+
+- None this week. Development proceeded smoothly.
+
+-----
 
 ## 🎯 Next Week’s Goals
 
-- Work on requirements for a peer testing happening the following week 
-- Work on intergrating the portfolio generator into our terminal UI  
----
+- Work on requirements for peer testing happening the following week
+- Work on integrating the portfolio generator into our terminal UI
+
+-----
 
 ## 🧠 Reflection on Current Cycle (Week 16)
-**Week 16** This week I focused on creating the Portfolio generator using the RenderCV library. The goal was to create a fully-featured portfolio suitable for real-world settings to showcase users to potential employers. following last week I modified my Resume Generator class(`Generate_RenderCV_Resume.py`) through the creation of the new class(`Generate_AI_RenderCV_portfolio.py`) to now make professional Portfolio this done through modifying the starter yaml file that is created in the system, which involove removing key parts that would only be present in a Portfilo which you can see down below
+
+This week I focused on creating the Portfolio Generator using the RenderCV library. The goal was to create a fully-featured portfolio suitable for real-world settings to showcase users to potential employers.
+
+Following last week’s work, I modified my Resume Generator class (`Generate_RenderCV_Resume.py`) through the creation of the new class (`Generate_AI_RenderCV_portfolio.py`) to now make professional portfolios. This was done by modifying the starter YAML file that is created in the system, which involved removing key parts that would only be present in a portfolio, as shown below:
 
 ```yaml
 'cv': {
@@ -1003,8 +1040,9 @@ For the next sprint, I plan to add the missing features required for Milestone 2
     'language': 'english'
 }
 ```
-Following from 
+
 In addition to peer reviews, I also added enhancements that were not present in my first version of the Generator. This included a clearer way of updating contact information, which went from individual setter methods:
+
 ```python
 def update_email(self, email: str):
     self.data['cv']['email'] = email
@@ -1021,7 +1059,8 @@ def update_location(self, location: str):
 # ... repeated for each field
 ```
 
-to a single unified method with input validation:
+To a single unified method with input validation:
+
 ```python
 def update_portfolio_contact(self, email: str = None, phone: str = None, 
                               location: str = None, website: str = None, 
@@ -1043,8 +1082,8 @@ def update_portfolio_contact(self, email: str = None, phone: str = None,
     return f"Successfully updated: {', '.join(updated_fields)}" if updated_fields else "No fields updated"
 ```
 
+I also added enhancements to the **CRUD** operations by using Python’s `next()` function with a generator expression for cleaner, more efficient lookups. An example of this can be seen below:
 
-I also added enhancements to the **CRUD** operations by using Python's `next()` function with a generator expression for cleaner, more efficient lookups and example of this can be see down below:
 ```python
 def modify_portfolio_connection(self, network_name: str, new_username: str):
     if self.current_connections is None or not self.current_connections:
@@ -1062,6 +1101,4 @@ def modify_portfolio_connection(self, network_name: str, new_username: str):
 
 This approach replaces traditional `for` loops with index tracking, providing a more Pythonic and readable way to find and modify specific items in a collection. The `next()` function with a default value of `None` elegantly handles the case where no matching connection is found.
 
-
-One thing I would like to point out is that the reason my PR reached close to 591 lines is largely due to comprehensive documentation—every function and test includes detailed docstrings explaining purpose, parameters, return values, and edge cases. While this added to the line count, thorough documentation is essential for code maintainability and helps teammates understand the codebase during future development.
- 
+**Note on Line Count:** The reason my PR reached close to 591 lines is largely due to comprehensive documentation—every function and test includes detailed docstrings explaining purpose, parameters, return values, and edge cases. While this added to the line count, thorough documentation is essential for code maintainability and helps teammates understand the codebase during future development.
