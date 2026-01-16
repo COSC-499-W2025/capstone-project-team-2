@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 
 # CLI entrypoint that wires consent/config into the shared menu flow.
-sys.path.append(str(Path(__file__).resolve().parents[1]))
+#sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from src.config.Configuration import configuration_for_users
 from src.core.app_context import create_app_context
