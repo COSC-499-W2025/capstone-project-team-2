@@ -9,13 +9,13 @@ Portfolio narrative logic lives in portfolio_service and RenderCV schema logic l
 """
 
 from pathlib import Path
+import subprocess
+import sys
 from typing import List, Optional, Tuple, Any
 
 from src.reporting.portfolio_service import PortfolioShowcase
-from src.reporting.Generate_RenderCV_Resume import (
-    create_Render_CV, 
-    Project,
-)
+from src.reporting.Generate_AI_RenderCV_portfolio import Create_Portfolio_RenderCV
+from src.reporting.Generate_RenderCV_Resume import Project
 
 class PortfolioRenderCVService:
     """
@@ -31,9 +31,37 @@ class PortfolioRenderCVService:
             name (str): Name used for the RenderCV YAML file.
             auto_save (bool): Automatically save YAML after each mutation.
         """
-        self.cv = create_Render_CV(auto_save=auto_save)
-        self.cv.generate_starter_file(name=name)
-        self.cv.load_starter_file(name=name)
+        self.cv = Create_Portfolio_RenderCV(auto_save=auto_save)
+        self.cv.generate_portfolio(name=name)
+        self.cv.load_Protfolio_starter_file(name=name)
+        self._remove_placeholder_content()
+
+    def _remove_placeholder_content(self) -> None:
+        """Remove starter template placeholders via CRUD operations."""
+        try:
+            cv = (self.cv.data or {}).get("cv", {})
+            for key, placeholder in {
+                "email": "your.email@example.com",
+                "phone": "+1 234 567 9801",
+                "website": "https://yourwebsite.com",
+                "location": "City, State",
+            }.items():
+                if cv.get(key) in ("", None, placeholder):
+                    cv.pop(key, None)
+
+            self.cv.remove_portfolio_project("Project Name")
+
+            if self.cv.current_connections:
+                for conn in list(self.cv.current_connections):
+                    network = conn.get("network")
+                    username = (conn.get("username") or "").strip()
+                    if network and not username:
+                        self.cv.remove_portfolio_connection(network)
+
+            self.cv.save()
+        except Exception:
+            # Best-effort cleanup; continue with existing data if it fails.
+            pass
 
     @staticmethod
     def build_rendercv_project(ps: PortfolioShowcase) -> Project:
@@ -83,7 +111,7 @@ class PortfolioRenderCVService:
             str: Status message from create_Render_CV.add_project
         """
         project = self.build_rendercv_project(ps)
-        return self.cv.add_project(project)
+        return self.cv.add_portfolio_project(project)
 
     def list_portfolios(self) -> List[dict]:
         """
@@ -131,7 +159,7 @@ class PortfolioRenderCVService:
         Returns:
             str: Status message.
         """
-        return self.cv.modify_projects_info(
+        return self.cv.modify_portfolio_project(
             project_name=project_name,
             field=field,
             new_value=value
@@ -147,7 +175,7 @@ class PortfolioRenderCVService:
         Returns:
             str: Status message.
         """
-        return self.cv.delete_project(project_name)
+        return self.cv.remove_portfolio_project(project_name)
 
     def render_portfolio_pdf(self) -> Tuple[str, Optional[Path]]:
         """
@@ -156,4 +184,32 @@ class PortfolioRenderCVService:
         Returns:
             Tuple[str, Path | None]: Render status and PDF path.
         """
-        return self.cv.render_CV()
+        try:
+            result = self.cv.render_portfolio()
+        except FileNotFoundError as e:
+            if "rendercv" not in str(e):
+                raise
+            yaml_file = self.cv.yaml_file
+            cmd = [sys.executable, "-m", "rendercv", "render", str(yaml_file)]
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace"
+            )
+            if result.returncode != 0:
+                details = (result.stderr or "").strip()
+                if not details and result.stdout:
+                    details = result.stdout.strip()
+                return f"render failed (code {result.returncode}): {details}", None
+            output_dir = yaml_file.resolve().parent / "rendercv_output"
+            source_filename = f"{self.cv.name}_CV.pdf"
+            source_pdf = output_dir / source_filename
+            if source_pdf.exists():
+                return "successfully rendered", source_pdf
+            return f"render failed - PDF not found at {source_pdf}", None
+
+        if isinstance(result, tuple):
+            return result[0], None
+        return "successfully rendered", result

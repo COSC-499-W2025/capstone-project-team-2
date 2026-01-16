@@ -3,7 +3,7 @@ from pathlib import Path
 
 # Render saved analyses as portfolio-style output, honoring consent settings.
 from src.core.app_context import AppContext
-from src.reporting.Generate_AI_Resume import GenerateProjectResume
+from src.reporting.Generate_AI_Resume import GenerateProjectResume, ResumeItem
 from src.aggregation.oop_aggregator import pretty_print_oop_report
 from src.reporting.resume_pdf_generator import SimpleResumeGenerator
 from src.reporting.portfolio_rendercv_service import PortfolioRenderCVService
@@ -11,9 +11,9 @@ from src.reporting.portfolio_service import (
     load_portfolio_showcase,
     build_portfolio_showcase,
     display_portfolio_showcase,
-    PortfolioData,
 )
 import os
+import shutil
 
 def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
     """
@@ -40,86 +40,86 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
         if "analysis" in analysis and isinstance(analysis["analysis"], dict):
             analysis = analysis["analysis"]
 
-        if "portfolio_showcase" in analysis:
-            project_name = analysis.get("resume_item", {}).get("project_name", "Portfolio")
+        project_name = analysis.get("resume_item", {}).get("project_name", "Portfolio")
 
-            # Rebuild PortfolioShowcase object 
-            portfolio_yaml = load_portfolio_showcase(project_name)
-            ps = build_portfolio_showcase(analysis, portfolio_yaml)
+        # Rebuild PortfolioShowcase object 
+        portfolio_yaml = load_portfolio_showcase(project_name)
+        ps = build_portfolio_showcase(analysis, portfolio_yaml)
 
-            display_portfolio_showcase(ps)
+        display_portfolio_showcase(ps)
+        
+        # PDF Prompt
+        print("=" * 50)
+        generate_pdf_input = input("Would you like to generate a PDF? (y/n): ").strip().upper()
+        
+        if generate_pdf_input == "Y":
+            name_of_file = (
+                input("Enter the name of the PDF file or press enter to use default name (Portfolio): ").strip()or "Portfolio")
             
-            # PDF Prompt
-            print("=" * 50)
-            generate_pdf_input = input("Would you like to generate a PDF? (y/n): ").strip().upper()
-            
-            if generate_pdf_input == "Y":
-                name_of_file = (
-                    input("Enter the name of the PDF file or press enter to use default name (Portfolio): ").strip()or "Portfolio")
-                
-                # Collect folder path only for fallback (RenderCV uses its own output directory)
-                folder_path = None
-                try:
-                    print("[INFO] Generating portfolio PDF using RenderCV...")
-                    print("[INFO] RenderCV uses its own output directory.")
+            # Collect folder path only for fallback (RenderCV uses its own output directory)
+            folder_path = None
+            try:
+                print("[INFO] Generating portfolio PDF using RenderCV...")
 
-                    service = PortfolioRenderCVService(name=name_of_file)
-                    service.add_portfolio(ps)
-                    status, pdf_path = service.render_portfolio_pdf()
+                service = PortfolioRenderCVService(name=name_of_file)
+                service.add_portfolio(ps)
+                status, pdf_path = service.render_portfolio_pdf()
 
-                    print(f"[INFO] RenderCV status: {status}")
-                    if pdf_path:
-                        print(f"[INFO] Portfolio PDF generated at: {pdf_path}")
-
-                except Exception as e:
-                    print(f"[WARN] RenderCV export failed, falling back to legacy PDF: {e}")
-                    
-                    # Collect folder path for fallback PDF generator
-                    if folder_path is None:
+                print(f"[INFO] RenderCV status: {status}")
+                if pdf_path:
+                    print(f"[INFO] Portfolio PDF generated at: {pdf_path}")
+                    save_custom = input("Save PDF to a custom location? (y/n): ").strip().upper()
+                    if save_custom == "Y":
                         attempts = 0
                         max_attempts = 3
                         while attempts < max_attempts:
-                            folder_path = input("Enter the folder path where you want to save the PDF: ").strip()
-                            if os.path.exists(folder_path):
+                            custom_folder = input("Enter the folder path to save the PDF: ").strip()
+                            if os.path.exists(custom_folder):
+                                custom_path = Path(custom_folder) / pdf_path.name
+                                shutil.copy2(pdf_path, custom_path)
+                                print(f"[INFO] PDF saved to: {custom_path}")
                                 break
-                            attempts += 1
+                            else:
+                                print(f"[ERROR] Path not found: {custom_folder}")
+                                attempts += 1
                         else:
-                            print("Maximum attempts reached. Cannot generate fallback PDF.")
-                            return
-                    
-                    portfolio_data = PortfolioData(ps, analysis)
-                    SimpleResumeGenerator(folder_path, data=portfolio_data, fileName=name_of_file).display_and_run(portfolio_only=True)
+                            print("[WARN] Maximum attempts reached. PDF remains at default location.")
 
-            return
+            except Exception as e:
+                print(f"[WARN] RenderCV export failed, falling back to legacy PDF: {e}")
+                
+                # Collect folder path for fallback PDF generator
+                if folder_path is None:
+                    attempts = 0
+                    max_attempts = 3
+                    while attempts < max_attempts:
+                        folder_path = input("Enter the folder path where you want to save the PDF: ").strip()
+                        if os.path.exists(folder_path):
+                            break
+                        attempts += 1
+                    else:
+                        print("Maximum attempts reached. Cannot generate fallback PDF.")
+                        return
+                
+                resume_item = analysis.get("resume_item") or {}
+                tech_stack_parts = []
+                if resume_item.get("languages"):
+                    tech_stack_parts.extend(resume_item.get("languages") or [])
+                if resume_item.get("frameworks"):
+                    tech_stack_parts.extend(resume_item.get("frameworks") or [])
 
-        # Fallback to old format 
-        print("\n=== PROJECT SUMMARY (External tools disabled) ===")
+                legacy_data = ResumeItem(
+                    project_title=resume_item.get("project_name", ps.title),
+                    one_sentence_summary=resume_item.get("summary", ps.overview),
+                    detailed_summary=ps.overview or resume_item.get("summary", ""),
+                    key_responsibilities=list(ps.technical_highlights or []),
+                    key_skills_used=list(resume_item.get("skills") or []),
+                    tech_stack=", ".join(tech_stack_parts),
+                    impact="",
+                    oop_principles_detected={},
+                )
+                SimpleResumeGenerator(folder_path, data=legacy_data, fileName=name_of_file).display_and_run(portfolio_only=True)
 
-        pt = (analysis.get("resume_item", {}).get("project_type") or analysis.get("project_type", {}).get("project_type", "—"))
-        mode = (analysis.get("resume_item", {}).get("detection_mode") or analysis.get("project_type", {}).get("mode", "—"))
-
-        stack = analysis.get("resume_item", {}) or {}
-        langs = stack.get("languages") or []
-        frws = stack.get("frameworks") or []
-        skills = stack.get("skills") or []
-        duration = analysis.get("duration_estimate", "—")
-        summary = stack.get("summary", "—")
-
-        print("\n===============================")
-        print(f" PROJECT: {path.name}")
-        print("===============================")
-
-        if summary and summary != "—":
-            print(f"Summary: {summary}")
-        print(f"Duration     : {duration}")
-        print(f"Languages    : {', '.join(langs) or '—'}")
-        print(f"Frameworks   : {', '.join(frws) or '—'}")
-        print(f"Skills       : {', '.join(skills) or '—'}")
-        print()
-
-        oop_analysis = analysis.get("oop_analysis")
-        if oop_analysis and isinstance(oop_analysis, dict):
-            pretty_print_oop_report(oop_analysis)
         return
     
     try:
@@ -169,3 +169,4 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
             input("Enter the name of the PDF file or press enter to use default name (Portfolio): ").strip() or "Portfolio")
 
         SimpleResumeGenerator(folder_path, data=docker, fileName=name_of_file).display_and_run(portfolio_only=True)
+        
