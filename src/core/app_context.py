@@ -9,7 +9,6 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 from src.core.Docker_finder import DockerFinder
 from src.storage.db_helper_function import HelperFunct
 
-
 @dataclass
 class AppContext:
     """
@@ -87,3 +86,5 @@ def create_app_context(external_consent_value=False) -> AppContext:
         default_save_dir=default_save_dir,
         external_consent=external_consent_value
     )
+
+runtimeAppContext = create_app_context()

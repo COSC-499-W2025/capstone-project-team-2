@@ -60,7 +60,7 @@ class extractInfo:
     def extractFiles(self):
         """
         Extracts the contents of the defined ZIP file/archive
-        into a 'temp' directory in current working directory.
+        into a directory in current working directory named after the zip file.
 
         The method create a folder called 'temp' in the current
         working directory if it does not exist than from this it

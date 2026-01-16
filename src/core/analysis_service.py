@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 # Analysis helpers used by the CLI menus for project ingestion and persistence.
-from src.core.app_context import AppContext
+from src.core.app_context import runtimeAppContext
 from src.core.data_extraction import FileMetadataExtractor
 from src.core.extraction import extractInfo
 from src.analysis.get_contributors_percentage_per_person import contribution_summary
@@ -157,7 +157,7 @@ def oop_analysis(root: Path, resume) -> Dict[str, Any] | None:
 
     return None
 
-def export_json(project_name: str, analysis: Dict[str, Any], ctx: AppContext) -> None:
+def export_json(project_name: str, analysis: Dict[str, Any]) -> None:
     """
     Persist analyzed project to disk and database.
 
@@ -173,7 +173,7 @@ def export_json(project_name: str, analysis: Dict[str, Any], ctx: AppContext) ->
     if not ans.startswith("y"):
         return
 
-    out_dir = Path(ctx.default_save_dir).resolve()
+    out_dir = Path(runtimeAppContext.default_save_dir).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
 
     filename = project_name + ".json"
@@ -187,13 +187,13 @@ def export_json(project_name: str, analysis: Dict[str, Any], ctx: AppContext) ->
     print(f"[INFO] Saved to filesystem → {file_path}")
 
     try:
-        record_id = ctx.store.insert_json(filename, analysis_serializable)
+        record_id = runtimeAppContext.store.insert_json(filename, analysis_serializable)
         print(f"[INFO] Saved to database (ID: {record_id})")
     except Exception as e:
         print(f"[WARNING] Could not save to database: {e}")
 
 
-def analyze_project(root: Path, ctx: AppContext, project_label: str | None = None, use_ai_analysis=False, portfolio_mode: bool = False) -> None:
+def analyze_project(root: Path, project_label: str | None = None, use_ai_analysis=False, portfolio_mode: bool = False) -> None:
     """
     Analyze a project folder and optionally persist results.
 
@@ -335,6 +335,6 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
         ps = analysis["portfolio_showcase"]
         display_portfolio_showcase(ps)
         return
-    export_json(display_name, analysis, ctx)
+    export_json(display_name, analysis)
 
 
