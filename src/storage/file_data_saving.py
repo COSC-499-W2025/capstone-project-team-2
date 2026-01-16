@@ -57,24 +57,3 @@ class SaveFileAnalysisAsJSON:
         write_file = os.path.join(folder_path, project_name + r".json")
         with open(write_file, 'w') as file:
             file.write(json_project)
-
-    def hierarchyToProject(self, hierarchy_analysis: dict) -> dict:
-        '''
-        Places a hierarchy of files inside a dictionary.
-        Intended to be used before adding overall project details to dictionary for saving.
-
-        Returns a dictionary with hierarchy stored as "project_files"
-        '''
-        project_dict = {
-            "project_files": hierarchy_analysis
-        }
-        return project_dict
-
-    def addProjectDuration(self, project_dict: dict, duration: datetime.timedelta) -> dict:
-        '''
-        Adds the project duration as a datetime.timedelta to the project dictionary
-
-        Returns the dictionary with the project duration added as "duration"
-        '''
-        project_dict["duration"] = duration
-        return project_dict

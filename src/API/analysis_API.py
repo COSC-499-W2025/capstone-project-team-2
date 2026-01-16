@@ -13,7 +13,7 @@ analysisRouter = APIRouter(
 
 #Currently Incomplete, need to handle arguments issue
 @analysisRouter.get("/")
-def perform_analysis_API(folder_path: Path, use_ai: bool = False):
+def perform_analysis_API(folder_path: Path, use_ai: bool = False) -> str:
     """
     API call for performing analysis on a project folder. Extracts from a zip file if provided Path is a zip file. Analysis is saved.
 
@@ -24,9 +24,13 @@ def perform_analysis_API(folder_path: Path, use_ai: bool = False):
         use_ai (bool): determines whether analysis uses ai
 
     Returns:
-        str: string stating finished state
+        str: string stating finished state or error code (Not all errors implemented yet)
     """
-    if (folder_path.suffix.lower() == ".zip"):
-        folder_path = extract_if_zip(folder_path)
-    analyze_project(folder_path, use_ai_analysis=use_ai)
-    return "finished"
+    
+    try:
+        if (folder_path.suffix.lower() == ".zip"):
+            folder_path = extract_if_zip(folder_path)
+        analyze_project(folder_path, use_ai_analysis=use_ai)
+        return "finished"
+    except Exception as e:
+        return str(e)

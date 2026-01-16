@@ -19,7 +19,7 @@ class AppContext:
         store (HelperFunct): Helper wrapper for DB operations.
         legacy_save_dir (Path): Legacy config/insight base directory.
         default_save_dir (Path): Default nested directory for new insights.
-        external_consent (bool): 
+        external_consent (bool): consent for external llm use
     """
 
     conn: mysql.connector.MySQLConnection

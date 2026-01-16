@@ -11,37 +11,32 @@ from src.analysis.get_contributors_percentage_per_person import contribution_sum
 from src.core.project_duration_estimation import Project_Duration_Estimator
 from src.reporting.project_insights import record_project_insight
 from src.analyzers.multilang_orchestrator import MultiLangOrchestrator
-from src.aggregation.oop_aggregator import pretty_print_oop_report
 from src.reporting.resume_item_generator import generate_resume_item
 from src.storage.file_data_saving import SaveFileAnalysisAsJSON
-from src.config.user_startup_config import ConfigLoader
 from src.core.ai_data_scrubbing import ai_data_scrubber
 from src.core.AI_analysis_code import codeAnalysisAI
-from src.core.portfolio_service import (
-    load_portfolio_showcase,
-    build_portfolio_showcase,
-    display_portfolio_showcase,
-)
+from src.utils.utility_methods import *
 
-def input_path(prompt: str, allow_blank: bool = False) -> Optional[Path]:
-    """
-    Prompt user for a path until it exists.
-
-    Args:
-        prompt (str): Message shown to the user.
-        allow_blank (bool): If True, empty input returns None.
-
-    Returns:
-        Optional[Path]: Resolved path or None when blank is allowed.
-    """
-    while True:
-        p = input(prompt).strip()
-        if not p and allow_blank:
-            return None
-        path = Path(p).expanduser().resolve()
-        if path.exists():
-            return path
-        print(f"[ERROR] Path not found: {path}")
+#Method is needed in CLI but should not be here
+#def input_path(prompt: str, allow_blank: bool = False) -> Optional[Path]:
+#    """
+#    Prompt user for a path until it exists.
+#
+#    Args:
+#        prompt (str): Message shown to the user.
+#        allow_blank (bool): If True, empty input returns None.
+#
+#    Returns:
+#        Optional[Path]: Resolved path or None when blank is allowed.
+#    """
+#    while True:
+#        p = input(prompt).strip()
+#        if not p and allow_blank:
+#            return None
+#        path = Path(p).expanduser().resolve()
+#        if path.exists():
+#            return path
+#        print(f"[ERROR] Path not found: {path}")
 
 
 def extract_if_zip(zip_path: Path) -> Path:
@@ -77,146 +72,88 @@ def extract_if_zip(zip_path: Path) -> Path:
 
     return extracted_path
 
-
-def estimate_duration(hierarchy: Dict[str, Any]) -> str:
-    """
-    Estimate project duration from a file hierarchy.
-
-    Args:
-        hierarchy (Dict[str, Any]): File tree metadata.
-
-    Returns:
-        str: Duration string or "unavailable (...)" on failure.
-    """
-    try:
-        estimate = Project_Duration_Estimator(hierarchy)
-        return str(estimate.get_duration())
-    except Exception as e:
-        return f"unavailable ({e})"
-
-
-def convert_datetime_to_string(obj):
-    """
-    Recursively convert datetime/timedelta objects to strings.
-
-    Args:
-        obj: Arbitrary nested structure containing datetime values.
-
-    Returns:
-        Any: Same structure with serialized datetimes.
-    """
-    if isinstance(obj, datetime.datetime):
-        return obj.strftime("%Y-%m-%d %H:%M:%S")
-    if isinstance(obj, datetime.timedelta):
-        return str(obj)
-    if isinstance(obj, dict):
-        return {key: convert_datetime_to_string(value) for key, value in obj.items()}
-    if isinstance(obj, list):
-        return [convert_datetime_to_string(item) for item in obj]
-    return obj
-
-
 def oop_analysis(root: Path, resume) -> Dict[str, Any] | None:
     """
-    Run OOP analysis when external AI is disabled and Python/Java/C is present.
+    Run OOP analysis when Python/Java/C is present.
     Uses MultiLangOrchestrator to analyze projects containing Python, Java, and/or C.
 
     Args:
         root (Path): Project root to scan.
         resume: Resume metadata object with language info.
-        legacy_save_dir (Path): Config directory containing consent flags.
 
     Returns:
         dict | None: OOP metrics if executed, otherwise None.
     """
-    try:
-        config_data = ConfigLoader().load()
-        has_external = config_data.get("consented", {}).get("external", False)
-    except Exception as e:
-        print(f"[WARN] Could not read user config, assuming no external consent: {e}")
-        has_external = False
 
     # Check if project has Python, Java, C, or JavaScript
     supported_languages = {"Python", "Java", "C", "JavaScript"}
     detected_languages = set(resume.languages) & supported_languages
 
-    if not has_external and detected_languages:
+    if detected_languages:
         
         try:
-            
-            langs = ", ".join(sorted(detected_languages))
-            print(f"[INFO] External AI is disabled. Running non-LLM OOP analysis for {langs}...\n")
             oop_metrics = MultiLangOrchestrator(root).analyze()
-            pretty_print_oop_report(oop_metrics)
             return oop_metrics
         
         except (FileNotFoundError, ValueError) as e: 
             
-            print(f"[ERROR] OOP analysis failed: {e}")
+            #print(f"[ERROR] OOP analysis failed: {e}")
             return None
 
     return None
 
-def export_json(project_name: str, analysis: Dict[str, Any]) -> None:
+def export_json(project_name: str, analysis: Dict[str, Any]) -> str | None:
     """
     Persist analyzed project to disk and database.
 
     Args:
         project_name (str): Name used for output filename.
         analysis (Dict[str, Any]): Serializable analysis payload.
-        ctx (AppContext): Shared DB/store handles.
 
     Returns:
-        None
+        Error string or none (Errors not passed yet)
     """
-    ans = input("Save JSON report? (y/n): ").strip().lower() or "n"
-    if not ans.startswith("y"):
-        return
 
     out_dir = Path(runtimeAppContext.default_save_dir).resolve()
-    out_dir.mkdir(parents=True, exist_ok=True)
+    out_dir.mkdir(parents=True, exist_ok=True)  #Makes directory where we will save json file
 
     filename = project_name + ".json"
 
-    analysis_copy = copy.deepcopy(analysis)
-    analysis_serializable = convert_datetime_to_string(analysis_copy)
+    #Shouldn't need to be converted here
+    #analysis_copy = copy.deepcopy(analysis)
+    #analysis_serializable = convert_datetime_to_string(analysis_copy)
 
     saver = SaveFileAnalysisAsJSON()
-    saver.saveAnalysis(project_name, analysis_serializable, str(out_dir))
+    saver.saveAnalysis(project_name, analysis, str(out_dir))
     file_path = out_dir / filename
-    print(f"[INFO] Saved to filesystem → {file_path}")
 
     try:
-        record_id = runtimeAppContext.store.insert_json(filename, analysis_serializable)
-        print(f"[INFO] Saved to database (ID: {record_id})")
+        record_id = runtimeAppContext.store.insert_json(filename, analysis)
+        #print(f"[INFO] Saved to database (ID: {record_id})")
     except Exception as e:
-        print(f"[WARNING] Could not save to database: {e}")
+        pass
+        #print(f"[WARNING] Could not save to database: {e}")
 
 
-def analyze_project(root: Path, project_label: str | None = None, use_ai_analysis=False, portfolio_mode: bool = False) -> None:
+def analyze_project(root: Path, use_ai_analysis=False) -> None:
     """
-    Analyze a project folder and optionally persist results.
+    Analyze a project folder and persist results.
 
     Args:
         root (Path): Project root to scan.
-        ctx (AppContext): Shared DB/store handles.
-        project_label (str | None): Optional override for saved project name. No longer used.
         use_ai_analysis (bool): If true, uses ollama AI analysis
-        portfolio_mode (bool):
-            If True, suppresses full technical reporting and persistence,
-            and instead generates and prints a curated portfolio showcase
-            derived from analysis results and optional user-authored YAML
-            overrides. Defaults to False.
 
     Returns:
         None
     """
-    print(f"\n[INFO] Analyzing: {root}\n")
 
     display_name = root.name
-    hierarchy = FileMetadataExtractor(root).file_hierarchy()
-    duration = estimate_duration(hierarchy)
+    hierarchy = convert_datetime_to_string(FileMetadataExtractor(root).file_hierarchy())   #Metadata extracted and datetime objects converted to strings
+    duration = str(Project_Duration_Estimator(hierarchy).get_duration()) #Project duration estimate
+
     resume = generate_resume_item(root, project_name=display_name)
+
+    #AI analysis performance through ollama
     ai_analysis = None
     if use_ai_analysis == True:
         ollamaObject = codeAnalysisAI(root)
@@ -231,7 +168,7 @@ def analyze_project(root: Path, project_label: str | None = None, use_ai_analysi
             contrib_summary = contribution_summary(root)
             contributors_data = (contrib_summary or {}).get("contributors") or None
     except Exception as e:
-        print(f"[WARN] Contribution percentage analysis failed: {e}")
+        #print(f"[WARN] Contribution percentage analysis failed: {e}")
         contrib_summary = None
         contributors_data = None
 
@@ -264,77 +201,28 @@ def analyze_project(root: Path, project_label: str | None = None, use_ai_analysi
     if contributors_data:
         analysis["contributors"] = contributors_data
 
-    if not portfolio_mode:
-        print("[SUMMARY]")
-        print(f"  Type       : {resume.project_type} (mode={resume.detection_mode})")
-        print(f"  Languages  : {', '.join(resume.languages) or '—'}")
-        print(f"  Frameworks : {', '.join(resume.frameworks) or '—'}")
-        print(f"  Skills     : {', '.join(resume.skills) or '—'}")
-        print(f"  Duration   : {duration}\n")
-
-    if contributors_data:
-        metric = (contrib_summary or {}).get("metric", "items")
-
-        def _count(info: dict) -> int:
-            if "file_count" in info:
-                return int(info.get("file_count") or 0)
-            if "commit_count" in info:
-                return int(info.get("commit_count") or 0)
-            return len(info.get("files_owned", []))
-
-        filtered: list[tuple[str, dict]] = []
-        for name, info in contributors_data.items():
-            count = _count(info)
-            if count > 0 or name == "<unattributed>":
-                filtered.append((name, info))
-
-        if filtered:
-            print("  Contributors:")
-            for name, info in sorted(filtered, key=lambda kv: _count(kv[1]), reverse=True):
-                count = _count(info)
-                pct = info.get("percentage")
-                if pct:
-                    print(f"    - {name}: {count} {metric} ({pct})")
-                else:
-                    print(f"    - {name}: {count} {metric}")
-            print()
-        else:
-            print("  Contributors: (no file ownership data)\n")
-
-    elif resume.project_type == "collaborative":
-        print("  Contributors: (could not detect)\n")
-
-    if resume.summary:
-        print(f"  Résumé line: {resume.summary}\n")
-
-    oop_metrics = None
-    if not portfolio_mode:
-        oop_metrics = oop_analysis(root, resume)
+    oop_metrics = oop_analysis(root, resume)
         
     if oop_metrics is not None:
         analysis["oop_analysis"] = oop_metrics
 
-    analysis = convert_datetime_to_string(analysis)
+    #Project insights likely needs to be rebuilt
+    #try:
+    #    insight = record_project_insight(
+    #        analysis,
+    #        contributors=contributors_data,
+    #    )
+    #except Exception as e:
+    #    print(f"[WARN] Failed to record project insight: {e}")
 
-    try:
-        insight = record_project_insight(
-            analysis,
-            contributors=contributors_data,
-        )
-        print(
-            f"[INFO] Insight recorded for project '{insight.project_name}' "
-            f"(id={insight.id})."
-        )
-    except Exception as e:
-        print(f"[WARN] Failed to record project insight: {e}")
-
-    portfolio_yaml = load_portfolio_showcase(display_name)
-    analysis["portfolio_showcase"] = build_portfolio_showcase(analysis, portfolio_yaml)
-    
-    if portfolio_mode:
-        ps = analysis["portfolio_showcase"]
-        display_portfolio_showcase(ps)
-        return
+    #Need to remember this exists but also this can't be here
+    #portfolio_yaml = load_portfolio_showcase(display_name)
+    #analysis["portfolio_showcase"] = build_portfolio_showcase(analysis, portfolio_yaml)
+    #
+    #if portfolio_mode:
+    #    ps = analysis["portfolio_showcase"]
+    #    display_portfolio_showcase(ps)
+    #    return
     export_json(display_name, analysis)
 
 
