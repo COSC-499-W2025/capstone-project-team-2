@@ -42,7 +42,7 @@ class cppanalysis:
         report["imports"] = self.extract_includes(root, source)
         report["classes"] = self.extract_classes(root, source, path)
         report["data_structures"] = self.extract_data_structures(root, source)
-        report["complex"] = self.extract_complexity(root)
+        report["complexity"] = self.extract_complexity(root)
         report["cpp_spec"] = self.cpp_spec(root, source)
         
         return report
@@ -67,7 +67,7 @@ class cppanalysis:
          includes = []
          for node in self.tree_walk(root):
               if node.type in ("preproc_include"):
-                   includes.append(source[node.start_byte:node.end_byte].strip)
+                   includes.append(source[node.start_byte:node.end_byte].strip())
          
          return includes
     
@@ -103,11 +103,11 @@ class cppanalysis:
          # check inheritance 
          for child in node.children:
             if child.type == "base_class_clause":
-                bases.extend(self.extract_classes(child, source))
+                bases.extend(self.extract_base_classes(child, source))
 
          # check body of class
          for child in node.children:
-              if child.type == "base_class_clause":
+              if child.type == "field_declaration_list":
                 current_access = "private" if is_class else "public"
 
                 for body in child.children:
@@ -115,14 +115,31 @@ class cppanalysis:
                           access_type = source[body.start_byte:body.end_byte]
                           current_access = access_type.rstrip(':')
 
-                     elif body.type == "field_declaration":
-                          fname = self.extract_fname(body, source)
-                          if fname:
-                            if access_type == "private":
+                     if body.type == "field_declaration":
+                        fname = self.extract_fname(body, source)
+                        if fname:
+                            if current_access == "private":
                                 private_attrs.append(fname)
                             else:
                                 public_attrs.append(fname)
-                     elif body.type in ("function_deffinition", "declaration"):
+
+                        else:
+                            # No field name found, might be a method declaration
+                            methodinf = self.extract_methodinf(body, source, name)
+                            if methodinf:
+                                mname = methodinf["name"]
+                                methods.append(mname)
+                                if methodinf["is_constructor"]:
+                                    has_constructor = True
+                                if methodinf["is_virtual"]:
+                                    virtual_methods.append(mname)
+                                if methodinf["is_override"]:
+                                    override_methods.append(mname)
+                                if self.is_special(mname):
+                                    special_methods.append(mname)
+                          
+
+                     elif body.type in ("function_definition", "declaration", "field_declarator"):
                           methodinf = self.extract_methodinf(body, source, name)
                           if methodinf:
                                mname = methodinf["name"]
@@ -138,10 +155,10 @@ class cppanalysis:
                                     override_methods.append(mname)
                                 
                                if self.is_special(mname):
-                                    special_methods(mname)
+                                    special_methods.append(mname)
          return {
             "name": name,
-            "modules": "",
+            "module": "",
             "file_path": str(path),
             "bases": bases,
             "methods": methods,
@@ -288,10 +305,21 @@ class cppanalysis:
             "dynamic_memory": 0,
             "pointer_arrays": 0,
         }
-
-        # Count type identifiers for STL containers
         for node in self.tree_walk(root):
-            if node.type == "template_type":
+            if node.type == "field_declaration":
+                field_text = source[node.start_byte:node.end_byte]
+        
+                if any(t in field_text for t in ["std::vector", "std::array"]):
+                    ds["arrays"] += 1
+        
+                elif any(t in field_text for t in ["std::map", "std::unordered_map"]):
+                    ds["hash_tables"] += 1
+        
+                elif any(t in field_text for t in ["std::list", "std::forward_list"]):
+                    ds["linked_lists"] += 1
+
+            # Count type identifiers for STL containers
+            elif node.type == "template_type":
                 type_text = source[node.start_byte:node.end_byte]
                 
                 if any(t in type_text for t in ["std::vector", "std::array"]):
@@ -361,6 +389,23 @@ class cppanalysis:
     
         traverse(node, 0)
         return max_depth
+    
+    def extract_base_classes(self, base_clause, source: str) -> List[str]:
+        """Extract base class names from base_class_clause"""
+        bases = []
+        for node in self.tree_walk(base_clause):
+            if node.type in ("type_identifier", "template_type"):
+                base_name = source[node.start_byte:node.end_byte]
+                if base_name and base_name not in ("public", "private", "protected"):
+                    bases.append(base_name)
+        return bases
+    
+    def extract_fname(self, field_node, source: str) -> str:
+        """Extract field name from field_declaration"""
+        for child in field_node.children:
+            if child.type == "field_identifier":
+                return source[child.start_byte:child.end_byte]
+        return ""
 
     def analyze_cpp_project(root: Path, extensions=None) -> List[Dict[str, Any]]:
         if extensions is None:

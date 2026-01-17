@@ -2,6 +2,10 @@ import pytest
 from pathlib import Path
 from src.analyzers.c.cpp_analyzer import cppanalysis
 
+analyzer = cppanalysis()
+source = "class Cat { public: void meow(); };"
+result = analyzer.analyze_file(source, Path("test.cpp"))
+
 @pytest.fixture
 def analyzer():
     return cppanalysis()
@@ -67,6 +71,8 @@ class Test_cpp_analysis:
     def test_special_methods(self, analyzer):
         result = analyze(analyzer, "class V { public: V operator+(V& o); ~V(); };")
         v = result["classes"][0]
+        print(f"Methods: {v['methods']}")
+        print(f"Special methods: {v['special_methods']}")
         assert any("operator" in m for m in v["special_methods"])
         assert "~V" in v["special_methods"]
     
