@@ -87,7 +87,7 @@ class extractInfo:
         with zipfile.ZipFile(self.zipfilePath, 'r') as zip_ref:
             zip_ref.extractall(temp_file_path)
 
-    def verifyZIP(self) -> str:
+    def verifyZIP(self) -> str | None:
         """
         Tests that file at self.zipfilePath is a valid zip file
 
@@ -106,7 +106,7 @@ class extractInfo:
         except zipfile.BadZipFile:  #Catches corrupted zip files
             return self.BAD_ZIP_ERROR_TEXT
 
-    def validateExtractedFiles(self, temp_path: str) -> str:
+    def validateExtractedFiles(self, temp_path: str) -> str | None:
         """
         Validates extracted files by checking their magic bytes (file signatures).
 

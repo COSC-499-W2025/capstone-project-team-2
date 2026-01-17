@@ -503,7 +503,7 @@ class codeAnalysisAI():
             if len(code) > self.max_chars_per_file:
                 code = code[: self.max_chars_per_file] + "\n\n# [Truncated for analysis]\n"
 
-            print(f"\n\n==================== Analyzing: {file_path} ({language_label}) ====================\n")
+            #print(f"\n\n==================== Analyzing: {file_path} ({language_label}) ====================\n")
 
             try:
                 # Invoke the LangChain chain (prompt -> LLM -> parser)
@@ -520,7 +520,7 @@ class codeAnalysisAI():
                 # Store the parsed analysis result
                 results[str(file_path)] = parsed
 
-                print(f"✓ Successfully analyzed {file_path}")
+                #print(f"✓ Successfully analyzed {file_path}")
 
             except Exception as e:
                 print(f"❌ Error analyzing {file_path}: {e}")
@@ -529,7 +529,7 @@ class codeAnalysisAI():
                 print(traceback.format_exc())
                 continue
 
-            print("\n" + "=" * 100 + "\n")
+            #print("\n" + "=" * 100 + "\n")
 
         if save_json:
             self.save_all_results(results)

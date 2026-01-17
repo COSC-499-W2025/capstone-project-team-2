@@ -72,14 +72,14 @@ def extract_if_zip(zip_path: Path) -> Path:
 
     return extracted_path
 
-def oop_analysis(root: Path, resume) -> Dict[str, Any] | None:
+def oop_analysis(root: Path, languages_found) -> Dict[str, Any] | None:
     """
     Run OOP analysis when Python/Java/C is present.
     Uses MultiLangOrchestrator to analyze projects containing Python, Java, and/or C.
 
     Args:
         root (Path): Project root to scan.
-        resume: Resume metadata object with language info.
+        languages_found: Languages found in project
 
     Returns:
         dict | None: OOP metrics if executed, otherwise None.
@@ -87,7 +87,7 @@ def oop_analysis(root: Path, resume) -> Dict[str, Any] | None:
 
     # Check if project has Python, Java, C, or JavaScript
     supported_languages = {"Python", "Java", "C", "JavaScript"}
-    detected_languages = set(resume.languages) & supported_languages
+    detected_languages = set(languages_found) & supported_languages
 
     if detected_languages:
         
@@ -201,7 +201,7 @@ def analyze_project(root: Path, use_ai_analysis=False) -> None:
     if contributors_data:
         analysis["contributors"] = contributors_data
 
-    oop_metrics = oop_analysis(root, resume)
+    oop_metrics = oop_analysis(root, resume.languages)
         
     if oop_metrics is not None:
         analysis["oop_analysis"] = oop_metrics

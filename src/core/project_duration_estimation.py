@@ -16,6 +16,12 @@ class Project_Duration_Estimator:
     def __init__(self, hierarchy: dict):
         '''
         Takes in hierarchy of files with metadata upon initialization and pulls the datetime information neccessary
+
+        Args:
+            hierarchy (dict): hierarchy of files with metadata of last modified dates and created dates
+
+        Returns:
+            None
         '''
         self.hierarchy = hierarchy  #stores hierarchy for use
         self.__list_dates()
@@ -71,6 +77,12 @@ class Project_Duration_Estimator:
     def get_duration(self) -> datetime.timedelta:
         '''
         Returns a datetime.timedelta showing the project duration estimate.
+
+        Args:
+            None
+
+        Returns:
+            datetime.timedelta: estimation of project duration
         '''
         return self.end_estimate - self.start_estimate
 

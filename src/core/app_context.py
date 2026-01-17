@@ -27,6 +27,7 @@ class AppContext:
     legacy_save_dir: Path
     default_save_dir: Path
     external_consent: bool
+    currently_uploaded_path: Path
 
     def close(self) -> None:
         """Close the DB connection safely."""
@@ -84,7 +85,8 @@ def create_app_context(external_consent_value=False) -> AppContext:
         store=store,
         legacy_save_dir=legacy_save_dir,
         default_save_dir=default_save_dir,
-        external_consent=external_consent_value
+        external_consent=external_consent_value,
+        currently_uploaded_path=None
     )
 
 runtimeAppContext = create_app_context()
