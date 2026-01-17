@@ -48,6 +48,8 @@ def test_create_app_context_success(monkeypatch):
     assert ctx.store.__class__ is FakeHelper
     assert ctx.default_save_dir.name == "project_insights"
     assert ctx.default_save_dir.parent.name == "User_config_files"
+    assert ctx.external_consent == False
+    assert ctx.currently_uploaded_path == None
 
 
 def test_create_app_context_failure_after_retries(monkeypatch):
@@ -85,7 +87,8 @@ def test_app_context_close_swallows_errors(monkeypatch):
         store=types.SimpleNamespace(),
         legacy_save_dir=Path("/tmp/legacy"),
         default_save_dir=Path("/tmp/default"),
-        external_consent=False
+        external_consent=False,
+        currently_uploaded_path=None
     )
     ctx.close()
     assert conn.closed is True
