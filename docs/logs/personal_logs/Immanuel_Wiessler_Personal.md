@@ -1091,11 +1091,11 @@ Building on the Resume Generator class (`Generate_RenderCV_Resume.py`) completed
 
 ### Testing/Debugging Tasks
 
-- Added comprehensive test coverage for `Generate_AI_RenderCV_portfolio.py` with detailed docstrings explaining purpose, parameters, return values, and edge cases
+- Added comprehensive test coverage for `Generate_AI_RenderCV_portfolio.py` called `test_Generate_AI_RenderCV_portfolio.py` with detailed docstrings explaining purpose, parameters, return values, and edge cases
 
 ### Reviewing/Collaboration Tasks
 
-- Conducted peer review on [RenderCV Integration for Portfolio Generation PR #290](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/290) and incorporated feedback into the Portfolio Generator enhancements
+- Conducted peer review on [RenderCV Integration for Portfolio Generation PR #290](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/290) and provided feedback and fixes that must be made
 
 -----
 
