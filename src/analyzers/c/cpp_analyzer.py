@@ -24,7 +24,7 @@ class cppanalysis:
 
     """
     Analyze C++ source code for object-oriented structure and static metrics.
-    Output strictly follows the C/C++ analyzer aggregation schema:
+    Output strictly follows the C analyzer aggregation schema:
         report["classes"][]
         report["imports"]
         report["data_structures"]
