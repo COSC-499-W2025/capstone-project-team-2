@@ -1122,7 +1122,7 @@ Building on the Resume Generator class (`Generate_RenderCV_Resume.py`) completed
 ## 🎯 Next Week’s Goals
 
 - Work on requirements for peer testing happening the following week
-- Work on integrating the portfolio generator into our terminal UI
+- Work on integrating the CRUD operations portfolio generator into our terminal UI
 
 -----
 
