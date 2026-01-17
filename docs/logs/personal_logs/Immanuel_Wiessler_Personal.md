@@ -1071,7 +1071,7 @@ For the next sprint, I plan to add the missing features required for Milestone 2
 
 ## 📊 Peer Evaluation
 
-![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/01-09-2026.png)
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/1-16-2026.png)
 
 -----
 
