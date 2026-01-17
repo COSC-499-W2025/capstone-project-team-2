@@ -140,12 +140,13 @@ def toggle_external_services(ctx: AppContext) -> None:
     else:
         print("\n[INFO] Invalid option. No changes made.")
         
-def prompt_thumbnail_upload(project_name: str, ctx: AppContext) -> bool:
+def prompt_thumbnail_upload(project_id: str, project_name: str, ctx: AppContext) -> bool:
     """
     Prompt the user to upload a thumbnail for a project after analysis.
 
     Args:
-        project_name: Human-readable project name (used as thumbnail identifier).
+        project_id: UUID for storing the thumbnail (used as file identifier).
+        project_name: Human-readable project name (used for display messages).
         ctx: Application context containing storage paths.
 
     Returns:
@@ -168,7 +169,7 @@ def prompt_thumbnail_upload(project_name: str, ctx: AppContext) -> bool:
     while attempts < max_attempts:
         image_path_str = input("Enter path to thumbnail image (or 'cancel' to skip): ").strip()
         
-        if not image_path_str or image_path_str.lower() == 'cancel':
+        if image_path_str.lower() == 'cancel':
             print("[INFO] Thumbnail upload cancelled. You can add it later in Settings.")
             return False
         
@@ -192,9 +193,9 @@ def prompt_thumbnail_upload(project_name: str, ctx: AppContext) -> bool:
                 print(f"        {remaining} attempt(s) remaining.")
             continue
         
-        # Add the thumbnail using project_name as identifier
+        # Add the thumbnail using project_id (UUID) as identifier
         success, error, thumb_path = thumbnail_manager.add_thumbnail(
-            project_id=project_name,
+            project_id=project_id,
             image_path=image_path,
             resize=True
         )
@@ -202,6 +203,11 @@ def prompt_thumbnail_upload(project_name: str, ctx: AppContext) -> bool:
         if success:
             print(f"[SUCCESS] Thumbnail added for '{project_name}'")
             print(f"          Saved to: {thumb_path}")
+            
+            # Update project_insights.json with thumbnail info
+            storage_path = Path(ctx.legacy_save_dir) / "project_insights.json"
+            update_thumbnail_in_insights(project_id, thumb_path, storage_path)
+            
             return True
         else:
             attempts += 1
@@ -274,12 +280,28 @@ def analyze_project_menu(ctx: AppContext) -> None:
                 print("Please choose a valid option (0–2).")
                 continue
                 
-               # After successful analysis, prompt for thumbnail upload
+            # After successful analysis, prompt for thumbnail upload
             if project_name:
-                prompt_thumbnail_upload(
-                    project_name=project_name,
-                    ctx=ctx
-                )
+                # Get the UUID from the newly created insight
+                storage_path = Path(ctx.legacy_save_dir) / "project_insights.json"
+                insights = list_project_insights(storage_path=storage_path)
+                
+                # Find the most recent insight matching this project name
+                matching_insight = None
+                for insight in reversed(insights):  # Most recent first
+                    if insight.project_name == project_name:
+                        matching_insight = insight
+                        break
+                
+                if matching_insight:
+                    prompt_thumbnail_upload(
+                        project_id=matching_insight.id,
+                        project_name=project_name,
+                        ctx=ctx
+                    )
+                else:
+                    # Fallback if insight not found (shouldn't happen normally)
+                    print("[WARNING] Could not find project insight. Skipping thumbnail prompt.")
             
             return
         except KeyboardInterrupt:
@@ -763,7 +785,8 @@ def thumbnail_management_menu(ctx) -> None:
         ctx: Application context with storage paths
     """
     storage_path = Path(ctx.legacy_save_dir) / "project_insights.json"
-    thumbnail_manager = ThumbnailManager()
+    thumbnail_dir = Path(ctx.legacy_save_dir) / "thumbnails"
+    thumbnail_manager = ThumbnailManager(storage_dir=thumbnail_dir)
     
     if not storage_path.exists():
         print("[INFO] Initializing project insights from saved analyses...")
