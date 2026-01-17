@@ -43,7 +43,7 @@ class cppanalysis:
         report["classes"] = self.extract_classes(root, source, path)
         report["data_structures"] = self.extract_data_structures(root, source)
         report["complex"] = self.extract_complexity(root)
-        report["cpp_spec"] = self.extract_cpp_specific(root, source)
+        report["cpp_spec"] = self.cpp_spec(root, source)
         
         return report
     
@@ -103,7 +103,7 @@ class cppanalysis:
          # check inheritance 
          for child in node.children:
             if child.type == "base_class_clause":
-                bases.extend(self._extract_base_classes(child, source))
+                bases.extend(self.extract_classes(child, source))
 
          # check body of class
          for child in node.children:
@@ -221,7 +221,7 @@ class cppanalysis:
         class_names = set()
         pure_virtual_classes = set()
 
-        for node in self._walk_tree(root):
+        for node in self.tree_walk(root):
             if node.type == "template_declaration":
                 # Check if it contains a class
                 for child in node.children:
@@ -240,18 +240,18 @@ class cppanalysis:
 
             # Operator overload
             elif node.type == "function_definition":
-                for child in self._walk_tree(node):
+                for child in self.tree_walk(node):
                     if child.type == "operator_name":
                         cpp_spec["operator_overloads"] += 1
                         break
 
             # Abstract classes
             elif node.type in ("class_specifier", "struct_specifier"):
-                class_name = self._get_class_name(node, source)
+                class_name = self.get_cname(node, source)
                 if class_name:
                     class_names.add(class_name)
                     # Check for pure virtual functions (= 0)
-                    if self._has_pure_virtual(node, source):
+                    if self.pure_virtual(node, source):
                         pure_virtual_classes.add(class_name)
 
             # pattern detection (destructor + resource management)
@@ -276,7 +276,7 @@ class cppanalysis:
         # Look for "= 0" pattern which indicates pure virtual
         return "= 0" in ctext and "virtual" in ctext
     
-    def _extract_data_structures(self, root, source: str) -> Dict[str, int]:
+    def extract_data_structures(self, root, source: str) -> Dict[str, int]:
         """Extract data structure usage through type declarations"""
         ds = {
             "arrays": 0,
@@ -290,7 +290,7 @@ class cppanalysis:
         }
 
         # Count type identifiers for STL containers
-        for node in self._walk_tree(root):
+        for node in self.tree_walk(root):
             if node.type == "template_type":
                 type_text = source[node.start_byte:node.end_byte]
                 
@@ -325,6 +325,42 @@ class cppanalysis:
                     ds["dynamic_memory"] += 1
 
         return ds
+    
+    def extract_complexity(self, root) -> Dict[str, int]:
+        total_functions = 0
+        nested_loops = 0
+        max_depth = 0
+
+        for node in self.tree_walk(root):
+            if node.type == "function_definition":
+                total_functions += 1
+                depth = self.calculate_loop_depth(node)
+                max_depth = max(max_depth, depth)
+                if depth >= 2:
+                    nested_loops += 1
+
+        return {
+            "total_functions": total_functions,
+            "functions_with_nested_loops": nested_loops,
+            "max_loop_depth": max_depth,
+        }
+
+    def calculate_loop_depth(self, node) -> int:
+        """Calculate maximum loop nesting depth within a function"""
+        max_depth = 0
+    
+        def traverse(x, current_depth):
+            nonlocal max_depth
+        
+            if x.type in ("for_statement", "while_statement", "do_statement"):
+                current_depth += 1
+                max_depth = max(max_depth, current_depth)
+        
+            for child in x.children:
+                traverse(child, current_depth)
+    
+        traverse(node, 0)
+        return max_depth
 
     def analyze_cpp_project(root: Path, extensions=None) -> List[Dict[str, Any]]:
         if extensions is None:
@@ -337,7 +373,7 @@ class cppanalysis:
             if path.suffix.lower() in extensions:
                 try:
                     source = path.read_text(encoding="utf-8", errors="ignore")
-                    reports.append(analyzer.analyze_source(source, path))
+                    reports.append(analyzer.analyze_file(source, path))
                 except Exception as e:
                     reports.append({
                         "file": str(path),
