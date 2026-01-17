@@ -1,112 +1,141 @@
-## Dates of Sprint: (09/15/2025 – 09/21/2025)
+# Immanuel Wiessler - Personal Log
 
-### Peer Eval Screenshot:
+---
+
+## Quick Navigation
+
+### Term 2
+
+- [Week 16 (01/12/2026 – 01/18/2026)](#-personal-log--week-16-01122026--01182026)
+- [Week 15 (01/05/2026 – 01/11/2026)](#-personal-log--week-15-01052026--01112026)
+
+### Term 1
+
+- [Week 14 (12/01/2025 – 12/07/2025)](#-personal-log--week-14-12012025--12072025)
+- [Week 13 (11/24/2025 – 11/28/2025)](#-personal-log--week-13-11242025--11282025)
+- [Week 11-12 (11/10/2025 – 11/27/2025)](#-personal-log--week-11-12-11102025--11272025)
+- [Week 10 (11/03/2025 – 11/07/2025)](#-personal-log--week-10-11032025--11072025)
+- [Week 9 (10/27/2025 – 10/30/2025)](#-personal-log--week-9-10272025--10302025)
+- [Week 8 (10/20/2025 – 10/26/2025)](#-personal-log--week-8-10202025--10262025)
+- [Week 7 (10/12/2025 – 10/18/2025)](#-personal-log--week-7-10122025--10182025)
+- [Week 6 (10/06/2025 – 10/09/2025)](#-personal-log--week-6-10062025--10092025)
+- [Week 5 (09/29/2025 – 10/05/2025)](#-personal-log--week-5-09292025--10052025)
+- [Week 4 (09/22/2025 – 09/28/2025)](#-personal-log--week-4-09222025--09282025)
+- [Week 3 (09/15/2025 – 09/21/2025)](#-personal-log--week-3-09152025--09212025)
+
+---
+
+# 📝 Personal Log – Week 3 (09/15/2025 – 09/21/2025)
+
+## 📊 Peer Evaluation
 <img width="1080" height="626" alt="Please find image" src="https://github.com/user-attachments/assets/6f3506a1-dca2-4b9d-9128-81e1625d9b01" />
 
+---
 
+## 🔗 Connection to Previous Week
 
+This is the first week of the project, marking the beginning of the capstone journey.
 
 ---
 
-### Features Worked on this Milestone (Provide sufficient detail)
-  * #1 Requirements Document Creation & Refinement
-  * #2 Worked on proposal doc and finalizing   
-  * #3 Deciding on the development stack
+## 🚀 Work Completed
+
+### Coding Tasks
+- N/A (Project setup phase)
+
+### Testing/Debugging Tasks
+- N/A (Project setup phase)
+
+### Reviewing/Collaboration Tasks
+- Collaborated with team members to discuss and refine project requirements (functional and non-functional)
+- Participated in finalizing the proposal document
+- Contributed to deciding on the development stack
 
 ---
 
-## Associated Tasks from Project Board:
-- N/A (Project board not yet populated)
-test
----
-
-### Progress Update (since 09/15/2025)
-
-<table>
-    <tr>
-        <td><strong>TASK/ISSUE #</strong></td>
-        <td><strong>STATUS</strong></td>
-    </tr>
-    <tr>
-        <td>Completion of Project requirments <span style=" font-weight:bold">(draft & refine)</span> </td>
-        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
-    </tr>
-    <tr>
-        <td>github established</td>
-        <td><span style= "color:green"; font-weight:bold>Complete</span></td >
-    </tr>
-</table>
-
-
----
-
-### Extra Details:
-<details>
-    <summary>Click to expand</summary>
-    The main focus for this week was setting up the GitHub repository and 
-    collaborating with other team members to discuss and refine our project 
-    requirements <span style="font-weight:bold">(functional and non-functional)</span>. Additionally, no issues have been added to the project board yet.
-</details>
-
-
-
-
-
-## Dates of Sprint: (09/22/2025 – 09/28/2025) week 4
-
-
-### Peer Eval Screenshot:
-
-
-
----
-
-### Features Worked on this Milestone   
-  * #1 Created and finalized the system design graph
-  * #2 Worked on proposal doc and finalizing 
-  * #3 Deciding on the development stack
-
----
-
-## Associated Tasks from Project Board:
+## 📌 Associated Tasks from Project Board
 - N/A (Project board not yet populated)
 
 ---
 
-### Progress Update (since 09/22/2025)
+## 📈 Progress Update
 
-<table>
-    <tr>
-        <td><strong>TASK/ISSUE #</strong></td>
-        <td><strong>STATUS</strong></td>
-    </tr>
-    <tr>
-        <td>Completion of Project Propsoal <strong>(draft & refine)</strong> </td>
-        <td><img src="https://img.shields.io/badge/Status-Complete-green" alt="Complete"></td>
-    </tr>
-    <tr>
-     <td>Completion of System desgin mockup</td>
-     <td><img src="https://img.shields.io/badge/Status-Complete-green" alt="Complete"></td>
-    </tr>
-    
-</table>
-
-
----
-## Next week goals
-The goals for the Week 5 is as follows:
-- Work on creating our <span style='font-weight:bold'> Data flow diagram (DFD) </span> for our system
+| Task/Issue | Status |
+|------------|--------|
+| Completion of Project requirements (draft & refine) | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| GitHub repository established | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 
 ---
 
-### Extra Details:
-<details>
-  <summary><b>Click to expand</b></summary>
-  This week's focus was on various aspects of the project proposal, with me working on the <strong>Project Scope and Usage Scenario</strong> of the project proposal document.
-  additionally i worked on the inital design of architectures layout of our system 
+## ⚠️ Issues/Blockers
+- No issues encountered this week
+
+---
+
+## 🎯 Next Week's Goals
+- Continue refining project requirements
+- Begin working on system design documentation
 
 
-</details>
+
+
+
+# 📝 Personal Log – Week 4 (09/22/2025 – 09/28/2025)
+
+## 📊 Peer Evaluation
+*(Screenshot not available for this week)*
+
+---
+
+## 🔗 Connection to Previous Week
+
+Building on Week 3's requirements gathering and proposal work, this week focused on translating those requirements into system design documentation.
+
+---
+
+## 🚀 Work Completed
+
+### Coding Tasks
+- N/A (Design phase)
+
+### Testing/Debugging Tasks
+- N/A (Design phase)
+
+### Reviewing/Collaboration Tasks
+- Created and finalized the system design graph
+- Worked on the **Project Scope and Usage Scenario** sections of the project proposal document
+- Contributed to finalizing the development stack decisions
+- Worked on the initial design of the system architecture layout
+
+---
+
+## 📌 Associated Tasks from Project Board
+- N/A (Project board not yet populated)
+
+---
+
+## 📈 Progress Update
+
+| Task/Issue | Status |
+|------------|--------|
+| Completion of Project Proposal (draft & refine) | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| Completion of System design mockup | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+
+---
+
+## ⚠️ Issues/Blockers
+- No significant issues this week
+
+---
+
+## 🎯 Next Week's Goals
+- Work on creating our **Data Flow Diagram (DFD)** for our system
+
+---
+
+## 🧠 Reflection on Past Cycle (Week 3)
+
+Looking back at Week 3, our team developed a better understanding of each member's working style, which helped us stay more consistent with the assignment of tasks. This improved coordination allowed us to finalize our project requirements in a timely manner. Week 4 marked a turning point where the team really began to "click", laying the groundwork for smoother collaboration in the following weeks.
 
 
 
@@ -118,27 +147,37 @@ The goals for the Week 5 is as follows:
 
 # 📝 Personal Log – Week 5 (09/29/2025 – 10/05/2025)
 
----
-
-## 📊 Peer Evaluation  
+## 📊 Peer Evaluation
 ![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/10-03-2025_Immanuel_Wiessler_peer_screenshot.png)
 
+---
 
+## 🔗 Connection to Previous Week
+
+Following Week 4's system design work, this week focused on creating the Data Flow Diagrams (DFD) as planned, translating the architecture into detailed data flow documentation.
 
 ---
 
-## 🚀 Features Worked On  
--  Collaborated with teammates on the **DFD Graph** (Level 0 and Level 1)  
--  Completed the **team log** for Week 5  
+## 🚀 Work Completed
+
+### Coding Tasks
+- N/A (Design documentation phase)
+
+### Testing/Debugging Tasks
+- N/A (Design documentation phase)
+
+### Reviewing/Collaboration Tasks
+- Collaborated with teammates on the **DFD Graph** (Level 0 and Level 1)
+- Completed the **team log** for Week 5
 
 ---
 
-## 📌 Associated Tasks from Project Board  
-- N/A (Project board not yet populated)  
+## 📌 Associated Tasks from Project Board
+- N/A (Project board not yet populated)
 
 ---
 
-## 📈 Progress Update (since 10/02/2025)  
+## 📈 Progress Update
 
 | Task/Issue | Status |
 |------------|--------|
@@ -147,75 +186,101 @@ The goals for the Week 5 is as follows:
 
 ---
 
-## 🎯 Next Week’s Goals  
-- Review finalized **project requirements** 
+## ⚠️ Issues/Blockers
+
+- **Communication issue**: One team member created both Level 0 and Level 1 DFD without informing others, leading to potential duplicate work
+- **Resolution**: Introduced a new system in Discord server to ensure everyone knows who is currently working on what task, preventing duplicate tasks or code
+
+---
+
+## 🎯 Next Week's Goals
+- Review finalized **project requirements**
 - Finalize **system design** for new project requirements
-- Create a  new **DFD Desgin** for these new project requirements  
+- Create a new **DFD Design** for these new project requirements
 - Revise Docker
 
 ---
 
-## 🧠 Reflection on Current Cycle (Week 5)  
-This week we demonstrated effective teamwork in the development of the **DFD design** based on our project requirements which we submitted in week 4 making sure to include the necessary requiremnets for both **level 0** and **level 1**, which included the external actors and the way in which the data flowed from our backend to the frontend **(UI)** and at the same time, One thing I noticed is that now we have finally settle into assumed roles. To conclude this weeks reflection one thing I noticed is that we had one small issue in terms of communication task this week which was that one of the team members created both level 0 and level 1 without informing the other teams members that they had finished the graphs, Moving forward we are going to introucde a system in dicord server to ensure that everyone knows who is currently working on what task, to prevent duplicate task or code.
+## 🧠 Reflection on Current Cycle (Week 5)
+
+This week we demonstrated effective teamwork in the development of the **DFD design** based on our project requirements which we submitted in Week 4, making sure to include the necessary requirements for both **Level 0** and **Level 1**. This included the external actors and the way in which the data flowed from our backend to the frontend **(UI)**. One thing I noticed is that we have finally settled into assumed roles.
 
 ---
 
-## 🧠 Reflection on Past Cycle (Week 4)  
-Looking back at **Week 4**, our team developed a better understanding of each member’s working style, which helped us stay more consistent with the assignment of tasks. This improved coordination allowed us to finalize our **project requirements** in a timely manner. In my view, Week 4 marked a turning point where the team really began to **“click”**, laying the groundwork for smoother collaboration in the following weeks for this project
+## 🧠 Reflection on Past Cycle (Week 4)
+
+Looking back at **Week 4**, our team developed a better understanding of each member's working style, which helped us stay more consistent with the assignment of tasks. This improved coordination allowed us to finalize our **project requirements** in a timely manner. In my view, Week 4 marked a turning point where the team really began to **"click"**, laying the groundwork for smoother collaboration in the following weeks.
 
 ---
 
 
 # 📝 Personal Log – Week 6 (10/06/2025 – 10/09/2025)
 
-## 📊 Peer Evaluation  
+## 📊 Peer Evaluation
 <img width="1221" height="939" alt="image" src="https://github.com/user-attachments/assets/654c8f44-ebf0-4b91-bccb-e5afc29a6104" />
 
-![alt text](image.png)
+---
 
+## 🔗 Connection to Previous Week
+
+Following Week 5's DFD design work and the new communication system introduced in Discord, this week marked the transition from design to actual coding. The project requirements were finalized and we began implementing the core functionality.
 
 ---
 
-## 🚀 Features Worked On  
--  Created the **python requriements.txt** file
--  Began coding work on the extraction of files strored in a zip file
-- adding newly defined issues to our kanban
+## 🚀 Work Completed
+
+### Coding Tasks
+- Created the **Python requirements.txt** file with libraries accessible for team members with varying Python skill levels
+- Developed initial **file extraction system** (`extraction.py`) for extracting contents from zip files
+
+### Testing/Debugging Tasks
+- Created **pytest file** to test the functionality of the extraction method
+
+### Reviewing/Collaboration Tasks
+- Added newly defined issues to our Kanban board
+- Updated **DFD graph** and **System Architecture Design** to incorporate new Milestone 1 requirements
 
 ---
 
-## 📌 Associated Tasks from Project Board  
+## 📌 Associated Tasks from Project Board
 - [Extract files from zip folder provided #34](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/34)
 - [Create requirements file #27](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/27)
 
 ---
 
-## 📈 Progress Update (since 10/06/2025)  
+## 📈 Progress Update
 
 | Task/Issue | Status |
 |------------|--------|
-| **Creation of python requirements.txt** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
-| **Created a class function for file extraction(zip file)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
-|**Created pytest file for testing the extraction method**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
+| **Creation of Python requirements.txt** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Created a class function for file extraction (zip file)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Created pytest file for testing the extraction method** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 
 ---
 
-## 🎯 Next Week’s Goals  
-- Beginning work on the newly created issues in our kanban project/ continue working on current issue assigned to me
+## ⚠️ Issues/Blockers
+- **Team skill consideration**: Needed to ensure chosen Python libraries were easy to pick up given the team's minimal Python experience
+- **Resolution**: Selected beginner-friendly libraries and discussed them with the team
+
+---
+
+## 🎯 Next Week's Goals
+- Begin work on the newly created issues in our Kanban project
+- Continue working on current issues assigned to me
 
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 6)
-This week, we began updating both our **DFD graph** and our **System Architecture Design** to incorporate the newly introduced project requirements for Milestone 1. We began populating our GitHub Kanban board with the associated issues in Milestone 1. Additionally, this week marks the actual start of the project, because we began coding some of the problems. For example, in my case, I worked on the initial development of the **file extraction system**, where I focused on extracting components (taking a zip file and extracting its contents). At the same time, I worked on creating the **pytest file** to test the functionality of my extraction file. In addition, I made the **requirements.txt** file consisting of the possible Python libraries that we can use in our project, where we discuss these libraries and
-Additionally, considering that my overall team's Python skill level is minimal, I need to ensure that the chosen libraries are easy to pick up.
 
+This week marks the actual start of the project coding phase. I worked on the initial development of the **file extraction system**, focusing on extracting components from zip files. At the same time, I worked on creating the **pytest file** to test the functionality. I also made the **requirements.txt** file with Python libraries appropriate for our team's skill level.
 
-Overall, this week we did not encounter any significant issues with each other, and we also introduced the proposed system to help prevent miscommunication, specifically duplicate code and tasks.
-
+Overall, this week we did not encounter any significant issues with each other, and the communication system introduced in Week 5 helped prevent duplicate work.
 
 ---
 
 ## 🧠 Reflection on Past Cycle (Week 5)
-For week 5, I began to notice that our team structure has become more organized, unlike last week, which was unorganized, but overall week 5 has nothing to report in terms of team structure and general stuff
+
+For Week 5, I noticed that our team structure became more organized. The DFD design work went well and we successfully established clearer communication channels.
 
 ---
 
@@ -225,114 +290,133 @@ For week 5, I began to notice that our team structure has become more organized,
 
 # 📝 Personal Log – Week 7 (10/12/2025 – 10/18/2025)
 
-## 📊 Peer Evaluation  
+## 📊 Peer Evaluation
 ![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/10-17-2025.png)
 
+---
 
+## 🔗 Connection to Previous Week
 
-
-
-
+Building on the pytest knowledge gained from Week 6's file extraction testing work, this week I applied that experience to create tests for a new feature: user configuration storage.
 
 ---
 
-## 🚀 Features Worked On  
--  Worked on the testing function for the saving of the users configuration(`Test_userConfig_store.py`)
+## 🚀 Work Completed
+
+### Coding Tasks
+- N/A (Focus was on test development this week)
+
+### Testing/Debugging Tasks
+- Created `test_userConfig_store.py` - testing function for saving user configurations
+- Applied knowledge gained from Week 6's pytest learning to this new test suite
+
+### Reviewing/Collaboration Tasks
+- Participated in code reviews with team members
 
 ---
 
-## 📌 Associated Tasks from Project Board  
+## 📌 Associated Tasks from Project Board
 - [Tests for storing user configuration #61](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/61)
-- 
-## 🧠 Reflection on Past Cycle (Week 5)  
-For week 5, I began to notice that our team structure has become more organized, unlike last week, which was unorganized, but overall week 5 has nothing to report in terms of team structure and general sstuff
 
 ---
 
-## 📈 Progress Update (since 10/12/2025)  
+## 📈 Progress Update
 
 | Task/Issue | Status |
 |------------|--------|
-| **Creation of test pyton file for the saving of user configuration** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
-|                      |
+| **Creation of test Python file for saving user configuration** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 
-## 🎯 Next Week’s Goals  
-- To contiune working on the [storing user configuration ](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/36) intergating the actual coding part of this issue 
+---
+
+## ⚠️ Issues/Blockers
+- No significant blockers this week
+- Successfully applied previous pytest learning to new test development
+
+---
+
+## 🎯 Next Week's Goals
+- Continue working on [storing user configuration #36](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/36), integrating the actual coding implementation
 
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 7)
-For **week 7**, I began working on the storing of user's configuration more specfically created the tests for the user's storage where I work on creating the actual system in the following. From week 6 I was able to intergate my gained knolwedge on **pytest unittest framework** into this test called `test_userConfig_store.py`. Overall this week was a vaildation week because I am now after grafting/learning about pytest I was able to easily intergate my new found knowlege into the test case that I have created for this sprint
 
-
+For **Week 7**, I began working on the storing of user's configuration, specifically creating the tests for user storage. This week was a validation week because after learning about pytest in Week 6, I was able to easily integrate my newfound knowledge into the test cases (`test_userConfig_store.py`) for this sprint.
 
 ---
 
-## 🧠 Reflection on Past Cycle (Week 6)  
-For **week 6**, I was working on the issue that I assigned myself for that week, which was the extraction of a zip file and exporting its contents to a temporary directory for file mapping, while creating tests at the same time. This week was rough because this is my first time trying to create a test using Python **unittest framework** in Python, which I have not done before, which was a challenge but also interesting. In addition, it was our first time reviewing each other's code and having meaningful conversations about what we should add, and in my case, more edge cases. Overall, week 6 was interesting in terms of learning the **unittest python framework** and reviewing other team members' code and providing improvement/suggestions. 
+## 🧠 Reflection on Past Cycle (Week 6)
+
+For **Week 6**, I worked on the extraction of a zip file and exporting its contents to a temporary directory for file mapping, while creating tests simultaneously. This week was challenging because it was my first time creating tests using Python's **unittest framework**. It was also our first time reviewing each other's code and having meaningful conversations about improvements—in my case, adding more edge cases. Overall, Week 6 was valuable for learning the **unittest Python framework** and reviewing other team members' code.
 
 ---
 
 
 # 📝 Personal Log – Week 8 (10/20/2025 – 10/26/2025)
 
-## 📊 Peer Evaluation  
+## 📊 Peer Evaluation
 ![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/10-24-2025.png)
 
+---
 
+## 🔗 Connection to Previous Week
+
+Following Week 7's test development for user configuration storage, this week I implemented the actual configuration storage system and built a CLI interface to allow users to interact with it.
 
 ---
 
-## 🚀 Features Worked On  
-- Worked on the actual implemation of storing and refienment of user configuration
-- Created an interactive CLI for modifying users configuration
+## 🚀 Work Completed
+
+### Coding Tasks
+- Implemented actual user configuration storage system using **[orjson](https://pypi.org/project/orjson/)** library for faster JSON processing
+- Created interactive CLI interface for modifying user configurations
+- Added error checking to prevent modification of protected fields (e.g., ID)
+- Implemented exit system for clean return to main application
+
+### Testing/Debugging Tasks
+- Created comprehensive tests using **mock inputs**, **patching**, and **mock print** to simulate user interaction
+- Fixed infinite loop bug in CLI identified by Puneet
+
+### Reviewing/Collaboration Tasks
+- Collaborated with Puneet on identifying and fixing the CLI infinite loop issue
 
 ---
 
-## 📌 Associated Tasks from Project Board  
-- [Create CLI interface for saving user configuration](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/82)
-- [Store a user configuration file](https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=132426853&issue=COSC-499-W2025%7Ccapstone-project-team-2%7C36)
-- [Infinite loop when selecting ‘n’ in CLI confirm_modification ](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/84)
+## 📌 Associated Tasks from Project Board
+- [Create CLI interface for saving user configuration #82](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/82)
+- [Store a user configuration file #36](https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=132426853&issue=COSC-499-W2025%7Ccapstone-project-team-2%7C36)
+- [Infinite loop when selecting 'n' in CLI confirm_modification #84](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/84)
 
 ---
 
-## 📈 Progress Update (since 10/22/2025)  
+## 📈 Progress Update
 
 | Task/Issue | Status |
 |------------|--------|
-|**Creation of actual implementation for saving of user configuration and refinement** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
-|**Creation of user Coniguration CLI**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
-| **Applying fix/patch to infinte loop issue in CLI** |![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Creation of actual implementation for saving user configuration** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Creation of user Configuration CLI** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Applying fix/patch to infinite loop issue in CLI** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 
+---
 
-## 🎯 Next Week’s Goals
-- [Work on Constent doc for users to agreed when prograrm starts](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/32)
-- Continue working implemented our Code into a CLI for end of term showcase(**Milestone 1 showcase**)
+## ⚠️ Issues/Blockers
 
+- **Infinite loop bug**: Puneet identified an error in `test_configuration_CLI.py` that caused an infinite loop
+- **Resolution**: Quickly identified the root cause and deployed a fix within the hour
+
+---
+
+## 🎯 Next Week's Goals
+- [Work on consent doc for users to agree when program starts #32](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/32)
+- Continue implementing our code into a CLI for end of term showcase (**Milestone 1 showcase**)
 
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 8)
 
-**Week 8** was an interesting week for me because I began working on the actual implementation of **[saving the user configuration](https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=132426853&issue=COSC-499-W2025%7Ccapstone-project-team-2%7C36)** to the local system.
+**Week 8** was an interesting week. I implemented the [user configuration storage](https://github.com/orgs/COSC-499-W2025/projects/11/views/2?pane=issue&itemId=132426853&issue=COSC-499-W2025%7Ccapstone-project-team-2%7C36) system and discovered **orjson**, which processes JSON files much faster than Python's built-in `json` library.
 
-During this process, I discovered a new JSON library called **[orjson](https://pypi.org/project/orjson/)**, which claims to process JSON files **much faster** than Python’s built-in `json` library. After testing it, I integrated `orjson` into my newly implemented user configuration system — which turned out to be very easy to do.
-
-Next, I began working on the [**CLI interface**](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/82), which allows users to update their configuration through the terminal.
-
-I also added **error checking** to prevent users from modifying certain fields, such as **ID**. If they attempt to do so, a **custom exception** is raised to display the message:
-
-> “You cannot modify this — please choose something else.”
-
-Additionally, I implemented an **exit system** that allows users to quit and return to the main application cleanly.
-
-> “Returning you back to main page”
-
-After completing the feature, I focused on **testing**. I used Python’s built-in `unittest` framework,specifically **mock inputs**, **patching**, and **mock print** — to simulate real user interaction with the CLI system and also tracking print statements that are returned by the CLI configuration class so that the test can vaildate the right print statements are being returned .
-
-Lastly, I want to thank **Puneet** for identifying an error in `test_configuration_CLI.py` that caused an **infinite loop**, which I quickly found, and depolyed a fix for within the hour.
-
----
+I then built the [CLI interface](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/82) for users to update their configuration through the terminal, including error checking for protected fields and a clean exit system.
 
 ### 🧪 Example Test from `test_configuration_CLI.py`
 
@@ -357,209 +441,264 @@ class TestConfigurationCLI(unittest.TestCase):
         self.assertFalse(result)
 ```
 
-## 🧠 Reflection on Past Cycle (Week 7)  
+---
 
-**week 7** was a bit challenging week because in addition to writing my tests for the storing the user configuration, we encouter a massive issue where I did not notice a glaring issues in one of teams members had in their coding contributions was test were not passing and also that the code iteslf was not propely defined in a class strcuture, which when I was reiewing did not catch and approved it, which might have lead to bigger issues if **samantha** did not see this and brought to our attention. From now on, I will ensure that all test runs succeed and carefully analyze the code to confirm that the agreed-upon structure is implemented in the coming weeks.
+## 🧠 Reflection on Past Cycle (Week 7)
 
-
-
+**Week 7** was challenging because we encountered an issue where a team member's code contribution had failing tests and wasn't properly structured as a class. I didn't catch this during review and approved it, which could have led to bigger issues if **Samantha** hadn't noticed and brought it to our attention. Going forward, I will ensure that all tests pass and carefully verify the agreed-upon structure is implemented.
 
 ---
 
 
 # 📝 Personal Log – Week 9 (10/27/2025 – 10/30/2025)
 
-## 📊 Peer Evaluation  
+## 📊 Peer Evaluation
 ![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/10-31-2025.png)
 
+---
 
+## 🔗 Connection to Previous Week
+
+Following Week 8's CLI implementation for user configuration, this week I extended the configuration system to include user consent storage and restructured the file organization.
 
 ---
 
-## 🚀 Features Worked On  
-- Worked updating the user configuration so that it now stores the user costent to the use of data in the system which includes **External** or **Internal**
-- Refactored my `Configuration.py` to reflect the changes I made to the internal stucture of the system, which includes introduction a new folder(**UserConfigs**) to store both the template and also strored the user actual configs when they use the system.In addition I added `__init__` to my `configuration.py` so that I can get the the correct file path to my new folder with any system
+## 🚀 Work Completed
+
+### Coding Tasks
+- Updated user configuration to store user consent status (**External** or **Internal**)
+- Added `save_with_consent` function to `configuration.py`
+- Introduced new **UserConfigs** folder for storing templates and user configs
+- Implemented dynamic file pathing system in `__init__` method
+
+### Testing/Debugging Tasks
+- Created tests to verify user configuration updates correctly with consent data
+- Manually tested the `user_consent.py` interface integration
+- Tested Puneet's fix for Mahi's code issue
+
+### Reviewing/Collaboration Tasks
+- Worked with Puneet Maan on fixing an issue discovered by Cameron and myself in Mahi's code
 
 ---
 
-## 📌 Associated Tasks from Project Board  
-- [Save consent status](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/119)
+## 📌 Associated Tasks from Project Board
+- [Save consent status PR #119](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/119)
+
 ---
 
-## 📈 Progress Update (since 10/22/2025)  
+## 📈 Progress Update
 
 | Task/Issue | Status |
 |------------|--------|
-|**Creation a system to save the user costent to data** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
-|**Refactored configuration to reflected changes made to internal system**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
+| **Creation of system to save user consent data** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Refactored configuration to reflect internal system changes** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 
+---
 
-## 🎯 Next Week’s Goals
+## ⚠️ Issues/Blockers
 
-- Begin working on the file analysis aspect of the system. 
+- **Midterms**: Took on a lighter workload this week due to midterm preparation
+- **Code issue in teammate's work**: Discovered an issue in Mahi's code with Cameron; resolved by Puneet
 
+---
+
+## 🎯 Next Week's Goals
+- Begin working on the file analysis aspect of the system
 
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 9)
 
-**Week 9**
-This week was very uneventful, because this week I decided to take on **lighter workload**, due to the fact I had a  prepare and  study  with midterms so I took the task of modifying my current `configuration.py` adding a new function called `save_with_consent` which has the job of bringing the current json and adding a new **key, value pair** based on the return values in the `user_cosent.py`. I also introduced a new folder for storing user configs, which required me to make further changes to my configuration class to reflect these changes. In other words, I had to introduce a new file pathing system to retrieve the location of the folder so that my system could save the JSON files in the right folder—an example of this approach is shown below.
+**Week 9** was lighter due to midterm preparation. I focused on modifying `configuration.py` to add the `save_with_consent` function and introduced a new folder structure for user configs. This required implementing a dynamic file pathing system:
 
 ```python
- def __init__(self,jsonfile,loc_to_save='User_config_files'):
-        """
-        Initializes the Configuration class instance
-
-        This constructor sets up the user configuration file, determines the
-        root directory of the project, and defines the path where configuration file("UserConfigs.json")
-        will be stored
-
-        :param jsonfile: User Configuration **json file**
-        """
-        self.jsonfile = jsonfile
-        self.project_Root = pa.Path(__file__).parent.parent #Here I am assigning the project root to variable called project Root
-        self.loc_to_save=pa.Path(os.path.join(self.project_Root,loc_to_save,"UserConfigs.json"))# Here I am creating the location path by combing the project root, the classes loc_save and file name itself
-
+def __init__(self, jsonfile, loc_to_save='User_config_files'):
+    """
+    Initializes the Configuration class instance
+    """
+    self.jsonfile = jsonfile
+    self.project_Root = pa.Path(__file__).parent.parent
+    self.loc_to_save = pa.Path(os.path.join(self.project_Root, loc_to_save, "UserConfigs.json"))
 
 def save_config(self):
-
-        """
-           Saves the JSON configuration file to the user's system.
-
-           :return:
-               bool: True if the file was saved successfully, False otherwise.
-           """
-
-
-        with open(self.loc_to_save, "wb") as f: #Reading the json_file
-            print("HIT")
-            f.write(orjson.dumps(self.jsonfile,option=orjson.OPT_INDENT_2)) #dumping the data it to be saved using the orjson library
-
-        return os.path.exists(self.loc_to_save)
-        #Returns bool state to see if the actually file exists and created successfully
-
+    """Saves the JSON configuration file to the user's system."""
+    with open(self.loc_to_save, "wb") as f:
+        f.write(orjson.dumps(self.jsonfile, option=orjson.OPT_INDENT_2))
+    return os.path.exists(self.loc_to_save)
 ```
 
-After making these modifications I moved towards making the test to check to see if the user configuration  gets updated correctly with the correct user constent data. In addition I manually tested the code to see if the data does get updated when using `user_cosent.py` interface, which to my joy it sucessfully does. One last thing to mention me and Puneet Maan worked on fixing an issue that was discovered by me and Cameron on Mahi code, which was fixed by Puneet and tested by me to ensure that the test run sucessfully with no issues at all.
-Overall this is what I did for this current spirnt.
-
-
-
-
-# 📝 Personal Log – Week 10 (11/3/2025 – 11/7/2025)
-
-## 📊 Peer Evaluation  
-![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/11-7-2025.png)
-
+I also collaborated with Puneet Maan on fixing an issue discovered by Cameron and myself in Mahi's code.
 
 ---
 
-## 🚀 Features Worked On  
-- Worked on implementing on file extraction CLI interface
-- Added 3 new test to `configuration.py` to test if the CLI that I have implemented have no issue
-
----
-
-## 📌 Associated Tasks from Project Board  
-- [Zip file extraction CLI](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/)
----
-
-## 📈 Progress Update (since 10/22/2025)  
-
-| Task/Issue | Status |
-|------------|--------|
-|**Creation of CLI interface for zip extraction** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
-|**Added new 3 pytest test to `test_extraction.py`**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
-
-
-## 🎯 Next Week’s Goals
-
-- Add some of the optional features as per my to do list in `CLI_interface_for_file_extraction.py`
-- Work on stuff on the backlog of our kanban board
-- begin to work on intergating an LLM into our system either using **Ollama** or **ChatGPT**
----
-
-## 🧠 Reflection on Current Cycle (Week 10)
-For **week 10** I began working on implementing a CLI interface for zip extraction, allowing user to input a **filepath** into the system and upload the data to the system to be used in the file anaylsis system, where I used the pervious implemented class
-`extraction.py` to be used in CLI itself for actually unzipping and extraction of the uploaded zip file. Additonally I also added the ability for user if by mistake enter this cli to exit any time they want through typing q, which was really fun to create, Additonally thanks to samathan pervuious implemented a builtin verfication process with assocaoted return errors for the zip file it made it really easy to implemented into my CLI interface so that if user for example loads problematic zip file the class will return the associated error message, which in this case is `Zip file is bad` something like this, additonally I also added a parameter called `max_retries` which after a set amount of failed attempts it will return the user to the main screen, also this parameter can be future adjusted, but the default currently set at 3.
-
-
-The thing I was very proud of this week was introducing a full mocking test in my tests which you can see down below.
 
 
 
-The thing I was very proud about this week was introducing a full mocking test in my tests which you can see down below
-
-```python
-   @patch('src.CLI_interface_for_file_extraction.extractInfo')
-    @patch('src.CLI_interface_for_file_extraction.input')
-    @patch('builtins.print')
-    def test_valid_zip_file_extraction_cli(self,mock_print, mock_input, mock_extract_Info):
-        """
-        Here we are simulating the user interaction with the extraction cli
-        when the user uploads a valid zip file, returning a success message
-        """
-        test_file_name=Path(self.test_zip_file_path).name
-        mock_input.return_value = self.test_zip_file_path
-        mock_instance=MagicMock()
-        mock_extract_Info.return_value = mock_instance
-
-        cli=zipExtractionCLI()
-        #Here I am instantiating the zipExtreactionCLI class
-        cli.run_cli()
-        mock_extract_Info.assert_called_once_with(self.test_zip_file_path)
-        mock_instance.runExtraction.assert_called_once()
-        mock_print.assert_any_call(f"{test_file_name} has been extracted successfully")
-```
-This is a very huge achievement for me because now I am able to take the knowledge gained from previous mock tests and, through my own research, create a full-on mock test which, in the three tests, simulates the user interaction with the system like typing the file path to their zip file, exiting the system when the user types q.
-
-One last thing to mention is that thanks to sam smith for identifying a key error where the pervious implenation had a bug where even after the user pressing q that the extraction would still run, which was quickly solved be encapsualted the extraction method/class into an if statement while keeping the user input display outside as means to prevent the system from running when the user types q to exit the program. In addition, note I worked with Sam and Cameron to fix the bug issue in Sam's code, which led to us performing coding pairing to identify the problem, while at the same time refactoring Cameron's tests `test_data_extraction` to run smoothly with no issue. 
-
-
-My goal for the following weeks is to add some optional features to the CLI, which include an idle feature and the option to upload multiple files. Another goal is to start creating the actual LLM integration to pull data from the code files and perform analysis on the code to pull info such as the stucture of the code, what the runtime it performs and so on. 
-
-
-# 📝 Personal Log – Week 11 + week12 11/10/2025-11/27/2025
+# 📝 Personal Log – Week 10 (11/03/2025 – 11/07/2025)
 
 ## 📊 Peer Evaluation
-![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/11-22-2025.png)
-
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/11-7-2025.png)
 
 ---
 
-## 🚀 Features Worked On
+## 🔗 Connection to Previous Week
 
-- AI integration and Analysis of code
-- Created Automtically docker connection file for both from inside and outside of the container
+Building on Week 9's configuration improvements, this week I created a CLI interface for the file extraction system, integrating the previously implemented `extraction.py` class.
+
+---
+
+## 🚀 Work Completed
+
+### Coding Tasks
+- Implemented CLI interface for zip extraction (`CLI_interface_for_file_extraction.py`)
+- Added 'q' exit functionality for users to quit at any time
+- Implemented `max_retries` parameter (default: 3) for failed upload attempts
+- Integrated Samantha's built-in verification process for zip file error handling
+
+### Testing/Debugging Tasks
+- Added 3 new pytest tests to `test_extraction.py`
+- Created full mocking tests simulating user interaction with the CLI
+- Fixed bug where extraction ran even after user pressed 'q' to exit
+
+### Reviewing/Collaboration Tasks
+- Pair programmed with Sam and Cameron to fix bug in Sam's code
+- Refactored Cameron's `test_data_extraction` tests to run smoothly
 
 ---
 
 ## 📌 Associated Tasks from Project Board
-- [166 : docker patch/fix(automatically configuration)](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/168)
-- [164 : ai integration ](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/167)
+- [Zip file extraction CLI](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/)
+
 ---
 
-## 📈 Progress Update (since 10/22/2025)
+## 📈 Progress Update
 
 | Task/Issue | Status |
 |------------|--------|
-|**Creation of Automatically docker connection file** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
-|**new Addtion of AI into the system**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
+| **Creation of CLI interface for zip extraction** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Added 3 new pytest tests to `test_extraction.py`** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+
+---
+
+## ⚠️ Issues/Blockers
+
+- **Exit bug**: Sam Smith identified that extraction still ran after user pressed 'q'
+- **Resolution**: Encapsulated extraction method in an if statement while keeping user input display outside
+
+---
+
+## 🎯 Next Week's Goals
+- Add optional features to CLI (idle feature, multiple file upload)
+- Work on Kanban backlog items
+- Begin integrating an LLM into the system using **Ollama** or **ChatGPT**
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 10)
+
+For **Week 10**, I implemented a CLI interface for zip extraction, allowing users to input a filepath and upload data to the file analysis system. I was particularly proud of creating full mocking tests this week:
+
+```python
+@patch('src.CLI_interface_for_file_extraction.extractInfo')
+@patch('src.CLI_interface_for_file_extraction.input')
+@patch('builtins.print')
+def test_valid_zip_file_extraction_cli(self, mock_print, mock_input, mock_extract_Info):
+    """
+    Simulating user interaction with the extraction CLI
+    when uploading a valid zip file, returning a success message
+    """
+    test_file_name = Path(self.test_zip_file_path).name
+    mock_input.return_value = self.test_zip_file_path
+    mock_instance = MagicMock()
+    mock_extract_Info.return_value = mock_instance
+
+    cli = zipExtractionCLI()
+    cli.run_cli()
+    mock_extract_Info.assert_called_once_with(self.test_zip_file_path)
+    mock_instance.runExtraction.assert_called_once()
+    mock_print.assert_any_call(f"{test_file_name} has been extracted successfully")
+```
+
+This was a significant achievement—applying knowledge from previous mock tests to create comprehensive user interaction simulations.
+
+--- 
 
 
-## 🎯 Next Week’s Goals
-- Start the process of beingining to intergate everything today for our demo
+# 📝 Personal Log – Week 11-12 (11/10/2025 – 11/27/2025)
+
+## 📊 Peer Evaluation
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/11-22-2025.png)
+
+---
+
+## 🔗 Connection to Previous Week
+
+Following Week 10's CLI development and goal to integrate LLM capabilities, this two-week sprint focused on AI integration using Ollama and resolving Docker connectivity issues discovered during development.
+
+---
+
+## 🚀 Work Completed
+
+### Coding Tasks
+
+**Week 11 (Bonus Week):**
+- Added timeout feature to zip extraction CLI using **async** library
+- Implemented contributor percentage calculation for git repos using **[PyGithub](https://pypi.org/project/PyGithub/)**
+- Added detection for collaborative vs solo projects
+
+**Week 12:**
+- Integrated **[Ollama](https://ollama.com/)** and **[LangChain](https://www.langchain.com/)** for AI code analysis
+- Selected **[qwen2.5-coder:1.5b](https://ollama.com/library/qwen2.5-coder)** model for accessibility on varying hardware
+- Created `_clean_model_output()` function to parse JSON from model responses
+- Developed automatic Docker connection file using **[docker](https://pypi.org/project/docker/)** Python API
+
+### Testing/Debugging Tasks
+- Created test suite for AI analysis system
+- Implemented `setUpClass` pattern to optimize test performance
+- Created tests for automatic Docker setup
+
+### Reviewing/Collaboration Tasks
+- Investigated and fixed MySQL connection configuration issue discovered by team member
+
+---
+
+## 📌 Associated Tasks from Project Board
+- [Docker patch/fix (automatic configuration) #166](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/168)
+- [AI integration #164](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/167)
+
+---
+
+## 📈 Progress Update
+
+| Task/Issue | Status |
+|------------|--------|
+| **Creation of automatic Docker connection file** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **AI integration into the system** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+
+---
+
+## ⚠️ Issues/Blockers
+
+- **MySQL connection issue**: Team needed to manually configure MySQL connection in main.py
+- **Resolution**: Created automatic Docker connection using Python docker API with try/catch for inside/outside container scenarios
+
+---
+
+## 🎯 Next Week's Goals
+- Begin integrating everything for demo
 - Work on video demo
 - Create Team contract
-- view our milestone one checklist
+- Review Milestone 1 checklist
+
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 12)
-For week 12, I began working on integrating the AI element into our file analysis system, which is very exciting because I really wanted to get a grip on how to use the **Ollama** and **langchain** Python libraries in the system. During the development of the system, I needed to use prompt engineering to make sure that the AI would understand
-What its function was, so I researched what makes a good prompt for this particular part, which, after developing this, can still be further modified to make it more precise. The model that I decided to go with was the [qwen2.5-coder](https://ollama.com/library/qwen2.5-coder) line of model in particular, the **qwen2.5-coder:1.5b** partly because some of my group members don't have access to powerful hardware to run models locally, In addition this particular LLM model is trained on code and was ranked as one of better model in terms of speed and performance. I made the model return a valid JSON file, which can later be used in a system, and one last thing to point out is that the output that was returned by the model was not in a formatted JSON file, so I need to create a function to clean the output, which was done
-in the following way, which you can see down below 
-```py
+
+For **Week 12**, I integrated the AI element into our file analysis system using **Ollama** and **LangChain**. I used prompt engineering to ensure the model understood its function and selected **qwen2.5-coder:1.5b** for accessibility across different hardware.
+
+The model output needed cleaning to extract valid JSON:
+
+```python
 def _clean_model_output(self, text: str) -> str:
 
         """
@@ -650,141 +789,81 @@ and also adding a system to calculate the contributor percentage if the uploaded
 
 
 
-# 📝 Personal Log – Week 13  11/24/2025-11/28/2025
-
+# 📝 Personal Log – Week 13 (11/24/2025 – 11/28/2025)
 
 ## 📊 Peer Evaluation
 ![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/11-29-2025.png)
 
+---
+
+## 🔗 Connection to Previous Week
+
+Building on Week 12's AI integration work with Ollama, this week focused on extending AI capabilities to generate resume-styled outputs and enhancing Docker connectivity for the Ollama system.
 
 ---
 
-## 🚀 Features Worked On
+## 🚀 Work Completed
 
-- AI integration for getting a resume styled output
-- Created Automtically docker connection for our OLLama system for both from inside and outside of the container
+### Coding Tasks
+- Created AI resume generation system using Google Gemini
+- Implemented file type detection (code, docs, PDF) for building context
+- Used **LangChain chains** concept for streamlined LLM pipeline
+- Stored results in dataclass objects (`OOPPrinciple`, `ResumeItem`) for convenient access
+
+### Testing/Debugging Tasks
+- Created tests for AI resume generation and Docker connection
+
+### Reviewing/Collaboration Tasks
+- Enhanced Docker connection file for Ollama system connectivity
 
 ---
 
 ## 📌 Associated Tasks from Project Board
-- [191 : Docker patch for Ollama connection](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/191)
-- [188 : Ai generate resume ](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/188)
+- [Docker patch for Ollama connection #191](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/191)
+- [AI generate resume #188](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/188)
+
 ---
 
-## 📈 Progress Update (since 10/22/2025)
+## 📈 Progress Update
 
 | Task/Issue | Status |
 |------------|--------|
-|**Creation of Automatically docker connection file for Ollama connection** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
-|**new Addtion of AI generated resume into the system**|![Complete](https://img.shields.io/badge/Status-Complete-green)|
+| **Creation of automatic Docker connection file for Ollama** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **AI generated resume system** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 
+---
 
-## 🎯 Next Week’s Goals
+## ⚠️ Issues/Blockers
+
+- **Milestone deadline pressure**: Stressful week due to looming deadlines for presentation and Milestone 1 submission
+- **Resolution**: Prioritized tasks and focused on completing essential features
+
+---
+
+## 🎯 Next Week's Goals
 - Work on video demo
 - Create Team contract
-- begin to finalize our Milestone 1 deliverables 
+- Begin finalizing Milestone 1 deliverables
 
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 13)
 
-For week 13 I began working on more AI implemenetation including the resume generation system and an addition system to the Docker connection file so that we can connect to the Ollama system from both inside and outside of the container, This week was a bit of stressfully week due to looming deadline for both our presenataion and our submission for Milestone 1.However I was exciting to work on doing more AI Integration stuff this week which was focusing on improving the flow of both the Ollama system and the AI generated resume, which was improved with a clearer style than the previous one that I implemented for week 12, addition I discovered that the **langchian** had a library that could format json more cleanly so that the outpput is in the correct json format addition now that I had a better understanding of how to do prompt enginnering, I used this knowledge to built a more defined prompt to be sent to the google gemmi to generate the resume, the way that it was implemented was to take folder and recurivsely go through each file and idenfity if the that particular file is a code,doc, or pdf file and depending on the type detected the associated sytstem would read the contents of those files and build a context from the content of those files and sends and place them into a list which is sent to the gemmi through a prompt which you can see down below
+For **Week 13**, I worked on more AI implementation including the resume generation system and an enhancement to the Docker connection file for Ollama connectivity. This week was stressful due to the looming Milestone 1 deadline for both our presentation and submission.
 
-```py
-self.langChain_prompt = PromptTemplate.from_template(
-            """
-            You are an expert technical résumé writer.
+Key accomplishments:
+- Discovered that **LangChain** had a library for cleaner JSON formatting
+- Built a more defined prompt for Google Gemini to generate resumes
+- Implemented file type detection to recursively identify code, docs, or PDF files and build context
+- Used **LangChain chains** to streamline the LLM pipeline:
 
-            You are given a snapshot of a software project including:
-            - file structure
-            - code snippets (any language including PHP)
-            - documentation (PDF/DOCX/TXT)
-            - configuration files
-
-            Return a single JSON object summarizing the entire project:
-
-            {{
-              "project_title": "...",
-              "one_sentence_summary": "...",
-              "detailed_summary": "...",
-              "key_responsibilities": [
-                "bullet point...",
-                "bullet point..."
-              ],
-              "key_skills_used": [
-                "skill...",
-                "technology..."
-              ],
-              "tech_stack": "short paragraph of main technologies" and ,
-              "impact": "optional short impact statement",
-              "oop_principles_detected": {{
-                "abstraction": {{
-                  "present": false,
-                  "description": "",
-                  "code_snippets": []
-                }},
-                "encapsulation": {{
-                  "present": false,
-                  "description": "",
-                  "code_snippets": []
-                }},
-                "inheritance": {{
-                  "present": false,
-                  "description": "",
-                  "code_snippets": []
-                }},
-                "polymorphism": {{
-                  "present": false,
-                  "description": "",
-                  "code_snippets": []
-                }}
-              }}
-            }}
-
-            For "key_skills_used", include both technical tools (languages, frameworks, libraries, databases, etc.)
-            and conceptual skills (e.g., testing strategies, design patterns, cloud, CI/CD).
-            When the project demonstrates object-oriented design, explicitly include object-oriented principles
-            such as abstraction, encapsulation, inheritance, and polymorphism as skills where appropriate.
-
-            For "oop_principles_detected":
-            - For each principle (abstraction, encapsulation, inheritance, polymorphism):
-              - Set "present" to true or false (JSON booleans).
-              - If present, fill "description" with a short explanation referencing the file/class/method.
-              - If present, "code_snippets" MUST be a non-empty array of objects like:
-                {{
-                  "file": "relative/path/to/file.ext",
-                  "code": "EXACT code excerpt that demonstrates the principle"
-                }}.
-              - The "code" field MUST contain a direct copy of the relevant code from the project context
-                (class definitions, methods, interface implementations, overridden methods, etc.).
-              - Do NOT wrap code in markdown fences (no ```), only plain text inside the JSON string.
-            - If a principle is not detected, leave:
-              - "present": false
-              - "description": ""
-              - "code_snippets": []
-
-            Do NOT output anything except valid JSON.
-
-            PROJECT CONTEXT:
-            \"\"\"{project_context}\"\"\"
-            """
-        )
-
-
+```python
+self.chain = self.langChain_prompt | self.llm | self.parser
 ```
 
-To run the model I used the concept of **langchain chains**,which are the core asbtraction that lets you connect multiple components together into a single reusbale pipline,without needing to manually defined each step(Calling the LLM, parsing output, and feeding it to the next component) in other words in streamlines the process of creating a model intreaction pipeline and example of this can be seen down below.
+- Stored results in dataclass objects for convenient access:
 
-```py
-self.chain=self.langChain_prompt | self.llm | self.parser
-```
-
-in essence this chain is taking the prompt and then passing it to the LLM and then the parser which is a function that takes the output of the LLM and returns it in the formatted JSON object which is then used int the creation of of the resume/protfolio, where I store the results into 
-a dataclass object to make the process of access the elements of the json more convenient to do this I did it in the following way 
-
-```py
-
-
+```python
 @dataclass()
 class OOPPrinciple:
     present: bool
@@ -801,45 +880,102 @@ class ResumeItem:
     tech_stack: str
     impact: str
     oop_principles_detected: Dict[str, OOPPrinciple]
-
-    resume_item = ResumeItem(
-            # Project title from the analysis
-            project_title=result.get("project_title", ""),
-            # Brief project summary in one sentence
-            one_sentence_summary=result.get("one_sentence_summary", ""),
-            # Detailed project description
-            detailed_summary=result.get("detailed_summary", ""),
-            # List of main responsibilities/tasks
-            key_responsibilities=result.get("key_responsibilities", []),
-            # Technologies and skills demonstrated
-            key_skills_used=result.get("key_skills_used", []),
-            # Main technologies used in the project
-            tech_stack=result.get("tech_stack", ""),
-            # Project's impact or achievements
-            impact=result.get("impact", ""),
-            # Object-oriented principles detected in the project
-            oop_principles_detected=oop_principles,
-
-        )
-        return resume_item
 ```
-this was cool aspect which I enjoyed playing around with and I learned a lot about dataclass from doing this 
 
-The second thing that I focused on doing was creating an enchament to the docker automation script that I perviously created, where I added the ability to auto connect to the ollama image/container.
+I learned a lot about dataclasses from this implementation. I also enhanced the Docker automation script to auto-connect to the Ollama container and created tests to ensure everything worked correctly.
 
-The last thing that I focused on was creating the test for these files to make sure that they are working as intended.
-
+---
 
 
+# 📝 Personal Log – Week 14 (12/01/2025 – 12/07/2025)
 
-
-
-
-# 📝 Personal Log – Week 14  12/01/2025-12/7/2025
-
-
-## 📊 Peer Evaluation  
+## 📊 Peer Evaluation
 ![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/12-5-2025.png)
+
+---
+
+## 🔗 Connection to Previous Week
+
+Following Week 13's AI resume generation work, this final sprint before Milestone 1 focused on integrating Gemini AI for PDF portfolio generation, updating documentation, and fixing critical bugs.
+
+---
+
+## 🚀 Work Completed
+
+### Coding Tasks
+- Integrated Gemini AI to create formatted PDF portfolio and resume using **reportLab**
+- Created non-AI generated resume line option
+- Performed hotfix on AI integration code (removed offending lines with Samantha M.)
+- Performed hotfix for consent status change mid-session bug discovered during video demo
+
+### Testing/Debugging Tasks
+- Tested consent status change functionality
+- Verified AI integration hotfix
+
+### Reviewing/Collaboration Tasks
+- Updated README.md to highlight key project parts and installation instructions
+- Collaborated with Samantha M. on AI integration bugfix
+
+---
+
+## 📌 Associated Tasks from Project Board
+- [PDF Generator + Integration #218](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/218)
+- [Improved readme file #229](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/229)
+- [When program is run AI_analysis on script is run #232](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/232)
+- [Consent bug issue #245](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/245)
+- [Non AI-external resume line generator #241](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/241)
+
+---
+
+## 📈 Progress Update
+
+| Task/Issue | Status |
+|------------|--------|
+| **Integrated Gemini AI for PDF portfolio/resume** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Updated README.md** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Consent status mid-session hotfix** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Non-AI resume line generator** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+
+---
+
+## ⚠️ Issues/Blockers
+
+- **AI integration bug**: Discovered with Samantha M. - offending lines ran the class unnecessarily
+- **Consent change bug**: Users couldn't change consent status mid-session (discovered during video demo)
+- **Resolution**: Both bugs were quickly hotfixed
+
+---
+
+## 🎯 Next Week's Goals
+- Relax and prepare for finals
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 14)
+
+**Week 14** was very stressful as the final sprint for M1 milestones. I focused on:
+- Creating PDF versions of portfolio content using **reportLab** framework
+- Integrating with Gemini AI for formatted PDF resume generation (dataclass integration made this easier)
+- Updating the README with installation instructions
+- Performing hotfixes for AI integration and consent status bugs
+
+Following TA advice, I attempted to keep new coding contributions under 500 lines, though some complex systems and documentation requirements made this challenging.
+
+---
+
+## 🧠 Reflection on Previous Cycle (Week 13)
+
+Week 13 was stressful due to Milestone 1 deadlines. I successfully implemented the AI resume generation system using Google Gemini and LangChain, and enhanced Docker connectivity for Ollama.
+
+---
+
+
+
+
+# 📝 Personal Log – Week 15 (01/05/2026 – 01/11/2026)
+
+## 📊 Peer Evaluation
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/01-09-2026.png)
 
 
 ---
@@ -881,10 +1017,7 @@ Lastly, after taking some advice from the TA, I decided to make new coding contr
 
 
 
-# 📝 Personal Log – Week 15  01/05/2026-01/11/2026
-
-
-## 📊 Peer Evaluation  
+## 📊 Peer Evaluation
 ![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/01-09-2026.png)
 
 
@@ -932,4 +1065,165 @@ The main challenge I encountered this week was maintaining the PR size limit of 
 
 Breaking this into smaller PRs would have created incomplete functionality and increased integration complexity, so I included a justification in the PR description explaining why the size was necessary. 
 
-For the next sprint, I plan to add the missing features required for Milestone 2. Additionally, I worked on fixing and improving a colleague's code to ensure that the refactoring allows the modified tests to pass without problems, and also added missing documentation for certian code and test files
+For the next sprint, I plan to add the missing features required for Milestone 2. Additionally, I worked on fixing and improving a colleague's code to ensure that the refactoring allows the modified tests to pass without problems, and also added missing documentation for certian code and test 
+
+# 📝 Personal Log – Week 16 (01/12/2026 – 01/18/2026)
+
+## 📊 Peer Evaluation
+
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/1-16-2026.png)
+
+-----
+
+## 🔗 Connection to Previous Week
+
+Building on the Resume Generator class (`Generate_RenderCV_Resume.py`) completed previously, this week I extended it to create a dedicated Portfolio generator (`Generate_AI_RenderCV_portfolio.py`) with enhanced functionality and cleaner code patterns.
+
+-----
+
+## 🚀 Work Completed
+
+### Coding Tasks
+
+- **Portfolio Generator:** Created a new feature to generate a portfolio using the RenderCV library to produce professional, fully-featured resumes instead of basic output snippets. Users can now produce complete, presentation-ready CVs/resumes suitable for real-world job applications with full CRUD operations.
+- Refactored contact update methods from individual setters into a unified `update_portfolio_contact()` function with input validation
+- Implemented `next()` generator expressions for cleaner, more Pythonic collection lookups
+
+### Testing/Debugging Tasks
+
+- Added comprehensive test coverage for `Generate_AI_RenderCV_portfolio.py` called `test_Generate_AI_RenderCV_portfolio.py` with detailed docstrings explaining purpose, parameters, return values, and edge cases
+
+### Reviewing/Collaboration Tasks
+
+- Conducted peer review on [RenderCV Integration for Portfolio Generation PR #290](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/290) and provided feedback and fixes that must be made
+
+-----
+
+## 📌 Associated Tasks from Project Board
+
+- [Added missing functionality to Generate_AI_RenderCV_portfolio.py](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/288)
+
+-----
+
+## 📈 Progress Update (since 12/6/2025)
+
+|Task/Issue         |Status                                                  |
+|-------------------|--------------------------------------------------------|
+|Portfolio Generator|![Complete](https://img.shields.io/badge/Complete-green)|
+
+-----
+
+## ⚠️ Issues/Blockers
+
+- None this week. Development proceeded smoothly.
+
+-----
+
+## 🎯 Next Week’s Goals
+
+- Work on requirements for peer testing happening the following week
+- Work on integrating the CRUD operations portfolio generator into our terminal UI
+
+-----
+
+## 🧠 Reflection on Current Cycle (Week 16)
+
+This week I focused on creating the Portfolio Generator using the RenderCV library. The goal was to create a fully-featured portfolio suitable for real-world settings to showcase users to potential employers.
+
+Following last week’s work, I modified my Resume Generator class (`Generate_RenderCV_Resume.py`) through the creation of the new class (`Generate_AI_RenderCV_portfolio.py`) to now make professional portfolios. This was done by modifying the starter YAML file that is created in the system, which involved removing key parts that would only be present in a portfolio, as shown below:
+
+```yaml
+'cv': {
+    'name': self.name.replace('_', ' '),
+    'location': 'City, State',
+    'email': 'your.email@example.com',
+    'phone': '+1 234 567 9801',
+    'website': 'https://yourwebsite.com',
+    'social_networks': [
+        {'network': 'LinkedIn', 'username': ''},
+        {'network': 'GitHub', 'username': ''}
+    ],
+    'sections': {
+        'projects': [
+            {
+                'name': 'Project Name',
+                'start_date': '2023-01',
+                'end_date': '2024-05',
+                'summary': 'Brief description of the project',
+                'highlights': [
+                    'Key feature or accomplishment 1',
+                    'Key feature or accomplishment 2'
+                ]
+            }
+        ]
+    }
+},
+'design': {
+    'theme': self.chosen_theme
+},
+'locale': {
+    'language': 'english'
+}
+```
+
+In addition to peer reviews, I also added enhancements that were not present in my first version of the Generator. This included a clearer way of updating contact information, which went from individual setter methods:
+
+```python
+def update_email(self, email: str):
+    self.data['cv']['email'] = email
+    self._auto_save_if_enabled()
+
+def update_phone(self, phone: str):
+    self.data['cv']['phone'] = phone
+    self._auto_save_if_enabled()
+
+def update_location(self, location: str):
+    self.data['cv']['location'] = location
+    self._auto_save_if_enabled()
+
+# ... repeated for each field
+```
+
+To a single unified method with input validation:
+
+```python
+def update_portfolio_contact(self, email: str = None, phone: str = None, 
+                              location: str = None, website: str = None, 
+                              name: str = None):
+    contact_section = self.data['cv']
+    updated_fields = []
+    fields = {
+        'email': email, 'phone': phone, 'website': website,
+        'location': location, 'name': name
+    }
+    for field_name, value in fields.items():
+        if value is None:
+            continue
+        if isinstance(value, str) and not value.strip():
+            continue
+        contact_section[field_name] = value
+        updated_fields.append(field_name)
+    self._auto_save_if_enabled()
+    return f"Successfully updated: {', '.join(updated_fields)}" if updated_fields else "No fields updated"
+```
+
+I also added enhancements to the **CRUD** operations by using Python’s `next()` function with a generator expression for cleaner, more efficient lookups. An example of this can be seen below:
+
+```python
+def modify_portfolio_connection(self, network_name: str, new_username: str):
+    if self.current_connections is None or not self.current_connections:
+        return "No connections to modify"
+    
+    connection = next((c for c in self.current_connections if c.get('network') == network_name), None)
+    
+    if connection is None:
+        return f"Connection '{network_name}' not found"
+    
+    connection['username'] = new_username
+    self._auto_save_if_enabled()
+    return f"Successfully updated: {network_name}"
+```
+
+This approach replaces traditional `for` loops with index tracking, providing a more Pythonic and readable way to find and modify specific items in a collection. The `next()` function with a default value of `None` elegantly handles the case where no matching connection is found.
+
+**Note on Line Count:** The reason my PR reached close to 591 lines is largely due to comprehensive documentation—every function and test includes detailed docstrings explaining purpose, parameters, return values, and edge cases. While this added to the line count, thorough documentation is essential for code maintainability and helps teammates understand the codebase during future development.
