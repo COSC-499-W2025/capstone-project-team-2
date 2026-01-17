@@ -15,6 +15,17 @@ def analyze(analyzer, source):
     return analyzer.analyze_file(source, Path("test.cpp"))
 
 class Test_cpp_analysis:
+
+    """
+    Test suite for validating C++ source analysis behavior.
+    Output strictly follows the analyzer aggregation schema:
+        classes, methods, inheritance, encapsulation,
+        complexity metrics, and C++-specific features.
+    Args:
+        analyzer (pytest.fixture): Initialized C++ analyzer instance.
+    Returns:
+        None
+    """
     
     @pytest.mark.parametrize("source,expected_classes", [
         ("class Dog { int age; };", ["Dog"]),

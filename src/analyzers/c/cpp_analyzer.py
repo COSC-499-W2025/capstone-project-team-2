@@ -22,6 +22,22 @@ import re
 
 class cppanalysis:
 
+    """
+    Analyze C++ source code for object-oriented structure and static metrics.
+    Output strictly follows the C/C++ analyzer aggregation schema:
+        report["classes"][]
+        report["imports"]
+        report["data_structures"]
+        report["complexity"]
+        report["cpp_spec"]
+    Args:
+        None
+    Returns:
+        Dict[str, Any]: Analysis report containing detected classes,
+        inheritance, methods, encapsulation, complexity metrics,
+        and C++-specific language features.
+    """
+
 
     # initialize Tree_sitter parser with a CPP language
     def __init__(self):
@@ -29,6 +45,21 @@ class cppanalysis:
         self.parser.language = Language(tscpp.language())
 
     def analyze_file(self, source:str, path:Path) -> Dict[str, Any]:
+        """
+        Analyze a single C++ source file and extract structural metrics.
+        Output strictly follows the C/C++ analyzer aggregation schema:
+            report["classes"][]
+            report["imports"]
+            report["data_structures"]
+            report["complexity"]
+            report["cpp_spec"]
+        Args:
+            source (str): Raw C++ source code as a string.
+            path (Path): File path used for reporting context.
+        Returns:
+            Dict[str, Any]: Parsed analysis report for the given source file.
+        """
+
         report = self.empty_report(path)
 
         try:
@@ -81,6 +112,18 @@ class cppanalysis:
          return classes
     
     def parse_class(self, node, source: str, path: Path):
+         """
+        Parse a single C++ class or struct declaration.
+        Output strictly follows the analyzer class schema:
+            name, bases, methods, access modifiers,
+            constructors, virtual and override methods.
+        Args:
+            node (Node): Tree-sitter class or struct specifier node.
+            source (str): Raw C++ source code.
+            path (Path): Source file path.
+        Returns:
+            Dict[str, Any]: Structured class representation.
+        """
          name = "<anonymous>"
          bases = []
          methods = []
@@ -173,6 +216,17 @@ class cppanalysis:
          }
     
     def extract_methodinf(self, method_node, source: str, cname: str):
+         """
+        Extract method metadata from a C++ declaration or definition.
+        Output strictly follows analyzer method classification rules:
+            constructors, destructors, virtual, override, special methods.
+        Args:
+            method_node (Node): Tree-sitter node representing a method.
+            source (str): Raw C++ source code.
+            cname (str): Enclosing class name.
+        Returns:
+            Dict[str, Any] | None: Method metadata or None if not applicable.
+        """
          mname = ""
          is_virtual = False
          is_override = False
@@ -299,7 +353,17 @@ class cppanalysis:
         return "= 0" in ctext and "virtual" in ctext
     
     def extract_data_structures(self, root, source: str) -> Dict[str, int]:
-        """Extract data structure usage through type declarations"""
+        """
+        Detect data structure usage within C++ source code.
+        Output strictly follows the data structure aggregation schema:
+            arrays, hash_tables, linked_lists, trees,
+            queues, stacks, dynamic_memory, pointer_arrays.
+        Args:
+            root (Node): Tree-sitter root node.
+            source (str): Raw C++ source code.
+        Returns:
+            Dict[str, int]: Data structure usage counters.
+        """
         ds = {
             "arrays": 0,
             "hash_tables": 0,
