@@ -1,3 +1,61 @@
+### Navigation
+## Term 2
+- [Week 2](#t2-week-2-01122025--01182025)
+- [Week 1](#t2-week-1-01052025--01112025)
+## Term 1
+- [Week 14](#week-14-12012025--12072025)
+- [Week 13](#week-13-11242025--11302025)
+- [Week 12](#week-12-11172025--11232025)
+- [Week 10](#week-10-11032025--11092025)
+- [Week 9](#week-9-10272025--11022025)
+- [Week 8](#week-8-10202025--10262025)
+- [Week 7](#week-7-10132025--10192025)
+- [Week 6](#week-6-10062025--10112025)
+- [Week 5](#week-5-09292025---10052025)
+- [Week 4](#week-4-09222025---09282025)
+- [Week 3](#week-3-09152025---09212025)
+
+
+## T2 Week 2 (01/12/2025- 01/18/2025)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+<img width="1296" height="741" alt="image" src="https://github.com/user-attachments/assets/11032ab4-efb3-4711-9809-9ee9a705eef4" />
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: added feature to allow thumbnails to be uploaded at the same time project is uploaded for analyses
+ 
+## Associated Tasks from Project Board:
+
+| Task ID | Description                     | Feature                   | Assigned To | Status   |
+| ------- | ------------------------------- | ------------------------- | ----------- | -------- |
+|  297, 289 | [289 add thumnail upload ability at project analysis point]   | [User can now upload thumbnail when project is analyzed]      | [ssmith86]  | [complete]   |
+
+### Progress Update (since 10/26/2025) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td> 289 add thumnail upload ability at project analysis point
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+    </table>
+
+### Extra Details:
+We're fully back into the swing of things for the project. 
+
+### Tasks for Next Sprint:
+Centralize saving so that database and json files correctly sync
+
+
 ## T2 Week 1 (01/05/2025- 01/11/2025)
 
 ### Task Types Worked On (Screenshot from Peer Eval)
@@ -355,7 +413,6 @@ This week was a bit hectic due to midterms. Shout out to Immanuel for helping wi
 - ID individual contributions in collaboration projects
 
 
-
 ## Week 7 (10/13/2025- 10/19/2025)
 
 ### Task Types Worked On (Screenshot from Peer Eval)
@@ -371,7 +428,7 @@ This week was a bit hectic due to midterms. Shout out to Immanuel for helping wi
 | ------- | ------------------ | ------------------------- | ----------- | -------- |
 | [#73]   | [unit tests]       | [initiating user configs] | [ssmith86]  | [open]   |
 
-### Progress Update (since 10/12/2025) 
+### Progress Update
 <table>
     <tr>
         <td><strong>TASK/ISSUE #</strong>
@@ -397,7 +454,7 @@ This week we were a bit late assigning tasks due to class being cancelled on Mon
 - Update tests to pull in real code for unit testing
 
 
-## Dates of Spring (10/06/2025 -10/11/2025)
+## Week 6 (10/06/2025 -10/11/2025)
 
 ### Task Types Worked On (Screenshot from Peer Eval)
 
@@ -439,7 +496,7 @@ The main focus for this week was refining the system architecture, DFD and WBS d
 
 
 
-<h1> September 29, 2025 - October 05, 2025</h1>
+## Week 5 (09/29/2025 - 10/05/2025)
 <h2>peer eval screenshot: </h2>
 <img width="1469" height="1040" alt="image" src="https://github.com/user-attachments/assets/ed8938d3-2b4f-44a8-8444-7889e05c8ee9" />
 <h2> Features worked on: </h2>
@@ -449,9 +506,7 @@ NA
 <h2> Tasks completed in last week: </h2>
 - Team worked on DFD diagram this week
 
-
-
-<h1> September 22, 2025 - September 28, 2025</h1>
+## Week 4 (09/22/2025 - 09/28/2025)
 <h2>peer eval screenshot: </h2>
 <img width="1336" height="1041" alt="image" src="https://github.com/user-attachments/assets/0ca048f6-c4ac-4a7e-a783-58ab6ac0d463" />
 <h2> Features worked on: </h2>
@@ -462,8 +517,7 @@ NA
 - project proposal with Immanuel, Puneet, Mahi, and Cameron
 
 
-
-<h1> September 15, 2025 - September 21, 2025</h1>
+## Week 3 (09/15/2025 - 09/21/2025)
 <h2>peer eval screenshot:  </h2>
 <img width="1636" height="1057" alt="image" src="https://github.com/user-attachments/assets/1d1bf00c-c011-4dd0-b77a-12938d20f3e3" />
 
