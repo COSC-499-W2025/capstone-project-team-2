@@ -35,6 +35,19 @@ VTABLE_PATTERNS = [
 ]
 
 def analyze_source(source: str, path: Path) -> Dict[str, Any]:
+    """
+    Analyze a single C source file to detect object-oriented programming patterns
+    and produce a canonical report compatible with the oop_aggregator.
+
+    Args:
+        source: The full contents of the C source file as a string.
+        path: Filesystem path to the source file being analyzed.
+
+    Returns:
+        Dict[str, Any]: A structured report containing detected structs as classes,
+        imports, data structure usage, complexity metrics, C-specific OOP features,
+        and metadata describing the analyzed file.
+    """
     source_l = source.lower()
 
     includes = re.findall(r'#include\s*[<"]([^>"]+)[>"]', source)
