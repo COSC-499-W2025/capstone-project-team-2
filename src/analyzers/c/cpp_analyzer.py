@@ -116,6 +116,7 @@ class cppanalysis:
                           current_access = access_type.rstrip(':')
 
                      if body.type == "field_declaration":
+                        print(f"Field declaration: {source[body.start_byte:body.end_byte]}")
                         fname = self.extract_fname(body, source)
                         if fname:
                             if current_access == "private":
@@ -126,6 +127,7 @@ class cppanalysis:
                         else:
                             # No field name found, might be a method declaration
                             methodinf = self.extract_methodinf(body, source, name)
+                            print(f"Method info from field_declaration: {methodinf}")
                             if methodinf:
                                 mname = methodinf["name"]
                                 methods.append(mname)
@@ -183,6 +185,9 @@ class cppanalysis:
          for node in self.tree_walk(method_node):
             if node.type == "function_declarator":
                 for child in node.children:
+                    if child.type == "operator_name":
+                        mname = f"operator{source[child.start_byte:child.end_byte].replace('operator', '').strip()}"
+                        break
                     if child.type in ("identifier", "field_identifier", "destructor_name"):
                         mname = source[child.start_byte:child.end_byte]
                         break
