@@ -10,18 +10,33 @@ import os
 
 from src.core.app_context import AppContext
 
-def perform_analysis_API(ctx: AppContext, folder_path: Path, use_ai: bool):
+def perform_analysis_API(
+    ctx: AppContext,
+    folder_path: Path,
+    use_ai: bool,
+    save_json: bool = False,
+    known_doc_hashes: dict | None = None,
+):
     """
-    API call for performing analysis on a project folder. Extracts from a zip file if provided Path is a zip file. Analysis is saved.
+    Run project analysis for API usage, handling zip extraction and non-interactive mode.
 
     Args:
-        ctx (AppContext): Runtime stored variables, likely to be changed
-        folder_path (Path): file path of project folder/zip file
-        use_ai (bool): determines whether analysis uses ai
+        ctx (AppContext): Shared database/storage context.
+        folder_path (Path): Path to a project directory or zip file to extract.
+        use_ai (bool): Whether to include AI-based code analysis.
+        save_json (bool): Persist JSON without prompting when True.
+        known_doc_hashes (dict | None): Optional sha256→path map to detect duplicates across uploads.
 
     Returns:
-        None
+        dict: Complete analysis payload ready for API response.
     """
-    if (folder_path.suffix.lower() == ".zip"):
+    if folder_path.suffix.lower() == ".zip":
         folder_path = extract_if_zip(folder_path)
-    analyze_project(folder_path, ctx, use_ai_analysis=use_ai)
+    return analyze_project(
+        folder_path,
+        ctx,
+        use_ai_analysis=use_ai,
+        interactive=False,
+        save_json=save_json,
+        known_doc_hashes=known_doc_hashes,
+    )

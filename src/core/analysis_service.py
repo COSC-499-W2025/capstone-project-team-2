@@ -17,6 +17,7 @@ from src.storage.file_data_saving import SaveFileAnalysisAsJSON
 from src.config.user_startup_config import ConfigLoader
 from src.core.ai_data_scrubbing import ai_data_scrubber
 from src.core.AI_analysis_code import codeAnalysisAI
+from src.core.document_analysis import DocumentAnalyzer
 from src.core.portfolio_service import (
     load_portfolio_showcase,
     build_portfolio_showcase,
@@ -116,24 +117,24 @@ def convert_datetime_to_string(obj):
     return obj
 
 
-def oop_analysis(root: Path, resume) -> Dict[str, Any] | None:
+def oop_analysis(root: Path, resume, verbose: bool = True) -> Dict[str, Any] | None:
     """
-    Run OOP analysis when external AI is disabled and Python/Java/C is present.
-    Uses MultiLangOrchestrator to analyze projects containing Python, Java, and/or C.
+    Run non-LLM OOP analysis when external AI is disabled and supported languages exist.
 
     Args:
         root (Path): Project root to scan.
-        resume: Resume metadata object with language info.
-        legacy_save_dir (Path): Config directory containing consent flags.
+        resume: Resume metadata with detected languages.
+        verbose (bool): If True, prints progress to console.
 
     Returns:
-        dict | None: OOP metrics if executed, otherwise None.
+        Dict[str, Any] | None: OOP metrics when run, otherwise None.
     """
     try:
         config_data = ConfigLoader().load()
         has_external = config_data.get("consented", {}).get("external", False)
     except Exception as e:
-        print(f"[WARN] Could not read user config, assuming no external consent: {e}")
+        if verbose:
+            print(f"[WARN] Could not read user config, assuming no external consent: {e}")
         has_external = False
 
     # Check if project has Python, Java, C, or JavaScript
@@ -145,33 +146,45 @@ def oop_analysis(root: Path, resume) -> Dict[str, Any] | None:
         try:
             
             langs = ", ".join(sorted(detected_languages))
-            print(f"[INFO] External AI is disabled. Running non-LLM OOP analysis for {langs}...\n")
+            if verbose:
+                print(f"[INFO] External AI is disabled. Running non-LLM OOP analysis for {langs}...\n")
             oop_metrics = MultiLangOrchestrator(root).analyze()
-            pretty_print_oop_report(oop_metrics)
+            if verbose:
+                pretty_print_oop_report(oop_metrics)
             return oop_metrics
         
         except (FileNotFoundError, ValueError) as e: 
             
-            print(f"[ERROR] OOP analysis failed: {e}")
+            if verbose:
+                print(f"[ERROR] OOP analysis failed: {e}")
             return None
 
     return None
 
-def export_json(project_name: str, analysis: Dict[str, Any], ctx: AppContext) -> None:
+def export_json(
+    project_name: str,
+    analysis: Dict[str, Any],
+    ctx: AppContext,
+    prompt_user: bool = True,
+    verbose: bool = True,
+) -> None:
     """
     Persist analyzed project to disk and database.
 
     Args:
-        project_name (str): Name used for output filename.
+        project_name (str): Filename stem for the saved JSON.
         analysis (Dict[str, Any]): Serializable analysis payload.
         ctx (AppContext): Shared DB/store handles.
+        prompt_user (bool): If True, ask before saving.
+        verbose (bool): If True, log save operations to console.
 
     Returns:
-        None
+        None: Writes to filesystem/DB when permitted.
     """
-    ans = input("Save JSON report? (y/n): ").strip().lower() or "n"
-    if not ans.startswith("y"):
-        return
+    if prompt_user:
+        ans = input("Save JSON report? (y/n): ").strip().lower() or "n"
+        if not ans.startswith("y"):
+            return
 
     out_dir = Path(ctx.default_save_dir).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -184,16 +197,28 @@ def export_json(project_name: str, analysis: Dict[str, Any], ctx: AppContext) ->
     saver = SaveFileAnalysisAsJSON()
     saver.saveAnalysis(project_name, analysis_serializable, str(out_dir))
     file_path = out_dir / filename
-    print(f"[INFO] Saved to filesystem → {file_path}")
+    if verbose:
+        print(f"[INFO] Saved to filesystem → {file_path}")
 
     try:
         record_id = ctx.store.insert_json(filename, analysis_serializable)
-        print(f"[INFO] Saved to database (ID: {record_id})")
+        if verbose:
+            print(f"[INFO] Saved to database (ID: {record_id})")
     except Exception as e:
-        print(f"[WARNING] Could not save to database: {e}")
+        if verbose:
+            print(f"[WARNING] Could not save to database: {e}")
 
 
-def analyze_project(root: Path, ctx: AppContext, project_label: str | None = None, use_ai_analysis=False, portfolio_mode: bool = False) -> None:
+def analyze_project(
+    root: Path,
+    ctx: AppContext,
+    project_label: str | None = None,
+    use_ai_analysis: bool = False,
+    portfolio_mode: bool = False,
+    interactive: bool = True,
+    save_json: Optional[bool] = None,
+    known_doc_hashes: Optional[Dict[str, str]] = None,
+) -> Dict[str, Any]:
     """
     Analyze a project folder and optionally persist results.
 
@@ -207,16 +232,23 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
             and instead generates and prints a curated portfolio showcase
             derived from analysis results and optional user-authored YAML
             overrides. Defaults to False.
+        interactive (bool): When False, suppress console prompts/output for API usage.
+        save_json (Optional[bool]): Force saving JSON (True), skip saving (False),
+            or prompt the user when interactive (None).
+        known_doc_hashes (Optional[Dict[str, str]]): Optional prior document hash index
+            used to flag duplicates across incremental uploads.
 
     Returns:
-        None
+        Dict[str, Any]: Analysis payload for the project.
     """
-    print(f"\n[INFO] Analyzing: {root}\n")
+    if interactive:
+        print(f"\n[INFO] Analyzing: {root}\n")
 
     display_name = project_label or root.name
     hierarchy = FileMetadataExtractor(root).file_hierarchy()
     duration = estimate_duration(hierarchy)
     resume = generate_resume_item(root, project_name=display_name)
+    doc_analysis = DocumentAnalyzer(root, known_hashes=known_doc_hashes).analyze()
     ai_analysis = None
     if use_ai_analysis == True:
         ollamaObject = codeAnalysisAI(root)
@@ -231,13 +263,15 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
             contrib_summary = contribution_summary(root)
             contributors_data = (contrib_summary or {}).get("contributors") or None
     except Exception as e:
-        print(f"[WARN] Contribution percentage analysis failed: {e}")
+        if interactive:
+            print(f"[WARN] Contribution percentage analysis failed: {e}")
         contrib_summary = None
         contributors_data = None
 
     analysis: Dict[str, Any] = {
         "project_root": str(root),
         "hierarchy": hierarchy,
+        "document_analysis": doc_analysis,
         "duration_estimate": duration,
         "resume_item": {
             "project_name": resume.project_name,
@@ -264,7 +298,7 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
     if contributors_data:
         analysis["contributors"] = contributors_data
 
-    if not portfolio_mode:
+    if not portfolio_mode and interactive:
         print("[SUMMARY]")
         print(f"  Type       : {resume.project_type} (mode={resume.detection_mode})")
         print(f"  Languages  : {', '.join(resume.languages) or '—'}")
@@ -272,7 +306,7 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
         print(f"  Skills     : {', '.join(resume.skills) or '—'}")
         print(f"  Duration   : {duration}\n")
 
-    if contributors_data:
+    if contributors_data and interactive:
         metric = (contrib_summary or {}).get("metric", "items")
 
         def _count(info: dict) -> int:
@@ -301,15 +335,15 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
         else:
             print("  Contributors: (no file ownership data)\n")
 
-    elif resume.project_type == "collaborative":
+    elif resume.project_type == "collaborative" and interactive:
         print("  Contributors: (could not detect)\n")
 
-    if resume.summary:
+    if resume.summary and interactive:
         print(f"  Résumé line: {resume.summary}\n")
 
     oop_metrics = None
     if not portfolio_mode:
-        oop_metrics = oop_analysis(root, resume)
+        oop_metrics = oop_analysis(root, resume, verbose=interactive)
         
     if oop_metrics is not None:
         analysis["oop_analysis"] = oop_metrics
@@ -321,20 +355,37 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
             analysis,
             contributors=contributors_data,
         )
-        print(
-            f"[INFO] Insight recorded for project '{insight.project_name}' "
-            f"(id={insight.id})."
-        )
+        if interactive:
+            print(
+                f"[INFO] Insight recorded for project '{insight.project_name}' "
+                f"(id={insight.id})."
+            )
     except Exception as e:
-        print(f"[WARN] Failed to record project insight: {e}")
+        if interactive:
+            print(f"[WARN] Failed to record project insight: {e}")
 
     portfolio_yaml = load_portfolio_showcase(display_name)
     analysis["portfolio_showcase"] = build_portfolio_showcase(analysis, portfolio_yaml)
     
     if portfolio_mode:
         ps = analysis["portfolio_showcase"]
-        display_portfolio_showcase(ps)
-        return
-    export_json(display_name, analysis, ctx)
+        if interactive:
+            display_portfolio_showcase(ps)
+        return analysis
 
+    prompt_for_save = interactive and save_json is None
+    if save_json is False:
+        should_save = False
+        prompt_for_save = False
+    else:
+        should_save = bool(save_json) or prompt_for_save
+    if should_save:
+        export_json(
+            display_name,
+            analysis,
+            ctx,
+            prompt_user=prompt_for_save,
+            verbose=interactive,
+        )
 
+    return analysis
