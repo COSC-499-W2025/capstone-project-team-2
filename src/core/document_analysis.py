@@ -105,6 +105,9 @@ class DocumentAnalyzer:
             if not path.is_file():
                 continue
 
+            if path.name.startswith("._") or "__MACOSX" in path.parts:
+                continue
+
             suffix = path.suffix.lower()
             if suffix not in SUPPORTED_DOC_EXTS:
                 continue
