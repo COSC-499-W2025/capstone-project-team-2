@@ -17,6 +17,7 @@ from src.storage.file_data_saving import SaveFileAnalysisAsJSON
 from src.config.user_startup_config import ConfigLoader
 from src.core.ai_data_scrubbing import ai_data_scrubber
 from src.core.AI_analysis_code import codeAnalysisAI
+from src.core.document_analysis import DocumentAnalyzer
 from src.reporting.portfolio_service import (
     load_portfolio_showcase,
     build_portfolio_showcase,
@@ -123,16 +124,14 @@ def convert_datetime_to_string(obj):
 
 def oop_analysis(root: Path, resume, suppress_output: bool = False) -> Dict[str, Any] | None:
     """
-    Run OOP analysis when external AI is disabled and Python/Java/C is present.
-    Uses MultiLangOrchestrator to analyze projects containing Python, Java, and/or C.
+    Run non-LLM OOP analysis when external AI is disabled and supported languages exist.
 
     Args:
         root (Path): Project root to scan.
-        resume: Resume metadata object with language info.
-        suppress_output (bool): If True, suppresses the OOP report printing.
+        resume: Resume metadata with detected languages.
 
     Returns:
-        dict | None: OOP metrics if executed, otherwise None.
+        Dict[str, Any] | None: OOP metrics when run, otherwise None.
     """
     try:
         config_data = ConfigLoader().load()
@@ -164,17 +163,21 @@ def oop_analysis(root: Path, resume, suppress_output: bool = False) -> Dict[str,
 
     return None
 
-def export_json(project_name: str, analysis: Dict[str, Any], ctx: AppContext) -> None:
+def export_json(
+    project_name: str,
+    analysis: Dict[str, Any],
+    ctx: AppContext,
+) -> None:
     """
     Persist analyzed project to disk and database.
 
     Args:
-        project_name (str): Name used for output filename.
+        project_name (str): Filename stem for the saved JSON.
         analysis (Dict[str, Any]): Serializable analysis payload.
         ctx (AppContext): Shared DB/store handles.
 
     Returns:
-        None
+        None: Writes to filesystem/DB when permitted.
     """
     ans = input("Save JSON report? (y/n): ").strip().lower() or "n"
     if not ans.startswith("y"):
@@ -200,7 +203,13 @@ def export_json(project_name: str, analysis: Dict[str, Any], ctx: AppContext) ->
         print(f"[WARNING] Could not save to database: {e}")
 
 
-def analyze_project(root: Path, ctx: AppContext, project_label: str | None = None, use_ai_analysis=False, portfolio_mode: bool = False) -> None:
+def analyze_project(
+    root: Path,
+    ctx: AppContext,
+    project_label: str | None = None,
+    use_ai_analysis: bool = False,
+    portfolio_mode: bool = False,
+) -> None:
     """
     Analyze a project folder and optionally persist results.
 
@@ -214,7 +223,6 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
             and instead generates and prints a curated portfolio showcase
             derived from analysis results and optional user-authored YAML
             overrides. Defaults to False.
-
     Returns:
         None
     """
@@ -224,6 +232,7 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
     hierarchy = FileMetadataExtractor(root).file_hierarchy()
     duration = estimate_duration(hierarchy)
     resume = generate_resume_item(root, project_name=display_name)
+    doc_analysis = DocumentAnalyzer(root).analyze()
     ai_analysis = None
     if use_ai_analysis == True:
         ollamaObject = codeAnalysisAI(root)
@@ -245,6 +254,7 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
     analysis: Dict[str, Any] = {
         "project_root": str(root),
         "hierarchy": hierarchy,
+        "document_analysis": doc_analysis,
         "duration_estimate": duration,
         "resume_item": {
             "project_name": resume.project_name,
@@ -344,9 +354,6 @@ def analyze_project(root: Path, ctx: AppContext, project_label: str | None = Non
         }
         
         ps = build_portfolio_showcase(portfolio_input, portfolio_yaml)
-        display_portfolio_and_generate_pdf(ps)
+        display_portfolio_showcase(ps)
         return
     export_json(display_name, analysis, ctx)
-
-
-

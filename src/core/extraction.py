@@ -115,6 +115,10 @@ class extractInfo:
         """
         for root, dirs, files in os.walk(temp_path):
             for file in files:
+                # Skip macOS resource fork files to avoid false corruption errors
+                if file.startswith("._") or "__MACOSX" in root:
+                    continue
+
                 filepath = os.path.join(root, file)
                 ext = os.path.splitext(file)[1].lower()
 
@@ -128,5 +132,4 @@ class extractInfo:
                     except Exception:
                         return self.CORRUPT_FILE_ERROR_TEXT + filepath
         return None
-
 

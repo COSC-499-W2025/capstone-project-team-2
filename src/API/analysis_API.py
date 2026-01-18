@@ -10,7 +10,11 @@ import os
 
 from src.core.app_context import AppContext
 
-def perform_analysis_API(ctx: AppContext, folder_path: Path, use_ai: bool):
+def perform_analysis_API(
+    ctx: AppContext,
+    folder_path: Path,
+    use_ai: bool,
+):
     """
     API call for performing analysis on a project folder. Extracts from a zip file if provided Path is a zip file. Analysis is saved.
 
@@ -22,6 +26,6 @@ def perform_analysis_API(ctx: AppContext, folder_path: Path, use_ai: bool):
     Returns:
         None
     """
-    if (folder_path.suffix.lower() == ".zip"):
+    if folder_path.suffix.lower() == ".zip":
         folder_path = extract_if_zip(folder_path)
     analyze_project(folder_path, ctx, use_ai_analysis=use_ai)
