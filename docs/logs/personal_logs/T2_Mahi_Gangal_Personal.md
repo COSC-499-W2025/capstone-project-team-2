@@ -1,9 +1,9 @@
 # Mahi Gangal T2 Weekly Individual Logs 
 
 ## Weekly Overview
-- [Week 1 (Jan 12 - Jan 18)](#week-1-jan-12---jan-18)
+- [Week 2 (Jan 12 - Jan 18)](#week-1-jan-12---jan-18)
 
-## Week 1 (Jan 12 - Jan 18)
+## Week 2 (Jan 12 - Jan 18)
 
 ### Peer Eval Screenshot: 
 
