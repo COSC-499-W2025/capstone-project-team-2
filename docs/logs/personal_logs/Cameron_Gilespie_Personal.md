@@ -1,3 +1,39 @@
+## Dates of Sprint: (1/11/2025 – 1/18/2025)
+
+### Peer Eval Screenshot:
+
+<img width="1092" height="626" alt="image" src= "https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Cameron-Personal-Logs/docs/logs/peer_eval_screenshots/PL_Cameron_01-17-26.png" />
+
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: CPP Analysis
+  * #1: Documentation Refactor
+
+
+
+## Associated Tasks from Project Board:
+
+| Description        | Status   |
+| ------------------ | -------- |
+| [CPP analyzer]  | [Complete] |
+| [Documentation Refactor]  | [Complete] |
+
+
+
+---
+## Next week goals
+- complete C# analyzer
+- work out aggregation issues
+
+### Extra Details:
+
+<details>
+  This week I set out to create the CPP analyzer and the C# analyzer, I unfortunately did not complete the C# analyzer and factored in my documentation refactoring for this week.  While the C# analyzer didnt get done due to a combination of unfortunate circumstances (personal will not elaborate) and some poor planning on my part to account for the situations I have figured out that the CPP analyzer should be able to account for C# with a few modifications using tree_sitter, which was a neat tool I found while doing somemore research on what to use! so it should be a quick set up for the next week. furthermore, the CPP analyzer is unfortunately not connected to the main system at the moment since we discovered a potential refactor we have to look into in our aggregation and output functions which will be discussed and reworked in the following weeks to not only be compadible with fast API but also with the new front end.
+
+
+</details>
+
+
 ## Dates of Sprint: (1/4/2025 – 1/11/2025)
 
 ### Peer Eval Screenshot:
