@@ -15,7 +15,7 @@
 - Addressed reviewer feedback and refactored code to use the correct portfolio RenderCV system
 - Fixed persistence and UX issues related to portfolio saving
 - Ensured all automated tests passed after changes
-- Reviewed teammates' PRs
+- Reviewed teammates' PRs 
 
 ### Individual Contributions 
 
