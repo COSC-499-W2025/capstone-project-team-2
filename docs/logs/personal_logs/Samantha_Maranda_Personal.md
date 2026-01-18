@@ -470,3 +470,68 @@
 * Spent a lot of time combing through documentation to identify where it was lacking, which reduced the time I could work on coding tasks.
 * Will spend next week primarily working on converting more of our spaghetti CLI into API for our future UI. Would like to specifically work on returning all saved analysis, and changing our save system to include timestamps to allow analysis of the same file without overwriting previous analysis and resume/portfolio items.
 
+---------------------------
+
+## Sunday (11/01/2026 - 18/01/2026)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/17-01-2026_PeerEval_SamM.jpg)
+
+### Features Worked on this Week
+  * #1: FastAPI implementation for returning saved projects
+  * #2: FastAPI implementation for performing analysis
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description        | Feature   | Assigned To | Status   |
+| ------- | ------------------ | --------- | ----------- | -------- |
+| #292   | FastAPI implementation for getting project by id | API call for returning all projects saved and project by id | Samantha Maranda  | In Progress |
+
+### Progress Update (since 11/01/2026) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Perform Analysis API as FastAPI
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+     <tr>
+        <!-- Task/Issue # -->
+        <td>Refactor analysis backend to remove CLI I/O
+        </td>
+        <!-- Status -->
+        <td>In Progress
+        </td>
+    </tr>
+ <tr>
+        <!-- Task/Issue # -->
+        <td>FastAPI for returning saved projects
+        </td>
+        <!-- Status -->
+        <td>Future Changes Needed
+        </td>
+    </tr>
+ <tr>
+        <!-- Task/Issue # -->
+        <td>FastAPI for returning project by id
+        </td>
+        <!-- Status -->
+        <td>In Progress
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+* Started using FastAPI this week, took some time going through the doumentation and found it mostly simple to use. Difficulty encountered with planning how API should return certain data as front end needs to be planned in accordance with it, so major changes will likely be made to formatting of successfully built API and future API will need discussion to complete.
+* Refactoring started with analysis methods. Removed all CLI input and part of CLI output. Need some of the output to be adapted to error handling and some errors were discovered and temporary solutions were needed until the root of the problem can be determined.
+* Finally took the time to learn how to pip into a virtual environment as to not brick my linux setup, was able to run the program properly on linux for the first time and it worked well with exception for issues with getting metadata from files.
+* Next week I will work on more FastAPI, particularly uploading files so I can finish some functionality. Will also entertain rebuilding the CLI to start working with the API methods but cutting out the API as FastAPI is not meant to be used for CLI. Will still build documentation for how to handle API as if it was being used through FastAPI and will always test that it works with mock frontend that uvicorn lets me quickly do.
