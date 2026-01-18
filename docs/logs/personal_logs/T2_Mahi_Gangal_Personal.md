@@ -41,8 +41,3 @@ Ensured portfolio generation works end-to-end, including RenderCV rendering, dat
 
 ### Additional Details
 This week’s work directly builds on last week’s implementation of the new portfolio showcase format, where I fixed issues with the portfolio not displaying correctly in the CLI menu and analysis service and introduced PDF generation for portfolios while separating portfolio and analysis outputs. Based on reviewer feedback, I was asked to integrate the RenderCV library to maintain consistency with the system’s existing resume generation workflow, which became my primary focus this week. Since I had no prior experience working with RenderCV, the integration was challenging and time-consuming, particularly because the portfolio and analysis formats were repeatedly being generated identically despite having separate implementations. Additionally, I encountered input-handling errors when prompting users for a custom save location for generated portfolio PDFs, which required multiple iterations to resolve. Despite these challenges, I successfully refactored the workflow to use RenderCV, preserved the separation between portfolio and analysis logic, addressed all reviewer comments, and achieved full PR approval with all tests passing. In the upcoming week, I plan to take on one of the remaining Milestone 2 requirements and work closely with the team to finalize the project prototype in preparation for peer testing.
-
-
-
-
-  
