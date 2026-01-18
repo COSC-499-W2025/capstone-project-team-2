@@ -3,7 +3,6 @@ from pathlib import Path
 from src.core.AI_analysis_code import codeAnalysisAI
 import pytest
 
-
 class TestAIOutput(unittest.TestCase):
 
     @classmethod
@@ -21,7 +20,6 @@ class TestAIOutput(unittest.TestCase):
         cls.folder = root_folder / "tiny_scripts"
         cls.instance = codeAnalysisAI(cls.folder)
         cls.result = cls.instance.run_analysis()
-
 
     def test_analysis_returns_valid_result(self):
         """Tests that the result of the code analysis is valid.

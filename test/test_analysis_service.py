@@ -3,6 +3,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+from typing import List
+
 import pytest
 
 # Validates analysis orchestration, export, and consent-aware OOP analysis helpers.
@@ -63,9 +65,8 @@ def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypat
     #Can't check if db contains file at current point in time
     #runtimeAppContext.store.fetch_by_id
 
-@pytest.mark.skip
-def test_oop_analysis_runs_when_external_disabled(tmp_path, monkeypatch):
-    """Check that local OOP analysis runs without external consent.
+def test_oop_analysis_runs(tmp_path, monkeypatch):
+    """Check that local OOP analysis runs.
 
     Args:
         tmp_path: Pytest fixture providing a temporary directory.
@@ -87,38 +88,11 @@ def test_oop_analysis_runs_when_external_disabled(tmp_path, monkeypatch):
             return metrics
     
     monkeypatch.setattr(mod, "MultiLangOrchestrator", FakeOrchestrator)
-    called = {}
-    monkeypatch.setattr(mod, "pretty_print_oop_report", lambda m: called.setdefault("printed", m))
 
-    resume = SimpleNamespace(languages=["Python"])
-    result = mod.oop_analysis(Path("/tmp/project"), resume, cfg_dir)
+    languages: List[str] = list(["Python"])
+    result = mod.oop_analysis(Path("/tmp/project"), languages)
 
     assert result == metrics
-    assert called["printed"] == metrics
-
-@pytest.mark.skip
-def test_oop_analysis_skips_when_external_enabled(tmp_path, monkeypatch):
-    """Check that local OOP analysis is skipped with external consent.
-
-    Args:
-        tmp_path: Pytest fixture providing a temporary directory.
-        monkeypatch: Pytest fixture for patching module attributes.
-
-    Returns:
-        None: Assertions validate skip behavior.
-    """
-    cfg_dir = tmp_path / "User_config_files"
-    cfg_dir.mkdir(parents=True)
-    (cfg_dir / "UserConfigs.json").write_text('{"consented": {"external": true}}')
-
-    spy = MagicMock()
-    monkeypatch.setattr(mod, "MultiLangOrchestrator", spy)
-
-    resume = SimpleNamespace(languages=["Python"])
-    result = mod.oop_analysis(Path("/tmp/project"), resume, cfg_dir)
-
-    assert result is None
-    spy.assert_not_called()
 
 @pytest.mark.skip
 def test_analyze_project_builds_analysis_and_exports(tmp_path, monkeypatch):
@@ -145,7 +119,6 @@ def test_analyze_project_builds_analysis_and_exports(tmp_path, monkeypatch):
             return {"type": "DIR", "children": []}
 
     monkeypatch.setattr(mod, "FileMetadataExtractor", FakeExtractor)
-    monkeypatch.setattr(mod, "estimate_duration", lambda hierarchy: "4 days")
     monkeypatch.setattr(
         mod,
         "generate_resume_item",
@@ -174,19 +147,19 @@ def test_analyze_project_builds_analysis_and_exports(tmp_path, monkeypatch):
     monkeypatch.setattr(
         mod,
         "oop_analysis",
-        lambda root, resume, legacy: {"score": {"oop_score": 0.75}},
+        lambda root, languages_found, legacy: {"score": {"oop_score": 0.75}},
     )
 
     captured = {}
     monkeypatch.setattr(
         mod,
         "export_json",
-        lambda project_name, analysis, ctx_obj: captured.update(
-            {"project_name": project_name, "analysis": analysis, "ctx": ctx_obj}
+        lambda project_name, analysis: captured.update(
+            {"project_name": project_name, "analysis": analysis}
         ),
     )
 
-    mod.analyze_project(tmp_path, ctx)
+    mod.analyze_project(tmp_path)
 
     assert captured["project_name"] == tmp_path.name
     assert captured["ctx"] is ctx

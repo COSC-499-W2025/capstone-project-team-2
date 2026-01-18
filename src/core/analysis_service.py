@@ -18,26 +18,6 @@ from src.core.AI_analysis_code import codeAnalysisAI
 from src.utils.utility_methods import *
 
 #Method is needed in CLI but should not be here
-#def input_path(prompt: str, allow_blank: bool = False) -> Optional[Path]:
-#    """
-#    Prompt user for a path until it exists.
-#
-#    Args:
-#        prompt (str): Message shown to the user.
-#        allow_blank (bool): If True, empty input returns None.
-#
-#    Returns:
-#        Optional[Path]: Resolved path or None when blank is allowed.
-#    """
-#    while True:
-#        p = input(prompt).strip()
-#        if not p and allow_blank:
-#            return None
-#        path = Path(p).expanduser().resolve()
-#        if path.exists():
-#            return path
-#        print(f"[ERROR] Path not found: {path}")
-
 
 def extract_if_zip(zip_path: Path) -> Path:
     """
@@ -164,9 +144,8 @@ def analyze_project(root: Path, use_ai_analysis=False) -> None:
     contrib_summary: Dict[str, Any] | None = None
     contributors_data: Dict[str, Any] | None = None
     try:
-        if resume.project_type == "collaborative":
-            contrib_summary = contribution_summary(root)
-            contributors_data = (contrib_summary or {}).get("contributors") or None
+        contrib_summary = contribution_summary(root)
+        contributors_data = (contrib_summary or {}).get("contributors") or None
     except Exception as e:
         #print(f"[WARN] Contribution percentage analysis failed: {e}")
         contrib_summary = None
