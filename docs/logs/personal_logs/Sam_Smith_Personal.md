@@ -24,12 +24,14 @@
 
 ### Features Worked on this Milestone (Provide sufficient detail)
   * #1: added feature to allow thumbnails to be uploaded at the same time project is uploaded for analyses
+  * #2: fixed docstring issues in an older file
  
 ## Associated Tasks from Project Board:
 
 | Task ID | Description                     | Feature                   | Assigned To | Status   |
 | ------- | ------------------------------- | ------------------------- | ----------- | -------- |
-|  297, 289 | [289 add thumnail upload ability at project analysis point]   | [User can now upload thumbnail when project is analyzed]      | [ssmith86]  | [complete]   |
+|[#297](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/297)| User can now upload thumbnail when project is analyzed | ssmith86 | complete | [ssmith86] |
+|[#287](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/287)| improved readability with improved docstrings| docstrings| ssmith86| complete |
 
 ### Progress Update (since 10/26/2025) 
 <table>
@@ -47,13 +49,35 @@
         <td>Complete
         </td>
     </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td> https://github.com/COSC-499-W2025/capstone-project-team-2/pull/287 added docstring for user_consent.py </td>
+        <!-- Status -->
+        <td>Complete </td>
+    </tr>
     </table>
 
-### Extra Details:
-We're fully back into the swing of things for the project. 
 
-### Tasks for Next Sprint:
-Centralize saving so that database and json files correctly sync
+### Extra Details:
+**Coding Tasks**
+- Implemented the ability for users to upload a project thumbnail at the time of project analysis, extending earlier thumbnail support to the initial ingestion workflow.
+- Updated the analysis pipeline to ensure thumbnail data is captured alongside project metadata.
+
+**Testing / Debugging Tasks**
+- Verified that thumbnail uploads persist correctly through the analysis flow and are stored consistently with existing project records.
+- Manually tested the updated workflow to ensure no regressions were introduced to project analysis or saving.
+- added tests that specifically test my additions
+
+**Reviewing / Collaboration Tasks**
+- reviewed the following PR's: [#292](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/292) and [#288](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/288)
+
+**Connection to Previous Week**
+- This work builds directly on the previous week’s thumbnail upload feature, which only supported adding thumbnails to already-saved projects. This week extended that functionality to cover the initial project upload and analysis stage.
+
+**Plan for Next Week**
+- Centralize project-saving logic so database records and JSON files remain synchronized.
+- Refactor related code paths to reduce redundancy and improve long-term maintainability.
+
 
 
 ## T2 Week 1 (01/05/2025- 01/11/2025)
