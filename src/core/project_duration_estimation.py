@@ -28,7 +28,11 @@ class Project_Duration_Estimator:
         if (self.created_dates.count == 0 or self.mod_dates == 0):  #Ensures that error is raised at relevant time if there are no files to pull dates from
             raise Exception("No files found. Estimate cannot be made.")
         else: 
-            self.__find_duration()
+            try:
+                self.__find_duration()
+            except: #Added for situation where None exists in metadata and error is returned, will handle better later
+                self.start_estimate = datetime.datetime.now()
+                self.end_estimate = datetime.datetime.now()
 
     def __list_dates(self):
         '''

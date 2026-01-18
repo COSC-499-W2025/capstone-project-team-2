@@ -99,9 +99,9 @@ def export_json(project_name: str, analysis: Dict[str, Any]) -> str | None:
 
     filename = project_name + ".json"
 
-    #Shouldn't need to be converted here
-    #analysis_copy = copy.deepcopy(analysis)
-    #analysis_serializable = convert_datetime_to_string(analysis_copy)
+    #Shouldn't need to be converted here, could be earlier
+    analysis_copy = copy.deepcopy(analysis)
+    analysis_serializable = convert_datetime_to_string(analysis_copy)
 
     saver = SaveFileAnalysisAsJSON()
     saver.saveAnalysis(project_name, analysis, str(out_dir))
@@ -128,9 +128,8 @@ def analyze_project(root: Path, use_ai_analysis=False) -> None:
     """
 
     display_name = root.name
-    hierarchy = convert_datetime_to_string(FileMetadataExtractor(root).file_hierarchy())   #Metadata extracted and datetime objects converted to strings
+    hierarchy = FileMetadataExtractor(root).file_hierarchy()  #Metadata extracted and datetime objects converted to strings
     duration = str(Project_Duration_Estimator(hierarchy).get_duration()) #Project duration estimate
-
     resume = generate_resume_item(root, project_name=display_name)
 
     #AI analysis performance through ollama
