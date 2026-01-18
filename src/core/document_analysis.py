@@ -9,7 +9,7 @@ import hashlib
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Iterable, List, Optional
 
 try:
     from docx import Document  # type: ignore
@@ -23,6 +23,23 @@ except Exception:
 
 
 SUPPORTED_DOC_EXTS = {".docx", ".pdf", ".txt", ".md"}
+
+
+def compute_sha256(path: Path) -> str:
+    """
+    Compute a SHA256 hash of a file for deduplication.
+
+    Args:
+        path (Path): File path to hash.
+
+    Returns:
+        str: Hex digest of the file content.
+    """
+    digest = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 @dataclass
@@ -41,16 +58,23 @@ class DocumentAnalyzer:
       - Heuristic extraction of metrics, dates, roles, and skills
     """
 
-    def __init__(self, root: Path, known_hashes: Optional[Dict[str, str]] = None):
+    def __init__(
+        self,
+        root: Path,
+        files: Optional[Iterable[Path]] = None,
+        known_hashes: Optional[Dict[str, str]] = None,
+    ):
         """
         Initialize the analyzer with a project root and optional prior hashes.
         Args:
             root (Path): Project root to scan for documents.
+            files (Optional[Iterable[Path]]): Optional iterable of files to analyze.
             known_hashes (Optional[Dict[str, str]]): Existing hash→path map to flag duplicates.
         Returns:
             None
         """
         self.root = Path(root)
+        self.files = list(files) if files is not None else None
         self.known_hashes: Dict[str, str] = dict(known_hashes or {})
 
     def analyze(self) -> Dict[str, Any]:
@@ -66,7 +90,7 @@ class DocumentAnalyzer:
         duplicates: List[Dict[str, str]] = []
         errors: List[str] = []
 
-        if not self.root.exists():
+        if self.files is None and not self.root.exists():
             return {
                 "documents": [],
                 "duplicates": [],
@@ -75,7 +99,9 @@ class DocumentAnalyzer:
                 "errors": [f"Root path not found: {self.root}"],
             }
 
-        for path in sorted(self.root.rglob("*")):
+        paths = self.files if self.files is not None else sorted(self.root.rglob("*"))
+
+        for path in paths:
             if not path.is_file():
                 continue
 
@@ -83,10 +109,13 @@ class DocumentAnalyzer:
             if suffix not in SUPPORTED_DOC_EXTS:
                 continue
 
-            rel_path = str(path.relative_to(self.root))
+            try:
+                rel_path = str(path.relative_to(self.root))
+            except ValueError:
+                rel_path = str(path)
 
             try:
-                file_hash = self._hash_file(path)
+                file_hash = compute_sha256(path)
             except Exception as e:
                 errors.append(f"hash_failed:{rel_path}:{e}")
                 continue
@@ -174,20 +203,6 @@ class DocumentAnalyzer:
             "roles": self._extract_roles(lower_text, headings),
             "skills": self._extract_skills(lower_text),
         }
-
-    def _hash_file(self, path: Path) -> str:
-        """
-        Compute a SHA256 hash of a file for deduplication.
-        Args:
-            path (Path): File path to hash.
-        Returns:
-            str: Hex digest of the file content.
-        """
-        digest = hashlib.sha256()
-        with path.open("rb") as f:
-            for chunk in iter(lambda: f.read(8192), b""):
-                digest.update(chunk)
-        return digest.hexdigest()
 
     def _extract_content(self, path: Path, suffix: str) -> ParsedDoc:
         """
@@ -406,6 +421,8 @@ class DocumentAnalyzer:
             "javascript": "JavaScript",
             "typescript": "TypeScript",
             "c++": "C++",
+            "c+": "C++",
+            "cpp": "C++",
             "c#": "C#",
             "golang": "Go",
             "go language": "Go",
