@@ -9,6 +9,7 @@ from src.core.app_context import create_app_context
 from src.cli.menus import main_menu
 from src.config.user_consent import UserConsent
 from src.config.user_startup_config import ConfigLoader
+from src.API.general_API import app
 
 
 def run() -> int:
