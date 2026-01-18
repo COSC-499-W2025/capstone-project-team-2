@@ -18,7 +18,7 @@ from src.config.user_startup_config import ConfigLoader
 from src.core.ai_data_scrubbing import ai_data_scrubber
 from src.core.AI_analysis_code import codeAnalysisAI
 from src.core.document_analysis import DocumentAnalyzer
-from src.core.portfolio_service import (
+from src.reporting.portfolio_service import (
     load_portfolio_showcase,
     build_portfolio_showcase,
     display_portfolio_showcase,
@@ -354,6 +354,6 @@ def analyze_project(
         }
         
         ps = build_portfolio_showcase(portfolio_input, portfolio_yaml)
-        display_portfolio_and_generate_pdf(ps)
+        display_portfolio_showcase(ps)
         return
     export_json(display_name, analysis, ctx)
