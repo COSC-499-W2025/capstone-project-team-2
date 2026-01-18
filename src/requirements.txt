@@ -27,3 +27,5 @@ esprima
 rendercv[full]
 ruamel.yaml
 streamlit
+tree_sitter
+tree_sitter_cpp
