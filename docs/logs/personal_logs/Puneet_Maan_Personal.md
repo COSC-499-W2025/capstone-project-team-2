@@ -1,4 +1,39 @@
-# Sprint Log: (05/01/2026 – 11/01/2026)
+## Term 2 Links
+- [Week 2 (12/01/2026 – 18/01/2026)](#week-2026-01-12)
+- [Week 1 (05/01/2026 – 11/01/2026)](#week-2026-01-05)
+
+# Sprint Log: Week 2 (12/01/2026 – 18/01/2026) <a id="week-2026-01-12"></a>
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/18-01-2026_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Summary
+### Coding tasks
+- Built a local document analyzer for DOCX/PDF/TXT/MD that extracts text/headings and simple signals (dates/metrics/roles/skills) and skips duplicates via file hashes; integrated it into the analysis pipeline. PR: [#299](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/299).
+
+### Testing or debugging tasks
+- Added test_document_analysis.py to check doc reading, markdown headings, duplicates, missing folder, and zip.
+
+### Reviewing or collaboration tasks
+- Reviewed "Cpp analysis" [#301](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/301) by Graves067.
+- Reviewed "add thumbnail upload ability at project analysis point" [#297](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/297) by ssmith86.
+
+### Connection to last week
+- Returned after a light Week 1 (sick) and picked up core development again by extending the analysis flow with document insights.
+
+### Plan / goals for next week
+- Add FastAPI endpoints for document_analysis, store hash indexes between uploads, and add API‑level tests.
+
+### Issues / blockers
+- None so far.
+
+## ====================================================
+
+# Sprint Log: Week 1 (05/01/2026 – 11/01/2026) <a id="week-2026-01-05"></a>
 
 ---
 
