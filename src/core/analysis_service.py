@@ -33,16 +33,21 @@ def input_path(prompt: str, allow_blank: bool = False) -> Optional[Path]:
         allow_blank (bool): If True, empty input returns None.
 
     Returns:
-        Optional[Path]: Resolved path or None when blank is allowed.
+        Optional[Path]: Resolved path or None when blank is allowed, or if user quits.
     """
     while True:
         p = input(prompt).strip()
-        if not p and allow_blank:
+        if not p:
+            if allow_blank:
+                return None
+            print("[ERROR] Please enter a valid path. (Enter '0' to quit)")
+            continue
+        if p == '0':
             return None
         path = Path(p).expanduser().resolve()
         if path.exists():
             return path
-        print(f"[ERROR] Path not found: {path}")
+        print(f"[ERROR] Path not found: {path} (Enter '0' to quit)")
 
 
 def extract_if_zip(zip_path: Path) -> Path:
@@ -117,7 +122,7 @@ def convert_datetime_to_string(obj):
     return obj
 
 
-def oop_analysis(root: Path, resume) -> Dict[str, Any] | None:
+def oop_analysis(root: Path, resume, suppress_output: bool = False) -> Dict[str, Any] | None:
     """
     Run non-LLM OOP analysis when external AI is disabled and supported languages exist.
 
@@ -144,9 +149,11 @@ def oop_analysis(root: Path, resume) -> Dict[str, Any] | None:
         try:
             
             langs = ", ".join(sorted(detected_languages))
-            print(f"[INFO] External AI is disabled. Running non-LLM OOP analysis for {langs}...\n")
+            if not suppress_output:
+                print(f"[INFO] External AI is disabled. Running non-LLM OOP analysis for {langs}...\n")
             oop_metrics = MultiLangOrchestrator(root).analyze()
-            pretty_print_oop_report(oop_metrics)
+            if not suppress_output:
+                pretty_print_oop_report(oop_metrics)
             return oop_metrics
         
         except (FileNotFoundError, ValueError) as e: 
@@ -317,10 +324,9 @@ def analyze_project(
     if resume.summary:
         print(f"  Résumé line: {resume.summary}\n")
 
-    oop_metrics = None
-    if not portfolio_mode:
-        oop_metrics = oop_analysis(root, resume)
-        
+    # Run OOP analysis - needed for both portfolio mode and regular analysis
+    # Suppress output in portfolio_mode since we show portfolio showcase instead
+    oop_metrics = oop_analysis(root, resume, suppress_output=portfolio_mode)
     if oop_metrics is not None:
         analysis["oop_analysis"] = oop_metrics
 
@@ -339,15 +345,15 @@ def analyze_project(
         print(f"[WARN] Failed to record project insight: {e}")
 
     portfolio_yaml = load_portfolio_showcase(display_name)
-    analysis["portfolio_showcase"] = build_portfolio_showcase(analysis, portfolio_yaml)
     
     if portfolio_mode:
-        ps = analysis["portfolio_showcase"]
-        display_portfolio_showcase(ps)
+        portfolio_input = {
+            "resume_item": analysis.get("resume_item", {}),
+            "contributors": analysis.get("contributors"),
+            "oop_analysis": analysis.get("oop_analysis"),
+        }
+        
+        ps = build_portfolio_showcase(portfolio_input, portfolio_yaml)
+        display_portfolio_and_generate_pdf(ps)
         return
-
-    export_json(
-        display_name,
-        analysis,
-        ctx,
-    )
+    export_json(display_name, analysis, ctx)

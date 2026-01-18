@@ -14,13 +14,36 @@ import pytest
 from src.core.data_extraction import FileMetadataExtractor
 
 class TestDataExtract(unittest.TestCase):
-
+    """
+    Unit test suite for validating the behavior of the FileMetadataExtractor
+    class, including directory traversal, metadata extraction, and
+    cross-platform author resolution.
+    """
 
     def setUp(self):
+        """
+        Create a temporary directory used as a sandbox for filesystem tests.
+
+        Args:
+            None: This method does not take any parameters.
+
+        Returns:
+            None: This method prepares test state before each test runs.
+        """
         self.temp_dir = Path(tempfile.mkdtemp())
 
 
     def test_tree(self):
+        """
+        Verify that file_hierarchy correctly detects files in a non-empty
+        directory and includes them in the returned tree structure.
+
+        Args:
+            None: This test does not take any parameters.
+
+        Returns:
+            None: Assertions are used to validate expected behavior.
+        """
 
         # create temporary files and directory for testing
         file_path=self.temp_dir / "file.txt"
@@ -52,6 +75,17 @@ class TestDataExtract(unittest.TestCase):
 
 
     def test_tree_empty(self):
+        """
+        Verify that an empty directory is correctly identified and represented
+        with a placeholder child node indicating emptiness.
+
+        Args:
+            None: This test does not take any parameters.
+
+        Returns:
+            None: Assertions are used to validate expected behavior.
+        """
+
         temp_dir = Path("empty_temp")
         temp_dir.mkdir(exist_ok=True)
 
@@ -71,6 +105,16 @@ class TestDataExtract(unittest.TestCase):
 
 
     def test_file_hierarchy_nonexistent_path(self):
+        """
+        Verify that attempting to generate a hierarchy for a non-existent path
+        results in an appropriate error message being printed.
+
+        Args:
+            None: This test does not take any parameters.
+
+        Returns:
+            None: Assertions are used to validate expected behavior.
+        """
         # creates a bad dummy path
         test_path = Path("does_not_exist")
         extractor = FileMetadataExtractor(test_path)
@@ -82,6 +126,16 @@ class TestDataExtract(unittest.TestCase):
         self.assertIn("Error: Filepath not found", output)
 
     def test_file_hierarchy_not_a_directory(self):
+        """
+        Verify that attempting to generate a hierarchy for a path that exists
+        but is not a directory results in an appropriate error message.
+
+        Args:
+            None: This test does not take any parameters.
+
+        Returns:
+            None: Assertions are used to validate expected behavior.
+        """
         temp_file = Path("not_a_dir.txt")
         temp_file.write_text("data")
         
@@ -103,6 +157,18 @@ class TestDataExtract(unittest.TestCase):
     @pytest.mark.skipif(sys.platform != "win32", reason="win32security is only available on Windows")
     @unittest.skipUnless(sys.platform == "win32", "Requires Windows win32 APIs")
     def test_win32(self, moc_get_sec, mock_lookup, mock_system):
+        """
+        Verify that file author resolution correctly uses Win32 security APIs
+        when running on a Windows system with win32security available.
+
+        Args:
+            moc_get_sec: Mocked GetFileSecurity function.
+            mock_lookup: Mocked LookupAccountSid function.
+            mock_system: Mocked platform.system return value.
+
+        Returns:
+            None: Assertions are used to validate expected behavior.
+        """
         # creating a mock file author and testing the return with win32
         mock_lookup.return_value = ("John", "DESKTOP-12345", 1)
         extractor = FileMetadataExtractor("test/path")
@@ -111,6 +177,16 @@ class TestDataExtract(unittest.TestCase):
 
     @patch("platform.system", return_value="Windows")
     def test_no_win32(self, mock_system):
+        """
+        Verify that file author resolution falls back to the current system user
+        when running on Windows without win32security available.
+
+        Args:
+            mock_system: Mocked platform.system return value.
+
+        Returns:
+            None: Assertions are used to validate expected behavior.
+        """
         # Testing system output when Win32 is not installed
         with patch("src.core.data_extraction.win32security", None):
             with patch("getpass.getuser", return_value="FallbackUser"):
@@ -121,9 +197,19 @@ class TestDataExtract(unittest.TestCase):
 
     @patch("platform.system", return_value="Darwin")
     def test_MacOs(self, mock_system):
-            extractor = FileMetadataExtractor("test/path")
-            author = extractor.get_author(Path("file.txt"))
-            self.assertEqual(author, getpass.getuser())
+        """
+        Verify that file author resolution on macOS systems falls back to the
+        current logged-in user.
+
+        Args:
+            mock_system: Mocked platform.system return value.
+
+        Returns:
+            None: Assertions are used to validate expected behavior.
+        """
+        extractor = FileMetadataExtractor("test/path")
+        author = extractor.get_author(Path("file.txt"))
+        self.assertEqual(author, getpass.getuser())
 
 
 if __name__ == "__main__":
