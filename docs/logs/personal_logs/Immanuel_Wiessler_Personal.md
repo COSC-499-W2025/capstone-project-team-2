@@ -1102,10 +1102,11 @@ Building on the Resume Generator class (`Generate_RenderCV_Resume.py`) completed
 ## 📌 Associated Tasks from Project Board
 
 - [Added missing functionality to Generate_AI_RenderCV_portfolio.py](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/288)
+- [Portfolio RenderCV Builder](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/286)
 
 -----
 
-## 📈 Progress Update (since 12/6/2025)
+## 📈 Progress Update (since 01/12/2026)
 
 |Task/Issue         |Status                                                  |
 |-------------------|--------------------------------------------------------|
@@ -1128,9 +1129,10 @@ Building on the Resume Generator class (`Generate_RenderCV_Resume.py`) completed
 
 ## 🧠 Reflection on Current Cycle (Week 16)
 
-This week I focused on creating the Portfolio Generator using the RenderCV library. The goal was to create a fully-featured portfolio suitable for real-world settings to showcase users to potential employers.
+This week, I focused on creating the Portfolio Generator using the RenderCV library. The goal was to create a fully-featured portfolio suitable for real-world settings to showcase users to potential employers.
 
-Following last week’s work, I modified my Resume Generator class (`Generate_RenderCV_Resume.py`) through the creation of the new class (`Generate_AI_RenderCV_portfolio.py`) to now make professional portfolios. This was done by modifying the starter YAML file that is created in the system, which involved removing key parts that would only be present in a portfolio, as shown below:
+Following last week's work, I modified my Resume Generator class (`Generate_RenderCV_Resume.py`) by creating a new class (`Generate_AI_RenderCV_portfolio.py`) to generate professional portfolios. This was done by modifying the starter YAML file to use a portfolio-focused structure, removing resume-specific sections (like work experience and education) and keeping only portfolio-relevant fields:
+
 
 ```yaml
 'cv': {
