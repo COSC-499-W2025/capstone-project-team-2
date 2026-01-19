@@ -209,22 +209,101 @@ class RenderCVDocument:
         self.yaml = ruamel.yaml.YAML()
         self.yaml.preserve_quotes = True
 
-        @property
-        def _file_suffix(self)->str:
-            """
+    @property
+    def _file_suffix(self)->str:
+        """
             Determines the file suffix based on the document type.
             used for generating consistent filenames
 
             Returns:
                 str: Either "Resume_CV" for resume documents or "Portfolio_CV" for portfolio documents
             """
-            return "Resume_CV" if self.doc_type == 'resume' else "Portfolio_CV"
+        return "Resume_CV" if self.doc_type == 'resume' else "Portfolio_CV"
 
 
-        def _get_template(self)->dict:
+    def _get_template(self)-> dict:
             """
+            Generate a starter template dictionary based on the document type.
+            on the document type.
+            Creates the base YAML structure with placeholder content
+
+            Args:
+                name: The person's name to used in the template, underscore will be replaced with spaces
+
+            Returns:
+                  dict: Complete YAML template dictionary
 
             """
+            base_template = {
+                'cv': {
+                    'name': self.name.replace('_', ' '),
+                    'location': 'City, State',
+                    'email': 'your.email@example.com',
+                    'phone': '+1 234 567 8901',
+                    'website': 'https://yourwebsite.com',
+                    'social_networks': [
+                        {'network': 'LinkedIn', 'username': ''},
+                        {'network': 'GitHub', 'username': ''}
+                    ],
+                    'sections': {}
+                },
+                'design': {'theme': self.chosen_theme},
+                'locale': {'language': 'english'}
+            }
+            if self.doc_type == 'resume':
+                base_template['cv']['sections'] = {
+                    'summary': [
+                        'A brief summary about yourself and your professional background.'
+                    ],
+                    'education': [{
+                        'institution': 'University Name',
+                        'area': 'Field of Study',
+                        'degree': 'BS',
+                        'start_date': '2020-09',
+                        'end_date': '2024-05',
+                        'location': 'City, State',
+                        'highlights': ['GPA: X.XX/4.00']
+                    }],
+                    'experience': [{
+                        'company': 'Company Name',
+                        'position': 'Position Title',
+                        'start_date': '2023-06',
+                        'end_date': '2023-07',
+                        'location': 'City, State',
+                        'highlights': ['Accomplishment 1', 'Accomplishment 2']
+                    }],
+                    'projects': [{
+                        'name': 'Project Name',
+                        'start_date': '2023-01',
+                        'end_date': '2024-05',
+                        'summary': 'Brief description of the project',
+                        'highlights': ['Key feature 1', 'Key feature 2']
+                    }],
+                    'skills': [
+                        {'label': 'Languages', 'details': 'Python, JavaScript, etc.'},
+                        {'label': 'Frameworks', 'details': 'React, Django, etc.'},
+                        {'label': 'Tools', 'details': 'Git, Docker, etc.'}
+                    ]
+                }
+            else:
+                base_template['cv']['sections'] = {
+                    'projects': [{
+                        'name': 'Project Name',
+                        'start_date': '2023-01',
+                        'end_date': '2024-05',
+                        'summary': 'Brief description of the project',
+                        'highlights': ['Key feature 1', 'Key feature 2']
+                    }]
+                }
+            return base_template
+
+    #====== FILE Operations =======
+
+
+
+
+
+
 
 
 
