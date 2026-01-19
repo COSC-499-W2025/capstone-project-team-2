@@ -298,10 +298,80 @@ class RenderCVDocument:
             return base_template
 
     #====== FILE Operations =======
+    def generate(self,overwrite:bool=False, name: str = "Jane Doe"):
+        """
+        Generate a starter YAML file with template content.
+        Creates the necessary directories and writes the initial YAML structure.
+
+        Args:
+            overwrite: If True, deletes existing file and creates a new one; if False, skips generation when file exists
+            name: The person's name used for the filename and within the template content
+
+        Returns:
+            str: "Success" if file was created, "Skipping generation" if file already exists and overwrite is False
+        """
+        self.name.replace(" ", "_")
+        self.cv_files_dir.mkdir(parents=True, exist_ok=True)
+        self.yaml_file = self.cv_files_dir / f"{self.name}_{self._file_suffix}.yaml"
+
+        if self.yaml_file.exists():
+            if overwrite:
+                self.yaml_file.unlink()
+            else:
+                return "Skipping generation"
+
+        template = self._get_template()
+        with open(self.yaml_file, 'w') as f:
+            self.yaml.dump(template, f)
+
+        return "Success"
 
 
 
+    def load(self,name: Optional[str] = None)-> dict:
+        """
+        Loads an existing YAML file into memory for editing
+        Parses the file and caches section data for easy access
+        
+        Args:
+            name: Optional name to load a specific file; if None, uses the previously set name from generate()
 
+        Returns:
+            dict: The complete parsed YAML data structure with 'cv', 'design', and 'locale' keys
+
+        Raises:
+            FileNotFoundError: If the YAML file does not exist at the expected path
+
+
+        """
+
+        if name:
+            self.name= name.replace(" ", "_")
+            self.yaml_file = self.cv_files_dir / f"{self.name}_{self._file_suffix}.yaml"
+
+        if not self.yaml_file or not self.yaml_file.exists():
+            raise FileNotFoundError(f"YAML file {self.yaml_file} not found")
+
+        with open(self.yaml_file, 'r') as f:
+            self.data = self.yaml.load(f)
+
+        if self.data.get('cv') is None:
+            raise ValueError("Invalid YAML structure: missing required 'cv' key")
+
+        sections=self.data['cv']['sections']
+        section_keys=list(sections.keys())
+        self.resume_sections=section_keys[1:] if section_keys[0]=='name' else []
+        self.current_education=sections.get('projects', [])
+        self.current_projects=self.data['cv'].get('social_networks', [])
+        self.data['cv']['name'] = str(self.name).replace("_", " ")
+
+        if self.doc_type == 'resume':
+            self.current_education=sections.get('education', [])
+            self.current_skills=sections.get('skills', [])
+            self.current_experience=sections.get('experience',[])
+            self.summary = sections.get('summary', [])
+
+        return self.data
 
 
 
