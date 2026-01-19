@@ -9,7 +9,6 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 from src.core.Docker_finder import DockerFinder
 from src.storage.db_helper_function import HelperFunct
 
-
 @dataclass
 class AppContext:
     """
@@ -20,7 +19,7 @@ class AppContext:
         store (HelperFunct): Helper wrapper for DB operations.
         legacy_save_dir (Path): Legacy config/insight base directory.
         default_save_dir (Path): Default nested directory for new insights.
-        external_consent (bool): 
+        external_consent (bool): consent for external llm use
     """
 
     conn: mysql.connector.MySQLConnection
@@ -28,6 +27,7 @@ class AppContext:
     legacy_save_dir: Path
     default_save_dir: Path
     external_consent: bool
+    currently_uploaded_path: Path
 
     def close(self) -> None:
         """Close the DB connection safely."""
@@ -85,5 +85,8 @@ def create_app_context(external_consent_value=False) -> AppContext:
         store=store,
         legacy_save_dir=legacy_save_dir,
         default_save_dir=default_save_dir,
-        external_consent=external_consent_value
+        external_consent=external_consent_value,
+        currently_uploaded_path=None
     )
+
+runtimeAppContext = create_app_context()

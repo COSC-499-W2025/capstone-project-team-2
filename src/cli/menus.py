@@ -15,7 +15,6 @@ import json
 # Menu flows for the CLI, delegating to analysis, saved-project, and portfolio helpers.
 from src.cli.CLI_Interface_for_user_config import ConfigurationForUsersUI
 from src.core.analysis_service import (
-    input_path,
     analyze_project,
     extract_if_zip,
 )
@@ -252,8 +251,7 @@ def analyze_project_menu(ctx: AppContext) -> None:
             if choice == "1":
                 dir_path = input_path("Enter path to project directory: ")
                 if dir_path:
-                    project_name = dir_path.name
-                    analyze_project(dir_path, ctx, use_ai_analysis=use_ai)
+                    analyze_project(dir_path, use_ai_analysis=use_ai)
             elif choice == "2":
                 zip_path = input_path("Enter path to ZIP: ")
                 if not zip_path:
@@ -270,8 +268,6 @@ def analyze_project_menu(ctx: AppContext) -> None:
                 
                 analyze_project(
                     extracted,
-                    ctx,
-                    project_label=zip_path.stem,
                     use_ai_analysis=use_ai
                 )
             elif choice == "0":
@@ -1009,3 +1005,24 @@ def _add_thumbnail_workflow(
         print(f"[ERROR] Failed to add thumbnail: {error}")
     
     input("\nPress Enter to continue...")
+
+def input_path(prompt: str, allow_blank: bool = False) -> Path | None:
+    """
+    Prompt user for a path until it exists.
+
+    Args:
+        prompt (str): Message shown to the user.
+        allow_blank (bool): If True, empty input returns None.
+
+    Returns:
+        Path: Resolved path or None when blank is allowed.
+    """
+
+    while True:
+        p = input(prompt).strip()
+        if not p and allow_blank:
+            return None
+        path = Path(p).expanduser().resolve()
+        if path.exists():
+            return path
+        print(f"[ERROR] Path not found: {path}")

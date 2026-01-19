@@ -154,7 +154,7 @@ class get_contributors_percentages_per_person:
             #here we start collecting data about the GitHub Repository
             for pos,branch in enumerate(repo.get_branches()): #Getting the remote branches names
                 branch_name = branch.name
-                print(f"Collecting data on {pos+1} {branch_name} ")
+                #print(f"Collecting data on {pos+1} {branch_name} ")
                 for commit in repo.get_commits(sha=branch_name):
                     sha=commit.sha
                     if sha in seen_shas:

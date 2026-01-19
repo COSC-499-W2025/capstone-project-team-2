@@ -1,31 +1,38 @@
 from src.core.analysis_service import (
-    input_path,
     analyze_project,
     extract_if_zip,
 )
+from src.core.app_context import runtimeAppContext
 
 from pathlib import Path
-import json
-import os
 
-from src.core.app_context import AppContext
+from fastapi import APIRouter
 
-def perform_analysis_API(
-    ctx: AppContext,
-    folder_path: Path,
-    use_ai: bool,
-):
+analysisRouter = APIRouter(
+    prefix="/analyze"
+)
+
+@analysisRouter.get("/")
+def perform_analysis_API(use_ai: bool = False) -> str:
     """
     API call for performing analysis on a project folder. Extracts from a zip file if provided Path is a zip file. Analysis is saved.
 
+    HTTP call is GET /analyze
+    Optional Get /analyze/?use_ai=bool
+
     Args:
-        ctx (AppContext): Runtime stored variables, likely to be changed
-        folder_path (Path): file path of project folder/zip file
         use_ai (bool): determines whether analysis uses ai
 
     Returns:
-        None
+        str: string stating finished state or error code (Not all errors implemented yet)
     """
-    if folder_path.suffix.lower() == ".zip":
-        folder_path = extract_if_zip(folder_path)
-    analyze_project(folder_path, ctx, use_ai_analysis=use_ai)
+    
+    folder_path = runtimeAppContext.currently_uploaded_path
+
+    try:
+        if (folder_path.suffix.lower() == ".zip"):
+            folder_path = extract_if_zip(folder_path)
+        analyze_project(folder_path, use_ai_analysis=use_ai)
+        return "finished"
+    except Exception as e:
+        return str(e)
