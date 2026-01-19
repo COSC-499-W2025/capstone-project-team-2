@@ -123,4 +123,113 @@ class Education:
     highlights: Optional[List[str]] = None
     to_dict = _to_dict
 
+@dataclass
+class Connections:
+    """
+    Represents a social network connection
+
+    Attributes:
+        network : Name of the platform (e.g., 'LinkedIn', 'GitHub', 'Twitter')
+        Username : or profile identifier on the platform
+    """
+    network: Optional[str] = None
+    username: Optional[str] = None
+    to_dict = _to_dict
+
+@dataclass
+class Project:
+    """
+    Represents a project entry
+
+    Attributes:
+        name: Name of the project
+        start_date: Start date in 'YYYY-MM' format
+        end_date: End date in 'YYYY-MM' format, or 'present'
+        location: City, State or City, Country
+        summary: Brief description of the project
+        highlights: List of accomplishments or responsibilities
+    """
+    name: str
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    location: Optional[str] = None
+    summary: Optional[str] = None
+    highlights: Optional[List[str]] = None
+    to_dict = _to_dict
+
+# ========== DOCUMENT TYPE =========
+DocumentType = Literal['resume', 'portfolio']
+
+# ========= UNIFIED CLASS =========
+class RenderCVDocument:
+    """
+    Unified builder class for creating and managing RenderCV YAML files.
+    Supports both resume and portfolio document types with a single interface.
+    """
+    THEMES = {
+        'classic': 'Classic CV theme',
+        'engineeringclassic': 'Engineering-focused CV theme',
+        'engineeringresumes': 'Engineering resume theme (recommended for resumes)',
+        'moderncv': 'Modern CV theme',
+        'sb2nov': 'Clean resume theme (recommended for resumes)',
+    }
+    def __init__(self, doc_type: DocumentType = 'resume', auto_save: bool = True, output_dir: str = 'rendercv_output')->None:
+        """
+        Initialize the CV/Resume/Portfolio builder with configuration options.
+
+        Args:
+            doc_type: Type of document to create ('resume' or 'portfolio'). Defaults to 'resume'.
+            theme: Theme to use for the document. Defaults to 'sb2nov'.
+            auto_save: If True, automatically save after each modification. Defaults to True.
+            output_dir: Directory for rendered output files. Defaults to 'rendercv_output'.
+        Returns:
+            None: Constructor does not return a value.
+
+        """
+        self.doc_type = doc_type
+        self.cv_files_dir = Path(__file__).parent.parent.parent / "User_config_files" / "Generate_render_CV_files"
+        self.project_insight_folder = Path(__file__).parent.parent.parent / "User_config_files" / "project_insights"
+
+        #Cached section data
+        self.summary: Optional[List[str]] = None
+        self.current_experience: Optional[List[dict]] = None
+        self.current_projects: Optional[List[dict]] = None
+        self.current_education: Optional[List[dict]] = None
+        self.current_connections: Optional[List[dict]] = None
+        self.current_skills: Optional[List[dict]] = None
+        self.resume_sections: Optional[List[str]] = None
+        self.name: Optional[str] = None
+        self.data: Optional[dict] = None
+        self.chosen_theme: str = "sb2nov"
+        self.yaml_file: Optional[Path] = None
+        self.auto_save: bool = auto_save
+        self.output_dir: Path = Path(output_dir)
+
+        #YAML parser instance
+        self.yaml = ruamel.yaml.YAML()
+        self.yaml.preserve_quotes = True
+
+        @property
+        def _file_suffix(self)->str:
+            """
+            Determines the file suffix based on the document type.
+            used for generating consistent filenames
+
+            Returns:
+                str: Either "Resume_CV" for resume documents or "Portfolio_CV" for portfolio documents
+            """
+            return "Resume_CV" if self.doc_type == 'resume' else "Portfolio_CV"
+
+
+        def _get_template(self)->dict:
+            """
+
+            """
+
+
+
+
+
+
+
 
