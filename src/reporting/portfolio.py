@@ -49,8 +49,8 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
         display_portfolio_showcase(ps)
         
         # PDF Prompt
-        print("=" * 50)
-        generate_pdf_input = input("Would you like to generate a PDF? (y/n): ").strip().upper()
+        #print("=" * 50)
+        generate_pdf_input = "Y" #input("Would you like to generate a PDF? (y/n): ").strip().upper()
         
         if generate_pdf_input == "Y":
             name_of_file = (

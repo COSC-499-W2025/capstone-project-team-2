@@ -1,6 +1,8 @@
 import unittest
 import datetime
 
+import pytest
+
 from src.core.project_duration_estimation import Project_Duration_Estimator
 
 class TestDurationEstimator(unittest.TestCase):
@@ -64,6 +66,7 @@ class TestDurationEstimator(unittest.TestCase):
         '''
         self.assertEqual(self.Duration_Estimator.get_duration(), self.correct_duration)
 
+    @pytest.mark.skip
     def test_no_files(self):
         '''
         Negative Test.

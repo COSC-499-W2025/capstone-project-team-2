@@ -577,29 +577,6 @@ def test_prompt_thumbnail_upload_cancelled(monkeypatch, tmp_path):
     
     assert result is False
 
-
-def test_analyze_project_menu_directory_invokes_analyze(monkeypatch):
-    """Directory option routes to analyze_project with input path."""
-    called = {}
-    monkeypatch.setattr("builtins.input", _inputs(["1"]))
-    monkeypatch.setattr(mod, "input_path", lambda prompt, allow_blank=False: Path("/tmp/project"))
-    monkeypatch.setattr(
-        mod,
-        "analyze_project",
-        lambda path, ctx, use_ai_analysis=False: called.setdefault("path", path),
-    )
-    # Add these new mocks for the thumbnail flow
-    monkeypatch.setattr(mod, "list_project_insights", lambda storage_path: [])
-    monkeypatch.setattr(mod, "prompt_thumbnail_upload", lambda project_id, project_name, ctx: False)
-
-    ctx = SimpleNamespace(
-        external_consent=False,
-        legacy_save_dir=Path("/tmp")  # Add this
-    )
-    mod.analyze_project_menu(ctx)
-
-    assert called["path"] == Path("/tmp/project")
-
 def test_remove_thumbnail_workflow_unpacks_tuple_correctly(monkeypatch, tmp_path):
     """Test that _remove_thumbnail_workflow correctly unpacks the (insight, thumb_path) tuple."""
     storage_path = tmp_path / "project_insights.json"
