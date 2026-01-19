@@ -39,6 +39,9 @@ class FileMetadataExtractor:
 
         Args:
             dir_path (str | Path): The directory path to scan for file hierarchy and metadata.
+            
+        Returns:
+            None: This method initializes the extractor instance.
         """
         self.dir_path = Path(dir_path)
         
@@ -90,8 +93,16 @@ class FileMetadataExtractor:
     def file_hierarchy(self, dir_path: Path | None = None):
 
         """
-        Helps identify, whether or not files or directories exist
-        
+        Validate the root directory path and generate a file hierarchy
+        representation if the path exists and is a directory.
+
+        Args:
+            dir_path: Optional override path for hierarchy generation.
+            If None, the instance root directory is used.
+
+        Returns:
+            dict: A dictionary representing the directory hierarchy, including
+            error placeholders if the path is invalid or inaccessible.
         """
 
         if not self.dir_path.exists():
@@ -111,10 +122,10 @@ class FileMetadataExtractor:
 
         Args:
             dir_path (Path): The directory to traverse.
-            prefix (str): The prefix used to format tree levels visually.
 
         Returns:
-            dict: A dictionary representing the directory and its children with metadata.
+            dict: A nested dictionary representing the directory structure,
+            including file metadata such as size, timestamps, author, and type.
         
         """
         node = {"name": dir_path.name, "type": "DIR", "children": []}
@@ -171,8 +182,17 @@ class FileMetadataExtractor:
 
     def print_tree(self, node, prefix = " "):
         """
-        Run through the tree nodes and reformats them in to a readable formatt
+        Recursively print a formatted, human-readable representation of the
+        directory tree and its associated metadata.
+
+        Args:
+            node: A dictionary node representing a file or directory in the tree.
+            prefix: A string prefix used to visually format the tree structure.
+
+        Returns:
+            None: This method prints output directly to the console.
         """
+
         if node is None:
             return
         
@@ -191,12 +211,16 @@ class FileMetadataExtractor:
             self.print_tree(child, nprefix)
 
     def print_hierarchy(self, File_Path):
-
         """
-        Prints the directory tree and metadata for the given path.
+        Generate and print the directory hierarchy starting from the root
+        directory associated with this extractor.
 
         Args:
-            file_path (Path): The root path to print.
+            File_Path: Path provided for interface consistency; the instance
+            root directory is used for printing.
+
+        Returns:
+            None: This method prints the directory hierarchy to the console.
         """
         #outputs code in the same readable format as before
         tree_data = self.tree(self.dir_path)

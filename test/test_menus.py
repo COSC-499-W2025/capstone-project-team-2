@@ -60,9 +60,13 @@ def test_analyze_project_menu_zip_invokes_extract_and_analyze(monkeypatch):
             "data", (path)
         ),
     )
+    # mocks for the thumbnail flow
+    monkeypatch.setattr(mod, "list_project_insights", lambda storage_path: [])
+    monkeypatch.setattr(mod, "prompt_thumbnail_upload", lambda project_id, project_name, ctx: False)
 
     ctx = SimpleNamespace(
-        external_consent=False
+        external_consent=False,
+        legacy_save_dir=Path("/tmp")
     )
     mod.analyze_project_menu(ctx)
 
@@ -503,3 +507,156 @@ def _initialize_insights_from_saved_files(
         except Exception:
             # don't crash initialization if one file is malformed
             continue
+        
+def test_prompt_thumbnail_upload_success(monkeypatch, tmp_path):
+    """Test successful thumbnail upload flow."""
+    # Setup
+    thumbnail_dir = tmp_path / "thumbnails"
+    thumbnail_dir.mkdir()
+    
+    # Create a fake image file
+    fake_image = tmp_path / "test_image.png"
+    fake_image.write_bytes(b'\x89PNG\r\n\x1a\n' + b'\x00' * 100)  # Minimal PNG header
+    
+    storage_path = tmp_path / "project_insights.json"
+    storage_path.write_text('[{"id": "test-uuid-123", "project_name": "TestProject"}]')
+    
+    # Mock inputs: 'y' to add thumbnail, path to image
+    monkeypatch.setattr("builtins.input", _inputs(["y", str(fake_image)]))
+    
+    # Mock ThumbnailManager
+    mock_thumb_path = thumbnail_dir / "test-uuid-123.png"
+    monkeypatch.setattr(
+        mod,
+        "ThumbnailManager",
+        lambda storage_dir: SimpleNamespace(
+            validate_image=lambda p: (True, None),
+            add_thumbnail=lambda project_id, image_path, resize: (True, None, mock_thumb_path),
+        ),
+    )
+    
+    # Mock update_thumbnail_in_insights
+    called = {}
+    monkeypatch.setattr(
+        mod,
+        "update_thumbnail_in_insights",
+        lambda pid, path, spath: called.setdefault("called", (pid, path)),
+    )
+    
+    ctx = SimpleNamespace(legacy_save_dir=tmp_path)
+    
+    result = mod.prompt_thumbnail_upload("test-uuid-123", "TestProject", ctx)
+    
+    assert result is True
+    assert called["called"][0] == "test-uuid-123"
+
+
+def test_prompt_thumbnail_upload_declined(monkeypatch, tmp_path):
+    """Test user declining thumbnail upload."""
+    monkeypatch.setattr("builtins.input", _inputs(["n"]))
+    
+    ctx = SimpleNamespace(legacy_save_dir=tmp_path)
+    result = mod.prompt_thumbnail_upload("test-uuid", "TestProject", ctx)
+    
+    assert result is False
+
+
+def test_prompt_thumbnail_upload_cancelled(monkeypatch, tmp_path):
+    """Test user cancelling during path input."""
+    monkeypatch.setattr("builtins.input", _inputs(["y", "cancel"]))
+    
+    # Mock ThumbnailManager
+    monkeypatch.setattr(
+        mod,
+        "ThumbnailManager",
+        lambda storage_dir: SimpleNamespace(),
+    )
+    
+    ctx = SimpleNamespace(legacy_save_dir=tmp_path)
+    result = mod.prompt_thumbnail_upload("test-uuid", "TestProject", ctx)
+    
+    assert result is False
+
+
+def test_analyze_project_menu_directory_invokes_analyze(monkeypatch):
+    """Directory option routes to analyze_project with input path."""
+    called = {}
+    monkeypatch.setattr("builtins.input", _inputs(["1"]))
+    monkeypatch.setattr(mod, "input_path", lambda prompt, allow_blank=False: Path("/tmp/project"))
+    monkeypatch.setattr(
+        mod,
+        "analyze_project",
+        lambda path, ctx, use_ai_analysis=False: called.setdefault("path", path),
+    )
+    # Add these new mocks for the thumbnail flow
+    monkeypatch.setattr(mod, "list_project_insights", lambda storage_path: [])
+    monkeypatch.setattr(mod, "prompt_thumbnail_upload", lambda project_id, project_name, ctx: False)
+
+    ctx = SimpleNamespace(
+        external_consent=False,
+        legacy_save_dir=Path("/tmp")  # Add this
+    )
+    mod.analyze_project_menu(ctx)
+
+    assert called["path"] == Path("/tmp/project")
+
+def test_remove_thumbnail_workflow_unpacks_tuple_correctly(monkeypatch, tmp_path):
+    """Test that _remove_thumbnail_workflow correctly unpacks the (insight, thumb_path) tuple."""
+    storage_path = tmp_path / "project_insights.json"
+    
+    # Create mock insight with thumbnail
+    mock_insight = SimpleNamespace(
+        id="test-uuid",
+        project_name="TestProject",
+        thumbnail={"exists": True, "path": "/some/path.png"}
+    )
+    
+    monkeypatch.setattr(
+        mod,
+        "list_project_insights",
+        lambda storage_path: [mock_insight],
+    )
+    
+    # Track calls
+    called = {}
+    
+    mock_thumbnail_manager = SimpleNamespace(
+        get_thumbnail_path=lambda pid: Path("/fake/thumb.png") if pid == "test-uuid" else None,
+        delete_thumbnail=lambda pid: called.setdefault("deleted", pid) or True,
+    )
+    
+    monkeypatch.setattr(
+        mod,
+        "remove_thumbnail_from_insights",
+        lambda pid, spath: called.setdefault("removed", pid),
+    )
+    
+    # User selects project 1, confirms deletion
+    monkeypatch.setattr("builtins.input", _inputs(["1", "y", ""]))
+    
+    mod._remove_thumbnail_workflow(storage_path, mock_thumbnail_manager)
+    
+    assert called.get("deleted") == "test-uuid"
+    assert called.get("removed") == "test-uuid"
+
+
+def test_thumbnail_management_menu_uses_correct_storage_dir(monkeypatch, tmp_path):
+    """Ensure thumbnail_management_menu passes correct storage_dir to ThumbnailManager."""
+    captured = {}
+    
+    class MockThumbnailManager:
+        def __init__(self, storage_dir=None):
+            captured["storage_dir"] = storage_dir
+    
+    monkeypatch.setattr(mod, "ThumbnailManager", MockThumbnailManager)
+    monkeypatch.setattr("builtins.input", _inputs(["0"]))  # Exit immediately
+    
+    # Create the insights file so it doesn't try to initialize
+    storage_path = tmp_path / "project_insights.json"
+    storage_path.write_text("[]")
+    
+    ctx = SimpleNamespace(legacy_save_dir=tmp_path)
+    mod.thumbnail_management_menu(ctx)
+    
+    expected_dir = tmp_path / "thumbnails"
+    assert captured["storage_dir"] == expected_dir

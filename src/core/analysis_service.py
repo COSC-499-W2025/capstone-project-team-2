@@ -16,8 +16,12 @@ from src.storage.file_data_saving import SaveFileAnalysisAsJSON
 from src.core.ai_data_scrubbing import ai_data_scrubber
 from src.core.AI_analysis_code import codeAnalysisAI
 from src.utils.utility_methods import *
-
-#Method is needed in CLI but should not be here
+from src.core.document_analysis import DocumentAnalyzer
+from src.reporting.portfolio_service import (
+    load_portfolio_showcase,
+    build_portfolio_showcase,
+    display_portfolio_showcase,
+)
 
 def extract_if_zip(zip_path: Path) -> Path:
     """
@@ -62,7 +66,7 @@ def oop_analysis(root: Path, languages_found) -> Dict[str, Any] | None:
         languages_found: Languages found in project
 
     Returns:
-        dict | None: OOP metrics if executed, otherwise None.
+        Dict[str, Any] | None: OOP metrics when run, otherwise None.
     """
 
     # Check if project has Python, Java, C, or JavaScript
@@ -87,11 +91,11 @@ def export_json(project_name: str, analysis: Dict[str, Any]) -> str | None:
     Persist analyzed project to disk and database.
 
     Args:
-        project_name (str): Name used for output filename.
+        project_name (str): Filename stem for the saved JSON.
         analysis (Dict[str, Any]): Serializable analysis payload.
 
     Returns:
-        Error string or none (Errors not passed yet)
+        Error string or none (Errors not passed yet). Writes to filesystem/DB.
     """
 
     out_dir = Path(runtimeAppContext.default_save_dir).resolve()
@@ -132,6 +136,8 @@ def analyze_project(root: Path, use_ai_analysis=False) -> None:
     duration = str(Project_Duration_Estimator(hierarchy).get_duration()) #Project duration estimate
     resume = generate_resume_item(root, project_name=display_name)
 
+    doc_analysis = DocumentAnalyzer(root).analyze()
+    
     #AI analysis performance through ollama
     ai_analysis = None
     if use_ai_analysis == True:
@@ -153,6 +159,7 @@ def analyze_project(root: Path, use_ai_analysis=False) -> None:
     analysis: Dict[str, Any] = {
         "project_root": str(root),
         "hierarchy": hierarchy,
+        "document_analysis": doc_analysis,
         "duration_estimate": duration,
         "resume_item": {
             "project_name": resume.project_name,
@@ -184,6 +191,16 @@ def analyze_project(root: Path, use_ai_analysis=False) -> None:
     if oop_metrics is not None:
         analysis["oop_analysis"] = oop_metrics
 
+    portfolio_yaml = load_portfolio_showcase(display_name)
+    
+    portfolio_input = {
+        "resume_item": analysis.get("resume_item", {}),
+        "contributors": analysis.get("contributors"),
+        "oop_analysis": analysis.get("oop_analysis"),
+    }
+        
+    ps = build_portfolio_showcase(portfolio_input, portfolio_yaml)   
+     
     #Project insights likely needs to be rebuilt
     #try:
     #    insight = record_project_insight(
@@ -202,5 +219,3 @@ def analyze_project(root: Path, use_ai_analysis=False) -> None:
     #    display_portfolio_showcase(ps)
     #    return
     export_json(display_name, analysis)
-
-

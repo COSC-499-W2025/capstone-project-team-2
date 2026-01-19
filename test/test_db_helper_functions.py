@@ -25,12 +25,25 @@ OK
 
 
 class TestHelperFunct(unittest.TestCase):
-
+    """
+    Unit test suite for validating database operations performed by the
+    HelperFunct class, including insert, fetch, update, and delete behavior
+    against a MySQL-backed project_data table.
+    """
     
 
     @classmethod
     def setUpClass(cls):
-        """Create a single MySQL connection and HelperFunct instance."""
+        """
+        Create a shared MySQL database connection and HelperFunct instance
+        used across all tests in this test suite.
+
+        Args:
+            None: This class method does not take any parameters.
+
+        Returns:
+            None: Initializes shared database resources for the test class.
+        """
         cls.conn = mysql.connector.connect(
             host="app_database",
             port=3306,
@@ -42,10 +55,27 @@ class TestHelperFunct(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        """
+        Close the shared MySQL database connection after all tests have run.
+
+        Args:
+            None: This class method does not take any parameters.
+
+        Returns:
+            None: Cleans up shared database resources.
+        """
         cls.conn.close()
 
     def setUp(self):
-        """Clean the table before each test."""
+        """
+        Reset the project_data table to a clean state before each test runs.
+
+        Args:
+            None: This method does not take any parameters.
+
+        Returns:
+            None: Ensures each test runs with an empty database table.
+        """
         cursor = self.conn.cursor()
         cursor.execute("DELETE FROM project_data;")
         self.conn.commit()
@@ -53,7 +83,16 @@ class TestHelperFunct(unittest.TestCase):
 
     # -------------------- Insert & Fetch --------------------
     def test_insert_json_dict_and_fetch_by_id(self):
-        """Insert a dict and fetch by ID."""
+        """
+        Verify that inserting JSON content as a dictionary and fetching it
+        by row ID returns the correct structured data and matching binary blob.
+
+        Args:
+            None: This test does not take any parameters.
+
+        Returns:
+            None: Assertions are used to validate expected behavior.
+        """
         data = {"name": "alpha", "value": 123}
         row_id = self.store.insert_json("alpha.json", data)
         pulled = self.store.fetch_by_id(row_id)
@@ -64,7 +103,16 @@ class TestHelperFunct(unittest.TestCase):
         self.assertEqual(pulled_bytes, json.dumps(data).encode("utf-8"))
 
     def test_insert_json_bytes_and_fetch_by_id(self):
-        """Insert raw bytes and ensure content and blob are synced."""
+        """
+        Verify that inserting raw JSON bytes results in synchronized content
+        and file blob storage that can be correctly retrieved.
+
+        Args:
+            None: This test does not take any parameters.
+
+        Returns:
+            None: Assertions are used to validate expected behavior.
+        """
         data = {"project": "demo", "ok": True}
         raw_bytes = json.dumps(data).encode("utf-8")
         row_id = self.store.insert_json("demo.json", data, raw_bytes=raw_bytes)
@@ -78,7 +126,16 @@ class TestHelperFunct(unittest.TestCase):
         self.assertEqual(pulled_bytes, raw_bytes)
 
     def test_fetch_all(self):
-        """Insert multiple rows and fetch all."""
+        """
+        Verify that multiple inserted records can be retrieved using the
+        fetch_all method and that all stored JSON entries are returned.
+
+        Args:
+            None: This test does not take any parameters.
+
+        Returns:
+            None: Assertions are used to validate expected behavior.
+        """
         self.store.insert_json("a.json", {"a": 1})
         self.store.insert_json("b.json", {"b": 2})
         all_rows = self.store.fetch_all()
@@ -88,7 +145,16 @@ class TestHelperFunct(unittest.TestCase):
 
     # -------------------- Update --------------------
     def test_update_with_dict(self):
-        """Update a row using a dict; content and blob should match."""
+        """
+        Verify that updating a database record using a dictionary correctly
+        updates both the JSON content and binary blob fields.
+
+        Args:
+            None: This test does not take any parameters.
+
+        Returns:
+            None: Assertions are used to validate expected behavior.
+        """
         row_id = self.store.insert_json("up.json", {"before": True})
         updated = self.store.update(row_id, {"after": True})
         self.assertTrue(updated)
@@ -100,7 +166,16 @@ class TestHelperFunct(unittest.TestCase):
         self.assertEqual(pulled_blob, json.dumps({"after": True}).encode("utf-8"))
 
     def test_update_with_bytes(self):
-        """Update a row using raw bytes; content and blob should match."""
+        """
+        Verify that updating a database record using raw JSON bytes correctly
+        synchronizes the stored content and binary blob.
+
+        Args:
+            None: This test does not take any parameters.
+
+        Returns:
+            None: Assertions are used to validate expected behavior.
+        """
         row_id = self.store.insert_json("up.json", {"before": True})
         new_data = {"updated": 42}
         new_bytes = json.dumps(new_data).encode("utf-8")
@@ -114,7 +189,16 @@ class TestHelperFunct(unittest.TestCase):
 
     # -------------------- Delete --------------------
     def test_delete_row(self):
-        """Insert a row and then delete it."""
+        """
+        Verify that deleting a database record removes both its JSON content
+        and associated binary blob from the database.
+
+        Args:
+            None: This test does not take any parameters.
+
+        Returns:
+            None: Assertions are used to validate expected behavior.
+        """
         row_id = self.store.insert_json("delete.json", {"exists": True})
         deleted = self.store.delete(row_id)
         self.assertTrue(deleted)
