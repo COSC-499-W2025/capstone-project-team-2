@@ -409,6 +409,7 @@ class RenderCVDocument:
         """
          Render the YAML file to PDF using the RenderCV command-line tool.
         Cleans up any existing output directory before rendering.
+        Renames the output PDF to include 'Resume' or 'Portfolio' based on document type.
 
         Returns:
             tuple[str, Optional[Path]]: A tuple containing:
@@ -431,7 +432,11 @@ class RenderCVDocument:
         result= subprocess.run(['rendercv', 'render', str(self.yaml_file)],capture_output=True,text=True, encoding='utf-8',errors='replace')
 
         if source_pdf.exists():
-            return "successfully rendered", source_pdf
+            # Rename PDF to include document type (Resume or Portfolio)
+            doc_type_label = "Resume" if self.doc_type == 'resume' else "Portfolio"
+            renamed_pdf = default_output / f"{self.name}_{doc_type_label}.pdf"
+            source_pdf.rename(renamed_pdf)
+            return "successfully rendered", renamed_pdf
         else:
             if result.returncode !=0:
                 return f"render failed (code {result.returncode}): {result.stderr}", None
