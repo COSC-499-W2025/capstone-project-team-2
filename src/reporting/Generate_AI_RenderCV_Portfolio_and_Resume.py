@@ -197,7 +197,7 @@ class RenderCVDocument:
         self.current_education: Optional[List[dict]] = None
         self.current_connections: Optional[List[dict]] = None
         self.current_skills: Optional[List[dict]] = None
-        self.resume_sections: Optional[List[str]] = None
+        self.sections: Optional[List[str]] = None
         self.name: Optional[str] = None
         self.data: Optional[dict] = None
         self.chosen_theme: str = "sb2nov"
@@ -360,9 +360,9 @@ class RenderCVDocument:
 
         sections=self.data['cv']['sections']
         section_keys=list(sections.keys())
-        self.resume_sections=section_keys[1:] if section_keys[0]=='name' else []
-        self.current_education=sections.get('projects', [])
-        self.current_projects=self.data['cv'].get('social_networks', [])
+        self.sections=section_keys[1:] if section_keys[0]=='name' else []
+        self.current_projects=sections.get('projects', [])
+        self.current_connections=self.data['cv'].get('social_networks', [])
         self.data['cv']['name'] = str(self.name).replace("_", " ")
 
         if self.doc_type == 'resume':
@@ -374,8 +374,254 @@ class RenderCVDocument:
         return self.data
 
 
+    def save(self,filename:Optional[str] = None):
+        """
+
+        :param filename:
+        :return:
+        """
+        if self.data is None:
+            raise ValueError("No data loaded")
+
+        output_file=Path(filename) if filename else self.yaml_file
+        with open(self.yaml_file, 'w') as f:
+            self.yaml.dump(self.data, f)
+
+        return output_file
+
+    def _auto_save_if_enabled(self)-> None:
+        """
+        Automatically saves the data if auto_save is enabled.
+        called internally after each modification method.
+
+        Returns:
+            None: This method does not return anything.
+
+        """
+        if self.auto_save and self.data is not None:
+            self.save()
 
 
+    def render(self) -> tuple[str,Optional[Path]]:
+        """
+         Render the YAML file to PDF using the RenderCV command-line tool.
+        Cleans up any existing output directory before rendering.
+
+        Returns:
+            tuple[str, Optional[Path]]: A tuple containing:
+                - Status message ("successfully rendered" or error description)
+                - Path to the generated PDF file, or None if rendering failed
+
+        Raises:
+            FileNotFoundError: If the YAML file does not exist
+        """
+        if not self.yaml_file or not self.yaml_file.exists():
+            raise FileNotFoundError(f"YAML file {self.yaml_file} does not exist")
+
+        yaml_file_absolute=self.yaml_file.resolve()
+        default_output=yaml_file_absolute.parent / "rendercv_output"
+        source_pdf = default_output / f"{self.name}_CV.pdf"
+
+        if default_output.exists():
+            shutil.rmtree(default_output)
+
+        result= subprocess.run(['rendercv', 'render', str(self.yaml_file)],capture_output=True,text=True, encoding='utf-8',errors='replace')
+
+        if source_pdf.exists():
+            return "successfully rendered", source_pdf
+        else:
+            if result.returncode !=0:
+                return f"render failed (code {result.returncode}): {result.stderr}", None
+            return f"render failed - PDF not found at {source_pdf}", None
+
+# ============== CONTACT & THEME ==============
+    @requires_data
+    def update_contact(self,email: Optional[str] = None,phone: Optional[str] = None,location: Optional[str] = None,website: Optional[str] = None,name: Optional[str] = None):
+        """
+
+        :param email:
+        :param phone:
+        :param location:
+        :param website:
+        :param name:
+        :return:
+        """
+        cv=self.data['cv']
+        fields = {'email': email, 'phone': phone, 'location': location, 'website': website, 'name': name}
+        for field_name,value in fields.items():
+            if value and str(value).strip():
+                cv[field_name] = value
+        self._auto_save_if_enabled()
+        return self
+    @requires_data
+    def update_theme(self,selected_theme:str):
+        """
+
+        :param selected_theme:
+        :return:
+        """
+        if selected_theme not in self.THEMES:
+            available = ', '.join(self.THEMES.keys())
+            raise ValueError(f"Invalid theme '{selected_theme}'. Available: {available}")
+
+        self.data['design']['theme'] = selected_theme
+        self._auto_save_if_enabled()
+        return f"Successfully updated theme '{selected_theme}'"
+
+    # ============== PROJECTS (shared) ==============
+    @requires_data
+    def add_project(self,project_info: Project):
+        """
+
+        :param project_info:
+        :return:
+        """
+        if not project_info.name or not project_info.name.strip():
+            return "Project name cannot be empty"
+
+        if 'project' not in self.sections:
+            self.sections['project'] = []
+            self.current_projects=self.sections['projects']
+
+        existing = [p['name'] for p in self.current_projects]
+        if project_info.name  in existing:
+            return f"Project '{project_info.name}' already exists"
+        self.current_projects.append(project_info.to_dict())
+        self._auto_save_if_enabled()
+        return "Successfully added project '{project_info.name}' "
+
+    @requires_data
+    def modify_project(self, project_name: str, field: str, new_value):
+        """
+
+        :param project_name:
+        :param field:
+        :param new_value:
+        :return:
+        """
+        valid_fields = ["name", "start_date", "end_date", "location", "summary", "highlights"]
+        if field not in valid_fields:
+            return f"Invalid field '{field}'. Valid: {', '.join(valid_fields)}"
+
+        project = next((p for p in self.current_projects if p.get("name") == project_name), None)
+        if project is None:
+            return f"Project '{project_name}' not found"
+
+        project[field] = new_value
+        self._auto_save_if_enabled()
+        return f"Successfully modified {field}"
+
+    @requires_data
+    def remove_project(self,project_name: str):
+        """
+
+        :param project_name:
+        :return:
+        """
+        if 'projects' not in self.sections or not self.current_projects:
+            return "No projects to delete"
+
+        project = next((p for p in self.current_projects if p.get('name') == project_name), None)
+        if project is None:
+            return f"Project '{project_name}' not found"
+
+        self.current_projects.remove(project)
+        self._auto_save_if_enabled()
+        return f"Successfully deleted: {project_name}"
+
+    @requires_data
+    def add_project_from_ai(self, project_folder: str) -> str:
+        """
+        Generate project information using AI analysis and add it to the projects section.
+        Reads project insight data and uses GenerateProjectResume to create content.
+
+        Args:
+            project_folder: Path to the project insight JSON file containing 'project_root' key
+
+        Returns:
+            str: Result from add_project() - success message with project name or error message
+        """
+        with open(project_folder, 'rb') as f:
+            data = orjson.loads(f.read())
+
+        project_loc = data.get('project_root')
+        ai_resume = GenerateProjectResume(project_loc).generate()
+
+        summary = ai_resume.one_sentence_summary
+        if ai_resume.tech_stack:
+            summary = f"{summary} Tech stack: {ai_resume.tech_stack}"
+
+        project = Project(
+            name=ai_resume.project_title,
+            summary=summary,
+            highlights=ai_resume.key_responsibilities,
+        )
+        print(f"✓ AI analysis complete for: {ai_resume.project_title}")
+        return self.add_project(project)
+
+    @requires_data
+    def add_connection(self,connection_info: ConnectionInfo):
+        """
+
+        :param connection_info:
+        :return:
+        """
+        if not connection_info.network or not connection_info.network.strip():
+            return "Network name cannot be empty"
+
+        if "social_networks" not in self.data['cv']:
+            self.data['cv']['social_networks'] = []
+            self.current_connections = self.data['cv']['social_networks']
+
+        existing = [c['network'] for c in self.current_connections]
+        if connection_info.network in existing:
+            return f"Connection '{connection_info.network}' already exists"
+
+        self.current_connections.append(connection_info.to_dict())
+        self._auto_save_if_enabled()
+        return f"Successfully added: {connection_info.network}"
+
+    @requires_data
+    def modify_connection(self, network_name: str, new_username: str) -> str:
+        """
+        Modify the username for an existing social network connection.
+
+        Args:
+            network_name: The exact name of the network to modify (e.g., "GitHub", "LinkedIn")
+            new_username: The new username or profile identifier to set
+
+        Returns:
+            str: Success message confirming the update, or error message if network not found
+        """
+        connection = next((c for c in self.current_connections if c.get("network") == network_name), None)
+        if connection is None:
+            return f"Connection '{network_name}' not found"
+
+        connection["username"] = new_username
+        self._auto_save_if_enabled()
+        return f"Successfully updated: {network_name}"
+
+    @requires_data
+    def remove_connection(self, network_name: str) -> str:
+        """
+        Remove a social network connection from the CV header.
+
+        Args:
+            network_name: The exact name of the network to remove (e.g., "GitHub", "LinkedIn")
+
+        Returns:
+            str: Success message confirming deletion, or error message if no connections exist or network not found
+        """
+        if not self.current_connections:
+            return "No connections to delete"
+
+        connection = next((c for c in self.current_connections if c.get("network") == network_name), None)
+        if connection is None:
+            return f"Connection '{network_name}' not found"
+
+        self.current_connections.remove(connection)
+        self._auto_save_if_enabled()
+        return f"Successfully deleted: {network_name}"
 
 
 
