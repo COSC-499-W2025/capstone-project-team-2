@@ -374,9 +374,14 @@ class RenderCVDocument:
 
     def save(self,filename:Optional[str] = None):
         """
+        Save the current CV data to a YAML file.
+        Writes the in-memory data structure back to disk.
 
-        :param filename:
-        :return:
+        Args:
+            filename: Optional custom filename to save to; if None, saves to the original file path
+
+        Returns:
+            Path: The path to the saved file
         """
         if self.data is None:
             raise ValueError("No data loaded")
@@ -436,13 +441,18 @@ class RenderCVDocument:
     @requires_data
     def update_contact(self,email: Optional[str] = None,phone: Optional[str] = None,location: Optional[str] = None,website: Optional[str] = None,name: Optional[str] = None):
         """
+        Update contact information fields in the CV header.
+        Only non-empty values will be updated; None or empty strings are ignored.
 
-        :param email:
-        :param phone:
-        :param location:
-        :param website:
-        :param name:
-        :return:
+        Args:
+            email: Email address to display (e.g., "john@example.com")
+            phone: Phone number with country code (e.g., "+1 234 567 8901")
+            location: City and state/country (e.g., "New York, NY")
+            website: Personal website URL (e.g., "https://johndoe.com")
+            name: Full name to display at the top of the CV
+
+        Returns:
+            RenderCVDocument: Returns self to enable method chaining
         """
         cv=self.data['cv']
         fields = {'email': email, 'phone': phone, 'location': location, 'website': website, 'name': name}
@@ -454,9 +464,14 @@ class RenderCVDocument:
     @requires_data
     def update_theme(self,selected_theme:str):
         """
+        Change the visual theme used for rendering the CV/resume.
+        Validates that the theme is one of the supported RenderCV themes.
 
-        :param selected_theme:
-        :return:
+        Args:
+            selected_theme: Name of the theme to apply (valid: 'classic', 'engineeringclassic', 'engineeringresumes', 'moderncv', 'sb2nov')
+
+        Returns:
+            str: Success message confirming the theme was updated
         """
         if selected_theme not in self.THEMES:
             available = ', '.join(self.THEMES.keys())
@@ -470,9 +485,15 @@ class RenderCVDocument:
     @requires_data
     def add_project(self,project_info: Project):
         """
+        Add a new project entry to the projects section.
+        Available for both resume and portfolio document types. Creates the section if it doesn't exist.
+        Prevents duplicate project names.
 
-        :param project_info:
-        :return:
+        Args:
+            project_info: Project dataclass instance with name (required), and optional start_date, end_date, location, summary, highlights
+
+        Returns:
+            str: Success message with project name, or error if name is empty or duplicate
         """
         if not project_info.name or not project_info.name.strip():
             return "Project name cannot be empty"
@@ -491,11 +512,16 @@ class RenderCVDocument:
     @requires_data
     def modify_project(self, project_name: str, field: str, new_value):
         """
+        Modify a specific field of an existing project entry.
+        Available for both resume and portfolio document types.
 
-        :param project_name:
-        :param field:
-        :param new_value:
-        :return:
+        Args:
+            project_name: The exact name of the project to modify
+            field: The field to update (valid: "name", "start_date", "end_date", "location", "summary", "highlights")
+            new_value: The new value to set for the field (type depends on field)
+
+        Returns:
+            str: Success message confirming the field was modified, or error if field is invalid or project not found
         """
         valid_fields = ["name", "start_date", "end_date", "location", "summary", "highlights"]
         if field not in valid_fields:
@@ -512,9 +538,14 @@ class RenderCVDocument:
     @requires_data
     def remove_project(self,project_name: str):
         """
+        Remove a project entry by its name.
+        Available for both resume and portfolio document types.
 
-        :param project_name:
-        :return:
+        Args:
+            project_name: The exact name of the project to remove
+
+        Returns:
+            str: Success message confirming deletion, or error if no projects exist or project not found
         """
         if 'projects' not in self.sections or not self.current_projects:
             return "No projects to delete"
@@ -560,9 +591,14 @@ class RenderCVDocument:
     @requires_data
     def add_connection(self,connection_info: Connections):
         """
+        Add a new social network connection to the CV header.
+        Creates the social_networks section if it doesn't exist. Prevents duplicate networks.
 
-        :param connection_info:
-        :return:
+        Args:
+            connection_info: Connections dataclass instance with network name (required) and username
+
+        Returns:
+            str: Success message with network name, or error if network name is empty or duplicate
         """
         if not connection_info.network or not connection_info.network.strip():
             return "Network name cannot be empty"
