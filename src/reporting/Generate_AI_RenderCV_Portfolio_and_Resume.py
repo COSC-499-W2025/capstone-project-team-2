@@ -332,7 +332,7 @@ class RenderCVDocument:
         """
         Loads an existing YAML file into memory for editing
         Parses the file and caches section data for easy access
-        
+
         Args:
             name: Optional name to load a specific file; if None, uses the previously set name from generate()
 
