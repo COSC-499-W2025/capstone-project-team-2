@@ -790,13 +790,13 @@ class RenderCVDocument:
 
         Args:
             institution_name: The exact institution name of the education entry to modify
-            field: The field to update (valid: "institution", "area", "degree", "start_date", "end_date", "location", "highlights")
+            field: The field to update (valid: "institution", "area", "degree", "start_date", "end_date", "location", "gpa", "highlights")
             new_value: The new value to set for the field (type depends on field)
 
         Returns:
             str: Success message confirming the field was modified, or error if field is invalid or institution not found
         """
-        valid_fields = ["institution", "area", "degree", "start_date", "end_date", "location", "highlights"]
+        valid_fields = ["institution", "area", "degree", "start_date", "end_date", "location", "gpa", "highlights"]
         if field not in valid_fields:
             return f"Invalid field '{field}'. Valid: {', '.join(valid_fields)}"
 
