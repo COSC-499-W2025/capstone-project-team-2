@@ -65,7 +65,7 @@ def requires_resume(method):
 #==================DATACLASSES====================
 
 @dataclass
-class Expereince:
+class Experience:
     """Represents a Work experience entry
 
     Attributes:
@@ -197,7 +197,7 @@ class RenderCVDocument:
         self.current_education: Optional[List[dict]] = None
         self.current_connections: Optional[List[dict]] = None
         self.current_skills: Optional[List[dict]] = None
-        self.sections: Optional[List[str]] = None
+        self.sections: Optional[dict] = None
         self.name: Optional[str] = None
         self.data: Optional[dict] = None
         self.chosen_theme: str = "sb2nov"
@@ -310,7 +310,7 @@ class RenderCVDocument:
         Returns:
             str: "Success" if file was created, "Skipping generation" if file already exists and overwrite is False
         """
-        self.name.replace(" ", "_")
+        self.name = name.replace(" ", "_")
         self.cv_files_dir.mkdir(parents=True, exist_ok=True)
         self.yaml_file = self.cv_files_dir / f"{self.name}_{self._file_suffix}.yaml"
 
@@ -358,18 +358,16 @@ class RenderCVDocument:
         if self.data.get('cv') is None:
             raise ValueError("Invalid YAML structure: missing required 'cv' key")
 
-        sections=self.data['cv']['sections']
-        section_keys=list(sections.keys())
-        self.sections=section_keys[1:] if section_keys[0]=='name' else []
-        self.current_projects=sections.get('projects', [])
+        self.sections=self.data['cv']['sections']
+        self.current_projects=self.sections.get('projects', [])
         self.current_connections=self.data['cv'].get('social_networks', [])
         self.data['cv']['name'] = str(self.name).replace("_", " ")
 
         if self.doc_type == 'resume':
-            self.current_education=sections.get('education', [])
-            self.current_skills=sections.get('skills', [])
-            self.current_experience=sections.get('experience',[])
-            self.summary = sections.get('summary', [])
+            self.current_education=self.sections.get('education', [])
+            self.current_skills=self.sections.get('skills', [])
+            self.current_experience=self.sections.get('experience',[])
+            self.summary = self.sections.get('summary', [])
 
         return self.data
 
@@ -479,8 +477,8 @@ class RenderCVDocument:
         if not project_info.name or not project_info.name.strip():
             return "Project name cannot be empty"
 
-        if 'project' not in self.sections:
-            self.sections['project'] = []
+        if 'projects' not in self.sections:
+            self.sections['projects'] = []
             self.current_projects=self.sections['projects']
 
         existing = [p['name'] for p in self.current_projects]
@@ -488,7 +486,7 @@ class RenderCVDocument:
             return f"Project '{project_info.name}' already exists"
         self.current_projects.append(project_info.to_dict())
         self._auto_save_if_enabled()
-        return "Successfully added project '{project_info.name}' "
+        return f"Successfully added project '{project_info.name}'"
 
     @requires_data
     def modify_project(self, project_name: str, field: str, new_value):
@@ -560,7 +558,7 @@ class RenderCVDocument:
         return self.add_project(project)
 
     @requires_data
-    def add_connection(self,connection_info: ConnectionInfo):
+    def add_connection(self,connection_info: Connections):
         """
 
         :param connection_info:
