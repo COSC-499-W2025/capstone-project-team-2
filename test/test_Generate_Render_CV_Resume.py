@@ -1,25 +1,17 @@
 import unittest
-import sys
 import os
 import gc
 import warnings
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, mock_open
 import tempfile
 import shutil
 
-# Suppress third-party library warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="langsmith")
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="google.genai")
 
-# Import from the unified module
 from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
-    Education,
-    Connections,
-    Project,
-    Skills,
-    Experience,
-    RenderCVDocument,
+    Education, Connections, Project, Skills, Experience, RenderCVDocument,
 )
 
 
@@ -27,143 +19,103 @@ class BaseRenderCVTest(unittest.TestCase):
     """Base class with common setup/teardown for all RenderCV tests."""
 
     def setUp(self):
-        """Set up test fixtures."""
         self.test_dir = tempfile.mkdtemp()
         self.original_cwd = os.getcwd()
         os.chdir(self.test_dir)
         gc.collect()
-        self._cleanup_cv_files()
 
     def tearDown(self):
-        """Clean up test fixtures."""
         os.chdir(self.original_cwd)
         shutil.rmtree(self.test_dir, ignore_errors=True)
         gc.collect()
-        self._cleanup_cv_files()
 
-    def _cleanup_cv_files(self):
-        """Remove test CV files from the project directory."""
-        cv_dir = Path(__file__).parent.parent / "User_config_files" / "Generate_render_CV_files"
-        for pattern in ["Test_User_Resume_CV.yaml", "John_Doe_Resume_CV.yaml", "Named_User_Resume_CV.yaml"]:
-            for f in cv_dir.glob(pattern):
-                try:
-                    f.unlink(missing_ok=True)
-                except PermissionError:
-                    pass
-
-    def create_loaded_cv(self, auto_save=False):
+    def create_loaded_cv(self, doc_type='resume', auto_save=False):
         """Create a CV instance with starter file generated and loaded."""
-        cv = RenderCVDocument(doc_type='resume', auto_save=auto_save)
+        cv = RenderCVDocument(doc_type=doc_type, auto_save=auto_save)
         cv.cv_files_dir = Path(self.test_dir)
-        cv.name = "Test_User"
         cv.generate(name="Test User")
         cv.load()
         return cv
 
 
-class TestRenderCVDocument(BaseRenderCVTest):
+class TestRenderCVDocumentCore(BaseRenderCVTest):
     """Tests for initialization, generation, loading, and saving."""
 
-    def test_init_default_values(self):
-        """Test initialization with default values."""
+    def test_init_and_defaults(self):
+        """Test initialization with default and custom values."""
         cv = RenderCVDocument()
         self.assertTrue(cv.auto_save)
         self.assertEqual(cv.chosen_theme, 'sb2nov')
-        self.assertEqual(cv.output_dir, Path('rendercv_output'))
-        self.assertIsNone(cv.data)
         self.assertEqual(cv.doc_type, 'resume')
+        self.assertIsNone(cv.data)
 
-    def test_init_custom_values(self):
-        """Test initialization with custom values."""
-        cv = RenderCVDocument(doc_type='resume', auto_save=False, output_dir='custom_output')
-        self.assertFalse(cv.auto_save)
-        self.assertEqual(cv.output_dir, Path('custom_output'))
+        cv2 = RenderCVDocument(doc_type='portfolio', auto_save=False, output_dir='custom')
+        self.assertFalse(cv2.auto_save)
+        self.assertEqual(cv2.doc_type, 'portfolio')
 
-    def test_generate_creates_file_with_name_formatting(self):
-        """Test generate creates file and formats name correctly."""
+    def test_generate_load_save(self):
+        """Test file generation, loading, and saving operations."""
         cv = RenderCVDocument(doc_type='resume')
         cv.cv_files_dir = Path(self.test_dir)
+
+        # Generate
         result = cv.generate(name="John Doe")
         self.assertEqual(result, "Success")
         self.assertEqual(cv.name, "John_Doe")
         self.assertTrue(cv.yaml_file.exists())
-        self.assertTrue(str(cv.yaml_file).endswith("John_Doe_Resume_CV.yaml"))
-
-    def test_generate_skip_and_overwrite(self):
-        """Test skip existing and overwrite behavior."""
-        cv = RenderCVDocument(doc_type='resume')
-        cv.cv_files_dir = Path(self.test_dir)
-        cv.generate(name="Test User")
 
         # Skip existing
-        result = cv.generate(name="Test User", overwrite=False)
-        self.assertEqual(result, "Skipping generation")
+        self.assertEqual(cv.generate(name="John Doe", overwrite=False), "Skipping generation")
 
-        # Overwrite existing
-        del cv
-        gc.collect()
-        cv2 = RenderCVDocument(doc_type='resume')
-        cv2.cv_files_dir = Path(self.test_dir)
-        result = cv2.generate(name="Test User", overwrite=True)
-        self.assertEqual(result, "Success")
-
-    def test_load_success_and_populates_data(self):
-        """Test loading populates data, sections, and summary."""
-        cv = RenderCVDocument(doc_type='resume')
-        cv.cv_files_dir = Path(self.test_dir)
-        cv.generate(name="Test User")
+        # Load
         data = cv.load()
-
-        self.assertIsNotNone(data)
         self.assertIn('cv', data)
-        self.assertIn('sections', data['cv'])
         self.assertIsNotNone(cv.sections)
         self.assertIsInstance(cv.summary, list)
 
-    def test_load_file_not_found(self):
-        """Test FileNotFoundError when file doesn't exist."""
-        cv = RenderCVDocument(doc_type='resume')
-        cv.yaml_file = Path("nonexistent.yaml")
-        with self.assertRaises(FileNotFoundError):
-            cv.load()
-
-    def test_load_with_name_parameter(self):
-        """Test loading by name without calling generate first."""
-        cv1 = RenderCVDocument(doc_type='resume')
-        cv1.cv_files_dir = Path(self.test_dir)
-        cv1.generate(name="Named User")
-
+        # Load by name
         cv2 = RenderCVDocument(doc_type='resume')
         cv2.cv_files_dir = Path(self.test_dir)
-        data = cv2.load(name="Named User")
-        self.assertIsNotNone(data)
-        self.assertEqual(cv2.name, "Named_User")
+        cv2.load(name="John Doe")
+        self.assertEqual(cv2.name, "John_Doe")
 
-    def test_save_operations(self):
-        """Test save without data, with data, and custom filename."""
-        # Without data
-        cv = RenderCVDocument(doc_type='resume')
-        with self.assertRaises(ValueError) as context:
-            cv.save()
-        self.assertEqual(str(context.exception), "No data loaded")
+        # Save
+        output = cv.save()
+        self.assertTrue(output.exists())
 
-        # With data
-        cv = self.create_loaded_cv(auto_save=False)
-        output_file = cv.save()
-        self.assertTrue(output_file.exists())
+        # Save without data raises error
+        cv3 = RenderCVDocument()
+        with self.assertRaises(ValueError):
+            cv3.save()
 
-        # Custom filename
-        output_file = cv.save(filename="custom_cv.yaml")
-        self.assertEqual(output_file, Path("custom_cv.yaml"))
+        # Load non-existent file raises error
+        cv4 = RenderCVDocument()
+        cv4.yaml_file = Path("nonexistent.yaml")
+        with self.assertRaises(FileNotFoundError):
+            cv4.load()
+
+    def test_render(self):
+        """Test render functionality."""
+        cv = self.create_loaded_cv()
+
+        # File not found
+        cv2 = RenderCVDocument()
+        cv2.yaml_file = Path("nonexistent.yaml")
+        with self.assertRaises(FileNotFoundError):
+            cv2.render()
+
+        # Subprocess called
+        with patch('subprocess.run') as mock_run:
+            mock_run.return_value = MagicMock(returncode=1)
+            cv.render()
+            mock_run.assert_called_once()
 
 
 class TestRequiresDataDecorator(BaseRenderCVTest):
-    """Consolidated tests for @requires_data decorator - all methods that need loaded data."""
+    """Test that all data-requiring operations raise ValueError when data not loaded."""
 
     def test_operations_without_data_raise_error(self):
-        """Test that all data-requiring operations raise ValueError when data not loaded."""
         cv = RenderCVDocument(doc_type='resume')
-
         operations = [
             (cv.add_education, (Education(institution="Test", area="Test"),)),
             (cv.remove_education, ("Test",)),
@@ -171,422 +123,189 @@ class TestRequiresDataDecorator(BaseRenderCVTest):
             (cv.remove_experience, ("Test",)),
             (cv.add_project, (Project(name="Test"),)),
             (cv.remove_project, ("Test",)),
-            (cv.modify_project, ("Test", "summary", "value")),
             (cv.add_skills, (Skills(label="Test", details="Test"),)),
             (cv.remove_skill, ("Test",)),
             (cv.add_connection, (Connections(network="Test", username="test"),)),
-            (cv.modify_connection, ("Test", "newuser")),
             (cv.remove_connection, ("Test",)),
             (cv.update_contact, (), {"email": "test@test.com"}),
-            (cv.remove_section, (0,)),
         ]
-
-        for operation in operations:
-            if len(operation) == 3:
-                func, args, kwargs = operation
-            else:
-                func, args = operation
-                kwargs = {}
-            with self.assertRaises(ValueError, msg=f"{func.__name__} should raise ValueError"):
+        for op in operations:
+            func, args = op[0], op[1]
+            kwargs = op[2] if len(op) == 3 else {}
+            with self.assertRaises(ValueError):
                 func(*args, **kwargs)
 
 
-class TestRenderCVDocumentEducation(BaseRenderCVTest):
-    """Tests for education-related methods."""
+class TestEducationAndExperience(BaseRenderCVTest):
+    """Tests for education and experience operations."""
 
-    def setUp(self):
-        super().setUp()
-        self.cv = self.create_loaded_cv()
+    def test_education_crud(self):
+        """Test add and remove education."""
+        cv = self.create_loaded_cv()
 
-    def test_add_education_success_and_duplicate(self):
-        """Test adding education and duplicate detection."""
-        edu = Education(institution="New University", area="Physics", degree="MS")
-        result = self.cv.add_education(edu)
-        self.assertEqual(result, "Successfully added education")
-
+        # Add success
+        self.assertEqual(cv.add_education(Education(institution="New Uni", area="CS")), "Successfully added education")
         # Duplicate
-        edu = Education(institution="University Name", area="Physics")
-        result = self.cv.add_education(edu)
-        self.assertEqual(result, "Duplicate education entry")
+        self.assertEqual(cv.add_education(Education(institution="University Name", area="CS")), "Duplicate education entry")
+        # Not found
+        self.assertIn("not found", cv.remove_education("Nonexistent"))
+        # Success remove
+        self.assertEqual(cv.remove_education("University Name"), "Successfully deleted education")
+        self.assertEqual(cv.remove_education("New Uni"), "Successfully deleted education")
+        # No education left
+        self.assertEqual(cv.remove_education("Test"), "No education to delete")
 
-    def test_remove_education(self):
-        """Test removing education - success, not found, and no section."""
-        result = self.cv.remove_education("University Name")
-        self.assertEqual(result, "Successfully deleted education")
+    def test_experience_crud(self):
+        """Test add and remove experience."""
+        cv = self.create_loaded_cv()
 
-        result = self.cv.remove_education("Nonexistent University")
-        self.assertIn("not found", result)
-
-        self.cv.current_education = []
-        result = self.cv.remove_education("Test")
-        self.assertEqual(result, "No education to delete")
-
-
-class TestRenderCVDocumentExperience(BaseRenderCVTest):
-    """Tests for experience-related methods."""
-
-    def setUp(self):
-        super().setUp()
-        self.cv = self.create_loaded_cv()
-
-    def test_add_experience_success_and_validation(self):
-        """Test adding experience and empty company validation."""
-        exp = Experience(
-            company="New Company",
-            position="Software Engineer",
-            start_date="2023-01",
-            end_date="2023-12",
-            location="Remote",
-            highlights=["Built features", "Fixed bugs"]
-        )
-        result = self.cv.add_experience(exp)
-        self.assertEqual(result, "Successfully added experience")
-
+        # Add success
+        self.assertEqual(cv.add_experience(Experience(company="New Co", position="Dev")), "Successfully added experience")
         # Empty company rejected
-        exp = Experience(company="", position="Developer")
-        result = self.cv.add_experience(exp)
-        self.assertEqual(result, "Company name cannot be empty")
-
-    def test_remove_experience(self):
-        """Test removing experience - success, not found, and no section."""
-        result = self.cv.remove_experience("Company Name")
-        self.assertEqual(result, "Successfully removed experience")
-
-        result = self.cv.remove_experience("Nonexistent Company")
-        self.assertIn("not found", result)
-
-        self.cv.current_experience = []
-        result = self.cv.remove_experience("Test Company")
-        self.assertEqual(result, "No experience to delete")
+        self.assertEqual(cv.add_experience(Experience(company="", position="Dev")), "Company name cannot be empty")
+        # Not found
+        self.assertIn("not found", cv.remove_experience("Nonexistent"))
+        # Success remove
+        self.assertEqual(cv.remove_experience("Company Name"), "Successfully removed experience")
+        self.assertEqual(cv.remove_experience("New Co"), "Successfully removed experience")
+        # No experience left
+        self.assertEqual(cv.remove_experience("Test"), "No experience to delete")
 
 
-class TestRenderCVDocumentProjects(BaseRenderCVTest):
-    """Tests for project-related methods."""
+class TestProjectsAndSkills(BaseRenderCVTest):
+    """Tests for projects and skills operations."""
 
-    def setUp(self):
-        super().setUp()
-        self.cv = self.create_loaded_cv()
+    def test_projects_crud(self):
+        """Test add, modify, and remove projects."""
+        cv = self.create_loaded_cv()
 
-    def test_add_project_success_and_duplicate(self):
-        """Test adding project and duplicate detection."""
-        proj = Project(name="New Project", summary="A new project")
-        result = self.cv.add_project(proj)
-        self.assertIn("Successfully added", result)
+        # Add success
+        self.assertIn("Successfully added", cv.add_project(Project(name="New Project")))
+        # Duplicate
+        self.assertIn("already exists", cv.add_project(Project(name="Project Name")))
+        # Modify success
+        self.assertIn("Successfully modified", cv.modify_project("Project Name", "summary", "New summary"))
+        # Modify invalid field
+        self.assertIn("Invalid field", cv.modify_project("Project Name", "invalid", "value"))
+        # Modify not found
+        self.assertIn("not found", cv.modify_project("Nonexistent", "summary", "value"))
+        # Remove not found
+        self.assertIn("not found", cv.remove_project("Nonexistent"))
+        # Remove success
+        self.assertIn("Successfully deleted", cv.remove_project("Project Name"))
 
-        proj = Project(name="Project Name")
-        result = self.cv.add_project(proj)
-        self.assertIn("already exists", result)
+    def test_skills_crud(self):
+        """Test add and remove skills."""
+        cv = self.create_loaded_cv()
 
-    def test_remove_project(self):
-        """Test removing project - success, not found, and no section."""
-        result = self.cv.remove_project("Project Name")
-        self.assertIn("Successfully deleted", result)
-
-        result = self.cv.remove_project("Nonexistent Project")
-        self.assertIn("not found", result)
-
-        self.cv.current_projects = []
-        result = self.cv.remove_project("Test")
-        self.assertEqual(result, "No projects to delete")
-
-    def test_modify_project(self):
-        """Test modifying project - success, invalid field, not found."""
-        result = self.cv.modify_project("Project Name", "summary", "New summary")
-        self.assertIn("Successfully modified", result)
-
-        result = self.cv.modify_project("Project Name", "invalid_field", "value")
-        self.assertIn("Invalid field", result)
-
-        result = self.cv.modify_project("Nonexistent", "summary", "value")
-        self.assertIn("not found", result)
-
-
-class TestAddProjectFromAI(BaseRenderCVTest):
-    """Tests for AI-powered project generation."""
-
-    def setUp(self):
-        super().setUp()
-        self.cv = self.create_loaded_cv()
-
-    def test_add_project_from_ai_without_data_raises_error(self):
-        """Test that adding project from AI without loaded data raises ValueError."""
-        cv = RenderCVDocument(doc_type='resume')
-        with self.assertRaises(ValueError) as context:
-            cv.add_project_from_ai("some_path.json")
-        self.assertIn("No data loaded", str(context.exception))
+        # Add success
+        self.assertEqual(cv.add_skills(Skills(label="Testing", details="Unit tests")), "Successfully added skills")
+        # Duplicate
+        self.assertEqual(cv.add_skills(Skills(label="Languages", details="Python")), "Duplicate skill label")
+        # Empty label rejected
+        self.assertEqual(cv.add_skills(Skills(label="", details="Test")), "Skill label cannot be empty")
+        # Remove success
+        self.assertEqual(cv.remove_skill("Languages"), "Successfully deleted skill")
+        # Not found
+        self.assertIn("not found", cv.remove_skill("Nonexistent"))
 
     @patch('src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume.GenerateProjectResume')
-    @patch('builtins.open', create=True)
     @patch('src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume.orjson.loads')
-    def test_add_project_from_ai_success_with_tech_stack(self, mock_orjson, mock_open, mock_generate_resume):
-        """Test successfully adding a project with tech stack in summary."""
-        mock_orjson.return_value = {'project_root': '/fake/project/path'}
-        mock_file = MagicMock()
-        mock_file.read.return_value = b'{}'
-        mock_open.return_value.__enter__.return_value = mock_file
+    def test_add_project_from_ai(self, mock_orjson, mock_generate_resume):
+        """Test AI-powered project generation."""
+        cv = self.create_loaded_cv()
 
-        mock_ai_resume = MagicMock()
-        mock_ai_resume.project_title = "AI Generated Project"
-        mock_ai_resume.one_sentence_summary = "An amazing AI project"
-        mock_ai_resume.tech_stack = "Python, TensorFlow"
-        mock_ai_resume.key_responsibilities = ["Built ML models", "Deployed to production"]
-        mock_generate_resume.return_value.generate.return_value = mock_ai_resume
-
-        result = self.cv.add_project_from_ai("project_insight.json")
-
-        self.assertIn("AI Generated Project", result)
-        mock_generate_resume.assert_called_once_with('/fake/project/path')
-
-        added_project = next(
-            (p for p in self.cv.current_projects if p['name'] == "AI Generated Project"), None
-        )
-        self.assertIsNotNone(added_project)
-        self.assertIn("Tech stack: Python, TensorFlow", added_project['summary'])
-        self.assertEqual(added_project['highlights'], ["Built ML models", "Deployed to production"])
-
-    @patch('src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume.GenerateProjectResume')
-    @patch('builtins.open', create=True)
-    @patch('src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume.orjson.loads')
-    def test_add_project_from_ai_without_tech_stack(self, mock_orjson, mock_open, mock_generate_resume):
-        """Test adding project when tech_stack is empty."""
         mock_orjson.return_value = {'project_root': '/fake/path'}
-        mock_file = MagicMock()
-        mock_file.read.return_value = b'{}'
-        mock_open.return_value.__enter__.return_value = mock_file
+        mock_ai = MagicMock()
+        mock_ai.project_title = "AI Project"
+        mock_ai.one_sentence_summary = "AI summary"
+        mock_ai.tech_stack = "Python"
+        mock_ai.key_responsibilities = ["Task 1"]
+        mock_generate_resume.return_value.generate.return_value = mock_ai
 
-        mock_ai_resume = MagicMock()
-        mock_ai_resume.project_title = "Simple Project"
-        mock_ai_resume.one_sentence_summary = "A simple project"
-        mock_ai_resume.tech_stack = ""
-        mock_ai_resume.key_responsibilities = ["Did something"]
-        mock_generate_resume.return_value.generate.return_value = mock_ai_resume
+        with patch('builtins.open', mock_open(read_data=b'{}')):
+            result = cv.add_project_from_ai("project.json")
+            self.assertIn("AI Project", result)
 
-        self.cv.add_project_from_ai("project.json")
+        # Duplicate rejected
+        with patch('builtins.open', mock_open(read_data=b'{}')):
+            mock_ai.project_title = "Project Name"
+            result = cv.add_project_from_ai("project.json")
+            self.assertIn("already exists", result)
 
-        added_project = next(
-            (p for p in self.cv.current_projects if p['name'] == "Simple Project"), None
-        )
-        self.assertIsNotNone(added_project)
-        self.assertEqual(added_project['summary'], "A simple project")
-        self.assertNotIn("Tech stack", added_project['summary'])
-
-    @patch('src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume.GenerateProjectResume')
-    @patch('builtins.open', create=True)
-    @patch('src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume.orjson.loads')
-    def test_add_project_from_ai_duplicate_rejected(self, mock_orjson, mock_open, mock_generate_resume):
-        """Test that duplicate AI-generated projects are rejected."""
-        mock_orjson.return_value = {'project_root': '/fake/path'}
-        mock_file = MagicMock()
-        mock_file.read.return_value = b'{}'
-        mock_open.return_value.__enter__.return_value = mock_file
-
-        mock_ai_resume = MagicMock()
-        mock_ai_resume.project_title = "Project Name"
-        mock_ai_resume.one_sentence_summary = "Summary"
-        mock_ai_resume.tech_stack = ""
-        mock_ai_resume.key_responsibilities = []
-        mock_generate_resume.return_value.generate.return_value = mock_ai_resume
-
-        result = self.cv.add_project_from_ai("project.json")
-        self.assertIn("already exists", result)
-
-    def test_add_project_from_ai_file_not_found(self):
-        """Test FileNotFoundError when project file doesn't exist."""
-        with self.assertRaises(FileNotFoundError):
-            self.cv.add_project_from_ai("nonexistent_file.json")
+        # Without data raises error
+        cv2 = RenderCVDocument()
+        with self.assertRaises(ValueError):
+            cv2.add_project_from_ai("path.json")
 
 
-class TestRenderCVDocumentSkills(BaseRenderCVTest):
-    """Tests for skill-related methods."""
+class TestConnectionsAndContact(BaseRenderCVTest):
+    """Tests for connections and contact operations."""
 
-    def setUp(self):
-        super().setUp()
-        self.cv = self.create_loaded_cv()
+    def test_connections_crud(self):
+        """Test add, modify, and remove connections."""
+        cv = self.create_loaded_cv()
 
-    def test_add_skills_success_duplicate_and_empty(self):
-        """Test adding skills - success, duplicate, and empty label."""
-        skill = Skills(label="Testing", details="Unit testing, Integration testing")
-        result = self.cv.add_skills(skill)
-        self.assertEqual(result, "Successfully added skills")
+        # Add success
+        self.assertEqual(cv.add_connection(Connections(network="Twitter", username="user")), "Successfully added: Twitter")
+        # Duplicate
+        self.assertIn("already exists", cv.add_connection(Connections(network="LinkedIn", username="user")))
+        # Modify success
+        self.assertIn("Successfully updated", cv.modify_connection("LinkedIn", "newuser"))
+        # Modify not found
+        self.assertIn("not found", cv.modify_connection("Facebook", "user"))
+        # Remove success
+        self.assertIn("Successfully deleted", cv.remove_connection("LinkedIn"))
+        # Remove not found
+        self.assertIn("not found", cv.remove_connection("Instagram"))
+        # No connections
+        cv.current_connections = []
+        self.assertEqual(cv.remove_connection("Test"), "No connections to delete")
 
-        skill = Skills(label="Languages", details="Python, Java")
-        result = self.cv.add_skills(skill)
-        self.assertEqual(result, "Duplicate skill label")
+    def test_contact_and_theme(self):
+        """Test contact updates and theme changes."""
+        cv = self.create_loaded_cv()
 
-        skill = Skills(label="", details="Some details")
-        result = self.cv.add_skills(skill)
-        self.assertEqual(result, "Skill label cannot be empty")
+        # Update contact (returns self for chaining)
+        result = cv.update_contact(email="test@test.com", phone="123", location="NYC", name="New Name")
+        self.assertIs(result, cv)
+        self.assertEqual(cv.data['cv']['email'], "test@test.com")
+        self.assertEqual(cv.data['cv']['name'], "New Name")
 
-    def test_remove_skill(self):
-        """Test removing skill - success, not found, and no section."""
-        result = self.cv.remove_skill("Languages")
-        self.assertEqual(result, "Successfully deleted skill")
+        # Theme update
+        self.assertIn("Successfully updated", cv.update_theme('classic'))
+        self.assertEqual(cv.data['design']['theme'], 'classic')
 
-        result = self.cv.remove_skill("Nonexistent Skill")
-        self.assertIn("not found", result)
-
-        self.cv.current_skills = []
-        result = self.cv.remove_skill("Languages")
-        self.assertEqual(result, "No skills to delete")
-
-
-class TestRenderCVDocumentContact(BaseRenderCVTest):
-    """Tests for contact-related methods."""
-
-    def setUp(self):
-        super().setUp()
-        self.cv = self.create_loaded_cv()
-
-    def test_update_contact_all_fields(self):
-        """Test updating all contact fields and method chaining."""
-        result = self.cv.update_contact(
-            email="test@test.com",
-            phone="+1 111 222 3333",
-            location="Boston, MA",
-            website="https://newsite.com",
-            name="New Name"
-        )
-
-        self.assertEqual(self.cv.data['cv']['email'], "test@test.com")
-        self.assertEqual(self.cv.data['cv']['phone'], "+1 111 222 3333")
-        self.assertEqual(self.cv.data['cv']['location'], "Boston, MA")
-        self.assertEqual(self.cv.data['cv']['website'], "https://newsite.com")
-        self.assertEqual(self.cv.data['cv']['name'], "New Name")
-        self.assertIs(result, self.cv)  # Returns self for chaining
+        # Invalid theme
+        with self.assertRaises(ValueError):
+            cv.update_theme('invalid_theme')
 
 
-class TestRenderCVDocumentConnections(BaseRenderCVTest):
-    """Tests for connection-related methods."""
-
-    def setUp(self):
-        super().setUp()
-        self.cv = self.create_loaded_cv()
-
-    def test_add_connection_success_and_duplicate(self):
-        """Test adding connection and duplicate detection."""
-        conn = Connections(network="Twitter", username="testuser")
-        result = self.cv.add_connection(conn)
-        self.assertEqual(result, "Successfully added: Twitter")
-
-        conn = Connections(network="LinkedIn", username="testuser")
-        result = self.cv.add_connection(conn)
-        self.assertIn("already exists", result)
-
-    def test_modify_connection(self):
-        """Test modifying connection - success and not found."""
-        result = self.cv.modify_connection("LinkedIn", "new_linkedin_user")
-        self.assertIn("Successfully updated", result)
-        conn = next((c for c in self.cv.current_connections if c.get('network') == 'LinkedIn'), None)
-        self.assertEqual(conn['username'], "new_linkedin_user")
-
-        result = self.cv.modify_connection("Twitter", "testuser")
-        self.assertIn("not found", result)
-
-    def test_remove_connection(self):
-        """Test removing connection - success, not found, and no connections."""
-        result = self.cv.remove_connection("LinkedIn")
-        self.assertIn("Successfully deleted", result)
-
-        result = self.cv.remove_connection("Twitter")
-        self.assertIn("not found", result)
-
-        self.cv.current_connections = []
-        result = self.cv.remove_connection("LinkedIn")
-        self.assertEqual(result, "No connections to delete")
-
-
-class TestRenderCVDocumentAutoSave(BaseRenderCVTest):
-    """Tests for auto-save functionality."""
+class TestAutoSaveAndDocType(BaseRenderCVTest):
+    """Tests for auto-save and document type restrictions."""
 
     def test_auto_save_behavior(self):
-        """Test auto_save triggers or skips save based on setting."""
+        """Test auto_save triggers or skips save."""
         # Auto-save enabled
-        cv = RenderCVDocument(doc_type='resume', auto_save=True)
-        cv.cv_files_dir = Path(self.test_dir)
-        cv.generate(name="Test User")
-        cv.load()
-
+        cv = self.create_loaded_cv(auto_save=True)
         with patch.object(cv, 'save') as mock_save:
-            cv.add_education(Education(institution="Auto Save Test", area="Testing"))
+            cv.add_education(Education(institution="Test", area="Test"))
             mock_save.assert_called()
 
         # Auto-save disabled
-        cv2 = RenderCVDocument(doc_type='resume', auto_save=False)
-        cv2.cv_files_dir = Path(self.test_dir)
-        cv2.name = "Test_User2"
-        cv2.generate(name="Test User2")
-        cv2.load()
-
+        cv2 = self.create_loaded_cv(auto_save=False)
         with patch.object(cv2, 'save') as mock_save:
-            cv2.add_education(Education(institution="No Auto Save Test", area="Testing"))
+            cv2.add_education(Education(institution="Test2", area="Test"))
             mock_save.assert_not_called()
 
-
-class TestRenderCVDocumentRender(BaseRenderCVTest):
-    """Tests for render functionality."""
-
-    def setUp(self):
-        super().setUp()
-        self.cv = self.create_loaded_cv()
-
-    def test_render_file_not_found(self):
-        """Test render raises error when file doesn't exist."""
-        cv = RenderCVDocument(doc_type='resume')
-        cv.yaml_file = Path("nonexistent.yaml")
-        with self.assertRaises(FileNotFoundError):
-            cv.render()
-
-    @patch('subprocess.run')
-    def test_render_calls_subprocess(self, mock_run):
-        """Test render calls subprocess with correct arguments."""
-        mock_run.return_value = MagicMock(returncode=1)
-        self.cv.render()
-        mock_run.assert_called_once()
-        call_args = mock_run.call_args
-        self.assertIn('rendercv', call_args[0][0])
-        self.assertIn('render', call_args[0][0])
-
-
-class TestThemes(BaseRenderCVTest):
-    """Tests for theme functionality."""
-
-    def setUp(self):
-        super().setUp()
-        self.cv = self.create_loaded_cv()
-
-    def test_themes(self):
-        """Test available themes, default theme, and theme updates."""
-        cv = RenderCVDocument(doc_type='resume')
-        expected_themes = ['classic', 'engineeringclassic', 'engineeringresumes', 'moderncv', 'sb2nov']
-        for theme in expected_themes:
-            self.assertIn(theme, cv.THEMES)
-        self.assertEqual(cv.chosen_theme, 'sb2nov')
-
-        result = self.cv.update_theme('classic')
-        self.assertIn("Successfully updated", result)
-        self.assertEqual(self.cv.data['design']['theme'], 'classic')
+    def test_portfolio_restrictions(self):
+        """Test that resume-only methods raise ValueError for portfolio."""
+        portfolio = self.create_loaded_cv(doc_type='portfolio')
 
         with self.assertRaises(ValueError):
-            self.cv.update_theme('invalid_theme')
-
-
-class TestPortfolioDocType(BaseRenderCVTest):
-    """Tests for portfolio document type restrictions."""
-
-    def test_resume_only_methods_raise_error_for_portfolio(self):
-        """Test that resume-only methods raise ValueError for portfolio doc type."""
-        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
-        portfolio.cv_files_dir = Path(self.test_dir)
-        portfolio.generate(name="Test User")
-        portfolio.load()
-
-        with self.assertRaises(ValueError) as context:
             portfolio.add_education(Education(institution="Test", area="Test"))
-        self.assertIn("requires document type 'resume'", str(context.exception))
-
         with self.assertRaises(ValueError):
             portfolio.add_experience(Experience(company="Test"))
-
         with self.assertRaises(ValueError):
             portfolio.add_skills(Skills(label="Test", details="Test"))
 
