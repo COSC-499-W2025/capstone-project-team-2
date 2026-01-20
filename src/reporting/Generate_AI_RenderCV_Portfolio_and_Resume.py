@@ -827,5 +827,56 @@ class RenderCVDocument:
         self._auto_save_if_enabled()
         return "Successfully added skills"
 
+    @requires_data
+    @requires_resume
+    def remove_skill(self, label: str) -> str:
+        """
+        Remove a skill category by its label.
+        Available only for resume document type.
 
+        Args:
+            label: The exact label of the skill category to remove (e.g., "Languages", "Frameworks")
 
+        Returns:
+            str: Success message confirming deletion, or error if no skills exist or label not found
+        """
+        if not self.current_skills:
+            return "No skills to delete"
+
+        skill = next((s for s in self.current_skills if s.get('label') == label), None)
+        if skill is None:
+            return f"Skill '{label}' not found"
+
+        self.current_skills.remove(skill)
+        self._auto_save_if_enabled()
+        return "Successfully deleted skill"
+
+    @requires_data
+    @requires_resume
+    def remove_section(self, section_num: int) -> str:
+        """
+        Remove an entire section from the resume by its index.
+        Available only for resume document type. Index 0 refers to the first section after summary.
+
+        Args:
+            section_num: Zero-based index of the section to remove (excludes summary section)
+
+        Returns:
+            str: Success message with removed section name, or error if index is out of bounds or section not found
+        """
+        section_keys = list(self.sections.keys())
+        available_sections = section_keys[1:] if section_keys else []
+
+        if not available_sections:
+            return "No sections available to remove"
+
+        if section_num < 0 or section_num >= len(available_sections):
+            return f"Invalid section index {section_num}. Valid range: 0-{len(available_sections) - 1}"
+
+        section_name = available_sections[section_num]
+        if section_name in self.sections:
+            del self.sections[section_name]
+            self._auto_save_if_enabled()
+            return f"Successfully removed section: {section_name}"
+
+        return f"Section '{section_name}' not found"
