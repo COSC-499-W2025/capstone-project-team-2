@@ -623,8 +623,209 @@ class RenderCVDocument:
         self._auto_save_if_enabled()
         return f"Successfully deleted: {network_name}"
 
+    # ============== RESUME-ONLY METHODS ==============
+    @requires_data
+    @requires_resume
+    def update_summary(self, new_content: str) -> str:
+        """
+        Update the professional summary section at the top of the resume.
+        Available only for resume document type.
 
+        Args:
+            new_content: The complete summary text to replace existing content
 
+        Returns:
+            str: Confirmation message that the summary was updated
+        """
+        if 'summary' not in self.sections:
+            self.sections['summary'] = []
+        self.sections['summary'] = [new_content]
+        self._auto_save_if_enabled()
+        return "Summary updated successfully"
+
+    @requires_data
+    @requires_resume
+    def add_experience(self, experience: Experience) -> str:
+        """
+        Add a new work experience entry to the experience section.
+        Available only for resume document type. Creates the section if it doesn't exist.
+
+        Args:
+            experience: Experience dataclass instance with company name (required) and optional position, dates, location, highlights
+
+        Returns:
+            str: Success message confirming the experience was added, or error if company name is empty
+        """
+        if not experience.company or not experience.company.strip():
+            return "Company name cannot be empty"
+
+        if 'experience' not in self.sections:
+            self.sections['experience'] = []
+            self.current_experience = self.sections['experience']
+
+        self.current_experience.append(experience.to_dict())
+        self._auto_save_if_enabled()
+        return "Successfully added experience"
+
+    @requires_data
+    @requires_resume
+    def modify_experience(self, company_name: str, field: str, new_value) -> str:
+        """
+        Modify a specific field of an existing work experience entry.
+        Available only for resume document type.
+
+        Args:
+            company_name: The exact company name of the experience entry to modify
+            field: The field to update (valid: "company", "position", "start_date", "end_date", "location", "summary", "highlights")
+            new_value: The new value to set for the field (type depends on field)
+
+        Returns:
+            str: Success message confirming the field was modified, or error if field is invalid or experience not found
+        """
+        valid_fields = ["company", "position", "start_date", "end_date", "location", "summary", "highlights"]
+        if field not in valid_fields:
+            return f"Invalid field '{field}'. Valid: {', '.join(valid_fields)}"
+
+        exp = next((e for e in self.current_experience if e.get("company") == company_name), None)
+        if exp is None:
+            return f"Experience '{company_name}' not found"
+
+        exp[field] = new_value
+        self._auto_save_if_enabled()
+        return f"Successfully modified {field}"
+
+    @requires_data
+    @requires_resume
+    def remove_experience(self, company_name: str) -> str:
+        """
+        Remove a work experience entry by company name.
+        Available only for resume document type.
+
+        Args:
+            company_name: The exact company name of the experience entry to remove
+
+        Returns:
+            str: Success message confirming deletion, or error if no experiences exist or company not found
+        """
+        if not self.current_experience:
+            return "No experience to delete"
+
+        exp = next((e for e in self.current_experience if e.get("company") == company_name), None)
+        if exp is None:
+            return f"Experience '{company_name}' not found"
+
+        self.current_experience.remove(exp)
+        self._auto_save_if_enabled()
+        return "Successfully removed experience"
+
+    @requires_data
+    @requires_resume
+    def add_education(self, education: Education) -> str:
+        """
+        Add a new education entry to the education section.
+        Available only for resume document type. Creates the section if it doesn't exist.
+        Prevents duplicate institution names.
+
+        Args:
+            education: Education dataclass instance with institution and area (required), plus optional degree, dates, location, gpa, highlights
+
+        Returns:
+            str: Success message confirming the education was added, or error if institution is empty or duplicate
+        """
+        if not education.institution or not education.institution.strip():
+            return "Institution name cannot be empty"
+
+        if 'education' not in self.sections:
+            self.sections['education'] = []
+            self.current_education = self.sections['education']
+
+        existing = [e['institution'] for e in self.current_education]
+        if education.institution in existing:
+            return "Duplicate education entry"
+
+        self.current_education.append(education.to_dict())
+        self._auto_save_if_enabled()
+        return "Successfully added education"
+
+    @requires_data
+    @requires_resume
+    def modify_education(self, institution_name: str, field: str, new_value) -> str:
+        """
+        Modify a specific field of an existing education entry.
+        Available only for resume document type.
+
+        Args:
+            institution_name: The exact institution name of the education entry to modify
+            field: The field to update (valid: "institution", "area", "degree", "start_date", "end_date", "location", "highlights")
+            new_value: The new value to set for the field (type depends on field)
+
+        Returns:
+            str: Success message confirming the field was modified, or error if field is invalid or institution not found
+        """
+        valid_fields = ["institution", "area", "degree", "start_date", "end_date", "location", "highlights"]
+        if field not in valid_fields:
+            return f"Invalid field '{field}'. Valid: {', '.join(valid_fields)}"
+
+        edu = next((e for e in self.current_education if e.get("institution") == institution_name), None)
+        if edu is None:
+            return f"Education '{institution_name}' not found"
+
+        edu[field] = new_value
+        self._auto_save_if_enabled()
+        return f"Successfully modified {field}"
+
+    @requires_data
+    @requires_resume
+    def remove_education(self, institution_name: str) -> str:
+        """
+        Remove an education entry by institution name.
+        Available only for resume document type.
+
+        Args:
+            institution_name: The exact institution name of the education entry to remove
+
+        Returns:
+            str: Success message confirming deletion, or error if no education entries exist or institution not found
+        """
+        if not self.current_education:
+            return "No education to delete"
+
+        edu = next((e for e in self.current_education if e.get("institution") == institution_name), None)
+        if edu is None:
+            return f"Education '{institution_name}' not found"
+
+        self.current_education.remove(edu)
+        self._auto_save_if_enabled()
+        return "Successfully deleted education"
+
+    @requires_data
+    @requires_resume
+    def add_skills(self, skill: Skills) -> str:
+        """
+        Add a new skill category to the skills section.
+        Available only for resume document type. Creates the section if it doesn't exist.
+        Prevents duplicate skill labels.
+
+        Args:
+            skill: Skills dataclass instance with label (category name) and details (comma-separated skills)
+
+        Returns:
+            str: Success message confirming the skill was added, or error if label is empty or duplicate
+        """
+        if not skill.label or not skill.label.strip():
+            return "Skill label cannot be empty"
+
+        if 'skills' not in self.sections:
+            self.sections['skills'] = []
+            self.current_skills = self.sections['skills']
+
+        existing = [s['label'] for s in self.current_skills]
+        if skill.label in existing:
+            return "Duplicate skill label"
+
+        self.current_skills.append(skill.to_dict())
+        self._auto_save_if_enabled()
+        return "Successfully added skills"
 
 
 
