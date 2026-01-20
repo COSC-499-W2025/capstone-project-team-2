@@ -30,16 +30,16 @@ class TestPortfolioRenderCVService(unittest.TestCase):
             contributors=["Alice", "Bob"],
         )
 
-    @patch("src.reporting.portfolio_rendercv_service.Create_Portfolio_RenderCV")
-    def test_service_initialization(self, mock_create_render_cv):
+    @patch("src.reporting.portfolio_rendercv_service.RenderCVDocument")
+    def test_service_initialization(self, mock_render_cv_document):
         """Service initializes and loads starter file."""
-        mock_create_render_cv.return_value = self.mock_cv
+        mock_render_cv_document.return_value = self.mock_cv
 
         service = PortfolioRenderCVService(name="Test User")
 
-        mock_create_render_cv.assert_called_once()
-        self.mock_cv.generate_portfolio.assert_called_once_with(name="Test User")
-        self.mock_cv.load_Protfolio_starter_file.assert_called_once_with(name="Test User")
+        mock_render_cv_document.assert_called_once_with(doc_type='portfolio', auto_save=True)
+        self.mock_cv.generate.assert_called_once_with(name="Test User")
+        self.mock_cv.load.assert_called_once_with(name="Test User")
 
     def test_build_rendercv_project(self):
         """PortfolioShowcase is converted to RenderCV Project."""
@@ -61,26 +61,26 @@ class TestPortfolioRenderCVService(unittest.TestCase):
             project.highlights,
         )
 
-    @patch("src.reporting.portfolio_rendercv_service.Create_Portfolio_RenderCV")
-    def test_add_portfolio(self, mock_create_render_cv):
+    @patch("src.reporting.portfolio_rendercv_service.RenderCVDocument")
+    def test_add_portfolio(self, mock_render_cv_document):
         """Adding a portfolio project delegates to RenderCV."""
-        mock_create_render_cv.return_value = self.mock_cv
-        self.mock_cv.add_portfolio_project.return_value = "Successfully added"
+        mock_render_cv_document.return_value = self.mock_cv
+        self.mock_cv.add_project.return_value = "Successfully added"
 
         service = PortfolioRenderCVService(name="Test User")
         result = service.add_portfolio(self.sample_showcase)
 
-        self.mock_cv.add_portfolio_project.assert_called_once()
+        self.mock_cv.add_project.assert_called_once()
         self.assertEqual(result, "Successfully added")
 
-    @patch("src.reporting.portfolio_rendercv_service.Create_Portfolio_RenderCV")
-    def test_list_portfolios(self, mock_create_render_cv):
+    @patch("src.reporting.portfolio_rendercv_service.RenderCVDocument")
+    def test_list_portfolios(self, mock_render_cv_document):
         """List all portfolio projects."""
         self.mock_cv.current_projects = [
             {"name": "Project A"},
             {"name": "Project B"},
         ]
-        mock_create_render_cv.return_value = self.mock_cv
+        mock_render_cv_document.return_value = self.mock_cv
 
         service = PortfolioRenderCVService(name="Test User")
         projects = service.list_portfolios()
@@ -88,14 +88,14 @@ class TestPortfolioRenderCVService(unittest.TestCase):
         self.assertEqual(len(projects), 2)
         self.assertEqual(projects[0]["name"], "Project A")
 
-    @patch("src.reporting.portfolio_rendercv_service.Create_Portfolio_RenderCV")
-    def test_get_portfolio_found(self, mock_create_render_cv):
+    @patch("src.reporting.portfolio_rendercv_service.RenderCVDocument")
+    def test_get_portfolio_found(self, mock_render_cv_document):
         """Retrieve an existing portfolio project."""
         self.mock_cv.current_projects = [
             {"name": "Project A"},
             {"name": "Project B"},
         ]
-        mock_create_render_cv.return_value = self.mock_cv
+        mock_render_cv_document.return_value = self.mock_cv
 
         service = PortfolioRenderCVService(name="Test User")
         project = service.get_portfolio("Project B")
@@ -103,22 +103,22 @@ class TestPortfolioRenderCVService(unittest.TestCase):
         self.assertIsNotNone(project)
         self.assertEqual(project["name"], "Project B")
 
-    @patch("src.reporting.portfolio_rendercv_service.Create_Portfolio_RenderCV")
-    def test_get_portfolio_not_found(self, mock_create_render_cv):
+    @patch("src.reporting.portfolio_rendercv_service.RenderCVDocument")
+    def test_get_portfolio_not_found(self, mock_render_cv_document):
         """Return None when portfolio project does not exist."""
         self.mock_cv.current_projects = [{"name": "Project A"}]
-        mock_create_render_cv.return_value = self.mock_cv
+        mock_render_cv_document.return_value = self.mock_cv
 
         service = PortfolioRenderCVService(name="Test User")
         project = service.get_portfolio("Missing Project")
 
         self.assertIsNone(project)
 
-    @patch("src.reporting.portfolio_rendercv_service.Create_Portfolio_RenderCV")
-    def test_update_portfolio(self, mock_create_render_cv):
+    @patch("src.reporting.portfolio_rendercv_service.RenderCVDocument")
+    def test_update_portfolio(self, mock_render_cv_document):
         """Update a portfolio project field."""
-        self.mock_cv.modify_portfolio_project.return_value = "Updated successfully"
-        mock_create_render_cv.return_value = self.mock_cv
+        self.mock_cv.modify_project.return_value = "Updated successfully"
+        mock_render_cv_document.return_value = self.mock_cv
 
         service = PortfolioRenderCVService(name="Test User")
         result = service.update_portfolio(
@@ -127,35 +127,35 @@ class TestPortfolioRenderCVService(unittest.TestCase):
             value="Updated summary",
         )
 
-        self.mock_cv.modify_portfolio_project.assert_called_once_with(
+        self.mock_cv.modify_project.assert_called_once_with(
             project_name="Test Project",
             field="summary",
             new_value="Updated summary",
         )
         self.assertEqual(result, "Updated successfully")
 
-    @patch("src.reporting.portfolio_rendercv_service.Create_Portfolio_RenderCV")
-    def test_delete_portfolio(self, mock_create_render_cv):
+    @patch("src.reporting.portfolio_rendercv_service.RenderCVDocument")
+    def test_delete_portfolio(self, mock_render_cv_document):
         """Delete a portfolio project."""
-        self.mock_cv.remove_portfolio_project.return_value = "Deleted successfully"
-        mock_create_render_cv.return_value = self.mock_cv
+        self.mock_cv.remove_project.return_value = "Deleted successfully"
+        mock_render_cv_document.return_value = self.mock_cv
 
         service = PortfolioRenderCVService(name="Test User")
         result = service.delete_portfolio("Test Project")
 
-        self.mock_cv.remove_portfolio_project.assert_any_call("Test Project")
+        self.mock_cv.remove_project.assert_any_call("Test Project")
         self.assertEqual(result, "Deleted successfully")
 
-    @patch("src.reporting.portfolio_rendercv_service.Create_Portfolio_RenderCV")
-    def test_render_portfolio_pdf(self, mock_create_render_cv):
+    @patch("src.reporting.portfolio_rendercv_service.RenderCVDocument")
+    def test_render_portfolio_pdf(self, mock_render_cv_document):
         """Render portfolio PDF via RenderCV."""
-        self.mock_cv.render_portfolio.return_value = "/fake/path.pdf"
-        mock_create_render_cv.return_value = self.mock_cv
+        self.mock_cv.render.return_value = ("successfully rendered", "/fake/path.pdf")
+        mock_render_cv_document.return_value = self.mock_cv
 
         service = PortfolioRenderCVService(name="Test User")
         result = service.render_portfolio_pdf()
 
-        self.mock_cv.render_portfolio.assert_called_once()
+        self.mock_cv.render.assert_called_once()
         self.assertEqual(result[0], "successfully rendered")
 
 
