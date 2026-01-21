@@ -7,15 +7,24 @@ through the CLI menu interface.
 
 import unittest
 import os
+import sys
 import tempfile
 import shutil
 import warnings
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from io import StringIO
 
 # Suppress third-party deprecation warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="google.genai")
+
+# Mock the app_context module before importing document_generator_menu
+# This prevents the module-level database connection attempt
+mock_app_context = MagicMock()
+mock_app_context.AppContext = MagicMock()
+mock_app_context.runtimeAppContext = MagicMock()
+mock_app_context.create_app_context = MagicMock(return_value=mock_app_context.runtimeAppContext)
+sys.modules['src.core.app_context'] = mock_app_context
 
 from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
     RenderCVDocument, Project, Connections
