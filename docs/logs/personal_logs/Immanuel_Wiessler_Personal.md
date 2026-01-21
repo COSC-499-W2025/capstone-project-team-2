@@ -5,7 +5,7 @@
 ## Quick Navigation
 
 ### Term 2
-
+- [Week 17 (01/19/2026 – 01/25/2026)](#-personal-log--week-17-01192026--01252026)
 - [Week 16 (01/12/2026 – 01/18/2026)](#-personal-log--week-16-01122026--01182026)
 - [Week 15 (01/05/2026 – 01/11/2026)](#-personal-log--week-15-01052026--01112026)
 
@@ -1128,7 +1128,6 @@ Building on the Resume Generator class (`Generate_RenderCV_Resume.py`) completed
 -----
 
 ## 🧠 Reflection on Current Cycle (Week 16)
-
 This week, I focused on creating the Portfolio Generator using the RenderCV library. The goal was to create a fully-featured portfolio suitable for real-world settings to showcase users to potential employers.
 
 Following last week's work, I modified my Resume Generator class (`Generate_RenderCV_Resume.py`) by creating a new class (`Generate_AI_RenderCV_portfolio.py`) to generate professional portfolios. This was done by modifying the starter YAML file to use a portfolio-focused structure, removing resume-specific sections (like work experience and education) and keeping only portfolio-relevant fields:
@@ -1229,3 +1228,59 @@ def modify_portfolio_connection(self, network_name: str, new_username: str):
 This approach replaces traditional `for` loops with index tracking, providing a more Pythonic and readable way to find and modify specific items in a collection. The `next()` function with a default value of `None` elegantly handles the case where no matching connection is found.
 
 **Note on Line Count:** The reason my PR reached close to 591 lines is largely due to comprehensive documentation—every function and test includes detailed docstrings explaining purpose, parameters, return values, and edge cases. While this added to the line count, thorough documentation is essential for code maintainability and helps teammates understand the codebase during future development.
+
+
+
+
+# 📝 Personal Log – Week 17 (01/19/2026 – 01/25/2026)
+
+## 📊 Peer Evaluation
+*(Screenshot not available for this week)*
+
+---
+
+## 🔗 Connection to Previous Week
+
+Building on Week 16's portfolio generator work, this week focused on...
+
+---
+
+## 🚀 Work Completed
+
+### Coding Tasks
+-
+
+### Testing/Debugging Tasks
+-
+
+### Reviewing/Collaboration Tasks
+-
+
+---
+
+## 📌 Associated Tasks from Project Board
+-
+
+---
+
+## 📈 Progress Update
+
+| Task/Issue | Status |
+|------------|--------|
+| | ![In Progress](https://img.shields.io/badge/Status-In%20Progress-yellow) |
+
+---
+
+## ⚠️ Issues/Blockers
+-
+
+---
+
+## 🎯 Next Week's Goals
+-
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 17)
+
+
