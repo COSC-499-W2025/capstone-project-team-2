@@ -86,7 +86,18 @@ def document_generator_menu(ctx: AppContext) -> None:
 
 
 def _load_existing_document_menu(ctx: AppContext) -> None:
-    """Load an existing resume or portfolio document."""
+    """
+    Load an existing resume or portfolio document from saved files.
+
+    Displays a menu for selecting document type (resume/portfolio), then lists
+    all existing documents of that type and allows the user to select one to load.
+
+    Args:
+        ctx: Application context containing database and storage configuration
+
+    Returns:
+        None: Returns early if user cancels or no documents are found
+    """
     print("\n=== Load Existing Document ===")
     print("1) Load Resume")
     print("2) Load Portfolio")
@@ -153,11 +164,18 @@ def _load_existing_document_menu(ctx: AppContext) -> None:
 
 def _document_edit_menu(ctx: AppContext, doc: RenderCVDocument) -> None:
     """
-    Edit menu for a loaded RenderCV document.
+    Display and handle the edit menu for a loaded RenderCV document.
+
+    Presents different menu options based on document type (resume vs portfolio).
+    Resume documents have additional sections for experience, education, skills,
+    and summary that are not available for portfolios.
 
     Args:
-        ctx: Application context
+        ctx: Application context containing database and storage configuration
         doc: The RenderCVDocument instance to edit
+
+    Returns:
+        None: Saves document and returns when user selects exit option
     """
     doc_type_label = "Resume" if doc.doc_type == 'resume' else "Portfolio"
 
@@ -262,7 +280,20 @@ def _document_edit_menu(ctx: AppContext, doc: RenderCVDocument) -> None:
 
 
 def _add_project_from_analysis(ctx: AppContext, doc: RenderCVDocument) -> None:
-    """Add a project from saved local analysis."""
+    """
+    Add a project to the document from a saved local analysis.
+
+    Lists all saved project analyses from the default save directory and allows
+    the user to select one. The selected analysis is converted to a resume item
+    using GenerateLocalResume and added to the document.
+
+    Args:
+        ctx: Application context containing the default save directory path
+        doc: The RenderCVDocument instance to add the project to
+
+    Returns:
+        None: Prints success/error message and returns
+    """
     folder = Path(ctx.default_save_dir).resolve()
     items = list_saved_projects(folder)
 
@@ -316,7 +347,20 @@ def _add_project_from_analysis(ctx: AppContext, doc: RenderCVDocument) -> None:
 
 
 def _add_project_from_ai(ctx: AppContext, doc: RenderCVDocument) -> None:
-    """Add a project using AI analysis (requires external consent)."""
+    """
+    Add a project to the document using AI-powered analysis.
+
+    Requires external consent to be enabled. Lists saved project analyses and
+    uses GenerateProjectResume to create an AI-generated resume item from the
+    project root path stored in the analysis.
+
+    Args:
+        ctx: Application context containing external consent flag and save directory
+        doc: The RenderCVDocument instance to add the project to
+
+    Returns:
+        None: Prints success/error message and returns
+    """
     if not ctx.external_consent:
         print("\n[INFO] External services are disabled in your consent settings.")
         print("Enable external services in Settings to use AI analysis.\n")
@@ -379,7 +423,18 @@ def _add_project_from_ai(ctx: AppContext, doc: RenderCVDocument) -> None:
 
 
 def _add_project_manually(doc: RenderCVDocument) -> None:
-    """Manually add a project to the document."""
+    """
+    Manually add a project to the document through user input.
+
+    Prompts the user to enter project details including name, dates, summary,
+    and highlights. Creates a Project object and adds it to the document.
+
+    Args:
+        doc: The RenderCVDocument instance to add the project to
+
+    Returns:
+        None: Prints success/error message and returns
+    """
     print("\n=== Add Project Manually ===")
 
     name = input("Project name: ").strip()
@@ -414,7 +469,18 @@ def _add_project_manually(doc: RenderCVDocument) -> None:
 
 
 def _edit_contact_info(doc: RenderCVDocument) -> None:
-    """Edit contact information in the document."""
+    """
+    Edit contact information in the document.
+
+    Prompts the user to update name, email, phone, location, and website.
+    Empty input preserves the existing value for each field.
+
+    Args:
+        doc: The RenderCVDocument instance to update
+
+    Returns:
+        None: Prints success message after updating contact information
+    """
     print("\n=== Edit Contact Information ===")
     print("(Press Enter to keep current value)\n")
 
@@ -437,7 +503,18 @@ def _edit_contact_info(doc: RenderCVDocument) -> None:
 
 
 def _add_connection(doc: RenderCVDocument) -> None:
-    """Add a social network connection to the document."""
+    """
+    Add a social network connection to the document.
+
+    Prompts the user for a network name and username, then creates a
+    Connections object and adds it to the document.
+
+    Args:
+        doc: The RenderCVDocument instance to add the connection to
+
+    Returns:
+        None: Prints success/error message and returns
+    """
     print("\n=== Add Social Network Connection ===")
     print("Common networks: LinkedIn, GitHub, GitLab, Twitter, Instagram, YouTube\n")
 
@@ -457,7 +534,18 @@ def _add_connection(doc: RenderCVDocument) -> None:
 
 
 def _modify_delete_connections(doc: RenderCVDocument) -> None:
-    """Modify or delete social network connections from the document."""
+    """
+    Display menu to modify or delete social network connections from the document.
+
+    Lists all social network connections and allows the user to select one for
+    modification or deletion. Runs in a loop until user selects back option.
+
+    Args:
+        doc: The RenderCVDocument instance containing the connections
+
+    Returns:
+        None: Returns when user selects back option or no connections exist
+    """
     cv_data = doc.data.get('cv', {})
     connections = cv_data.get('social_networks', [])
 
@@ -514,7 +602,20 @@ def _modify_delete_connections(doc: RenderCVDocument) -> None:
 
 
 def _modify_connection_entry(doc: RenderCVDocument, idx: int, conn: dict) -> None:
-    """Modify a single social network connection entry."""
+    """
+    Modify a single social network connection entry.
+
+    Prompts the user to update the network name and username.
+    Empty input preserves existing values.
+
+    Args:
+        doc: The RenderCVDocument instance containing the connection
+        idx: Zero-based index of the connection in the social_networks list
+        conn: Dictionary containing the current connection data
+
+    Returns:
+        None: Saves changes and prints success message
+    """
     print("\n=== Modify Connection ===")
     print("(Press Enter to keep current value)\n")
 
@@ -533,7 +634,18 @@ def _modify_connection_entry(doc: RenderCVDocument, idx: int, conn: dict) -> Non
 
 
 def _add_experience(doc: RenderCVDocument) -> None:
-    """Add work experience to a resume."""
+    """
+    Add work experience entry to a resume document.
+
+    Prompts the user for company, position, dates, location, and highlights.
+    Creates an Experience object and adds it to the document.
+
+    Args:
+        doc: The RenderCVDocument instance to add the experience to
+
+    Returns:
+        None: Prints success/error message and returns
+    """
     print("\n=== Add Work Experience ===")
 
     company = input("Company name: ").strip()
@@ -568,7 +680,19 @@ def _add_experience(doc: RenderCVDocument) -> None:
 
 
 def _add_education(doc: RenderCVDocument) -> None:
-    """Add education entry to a resume."""
+    """
+    Add education entry to a resume document.
+
+    Prompts the user for institution, field of study, degree, dates,
+    location, GPA, and highlights. Creates an Education object and
+    adds it to the document.
+
+    Args:
+        doc: The RenderCVDocument instance to add the education to
+
+    Returns:
+        None: Prints success/error message and returns
+    """
     print("\n=== Add Education ===")
 
     institution = input("Institution name: ").strip()
@@ -611,7 +735,18 @@ def _add_education(doc: RenderCVDocument) -> None:
 
 
 def _add_skills(doc: RenderCVDocument) -> None:
-    """Add a skill category to a resume."""
+    """
+    Add a skill category to a resume document.
+
+    Prompts the user for a skill category label and comma-separated list
+    of skills. Creates a Skills object and adds it to the document.
+
+    Args:
+        doc: The RenderCVDocument instance to add the skills to
+
+    Returns:
+        None: Prints success/error message and returns
+    """
     print("\n=== Add Skills ===")
 
     label = input("Skill category (e.g., Languages, Frameworks, Tools): ").strip()
@@ -630,7 +765,18 @@ def _add_skills(doc: RenderCVDocument) -> None:
 
 
 def _modify_delete_projects(doc: RenderCVDocument) -> None:
-    """Modify or delete projects from the document."""
+    """
+    Display menu to modify or delete existing projects from the document.
+
+    Lists all projects in the document and allows the user to select one for
+    modification or deletion. Modifications are handled by _modify_project.
+
+    Args:
+        doc: The RenderCVDocument instance containing the projects
+
+    Returns:
+        None: Returns when user selects back option or no projects exist
+    """
     sections = doc.data.get('cv', {}).get('sections', {})
     projects = sections.get('projects', [])
 
@@ -679,7 +825,20 @@ def _modify_delete_projects(doc: RenderCVDocument) -> None:
 
 
 def _modify_project(doc: RenderCVDocument, idx: int, project: dict) -> None:
-    """Modify a single project entry."""
+    """
+    Modify a single project entry in the document.
+
+    Prompts the user to update project name, summary, and highlights.
+    Empty input preserves existing values.
+
+    Args:
+        doc: The RenderCVDocument instance containing the project
+        idx: Zero-based index of the project in the projects list
+        project: Dictionary containing the current project data
+
+    Returns:
+        None: Saves changes and prints success message
+    """
     print("\n=== Modify Project ===")
     print("(Press Enter to keep current value)\n")
 
@@ -716,7 +875,18 @@ def _modify_project(doc: RenderCVDocument, idx: int, project: dict) -> None:
 
 
 def _modify_delete_experience(doc: RenderCVDocument) -> None:
-    """Modify or delete experience entries from the document."""
+    """
+    Display menu to modify or delete experience entries from the document.
+
+    Lists all experience entries and allows the user to select one for
+    modification or deletion. Runs in a loop until user selects back option.
+
+    Args:
+        doc: The RenderCVDocument instance containing the experience entries
+
+    Returns:
+        None: Returns when user selects back option or no entries exist
+    """
     sections = doc.data.get('cv', {}).get('sections', {})
     experience = sections.get('experience', [])
 
@@ -765,7 +935,20 @@ def _modify_delete_experience(doc: RenderCVDocument) -> None:
 
 
 def _modify_experience(doc: RenderCVDocument, idx: int, exp: dict) -> None:
-    """Modify a single experience entry."""
+    """
+    Modify a single experience entry in the document.
+
+    Prompts the user to update company, position, dates, location, and highlights.
+    Empty input preserves existing values.
+
+    Args:
+        doc: The RenderCVDocument instance containing the experience
+        idx: Zero-based index of the experience in the experience list
+        exp: Dictionary containing the current experience data
+
+    Returns:
+        None: Saves changes and prints success message
+    """
     print("\n=== Modify Experience ===")
     print("(Press Enter to keep current value)\n")
 
@@ -811,7 +994,18 @@ def _modify_experience(doc: RenderCVDocument, idx: int, exp: dict) -> None:
 
 
 def _modify_delete_education(doc: RenderCVDocument) -> None:
-    """Modify or delete education entries from the document."""
+    """
+    Display menu to modify or delete education entries from the document.
+
+    Lists all education entries and allows the user to select one for
+    modification or deletion. Runs in a loop until user selects back option.
+
+    Args:
+        doc: The RenderCVDocument instance containing the education entries
+
+    Returns:
+        None: Returns when user selects back option or no entries exist
+    """
     sections = doc.data.get('cv', {}).get('sections', {})
     education = sections.get('education', [])
 
@@ -860,7 +1054,20 @@ def _modify_delete_education(doc: RenderCVDocument) -> None:
 
 
 def _modify_education_entry(doc: RenderCVDocument, idx: int, edu: dict) -> None:
-    """Modify a single education entry."""
+    """
+    Modify a single education entry in the document.
+
+    Prompts the user to update institution, field of study, degree, dates,
+    location, GPA, and highlights. Empty input preserves existing values.
+
+    Args:
+        doc: The RenderCVDocument instance containing the education entry
+        idx: Zero-based index of the education in the education list
+        edu: Dictionary containing the current education data
+
+    Returns:
+        None: Saves changes and prints success message
+    """
     print("\n=== Modify Education ===")
     print("(Press Enter to keep current value)\n")
 
@@ -912,7 +1119,18 @@ def _modify_education_entry(doc: RenderCVDocument, idx: int, edu: dict) -> None:
 
 
 def _modify_delete_skills(doc: RenderCVDocument) -> None:
-    """Modify or delete skill entries from the document."""
+    """
+    Display menu to modify or delete skill entries from the document.
+
+    Lists all skill categories and allows the user to select one for
+    modification or deletion. Runs in a loop until user selects back option.
+
+    Args:
+        doc: The RenderCVDocument instance containing the skill entries
+
+    Returns:
+        None: Returns when user selects back option or no entries exist
+    """
     sections = doc.data.get('cv', {}).get('sections', {})
     skills = sections.get('skills', [])
 
@@ -961,7 +1179,20 @@ def _modify_delete_skills(doc: RenderCVDocument) -> None:
 
 
 def _modify_skill_entry(doc: RenderCVDocument, idx: int, skill: dict) -> None:
-    """Modify a single skill entry."""
+    """
+    Modify a single skill entry in the document.
+
+    Prompts the user to update the skill category label and skills list.
+    Empty input preserves existing values.
+
+    Args:
+        doc: The RenderCVDocument instance containing the skill entry
+        idx: Zero-based index of the skill in the skills list
+        skill: Dictionary containing the current skill data
+
+    Returns:
+        None: Saves changes and prints success message
+    """
     print("\n=== Modify Skill ===")
     print("(Press Enter to keep current value)\n")
 
@@ -981,7 +1212,18 @@ def _modify_skill_entry(doc: RenderCVDocument, idx: int, skill: dict) -> None:
 
 
 def _update_summary(doc: RenderCVDocument) -> None:
-    """Update the professional summary in a resume."""
+    """
+    Update the professional summary section in a resume document.
+
+    Displays the current summary and prompts the user to enter a new one.
+    Empty input leaves the summary unchanged.
+
+    Args:
+        doc: The RenderCVDocument instance to update
+
+    Returns:
+        None: Prints success/info message and returns
+    """
     print("\n=== Update Professional Summary ===")
 
     current = doc.sections.get('summary', [''])[0] if doc.sections.get('summary') else ''
@@ -998,7 +1240,18 @@ def _update_summary(doc: RenderCVDocument) -> None:
 
 
 def _view_document(doc: RenderCVDocument) -> None:
-    """Display current document contents."""
+    """
+    Display the current document contents in a formatted view.
+
+    Shows contact information, social networks, and all sections including
+    projects, experience, education, and skills (for resumes).
+
+    Args:
+        doc: The RenderCVDocument instance to display
+
+    Returns:
+        None: Waits for user to press Enter before returning
+    """
     doc_type_label = "Resume" if doc.doc_type == 'resume' else "Portfolio"
 
     print(f"\n{'=' * 60}")
@@ -1085,7 +1338,19 @@ def _view_document(doc: RenderCVDocument) -> None:
 
 
 def _change_theme(doc: RenderCVDocument) -> None:
-    """Change the visual theme of the document."""
+    """
+    Change the visual theme of the document.
+
+    Displays available RenderCV themes and allows the user to select one.
+    Available themes include classic, engineeringclassic, engineeringresumes,
+    moderncv, and sb2nov.
+
+    Args:
+        doc: The RenderCVDocument instance to update
+
+    Returns:
+        None: Prints success/error message and returns
+    """
     current_theme = doc.data.get('design', {}).get('theme', 'sb2nov')
 
     print("\n=== Change Document Theme ===")
@@ -1127,7 +1392,18 @@ def _change_theme(doc: RenderCVDocument) -> None:
 
 
 def _render_document(doc: RenderCVDocument) -> None:
-    """Render the document to PDF with progress indicator."""
+    """
+    Render the document to PDF with a progress indicator.
+
+    Runs the render process in a background thread while displaying a progress
+    bar. Optionally allows the user to save the PDF to a custom location.
+
+    Args:
+        doc: The RenderCVDocument instance to render
+
+    Returns:
+        None: Prints success/error message with PDF path and returns
+    """
     import shutil
     import threading
 

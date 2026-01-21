@@ -29,10 +29,26 @@ from src.cli.document_generator_menu import (
 
 
 class TestDocumentGeneratorMenu(unittest.TestCase):
-    """Test suite for document_generator_menu CLI functions."""
+    """
+    Test suite for document_generator_menu CLI functions.
+
+    Tests CRUD operations for connections, projects, and theme changes
+    through the CLI menu interface using mocked user input.
+    """
 
     def setUp(self):
-        """Set up test fixtures."""
+        """
+        Set up test fixtures before each test method.
+
+        Creates a temporary directory, initializes a test RenderCVDocument,
+        and generates a base document for testing.
+
+        Args:
+            None
+
+        Returns:
+            None: Sets instance attributes for test_dir, original_cwd, and doc
+        """
         self.test_dir = tempfile.mkdtemp()
         self.original_cwd = os.getcwd()
         os.chdir(self.test_dir)
@@ -45,14 +61,37 @@ class TestDocumentGeneratorMenu(unittest.TestCase):
         self.doc.load()
 
     def tearDown(self):
-        """Clean up test fixtures."""
+        """
+        Clean up test fixtures after each test method.
+
+        Restores the original working directory and removes the temporary
+        test directory along with all its contents.
+
+        Args:
+            None
+
+        Returns:
+            None: Cleans up filesystem state created during setUp
+        """
         os.chdir(self.original_cwd)
         shutil.rmtree(self.test_dir, ignore_errors=True)
 
     @patch('builtins.input')
     @patch('sys.stdout', new_callable=StringIO)
     def test_add_connection(self, mock_stdout, mock_input):
-        """Test adding connections - success and validation."""
+        """
+        Test adding social network connections through the CLI.
+
+        Verifies successful connection addition with valid input and
+        proper error handling when required fields are empty.
+
+        Args:
+            mock_stdout: Mocked stdout to capture printed output
+            mock_input: Mocked input function to simulate user input
+
+        Returns:
+            None: Asserts expected behavior for add connection functionality
+        """
         # Test successful add
         mock_input.side_effect = ["Twitter", "testuser"]
         _add_connection(self.doc)
@@ -74,7 +113,19 @@ class TestDocumentGeneratorMenu(unittest.TestCase):
     @patch('builtins.input')
     @patch('sys.stdout', new_callable=StringIO)
     def test_modify_delete_connections(self, mock_stdout, mock_input):
-        """Test modifying and deleting connections."""
+        """
+        Test modifying and deleting social network connections.
+
+        Verifies that existing connections can be modified with new values
+        and deleted with confirmation. Tests the full modify/delete workflow.
+
+        Args:
+            mock_stdout: Mocked stdout to capture printed output
+            mock_input: Mocked input function to simulate user menu selections
+
+        Returns:
+            None: Asserts expected behavior for modify and delete operations
+        """
         # Add a test connection first
         self.doc.add_connection(Connections(network="Twitter", username="olduser"))
         connections = self.doc.data['cv'].get('social_networks', [])
@@ -101,7 +152,19 @@ class TestDocumentGeneratorMenu(unittest.TestCase):
     @patch('builtins.input')
     @patch('sys.stdout', new_callable=StringIO)
     def test_change_theme(self, mock_stdout, mock_input):
-        """Test changing document theme."""
+        """
+        Test changing the document theme through the CLI.
+
+        Verifies theme change to a new theme shows success, selecting the
+        same theme shows info message, and canceling leaves theme unchanged.
+
+        Args:
+            mock_stdout: Mocked stdout to capture printed output
+            mock_input: Mocked input function to simulate theme selection
+
+        Returns:
+            None: Asserts expected behavior for theme change functionality
+        """
         # Test change to classic
         mock_input.return_value = "1"
         _change_theme(self.doc)
@@ -123,7 +186,20 @@ class TestDocumentGeneratorMenu(unittest.TestCase):
     @patch('builtins.input')
     @patch('sys.stdout', new_callable=StringIO)
     def test_add_project_manually(self, mock_stdout, mock_input):
-        """Test manually adding projects."""
+        """
+        Test manually adding projects through the CLI.
+
+        Verifies successful project creation with full details including
+        name, dates, summary, and highlights. Also tests validation that
+        rejects empty project names.
+
+        Args:
+            mock_stdout: Mocked stdout to capture printed output
+            mock_input: Mocked input function to simulate project details entry
+
+        Returns:
+            None: Asserts expected behavior for manual project addition
+        """
         # Test full project
         mock_input.side_effect = [
             "Test Project", "2023-01", "2024-06",
