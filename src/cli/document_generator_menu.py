@@ -11,8 +11,11 @@ delegates to the underlying RenderCVDocument service.
 
 import json
 import os
+import time
 from pathlib import Path
 from typing import Optional
+
+from tqdm import tqdm
 
 from src.core.app_context import AppContext
 from src.reporting.Generate_AI_Resume import GenerateProjectResume, GenerateLocalResume
@@ -159,18 +162,50 @@ def _document_edit_menu(ctx: AppContext, doc: RenderCVDocument) -> None:
     doc_type_label = "Resume" if doc.doc_type == 'resume' else "Portfolio"
 
     while True:
-        print(f"\n=== Editing {doc_type_label}: {doc.name.replace('_', ' ')} ===")
-        print("1) Add project from saved analysis")
-        print("2) Add project from AI analysis")
-        print("3) Edit contact information")
+        print(f"\n{'=' * 50}")
+        print(f"  Editing {doc_type_label}: {doc.name.replace('_', ' ')}")
+        print(f"{'=' * 50}")
+
+        print("\n-- Projects --")
+        print("  1) Add from saved analysis")
+        print("  2) Add from AI analysis")
+        print("  3) Add manually")
+        print("  4) Modify/Delete")
+
+        print("\n-- Contact & Social --")
+        print("  5) Edit contact information")
+        print("  6) Add social network")
+        print("  7) Modify/Delete social networks")
+
         if doc.doc_type == 'resume':
-            print("4) Add experience")
-            print("5) Add education")
-            print("6) Add skills")
-            print("7) Update summary")
-        print("8) View current document")
-        print("9) Render to PDF")
-        print("0) Save and return")
+            print("\n-- Experience --")
+            print("  8) Add experience")
+            print("  9) Modify/Delete experience")
+
+            print("\n-- Education --")
+            print("  10) Add education")
+            print("  11) Modify/Delete education")
+
+            print("\n-- Skills --")
+            print("  12) Add skills")
+            print("  13) Modify/Delete skills")
+
+            print("\n-- Summary --")
+            print("  14) Update summary")
+
+            print("\n-- Document --")
+            print("  15) Change theme")
+            print("  16) View full document")
+            print("  17) Render to PDF")
+        else:
+            # Portfolio uses sequential numbering
+            print("\n-- Document --")
+            print("  8) Change theme")
+            print("  9) View full document")
+            print("  10) Render to PDF")
+
+        print(f"\n{'─' * 50}")
+        print("  0) Save and return")
 
         choice = input("Select an option: ").strip()
 
@@ -183,21 +218,46 @@ def _document_edit_menu(ctx: AppContext, doc: RenderCVDocument) -> None:
         elif choice == "2":
             _add_project_from_ai(ctx, doc)
         elif choice == "3":
+            _add_project_manually(doc)
+        elif choice == "4":
+            _modify_delete_projects(doc)
+        elif choice == "5":
             _edit_contact_info(doc)
-        elif choice == "4" and doc.doc_type == 'resume':
-            _add_experience(doc)
-        elif choice == "5" and doc.doc_type == 'resume':
-            _add_education(doc)
-        elif choice == "6" and doc.doc_type == 'resume':
-            _add_skills(doc)
-        elif choice == "7" and doc.doc_type == 'resume':
-            _update_summary(doc)
+        elif choice == "6":
+            _add_connection(doc)
+        elif choice == "7":
+            _modify_delete_connections(doc)
         elif choice == "8":
-            _view_document(doc)
+            if doc.doc_type == 'resume':
+                _add_experience(doc)
+            else:
+                _change_theme(doc)
         elif choice == "9":
+            if doc.doc_type == 'resume':
+                _modify_delete_experience(doc)
+            else:
+                _view_document(doc)
+        elif choice == "10":
+            if doc.doc_type == 'resume':
+                _add_education(doc)
+            else:
+                _render_document(doc)
+        elif choice == "11" and doc.doc_type == 'resume':
+            _modify_delete_education(doc)
+        elif choice == "12" and doc.doc_type == 'resume':
+            _add_skills(doc)
+        elif choice == "13" and doc.doc_type == 'resume':
+            _modify_delete_skills(doc)
+        elif choice == "14" and doc.doc_type == 'resume':
+            _update_summary(doc)
+        elif choice == "15" and doc.doc_type == 'resume':
+            _change_theme(doc)
+        elif choice == "16" and doc.doc_type == 'resume':
+            _view_document(doc)
+        elif choice == "17" and doc.doc_type == 'resume':
             _render_document(doc)
         else:
-            max_opt = "9" if doc.doc_type == 'resume' else "9"
+            max_opt = "17" if doc.doc_type == 'resume' else "10"
             print(f"Please choose a valid option (0-{max_opt}).")
 
 
@@ -318,6 +378,41 @@ def _add_project_from_ai(ctx: AppContext, doc: RenderCVDocument) -> None:
         print(f"[ERROR] Could not generate AI analysis: {e}")
 
 
+def _add_project_manually(doc: RenderCVDocument) -> None:
+    """Manually add a project to the document."""
+    print("\n=== Add Project Manually ===")
+
+    name = input("Project name: ").strip()
+    if not name:
+        print("[ERROR] Project name is required.")
+        return
+
+    start_date = input("Start date (YYYY-MM, optional): ").strip()
+    end_date = input("End date (YYYY-MM, optional): ").strip()
+
+    print("\nEnter a brief summary of the project:")
+    summary = input("> ").strip()
+
+    print("\nEnter highlights/key features (one per line, empty line to finish):")
+    highlights = []
+    while True:
+        h = input("  - ").strip()
+        if not h:
+            break
+        highlights.append(h)
+
+    project = Project(
+        name=name,
+        start_date=start_date if start_date else None,
+        end_date=end_date if end_date else None,
+        summary=summary if summary else None,
+        highlights=highlights if highlights else None
+    )
+
+    result = doc.add_project(project)
+    print(f"[SUCCESS] {result}")
+
+
 def _edit_contact_info(doc: RenderCVDocument) -> None:
     """Edit contact information in the document."""
     print("\n=== Edit Contact Information ===")
@@ -339,6 +434,102 @@ def _edit_contact_info(doc: RenderCVDocument) -> None:
         website=website if website else None
     )
     print("[SUCCESS] Contact information updated.")
+
+
+def _add_connection(doc: RenderCVDocument) -> None:
+    """Add a social network connection to the document."""
+    print("\n=== Add Social Network Connection ===")
+    print("Common networks: LinkedIn, GitHub, GitLab, Twitter, Instagram, YouTube\n")
+
+    network = input("Network name (e.g., LinkedIn, GitHub): ").strip()
+    if not network:
+        print("[ERROR] Network name is required.")
+        return
+
+    username = input("Username/Handle: ").strip()
+    if not username:
+        print("[ERROR] Username is required.")
+        return
+
+    connection = Connections(network=network, username=username)
+    result = doc.add_connection(connection)
+    print(f"[SUCCESS] {result}")
+
+
+def _modify_delete_connections(doc: RenderCVDocument) -> None:
+    """Modify or delete social network connections from the document."""
+    cv_data = doc.data.get('cv', {})
+    connections = cv_data.get('social_networks', [])
+
+    if not connections:
+        print("\n[INFO] No social network connections to modify or delete.")
+        return
+
+    while True:
+        # Refresh connections list
+        connections = doc.data.get('cv', {}).get('social_networks', [])
+
+        if not connections:
+            print("\n[INFO] No more connections.")
+            return
+
+        print("\n=== Modify/Delete Social Networks ===")
+        for i, conn in enumerate(connections, start=1):
+            network = conn.get('network', 'Unknown')
+            username = conn.get('username', 'N/A')
+            print(f"  {i}) {network}: {username}")
+        print("  0) Back")
+
+        sel = input("\nSelect a connection: ").strip()
+        if not sel or sel == "0":
+            return
+
+        try:
+            idx = int(sel) - 1
+            if idx < 0 or idx >= len(connections):
+                print("[ERROR] Invalid selection.")
+                continue
+        except ValueError:
+            print("[ERROR] Please enter a number.")
+            continue
+
+        conn = connections[idx]
+        print(f"\nSelected: {conn.get('network', 'Unknown')}: {conn.get('username', 'N/A')}")
+        print("1) Modify")
+        print("2) Delete")
+        print("0) Cancel")
+
+        action = input("Select action: ").strip()
+
+        if action == "1":
+            _modify_connection_entry(doc, idx, conn)
+        elif action == "2":
+            confirm = input(f"Delete '{conn.get('network')}' connection? (y/n): ").strip().lower()
+            if confirm == 'y':
+                connections.pop(idx)
+                doc.save()
+                print("[SUCCESS] Connection deleted.")
+        elif action == "0":
+            continue
+
+
+def _modify_connection_entry(doc: RenderCVDocument, idx: int, conn: dict) -> None:
+    """Modify a single social network connection entry."""
+    print("\n=== Modify Connection ===")
+    print("(Press Enter to keep current value)\n")
+
+    network = input(f"Network [{conn.get('network', '')}]: ").strip()
+    username = input(f"Username [{conn.get('username', '')}]: ").strip()
+
+    connections = doc.data.get('cv', {}).get('social_networks', [])
+
+    if network:
+        connections[idx]['network'] = network
+    if username:
+        connections[idx]['username'] = username
+
+    doc.save()
+    print("[SUCCESS] Connection updated.")
 
 
 def _add_experience(doc: RenderCVDocument) -> None:
@@ -438,6 +629,357 @@ def _add_skills(doc: RenderCVDocument) -> None:
     print(f"[SUCCESS] {result}")
 
 
+def _modify_delete_projects(doc: RenderCVDocument) -> None:
+    """Modify or delete projects from the document."""
+    sections = doc.data.get('cv', {}).get('sections', {})
+    projects = sections.get('projects', [])
+
+    if not projects:
+        print("\n[INFO] No projects to modify or delete.")
+        return
+
+    while True:
+        print("\n=== Modify/Delete Projects ===")
+        for i, p in enumerate(projects, start=1):
+            print(f"  {i}) {p.get('name', 'Unnamed')}")
+        print("  0) Back")
+
+        sel = input("\nSelect a project: ").strip()
+        if not sel or sel == "0":
+            return
+
+        try:
+            idx = int(sel) - 1
+            if idx < 0 or idx >= len(projects):
+                print("[ERROR] Invalid selection.")
+                continue
+        except ValueError:
+            print("[ERROR] Please enter a number.")
+            continue
+
+        project = projects[idx]
+        print(f"\nSelected: {project.get('name', 'Unnamed')}")
+        print("1) Modify")
+        print("2) Delete")
+        print("0) Cancel")
+
+        action = input("Select action: ").strip()
+
+        if action == "1":
+            _modify_project(doc, idx, project)
+            projects = doc.data.get('cv', {}).get('sections', {}).get('projects', [])
+        elif action == "2":
+            confirm = input(f"Delete '{project.get('name')}'? (y/n): ").strip().lower()
+            if confirm == 'y':
+                projects.pop(idx)
+                doc.save()
+                print("[SUCCESS] Project deleted.")
+        elif action == "0":
+            continue
+
+
+def _modify_project(doc: RenderCVDocument, idx: int, project: dict) -> None:
+    """Modify a single project entry."""
+    print("\n=== Modify Project ===")
+    print("(Press Enter to keep current value)\n")
+
+    name = input(f"Name [{project.get('name', '')}]: ").strip()
+    summary = input(f"Summary [{project.get('summary', '')[:50]}...]: ").strip()
+
+    print(f"\nCurrent highlights:")
+    for h in project.get('highlights', []):
+        print(f"  - {h}")
+
+    edit_highlights = input("\nEdit highlights? (y/n): ").strip().lower()
+    highlights = None
+    if edit_highlights == 'y':
+        print("Enter new highlights (one per line, empty line to finish):")
+        highlights = []
+        while True:
+            h = input("  - ").strip()
+            if not h:
+                break
+            highlights.append(h)
+
+    sections = doc.data.get('cv', {}).get('sections', {})
+    projects = sections.get('projects', [])
+
+    if name:
+        projects[idx]['name'] = name
+    if summary:
+        projects[idx]['summary'] = summary
+    if highlights is not None:
+        projects[idx]['highlights'] = highlights
+
+    doc.save()
+    print("[SUCCESS] Project updated.")
+
+
+def _modify_delete_experience(doc: RenderCVDocument) -> None:
+    """Modify or delete experience entries from the document."""
+    sections = doc.data.get('cv', {}).get('sections', {})
+    experience = sections.get('experience', [])
+
+    if not experience:
+        print("\n[INFO] No experience entries to modify or delete.")
+        return
+
+    while True:
+        print("\n=== Modify/Delete Experience ===")
+        for i, e in enumerate(experience, start=1):
+            print(f"  {i}) {e.get('position', 'N/A')} at {e.get('company', 'Unknown')}")
+        print("  0) Back")
+
+        sel = input("\nSelect an experience entry: ").strip()
+        if not sel or sel == "0":
+            return
+
+        try:
+            idx = int(sel) - 1
+            if idx < 0 or idx >= len(experience):
+                print("[ERROR] Invalid selection.")
+                continue
+        except ValueError:
+            print("[ERROR] Please enter a number.")
+            continue
+
+        exp = experience[idx]
+        print(f"\nSelected: {exp.get('position', 'N/A')} at {exp.get('company', 'Unknown')}")
+        print("1) Modify")
+        print("2) Delete")
+        print("0) Cancel")
+
+        action = input("Select action: ").strip()
+
+        if action == "1":
+            _modify_experience(doc, idx, exp)
+            experience = doc.data.get('cv', {}).get('sections', {}).get('experience', [])
+        elif action == "2":
+            confirm = input(f"Delete '{exp.get('position')} at {exp.get('company')}'? (y/n): ").strip().lower()
+            if confirm == 'y':
+                experience.pop(idx)
+                doc.save()
+                print("[SUCCESS] Experience entry deleted.")
+        elif action == "0":
+            continue
+
+
+def _modify_experience(doc: RenderCVDocument, idx: int, exp: dict) -> None:
+    """Modify a single experience entry."""
+    print("\n=== Modify Experience ===")
+    print("(Press Enter to keep current value)\n")
+
+    company = input(f"Company [{exp.get('company', '')}]: ").strip()
+    position = input(f"Position [{exp.get('position', '')}]: ").strip()
+    start_date = input(f"Start date [{exp.get('start_date', '')}]: ").strip()
+    end_date = input(f"End date [{exp.get('end_date', '')}]: ").strip()
+    location = input(f"Location [{exp.get('location', '')}]: ").strip()
+
+    print(f"\nCurrent highlights:")
+    for h in exp.get('highlights', []):
+        print(f"  - {h}")
+
+    edit_highlights = input("\nEdit highlights? (y/n): ").strip().lower()
+    highlights = None
+    if edit_highlights == 'y':
+        print("Enter new highlights (one per line, empty line to finish):")
+        highlights = []
+        while True:
+            h = input("  - ").strip()
+            if not h:
+                break
+            highlights.append(h)
+
+    sections = doc.data.get('cv', {}).get('sections', {})
+    experience = sections.get('experience', [])
+
+    if company:
+        experience[idx]['company'] = company
+    if position:
+        experience[idx]['position'] = position
+    if start_date:
+        experience[idx]['start_date'] = start_date
+    if end_date:
+        experience[idx]['end_date'] = end_date
+    if location:
+        experience[idx]['location'] = location
+    if highlights is not None:
+        experience[idx]['highlights'] = highlights
+
+    doc.save()
+    print("[SUCCESS] Experience entry updated.")
+
+
+def _modify_delete_education(doc: RenderCVDocument) -> None:
+    """Modify or delete education entries from the document."""
+    sections = doc.data.get('cv', {}).get('sections', {})
+    education = sections.get('education', [])
+
+    if not education:
+        print("\n[INFO] No education entries to modify or delete.")
+        return
+
+    while True:
+        print("\n=== Modify/Delete Education ===")
+        for i, e in enumerate(education, start=1):
+            print(f"  {i}) {e.get('degree', '')} {e.get('area', '')} at {e.get('institution', 'Unknown')}")
+        print("  0) Back")
+
+        sel = input("\nSelect an education entry: ").strip()
+        if not sel or sel == "0":
+            return
+
+        try:
+            idx = int(sel) - 1
+            if idx < 0 or idx >= len(education):
+                print("[ERROR] Invalid selection.")
+                continue
+        except ValueError:
+            print("[ERROR] Please enter a number.")
+            continue
+
+        edu = education[idx]
+        print(f"\nSelected: {edu.get('degree', '')} {edu.get('area', '')} at {edu.get('institution', 'Unknown')}")
+        print("1) Modify")
+        print("2) Delete")
+        print("0) Cancel")
+
+        action = input("Select action: ").strip()
+
+        if action == "1":
+            _modify_education_entry(doc, idx, edu)
+            education = doc.data.get('cv', {}).get('sections', {}).get('education', [])
+        elif action == "2":
+            confirm = input(f"Delete '{edu.get('degree')} at {edu.get('institution')}'? (y/n): ").strip().lower()
+            if confirm == 'y':
+                education.pop(idx)
+                doc.save()
+                print("[SUCCESS] Education entry deleted.")
+        elif action == "0":
+            continue
+
+
+def _modify_education_entry(doc: RenderCVDocument, idx: int, edu: dict) -> None:
+    """Modify a single education entry."""
+    print("\n=== Modify Education ===")
+    print("(Press Enter to keep current value)\n")
+
+    institution = input(f"Institution [{edu.get('institution', '')}]: ").strip()
+    area = input(f"Field of study [{edu.get('area', '')}]: ").strip()
+    degree = input(f"Degree [{edu.get('degree', '')}]: ").strip()
+    start_date = input(f"Start date [{edu.get('start_date', '')}]: ").strip()
+    end_date = input(f"End date [{edu.get('end_date', '')}]: ").strip()
+    location = input(f"Location [{edu.get('location', '')}]: ").strip()
+    gpa = input(f"GPA [{edu.get('gpa', '')}]: ").strip()
+
+    print(f"\nCurrent highlights:")
+    for h in edu.get('highlights', []):
+        print(f"  - {h}")
+
+    edit_highlights = input("\nEdit highlights? (y/n): ").strip().lower()
+    highlights = None
+    if edit_highlights == 'y':
+        print("Enter new highlights (one per line, empty line to finish):")
+        highlights = []
+        while True:
+            h = input("  - ").strip()
+            if not h:
+                break
+            highlights.append(h)
+
+    sections = doc.data.get('cv', {}).get('sections', {})
+    education = sections.get('education', [])
+
+    if institution:
+        education[idx]['institution'] = institution
+    if area:
+        education[idx]['area'] = area
+    if degree:
+        education[idx]['degree'] = degree
+    if start_date:
+        education[idx]['start_date'] = start_date
+    if end_date:
+        education[idx]['end_date'] = end_date
+    if location:
+        education[idx]['location'] = location
+    if gpa:
+        education[idx]['gpa'] = gpa
+    if highlights is not None:
+        education[idx]['highlights'] = highlights
+
+    doc.save()
+    print("[SUCCESS] Education entry updated.")
+
+
+def _modify_delete_skills(doc: RenderCVDocument) -> None:
+    """Modify or delete skill entries from the document."""
+    sections = doc.data.get('cv', {}).get('sections', {})
+    skills = sections.get('skills', [])
+
+    if not skills:
+        print("\n[INFO] No skill entries to modify or delete.")
+        return
+
+    while True:
+        print("\n=== Modify/Delete Skills ===")
+        for i, s in enumerate(skills, start=1):
+            print(f"  {i}) {s.get('label', 'Unknown')}: {s.get('details', '')[:40]}...")
+        print("  0) Back")
+
+        sel = input("\nSelect a skill entry: ").strip()
+        if not sel or sel == "0":
+            return
+
+        try:
+            idx = int(sel) - 1
+            if idx < 0 or idx >= len(skills):
+                print("[ERROR] Invalid selection.")
+                continue
+        except ValueError:
+            print("[ERROR] Please enter a number.")
+            continue
+
+        skill = skills[idx]
+        print(f"\nSelected: {skill.get('label', 'Unknown')}")
+        print("1) Modify")
+        print("2) Delete")
+        print("0) Cancel")
+
+        action = input("Select action: ").strip()
+
+        if action == "1":
+            _modify_skill_entry(doc, idx, skill)
+            skills = doc.data.get('cv', {}).get('sections', {}).get('skills', [])
+        elif action == "2":
+            confirm = input(f"Delete skill category '{skill.get('label')}'? (y/n): ").strip().lower()
+            if confirm == 'y':
+                skills.pop(idx)
+                doc.save()
+                print("[SUCCESS] Skill entry deleted.")
+        elif action == "0":
+            continue
+
+
+def _modify_skill_entry(doc: RenderCVDocument, idx: int, skill: dict) -> None:
+    """Modify a single skill entry."""
+    print("\n=== Modify Skill ===")
+    print("(Press Enter to keep current value)\n")
+
+    label = input(f"Category [{skill.get('label', '')}]: ").strip()
+    details = input(f"Skills [{skill.get('details', '')}]: ").strip()
+
+    sections = doc.data.get('cv', {}).get('sections', {})
+    skills = sections.get('skills', [])
+
+    if label:
+        skills[idx]['label'] = label
+    if details:
+        skills[idx]['details'] = details
+
+    doc.save()
+    print("[SUCCESS] Skill entry updated.")
+
+
 def _update_summary(doc: RenderCVDocument) -> None:
     """Update the professional summary in a resume."""
     print("\n=== Update Professional Summary ===")
@@ -467,6 +1009,7 @@ def _view_document(doc: RenderCVDocument) -> None:
 
     # Contact info
     print(f"\nContact:")
+    print(f"  Name: {cv.get('name', 'N/A')}")
     print(f"  Email: {cv.get('email', 'N/A')}")
     print(f"  Phone: {cv.get('phone', 'N/A')}")
     print(f"  Location: {cv.get('location', 'N/A')}")
@@ -476,8 +1019,10 @@ def _view_document(doc: RenderCVDocument) -> None:
     if cv.get('social_networks'):
         print(f"\nSocial Networks:")
         for sn in cv['social_networks']:
-            if sn.get('username'):
-                print(f"  {sn.get('network')}: {sn.get('username')}")
+            network = sn.get('network', 'Unknown')
+            username = sn.get('username', '')
+            status = username if username else '(not set)'
+            print(f"  {network}: {status}")
 
     # Sections
     sections = cv.get('sections', {})
@@ -489,19 +1034,46 @@ def _view_document(doc: RenderCVDocument) -> None:
 
     if sections.get('projects'):
         print(f"\nProjects ({len(sections['projects'])}):")
-        for p in sections['projects']:
-            print(f"  - {p.get('name')}: {p.get('summary', '')[:60]}...")
+        for i, p in enumerate(sections['projects'], start=1):
+            print(f"\n  [{i}] {p.get('name', 'Unnamed')}")
+            if p.get('start_date') or p.get('end_date'):
+                print(f"      Date: {p.get('start_date', 'N/A')} to {p.get('end_date', 'N/A')}")
+            if p.get('summary'):
+                print(f"      Summary: {p.get('summary')}")
+            if p.get('highlights'):
+                print(f"      Highlights:")
+                for h in p['highlights']:
+                    print(f"        - {h}")
 
     if doc.doc_type == 'resume':
         if sections.get('experience'):
             print(f"\nExperience ({len(sections['experience'])}):")
-            for e in sections['experience']:
-                print(f"  - {e.get('position', 'N/A')} at {e.get('company')}")
+            for i, e in enumerate(sections['experience'], start=1):
+                print(f"\n  [{i}] {e.get('position', 'N/A')} at {e.get('company', 'Unknown')}")
+                if e.get('start_date') or e.get('end_date'):
+                    print(f"      Date: {e.get('start_date', 'N/A')} to {e.get('end_date', 'N/A')}")
+                if e.get('location'):
+                    print(f"      Location: {e.get('location')}")
+                if e.get('highlights'):
+                    print(f"      Highlights:")
+                    for h in e['highlights']:
+                        print(f"        - {h}")
 
         if sections.get('education'):
             print(f"\nEducation ({len(sections['education'])}):")
-            for e in sections['education']:
-                print(f"  - {e.get('degree', '')} {e.get('area', '')} at {e.get('institution')}")
+            for i, e in enumerate(sections['education'], start=1):
+                degree_info = f"{e.get('degree', '')} {e.get('area', '')}".strip()
+                print(f"\n  [{i}] {degree_info} at {e.get('institution', 'Unknown')}")
+                if e.get('start_date') or e.get('end_date'):
+                    print(f"      Date: {e.get('start_date', 'N/A')} to {e.get('end_date', 'N/A')}")
+                if e.get('location'):
+                    print(f"      Location: {e.get('location')}")
+                if e.get('gpa'):
+                    print(f"      GPA: {e.get('gpa')}")
+                if e.get('highlights'):
+                    print(f"      Highlights:")
+                    for h in e['highlights']:
+                        print(f"        - {h}")
 
         if sections.get('skills'):
             print(f"\nSkills:")
@@ -512,36 +1084,128 @@ def _view_document(doc: RenderCVDocument) -> None:
     input("Press Enter to continue...")
 
 
-def _render_document(doc: RenderCVDocument) -> None:
-    """Render the document to PDF."""
-    import shutil
+def _change_theme(doc: RenderCVDocument) -> None:
+    """Change the visual theme of the document."""
+    current_theme = doc.data.get('design', {}).get('theme', 'sb2nov')
 
-    print("\n[INFO] Rendering document to PDF...")
+    print("\n=== Change Document Theme ===")
+    print(f"Current theme: {current_theme}\n")
+    print("Available themes:")
+    print("  1) classic          - Classic CV theme")
+    print("  2) engineeringclassic - Engineering-focused CV theme")
+    print("  3) engineeringresumes - Engineering resume theme")
+    print("  4) moderncv         - Modern CV theme")
+    print("  5) sb2nov           - Clean resume theme (default)")
+    print("  0) Cancel")
+
+    theme_map = {
+        "1": "classic",
+        "2": "engineeringclassic",
+        "3": "engineeringresumes",
+        "4": "moderncv",
+        "5": "sb2nov"
+    }
+
+    choice = input("\nSelect a theme: ").strip()
+
+    if choice == "0" or choice not in theme_map:
+        if choice != "0":
+            print("[ERROR] Invalid selection.")
+        return
+
+    selected_theme = theme_map[choice]
+
+    if selected_theme == current_theme:
+        print(f"[INFO] Theme is already set to '{selected_theme}'.")
+        return
 
     try:
-        status, pdf_path = doc.render()
-        print(f"[INFO] Render status: {status}")
+        result = doc.update_theme(selected_theme)
+        print(f"[SUCCESS] {result}")
+    except ValueError as e:
+        print(f"[ERROR] {e}")
 
-        if pdf_path:
-            print(f"[SUCCESS] PDF generated at: {pdf_path}")
 
-            save_custom = input("Save PDF to a custom location? (y/n): ").strip().lower()
-            if save_custom == "y":
-                attempts = 0
-                max_attempts = 3
-                while attempts < max_attempts:
-                    custom_folder = input("Enter the folder path: ").strip()
-                    if os.path.exists(custom_folder):
-                        custom_path = Path(custom_folder) / pdf_path.name
-                        shutil.copy2(pdf_path, custom_path)
-                        print(f"[SUCCESS] PDF saved to: {custom_path}")
-                        break
-                    else:
-                        attempts += 1
-                        print(f"[ERROR] Path not found. ({attempts}/{max_attempts})")
+def _render_document(doc: RenderCVDocument) -> None:
+    """Render the document to PDF with progress indicator."""
+    import shutil
+    import threading
+
+    print("\n=== Rendering Document to PDF ===")
+
+    # Use tqdm for progress indication
+    render_steps = [
+        "Validating document",
+        "Processing template",
+        "Generating LaTeX",
+        "Compiling PDF",
+        "Finalizing output"
+    ]
+
+    pdf_path = None
+    status = None
+    error = None
+    render_complete = False
+
+    def do_render():
+        nonlocal pdf_path, status, error, render_complete
+        try:
+            status, pdf_path = doc.render()
+        except Exception as e:
+            error = e
+        finally:
+            render_complete = True
+
+    # Start render in background thread
+    render_thread = threading.Thread(target=do_render)
+    render_thread.start()
+
+    # Show progress bar - cycle through all steps
+    step_progress = 100 // len(render_steps)
+    with tqdm(total=100, bar_format="{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt}") as pbar:
+        for i, step_name in enumerate(render_steps):
+            pbar.set_description(step_name)
+
+            # Wait a bit for each step (min 0.4s per step for visibility)
+            for _ in range(4):
+                time.sleep(0.1)
+                if render_complete and i >= len(render_steps) - 2:
+                    # If render finished and we're near the end, complete quickly
+                    break
+
+            # Update progress
+            if i < len(render_steps) - 1:
+                pbar.update(step_progress)
+            else:
+                pbar.n = 100
+                pbar.refresh()
+
+    render_thread.join()
+
+    if error:
+        print(f"\n[ERROR] Could not render PDF: {error}")
+        return
+
+    print(f"\n[INFO] Render status: {status}")
+
+    if pdf_path:
+        print(f"[SUCCESS] PDF generated at: {pdf_path}")
+
+        save_custom = input("\nSave PDF to a custom location? (y/n): ").strip().lower()
+        if save_custom == "y":
+            attempts = 0
+            max_attempts = 3
+            while attempts < max_attempts:
+                custom_folder = input("Enter the folder path: ").strip()
+                if os.path.exists(custom_folder):
+                    custom_path = Path(custom_folder) / pdf_path.name
+                    shutil.copy2(pdf_path, custom_path)
+                    print(f"[SUCCESS] PDF saved to: {custom_path}")
+                    break
                 else:
-                    print("[WARN] Max attempts reached. PDF remains at default location.")
-        else:
-            print(f"[ERROR] {status}")
-    except Exception as e:
-        print(f"[ERROR] Could not render PDF: {e}")
+                    attempts += 1
+                    print(f"[ERROR] Path not found. ({attempts}/{max_attempts})")
+            else:
+                print("[WARN] Max attempts reached. PDF remains at default location.")
+    else:
+        print(f"[ERROR] {status}")
