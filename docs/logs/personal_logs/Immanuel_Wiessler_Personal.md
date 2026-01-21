@@ -1241,17 +1241,42 @@ This approach replaces traditional `for` loops with index tracking, providing a 
 
 ## 🔗 Connection to Previous Week
 
-Building on Week 16's portfolio generator work, this week focused on...
+- Building on Week 16's Portfolio Generator work using RenderCV, this week focused on consolidating the separate resume and portfolio generation systems into a unified `RenderCVDocument` class. 
+Additionally, I implemented full CRUD operations into the CLI to allow users to interactively manage their portfolios and resumes for the upcoming demo.
 
 ---
 
 ## 🚀 Work Completed
 
 ### Coding Tasks
--
+
+**[PR #314](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/314) - Refactoring of Generate Resume and Portfolio into One System**
+- Consolidated Resume and Portfolio generation into a unified `RenderCVDocument` class
+- Fixed multiple self-made bugs:
+  - Typo "Expereince" → "Experience"
+  - "ConnectionInfo" → "Connection" naming
+  - `self.name` assignment issue in generate() method
+  - `self.sections` storing dict instead of list
+  - "project" → "projects" in section validation
+
+**[PR #317](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/317) - Implement CRUD Operations into CLI for Demo**
+- Implemented full CRUD operations for managing portfolios and resumes through CLI
+- Created `document_generator_menu.py` with 17+ menu options for document management
+- Added helper methods for YAML file loading
+- Refactored `portfolio_rendercv_service.py` and `Generate_AI_RenderCV_Portfolio_and_Resume.py`
 
 ### Testing/Debugging Tasks
--
+
+**PR #314**
+- Consolidated test file from 82 tests down to 13 tests (84% reduction)
+- Unified portfolio and resume test suite using shared `RenderCVDocument` class
+- Modified test files: `test_Generate_AI_RenderCV_portfolio.py`, `test_Generate_Render_CV_Resume.py`
+- All 23 tests passing across both test files
+
+**PR #317**
+- Created tests for CLI CRUD operations
+- Consolidated test suite for document management functionality
+- Test files: `test_document_generator_menu.py`
 
 ### Reviewing/Collaboration Tasks
 -
@@ -1259,28 +1284,147 @@ Building on Week 16's portfolio generator work, this week focused on...
 ---
 
 ## 📌 Associated Tasks from Project Board
--
+- [Implement CRUD Operations into CLI for Demo ](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/316)
+- [Refactoring of Generate resume and Portfolio into one system ](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/313)
 
 ---
 
 ## 📈 Progress Update
 
-| Task/Issue | Status |
-|------------|--------|
-| | ![In Progress](https://img.shields.io/badge/Status-In%20Progress-yellow) |
+| Task/Issue                                        | Status |
+|---------------------------------------------------|--------|
+| Refactoring document generation                   |![Complete](https://img.shields.io/badge/Complete-green)|
+| Integration of CRUD operations into CLI for Demo  |![Complete](https://img.shields.io/badge/Complete-green)|
 
 ---
 
 ## ⚠️ Issues/Blockers
--
+There were no issue or blockers
 
 ---
 
 ## 🎯 Next Week's Goals
--
+- Get ready for peer heuristics that is happening in class
+- Continue to keep working on improve and fixing critical bugs in our system
 
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 17)
+Week 17 was focused on refactoring and enhancing the document 
+generation system in preparation for the upcoming demo. My primary goal this week
+involved two significant PRs:
+
+The first major task that I did this week was consolidating the separate resume and portfolio generation system into a unified `RenderCVDocument` class (PR #314). This refactoring effort eliminated duplicate coding and created a cleaner, more maintainable architecture.
+
+```python
+class RenderCVDocument:
+    """
+    Unified class for generating both resumes and portfolios using RenderCV.
+    Consolidates previously separate Resume and Portfolio generator classes.
+    """
+    def __init__(self, name: str, document_type: str = "resume"):
+        self.name = name
+        self.document_type = document_type
+        self.sections = {}  # Fixed: was incorrectly storing as list
+```
+
+During this process, I discovered and fixed several self-made bugs that I had introduced in previous weeks:
+
+**Typo fix ("Expereince" → "Experience"):**
+```python
+# Before
+'Expereince': [...]
+
+# After
+'Experience': [...]
+```
+
+**Naming convention fix ("ConnectionInfo" → "Connection"):**
+```python
+# Before
+class ConnectionInfo:
+    network: str
+    username: str
+
+# After
+class Connection:
+    network: str
+    username: str
+```
+
+**Data structure fix (`self.sections`):**
+```python
+# Before - incorrectly storing as list
+self.sections = []
+
+# After - correctly storing as dict
+self.sections = {}
+```
+
+This experience reinforced the importance of thorough code review and testing before merging. 
+
+The second major task was implementing full CRUD operations into the CLI for the demo (PR #317). This was achieved through the creation of `document_generator_menu.py` with 17+ menu options, allowing users to interactively add, modify, and delete connections, projects, skills, and education sections.
+
+```python
+def _document_edit_menu(ctx: AppContext, doc: RenderCVDocument) -> None:
+    """Display and handle the edit menu for a loaded RenderCV document."""
+    doc_type_label = "Resume" if doc.doc_type == 'resume' else "Portfolio"
+
+    while True:
+        print(f"\n{'=' * 50}")
+        print(f"  Editing {doc_type_label}: {doc.name.replace('_', ' ')}")
+        print(f"{'=' * 50}")
+
+        print("\n-- Projects --")
+        print("  1) Add from saved analysis")
+        print("  2) Add from AI analysis")
+        print("  3) Add manually")
+        print("  4) Modify/Delete")
+
+        print("\n-- Contact & Social --")
+        print("  5) Edit contact information")
+        print("  6) Add social network")
+        print("  7) Modify/Delete social networks")
+        # ... 17+ menu options for resume
+```
+
+This required careful consideration of user experience and input validation to ensure smooth navigation through the menu system:
+
+```python
+def _add_connection(doc: RenderCVDocument) -> None:
+    """Add a social network connection to the document."""
+    print("\n=== Add Social Network Connection ===")
+    print("Common networks: LinkedIn, GitHub, GitLab, Twitter, Instagram, YouTube\n")
+
+    network = input("Network name (e.g., LinkedIn, GitHub): ").strip()
+    if not network:
+        print("[ERROR] Network name is required.")
+        return
+
+    username = input("Username/Handle: ").strip()
+    if not username:
+        print("[ERROR] Username is required.")
+        return
+
+    connection = Connections(network=network, username=username)
+    result = doc.add_connection(connection)
+    print(f"[SUCCESS] {result}")
+```
+
+One thing that I am happy to share this week I was test consolidation effort
+reducing one test suite from 82 test down to 13 focused tests an 84% reduction
+while still maintaining comprehensive coverage thanks in part to
+the refactoring/consolidation of resume and Portfolio system into one unified 
+system (`RenderCVDocument`) class, allowing for shared test logic 
+between portfolio and resume functionality 
+
+Looking ahead to next week, 
+I plan to prepare for peer heuristics 
+testing and continue addressing 
+any critical bugs discovered during 
+the demo preparation and also planning/creating
+meeting agenda to allow us to be stay focused and on track
+
+
 
 
