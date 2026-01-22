@@ -600,74 +600,6 @@ def _add_connection(doc: RenderCVDocument) -> None:
     print(f"[SUCCESS] {result}")
 
 
-def _modify_delete_connections(doc: RenderCVDocument) -> None:
-    """
-    Display menu to modify or delete social network connections from the document.
-
-    Lists all social network connections and allows the user to select one for
-    modification or deletion. Runs in a loop until user selects back option.
-
-    Args:
-        doc: The RenderCVDocument instance containing the connections
-
-    Returns:
-        None: Returns when user selects back option or no connections exist
-    """
-    cv_data = doc.data.get('cv', {})
-    connections = cv_data.get('social_networks', [])
-
-    if not connections:
-        print("\n[INFO] No social network connections to modify or delete.")
-        return
-
-    while True:
-        # Refresh connections list
-        connections = doc.data.get('cv', {}).get('social_networks', [])
-
-        if not connections:
-            print("\n[INFO] No more connections.")
-            return
-
-        print("\n=== Modify/Delete Social Networks ===")
-        for i, conn in enumerate(connections, start=1):
-            network = conn.get('network', 'Unknown')
-            username = conn.get('username', 'N/A')
-            print(f"  {i}) {network}: {username}")
-        print("  0) Back")
-
-        sel = input("\nSelect a connection: ").strip()
-        if not sel or sel == "0":
-            return
-
-        try:
-            idx = int(sel) - 1
-            if idx < 0 or idx >= len(connections):
-                print("[ERROR] Invalid selection.")
-                continue
-        except ValueError:
-            print("[ERROR] Please enter a number.")
-            continue
-
-        conn = connections[idx]
-        print(f"\nSelected: {conn.get('network', 'Unknown')}: {conn.get('username', 'N/A')}")
-        print("1) Modify")
-        print("2) Delete")
-        print("0) Cancel")
-
-        action = input("Select action: ").strip()
-
-        if action == "1":
-            _modify_connection_entry(doc, idx, conn)
-        elif action == "2":
-            confirm = input(f"Delete '{conn.get('network')}' connection? (y/n): ").strip().lower()
-            if confirm == 'y':
-                connections.pop(idx)
-                doc.save()
-                print("[SUCCESS] Connection deleted.")
-        elif action == "0":
-            continue
-
-
 def _modify_connection_entry(doc: RenderCVDocument, idx: int, conn: dict) -> None:
     """
     Modify a single social network connection entry.
@@ -1082,65 +1014,6 @@ def _modify_project(doc: RenderCVDocument, idx: int, project: dict) -> None:
     print("[SUCCESS] Project updated.")
 
 
-def _modify_delete_education(doc: RenderCVDocument) -> None:
-    """
-    Display menu to modify or delete education entries from the document.
-
-    Lists all education entries and allows the user to select one for
-    modification or deletion. Runs in a loop until user selects back option.
-
-    Args:
-        doc: The RenderCVDocument instance containing the education entries
-
-    Returns:
-        None: Returns when user selects back option or no entries exist
-    """
-    sections = doc.data.get('cv', {}).get('sections', {})
-    education = sections.get('education', [])
-
-    if not education:
-        print("\n[INFO] No education entries to modify or delete.")
-        return
-
-    while True:
-        print("\n=== Modify/Delete Education ===")
-        for i, e in enumerate(education, start=1):
-            print(f"  {i}) {e.get('degree', '')} {e.get('area', '')} at {e.get('institution', 'Unknown')}")
-        print("  0) Back")
-
-        sel = input("\nSelect an education entry: ").strip()
-        if not sel or sel == "0":
-            return
-
-        try:
-            idx = int(sel) - 1
-            if idx < 0 or idx >= len(education):
-                print("[ERROR] Invalid selection.")
-                continue
-        except ValueError:
-            print("[ERROR] Please enter a number.")
-            continue
-
-        edu = education[idx]
-        print(f"\nSelected: {edu.get('degree', '')} {edu.get('area', '')} at {edu.get('institution', 'Unknown')}")
-        print("1) Modify")
-        print("2) Delete")
-        print("0) Cancel")
-
-        action = input("Select action: ").strip()
-
-        if action == "1":
-            _modify_education_entry(doc, idx, edu)
-            education = doc.data.get('cv', {}).get('sections', {}).get('education', [])
-        elif action == "2":
-            confirm = input(f"Delete '{edu.get('degree')} at {edu.get('institution')}'? (y/n): ").strip().lower()
-            if confirm == 'y':
-                education.pop(idx)
-                doc.save()
-                print("[SUCCESS] Education entry deleted.")
-        elif action == "0":
-            continue
-
 
 def _modify_education_entry(doc: RenderCVDocument, idx: int, edu: dict) -> None:
     """
@@ -1205,67 +1078,6 @@ def _modify_education_entry(doc: RenderCVDocument, idx: int, edu: dict) -> None:
 
     doc.save()
     print("[SUCCESS] Education entry updated.")
-
-
-def _modify_delete_skills(doc: RenderCVDocument) -> None:
-    """
-    Display menu to modify or delete skill entries from the document.
-
-    Lists all skill categories and allows the user to select one for
-    modification or deletion. Runs in a loop until user selects back option.
-
-    Args:
-        doc: The RenderCVDocument instance containing the skill entries
-
-    Returns:
-        None: Returns when user selects back option or no entries exist
-    """
-    sections = doc.data.get('cv', {}).get('sections', {})
-    skills = sections.get('skills', [])
-
-    if not skills:
-        print("\n[INFO] No skill entries to modify or delete.")
-        return
-
-    while True:
-        print("\n=== Modify/Delete Skills ===")
-        for i, s in enumerate(skills, start=1):
-            print(f"  {i}) {s.get('label', 'Unknown')}: {s.get('details', '')[:40]}...")
-        print("  0) Back")
-
-        sel = input("\nSelect a skill entry: ").strip()
-        if not sel or sel == "0":
-            return
-
-        try:
-            idx = int(sel) - 1
-            if idx < 0 or idx >= len(skills):
-                print("[ERROR] Invalid selection.")
-                continue
-        except ValueError:
-            print("[ERROR] Please enter a number.")
-            continue
-
-        skill = skills[idx]
-        print(f"\nSelected: {skill.get('label', 'Unknown')}")
-        print("1) Modify")
-        print("2) Delete")
-        print("0) Cancel")
-
-        action = input("Select action: ").strip()
-
-        if action == "1":
-            _modify_skill_entry(doc, idx, skill)
-            skills = doc.data.get('cv', {}).get('sections', {}).get('skills', [])
-        elif action == "2":
-            confirm = input(f"Delete skill category '{skill.get('label')}'? (y/n): ").strip().lower()
-            if confirm == 'y':
-                skills.pop(idx)
-                doc.save()
-                print("[SUCCESS] Skill entry deleted.")
-        elif action == "0":
-            continue
-
 
 def _modify_skill_entry(doc: RenderCVDocument, idx: int, skill: dict) -> None:
     """
