@@ -53,21 +53,28 @@ class TestRenderCVDocumentCore(BaseRenderCVTest):
         self.assertFalse(cv2.auto_save)
         self.assertEqual(cv2.doc_type, 'portfolio')
 
-    def test_generate_load_save(self):
-        """Test file generation, loading, and saving operations."""
+    def test_generate(self):
+        """Test file generation operations."""
         cv = RenderCVDocument(doc_type='resume')
         cv.cv_files_dir = Path(self.test_dir)
 
-        # Generate
+        # Generate new file
         result = cv.generate(name="John Doe")
         self.assertEqual(result, "Success")
         self.assertEqual(cv.name, "John_Doe")
         self.assertTrue(cv.yaml_file.exists())
 
-        # Skip existing
+        # Skip existing file when overwrite=False
         self.assertEqual(cv.generate(name="John Doe", overwrite=False), "Skipping generation")
 
-        # Load
+    def test_load(self):
+        """Test file loading operations."""
+        # Setup: generate a file first
+        cv = RenderCVDocument(doc_type='resume')
+        cv.cv_files_dir = Path(self.test_dir)
+        cv.generate(name="John Doe")
+
+        # Load the generated file
         data = cv.load()
         self.assertIn('cv', data)
         self.assertIsNotNone(cv.sections)
@@ -79,20 +86,28 @@ class TestRenderCVDocumentCore(BaseRenderCVTest):
         cv2.load(name="John Doe")
         self.assertEqual(cv2.name, "John_Doe")
 
-        # Save
+        # Load non-existent file raises error
+        cv3 = RenderCVDocument()
+        cv3.yaml_file = Path("nonexistent.yaml")
+        with self.assertRaises(FileNotFoundError):
+            cv3.load()
+
+    def test_save(self):
+        """Test file saving operations."""
+        # Setup: generate and load a file first
+        cv = RenderCVDocument(doc_type='resume')
+        cv.cv_files_dir = Path(self.test_dir)
+        cv.generate(name="John Doe")
+        cv.load()
+
+        # Save the file
         output = cv.save()
         self.assertTrue(output.exists())
 
         # Save without data raises error
-        cv3 = RenderCVDocument()
+        cv2 = RenderCVDocument()
         with self.assertRaises(ValueError):
-            cv3.save()
-
-        # Load non-existent file raises error
-        cv4 = RenderCVDocument()
-        cv4.yaml_file = Path("nonexistent.yaml")
-        with self.assertRaises(FileNotFoundError):
-            cv4.load()
+            cv2.save()
 
     def test_render(self):
         """Test render functionality."""
