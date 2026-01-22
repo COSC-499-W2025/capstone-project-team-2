@@ -11,21 +11,23 @@ delegates to the underlying RenderCVDocument service.
 
 import json
 import os
+import shutil
+import threading
 import time
 from pathlib import Path
 from typing import Optional
 
 from tqdm import tqdm
 
-from src.core.app_context import AppContext
+from src.core.app_context import runtimeAppContext
 from src.reporting.Generate_AI_Resume import GenerateProjectResume, GenerateLocalResume
 from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
-    RenderCVDocument, Project, Experience, Education, Skills, Connections
+    RenderCVDocument, Project, Education, Skills, Connections
 )
 from src.storage.saved_projects import list_saved_projects
 
 
-def document_generator_menu(ctx: AppContext) -> None:
+def document_generator_menu() -> None:
     """
     Unified menu for creating and editing resumes and portfolios using RenderCV.
 
@@ -35,9 +37,6 @@ def document_generator_menu(ctx: AppContext) -> None:
     - Add projects from saved analyses (local or AI-powered)
     - Edit contact information and sections
     - Render to PDF
-
-    Args:
-        ctx (AppContext): Shared DB/store context.
 
     Returns:
         None
@@ -65,7 +64,7 @@ def document_generator_menu(ctx: AppContext) -> None:
             else:
                 print(f"[SUCCESS] Resume created for '{name}'")
             doc.load(name=name)
-            _document_edit_menu(ctx, doc)
+            _document_edit_menu(doc)
         elif choice == "2":
             name = input("Enter your name: ").strip()
             if not name:
@@ -78,22 +77,19 @@ def document_generator_menu(ctx: AppContext) -> None:
             else:
                 print(f"[SUCCESS] Portfolio created for '{name}'")
             doc.load(name=name)
-            _document_edit_menu(ctx, doc)
+            _document_edit_menu(doc)
         elif choice == "3":
-            _load_existing_document_menu(ctx)
+            _load_existing_document_menu()
         else:
             print("Please choose a valid option (0-3).")
 
 
-def _load_existing_document_menu(ctx: AppContext) -> None:
+def _load_existing_document_menu() -> None:
     """
     Load an existing resume or portfolio document from saved files.
 
     Displays a menu for selecting document type (resume/portfolio), then lists
     all existing documents of that type and allows the user to select one to load.
-
-    Args:
-        ctx: Application context containing database and storage configuration
 
     Returns:
         None: Returns early if user cancels or no documents are found
@@ -155,23 +151,22 @@ def _load_existing_document_menu(ctx: AppContext) -> None:
     try:
         doc.load(name=selected_name)
         print(f"[SUCCESS] Loaded {doc_type} for '{selected_name.replace('_', ' ')}'")
-        _document_edit_menu(ctx, doc)
+        _document_edit_menu(doc)
     except FileNotFoundError:
         print(f"[ERROR] No {doc_type} found for '{selected_name}'.")
     except Exception as e:
         print(f"[ERROR] Could not load document: {e}")
 
 
-def _document_edit_menu(ctx: AppContext, doc: RenderCVDocument) -> None:
+def _document_edit_menu(doc: RenderCVDocument) -> None:
     """
     Display and handle the edit menu for a loaded RenderCV document.
 
     Presents different menu options based on document type (resume vs portfolio).
-    Resume documents have additional sections for experience, education, skills,
+    Resume documents have additional sections for education, skills,
     and summary that are not available for portfolios.
 
     Args:
-        ctx: Application context containing database and storage configuration
         doc: The RenderCVDocument instance to edit
 
     Returns:
@@ -196,31 +191,25 @@ def _document_edit_menu(ctx: AppContext, doc: RenderCVDocument) -> None:
         print("  7) Modify/Delete social networks")
 
         if doc.doc_type == 'resume':
-            print("\n-- Experience --")
-            print("  8) Add experience")
-            print("  9) Modify/Delete experience")
-
             print("\n-- Education --")
-            print("  10) Add education")
-            print("  11) Modify/Delete education")
+            print("  8) Add education")
+            print("  9) Modify/Delete education")
 
             print("\n-- Skills --")
-            print("  12) Add skills")
-            print("  13) Modify/Delete skills")
+            print("  10) Add skills")
+            print("  11) Modify/Delete skills")
 
             print("\n-- Summary --")
-            print("  14) Update summary")
+            print("  12) Update summary")
 
             print("\n-- Document --")
-            print("  15) Change theme")
-            print("  16) View full document")
-            print("  17) Render to PDF")
+            print("  13) View full document")
+            print("  14) Render to PDF")
         else:
             # Portfolio uses sequential numbering
             print("\n-- Document --")
-            print("  8) Change theme")
-            print("  9) View full document")
-            print("  10) Render to PDF")
+            print("  8) View full document")
+            print("  9) Render to PDF")
 
         print(f"\n{'─' * 50}")
         print("  0) Save and return")
@@ -232,9 +221,9 @@ def _document_edit_menu(ctx: AppContext, doc: RenderCVDocument) -> None:
             print("[SUCCESS] Document saved.")
             return
         elif choice == "1":
-            _add_project_from_analysis(ctx, doc)
+            _add_project_from_analysis(doc)
         elif choice == "2":
-            _add_project_from_ai(ctx, doc)
+            _add_project_from_ai(doc)
         elif choice == "3":
             _add_project_manually(doc)
         elif choice == "4":
@@ -247,39 +236,30 @@ def _document_edit_menu(ctx: AppContext, doc: RenderCVDocument) -> None:
             _modify_delete_connections(doc)
         elif choice == "8":
             if doc.doc_type == 'resume':
-                _add_experience(doc)
-            else:
-                _change_theme(doc)
-        elif choice == "9":
-            if doc.doc_type == 'resume':
-                _modify_delete_experience(doc)
-            else:
-                _view_document(doc)
-        elif choice == "10":
-            if doc.doc_type == 'resume':
                 _add_education(doc)
             else:
+                _view_document(doc)
+        elif choice == "9":
+            if doc.doc_type == 'resume':
+                _modify_delete_education(doc)
+            else:
                 _render_document(doc)
-        elif choice == "11" and doc.doc_type == 'resume':
-            _modify_delete_education(doc)
-        elif choice == "12" and doc.doc_type == 'resume':
+        elif choice == "10" and doc.doc_type == 'resume':
             _add_skills(doc)
-        elif choice == "13" and doc.doc_type == 'resume':
+        elif choice == "11" and doc.doc_type == 'resume':
             _modify_delete_skills(doc)
-        elif choice == "14" and doc.doc_type == 'resume':
+        elif choice == "12" and doc.doc_type == 'resume':
             _update_summary(doc)
-        elif choice == "15" and doc.doc_type == 'resume':
-            _change_theme(doc)
-        elif choice == "16" and doc.doc_type == 'resume':
+        elif choice == "13" and doc.doc_type == 'resume':
             _view_document(doc)
-        elif choice == "17" and doc.doc_type == 'resume':
+        elif choice == "14" and doc.doc_type == 'resume':
             _render_document(doc)
         else:
-            max_opt = "17" if doc.doc_type == 'resume' else "10"
+            max_opt = "14" if doc.doc_type == 'resume' else "9"
             print(f"Please choose a valid option (0-{max_opt}).")
 
 
-def _add_project_from_analysis(ctx: AppContext, doc: RenderCVDocument) -> None:
+def _add_project_from_analysis(doc: RenderCVDocument) -> None:
     """
     Add a project to the document from a saved local analysis.
 
@@ -288,13 +268,12 @@ def _add_project_from_analysis(ctx: AppContext, doc: RenderCVDocument) -> None:
     using GenerateLocalResume and added to the document.
 
     Args:
-        ctx: Application context containing the default save directory path
         doc: The RenderCVDocument instance to add the project to
 
     Returns:
         None: Prints success/error message and returns
     """
-    folder = Path(ctx.default_save_dir).resolve()
+    folder = Path(runtimeAppContext.default_save_dir).resolve()
     items = list_saved_projects(folder)
 
     if not items:
@@ -346,7 +325,7 @@ def _add_project_from_analysis(ctx: AppContext, doc: RenderCVDocument) -> None:
         print(f"[ERROR] Could not add project: {e}")
 
 
-def _add_project_from_ai(ctx: AppContext, doc: RenderCVDocument) -> None:
+def _add_project_from_ai(doc: RenderCVDocument) -> None:
     """
     Add a project to the document using AI-powered analysis.
 
@@ -355,18 +334,17 @@ def _add_project_from_ai(ctx: AppContext, doc: RenderCVDocument) -> None:
     project root path stored in the analysis.
 
     Args:
-        ctx: Application context containing external consent flag and save directory
         doc: The RenderCVDocument instance to add the project to
 
     Returns:
         None: Prints success/error message and returns
     """
-    if not ctx.external_consent:
+    if not runtimeAppContext.external_consent:
         print("\n[INFO] External services are disabled in your consent settings.")
         print("Enable external services in Settings to use AI analysis.\n")
         return
 
-    folder = Path(ctx.default_save_dir).resolve()
+    folder = Path(runtimeAppContext.default_save_dir).resolve()
     items = list_saved_projects(folder)
 
     if not items:
@@ -633,52 +611,6 @@ def _modify_connection_entry(doc: RenderCVDocument, idx: int, conn: dict) -> Non
     print("[SUCCESS] Connection updated.")
 
 
-def _add_experience(doc: RenderCVDocument) -> None:
-    """
-    Add work experience entry to a resume document.
-
-    Prompts the user for company, position, dates, location, and highlights.
-    Creates an Experience object and adds it to the document.
-
-    Args:
-        doc: The RenderCVDocument instance to add the experience to
-
-    Returns:
-        None: Prints success/error message and returns
-    """
-    print("\n=== Add Work Experience ===")
-
-    company = input("Company name: ").strip()
-    if not company:
-        print("[ERROR] Company name is required.")
-        return
-
-    position = input("Position/Title: ").strip()
-    start_date = input("Start date (YYYY-MM): ").strip()
-    end_date = input("End date (YYYY-MM or 'present'): ").strip()
-    location = input("Location: ").strip()
-
-    print("Enter highlights (one per line, empty line to finish):")
-    highlights = []
-    while True:
-        h = input("  - ").strip()
-        if not h:
-            break
-        highlights.append(h)
-
-    exp = Experience(
-        company=company,
-        position=position if position else None,
-        start_date=start_date if start_date else None,
-        end_date=end_date if end_date else None,
-        location=location if location else None,
-        highlights=highlights if highlights else None
-    )
-
-    result = doc.add_experience(exp)
-    print(f"[SUCCESS] {result}")
-
-
 def _add_education(doc: RenderCVDocument) -> None:
     """
     Add education entry to a resume document.
@@ -872,125 +804,6 @@ def _modify_project(doc: RenderCVDocument, idx: int, project: dict) -> None:
 
     doc.save()
     print("[SUCCESS] Project updated.")
-
-
-def _modify_delete_experience(doc: RenderCVDocument) -> None:
-    """
-    Display menu to modify or delete experience entries from the document.
-
-    Lists all experience entries and allows the user to select one for
-    modification or deletion. Runs in a loop until user selects back option.
-
-    Args:
-        doc: The RenderCVDocument instance containing the experience entries
-
-    Returns:
-        None: Returns when user selects back option or no entries exist
-    """
-    sections = doc.data.get('cv', {}).get('sections', {})
-    experience = sections.get('experience', [])
-
-    if not experience:
-        print("\n[INFO] No experience entries to modify or delete.")
-        return
-
-    while True:
-        print("\n=== Modify/Delete Experience ===")
-        for i, e in enumerate(experience, start=1):
-            print(f"  {i}) {e.get('position', 'N/A')} at {e.get('company', 'Unknown')}")
-        print("  0) Back")
-
-        sel = input("\nSelect an experience entry: ").strip()
-        if not sel or sel == "0":
-            return
-
-        try:
-            idx = int(sel) - 1
-            if idx < 0 or idx >= len(experience):
-                print("[ERROR] Invalid selection.")
-                continue
-        except ValueError:
-            print("[ERROR] Please enter a number.")
-            continue
-
-        exp = experience[idx]
-        print(f"\nSelected: {exp.get('position', 'N/A')} at {exp.get('company', 'Unknown')}")
-        print("1) Modify")
-        print("2) Delete")
-        print("0) Cancel")
-
-        action = input("Select action: ").strip()
-
-        if action == "1":
-            _modify_experience(doc, idx, exp)
-            experience = doc.data.get('cv', {}).get('sections', {}).get('experience', [])
-        elif action == "2":
-            confirm = input(f"Delete '{exp.get('position')} at {exp.get('company')}'? (y/n): ").strip().lower()
-            if confirm == 'y':
-                experience.pop(idx)
-                doc.save()
-                print("[SUCCESS] Experience entry deleted.")
-        elif action == "0":
-            continue
-
-
-def _modify_experience(doc: RenderCVDocument, idx: int, exp: dict) -> None:
-    """
-    Modify a single experience entry in the document.
-
-    Prompts the user to update company, position, dates, location, and highlights.
-    Empty input preserves existing values.
-
-    Args:
-        doc: The RenderCVDocument instance containing the experience
-        idx: Zero-based index of the experience in the experience list
-        exp: Dictionary containing the current experience data
-
-    Returns:
-        None: Saves changes and prints success message
-    """
-    print("\n=== Modify Experience ===")
-    print("(Press Enter to keep current value)\n")
-
-    company = input(f"Company [{exp.get('company', '')}]: ").strip()
-    position = input(f"Position [{exp.get('position', '')}]: ").strip()
-    start_date = input(f"Start date [{exp.get('start_date', '')}]: ").strip()
-    end_date = input(f"End date [{exp.get('end_date', '')}]: ").strip()
-    location = input(f"Location [{exp.get('location', '')}]: ").strip()
-
-    print(f"\nCurrent highlights:")
-    for h in exp.get('highlights', []):
-        print(f"  - {h}")
-
-    edit_highlights = input("\nEdit highlights? (y/n): ").strip().lower()
-    highlights = None
-    if edit_highlights == 'y':
-        print("Enter new highlights (one per line, empty line to finish):")
-        highlights = []
-        while True:
-            h = input("  - ").strip()
-            if not h:
-                break
-            highlights.append(h)
-
-    sections = doc.data.get('cv', {}).get('sections', {})
-    experience = sections.get('experience', [])
-
-    if company:
-        experience[idx]['company'] = company
-    if position:
-        experience[idx]['position'] = position
-    if start_date:
-        experience[idx]['start_date'] = start_date
-    if end_date:
-        experience[idx]['end_date'] = end_date
-    if location:
-        experience[idx]['location'] = location
-    if highlights is not None:
-        experience[idx]['highlights'] = highlights
-
-    doc.save()
-    print("[SUCCESS] Experience entry updated.")
 
 
 def _modify_delete_education(doc: RenderCVDocument) -> None:
@@ -1337,60 +1150,6 @@ def _view_document(doc: RenderCVDocument) -> None:
     input("Press Enter to continue...")
 
 
-def _change_theme(doc: RenderCVDocument) -> None:
-    """
-    Change the visual theme of the document.
-
-    Displays available RenderCV themes and allows the user to select one.
-    Available themes include classic, engineeringclassic, engineeringresumes,
-    moderncv, and sb2nov.
-
-    Args:
-        doc: The RenderCVDocument instance to update
-
-    Returns:
-        None: Prints success/error message and returns
-    """
-    current_theme = doc.data.get('design', {}).get('theme', 'sb2nov')
-
-    print("\n=== Change Document Theme ===")
-    print(f"Current theme: {current_theme}\n")
-    print("Available themes:")
-    print("  1) classic          - Classic CV theme")
-    print("  2) engineeringclassic - Engineering-focused CV theme")
-    print("  3) engineeringresumes - Engineering resume theme")
-    print("  4) moderncv         - Modern CV theme")
-    print("  5) sb2nov           - Clean resume theme (default)")
-    print("  0) Cancel")
-
-    theme_map = {
-        "1": "classic",
-        "2": "engineeringclassic",
-        "3": "engineeringresumes",
-        "4": "moderncv",
-        "5": "sb2nov"
-    }
-
-    choice = input("\nSelect a theme: ").strip()
-
-    if choice == "0" or choice not in theme_map:
-        if choice != "0":
-            print("[ERROR] Invalid selection.")
-        return
-
-    selected_theme = theme_map[choice]
-
-    if selected_theme == current_theme:
-        print(f"[INFO] Theme is already set to '{selected_theme}'.")
-        return
-
-    try:
-        result = doc.update_theme(selected_theme)
-        print(f"[SUCCESS] {result}")
-    except ValueError as e:
-        print(f"[ERROR] {e}")
-
-
 def _render_document(doc: RenderCVDocument) -> None:
     """
     Render the document to PDF with a progress indicator.
@@ -1404,9 +1163,6 @@ def _render_document(doc: RenderCVDocument) -> None:
     Returns:
         None: Prints success/error message with PDF path and returns
     """
-    import shutil
-    import threading
-
     print("\n=== Rendering Document to PDF ===")
 
     # Use tqdm for progress indication
