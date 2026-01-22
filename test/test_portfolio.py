@@ -38,14 +38,15 @@ def test_display_portfolio_external_disabled_uses_saved_oop(monkeypatch, tmp_pat
     file_path = tmp_path / "analysis.json"
     file_path.write_text(mod.json.dumps(data))
 
-    called = {}
-    monkeypatch.setattr(mod, "pretty_print_oop_report", lambda metrics: called.setdefault("metrics", metrics))
+    # Mock input to skip PDF generation prompts
+    monkeypatch.setattr("builtins.input", lambda prompt="": "n")
 
     mod.display_portfolio_and_generate_pdf(file_path, ctx)
     out = capsys.readouterr().out
 
-    assert "PROJECT: analysis.json" in out
-    assert called["metrics"]["score"]["oop_score"] == 0.8
+    # Verify portfolio showcase is displayed with OOP score
+    assert "PORTFOLIO SHOWCASE" in out
+    assert "OOP score: 0.8" in out
 
 
 def test_display_portfolio_external_enabled_calls_generator(monkeypatch, tmp_path, capsys):
@@ -81,6 +82,8 @@ def test_display_portfolio_external_enabled_calls_generator(monkeypatch, tmp_pat
             return generated
 
     monkeypatch.setattr(mod, "GenerateProjectResume", FakeResume)
+    # Mock input to skip PDF generation prompts
+    monkeypatch.setattr("builtins.input", lambda prompt="": "n")
 
     mod.display_portfolio_and_generate_pdf(file_path, ctx)
     out = capsys.readouterr().out
