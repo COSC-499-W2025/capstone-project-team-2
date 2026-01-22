@@ -1116,7 +1116,8 @@ Building on the Resume Generator class (`Generate_RenderCV_Resume.py`) completed
 
 ## ⚠️ Issues/Blockers
 
-- None this week. Development proceeded smoothly.
+- I encoutred a massive issue which is that I didnt check to see if the other test that were associated with the CLI
+and spent some time fixing the test to make sure that they pass with the no issue which slowed down my development time
 
 -----
 
@@ -1285,7 +1286,6 @@ Additionally, I implemented full CRUD operations into the CLI to allow users to 
 
 ## 📌 Associated Tasks from Project Board
 - [Implement CRUD Operations into CLI for Demo ](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/316)
-- [Refactoring of Generate resume and Portfolio into one system ](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/313)
 
 ---
 
@@ -1419,11 +1419,9 @@ system (`RenderCVDocument`) class, allowing for shared test logic
 between portfolio and resume functionality 
 
 Looking ahead to next week, 
-I plan to prepare for peer heuristics 
-testing and continue addressing 
-any critical bugs discovered during 
-the demo preparation and also planning/creating
-meeting agenda to allow us to be stay focused and on track
+I plan to prepare for peer heuristics
+testing and continue addressing  any critical bugs discovered during 
+the demo preparation and also planning/creating meeting agenda to allow us to be stay focused and on track. Also one thing I would like to point out is that I made a fatal error in my development lacking 
 
 
 
