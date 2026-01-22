@@ -394,7 +394,8 @@ class TestDocumentGeneratorMenu(unittest.TestCase):
         _view_document(self.doc)
 
         output = mock_stdout.getvalue()
-        self.assertIn("DOCUMENT", output.upper())
+        # Document type (RESUME or PORTFOLIO) should be displayed
+        self.assertTrue("RESUME" in output.upper() or "PORTFOLIO" in output.upper())
         self.assertIn("Test", output)  # Name should appear
 
     @patch('builtins.input')
