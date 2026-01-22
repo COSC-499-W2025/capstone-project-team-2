@@ -49,7 +49,9 @@ def document_generator_menu() -> None:
         if choice == "0":
             return
         elif choice == "1":
-            name = input("Enter your name: ").strip()
+            name = input("Enter your name (0 to cancel): ").strip()
+            if name == "0":
+                continue
             if not name:
                 print("[ERROR] Name cannot be empty.")
                 continue
@@ -62,7 +64,10 @@ def document_generator_menu() -> None:
             doc.load(name=name)
             _document_edit_menu(doc)
         elif choice == "2":
-            name = input("Enter your name: ").strip()
+            name = input("Enter your name (0 to cancel): ").strip()
+            if name == "0":
+                print("[INFO] Resume Creation Cancelled")
+                continue
             if not name:
                 print("[ERROR] Name cannot be empty.")
                 continue
@@ -399,8 +404,11 @@ def _add_project_manually(doc: RenderCVDocument) -> None:
         None: Prints success/error message and returns
     """
     print("\n=== Add Project Manually ===")
-
+    print("(Enter 0 to cancel)\n")
     name = input("Project name: ").strip()
+    if name == "0":
+        print("[INFO] Cancelled adding project.")
+        return
     if not name:
         print("[ERROR] Project name is required.")
         return
