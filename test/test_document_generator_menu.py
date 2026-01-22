@@ -1,7 +1,7 @@
 """
 Test suite for document_generator_menu.py CLI functions.
 
-Tests the CRUD operations for connections, projects, and theme changes
+Tests the CRUD operations for connections and projects
 through the CLI menu interface.
 """
 
@@ -32,7 +32,6 @@ from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
 from src.cli.document_generator_menu import (
     _add_connection,
     _modify_delete_connections,
-    _change_theme,
     _add_project_manually,
 )
 
@@ -41,7 +40,7 @@ class TestDocumentGeneratorMenu(unittest.TestCase):
     """
     Test suite for document_generator_menu CLI functions.
 
-    Tests CRUD operations for connections, projects, and theme changes
+    Tests CRUD operations for connections and projects
     through the CLI menu interface using mocked user input.
     """
 
@@ -157,40 +156,6 @@ class TestDocumentGeneratorMenu(unittest.TestCase):
         mock_input.side_effect = [str(idx + 1), "2", "y", "0"]
         _modify_delete_connections(self.doc)
         self.assertIn("deleted", mock_stdout.getvalue().lower())
-
-    @patch('builtins.input')
-    @patch('sys.stdout', new_callable=StringIO)
-    def test_change_theme(self, mock_stdout, mock_input):
-        """
-        Test changing the document theme through the CLI.
-
-        Verifies theme change to a new theme shows success, selecting the
-        same theme shows info message, and canceling leaves theme unchanged.
-
-        Args:
-            mock_stdout: Mocked stdout to capture printed output
-            mock_input: Mocked input function to simulate theme selection
-
-        Returns:
-            None: Asserts expected behavior for theme change functionality
-        """
-        # Test change to classic
-        mock_input.return_value = "1"
-        _change_theme(self.doc)
-        self.assertIn("[SUCCESS]", mock_stdout.getvalue())
-        self.assertEqual(self.doc.data['design']['theme'], 'classic')
-
-        # Test same theme shows info
-        mock_stdout.truncate(0)
-        mock_stdout.seek(0)
-        mock_input.return_value = "1"
-        _change_theme(self.doc)
-        self.assertIn("[INFO]", mock_stdout.getvalue())
-
-        # Test cancel
-        mock_input.return_value = "0"
-        _change_theme(self.doc)
-        self.assertEqual(self.doc.data['design']['theme'], 'classic')  # unchanged
 
     @patch('builtins.input')
     @patch('sys.stdout', new_callable=StringIO)
