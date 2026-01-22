@@ -7,20 +7,10 @@ from typing import Optional, List, Literal
 import ruamel.yaml
 import orjson
 from src.reporting.Generate_AI_Resume import GenerateProjectResume
+from src.utils.utility_methods import dataclass_to_dict
 
 
 ##=================HELPER FUNCTIONS===================
-
-def _to_dict(obj)->dict:
-    """
-    Convert a dataclass instance to dictionary,
-    excluding fields with None Values
-        Args:
-            obj: The dataclass instance to convert
-        Returns:
-            dict: A dictionary containing only non-None fields from the dataclass
-    """
-    return {k:v for k,v in obj.__dict__.items() if v is not None}
 
 def requires_data(method):
     """
@@ -83,7 +73,7 @@ class Experience:
     end_date: Optional[str] = None
     location: Optional[str] = None
     highlights: Optional[List[str]] = None
-    to_dict = _to_dict
+    to_dict = dataclass_to_dict
 
 @dataclass
 class Skills:
@@ -95,7 +85,7 @@ class Skills:
     """
     label:str
     details:str
-    to_dict = _to_dict
+    to_dict = dataclass_to_dict
 
 @dataclass
 class Education:
@@ -121,7 +111,7 @@ class Education:
     degree: Optional[str] = None
     gpa: Optional[str] = None
     highlights: Optional[List[str]] = None
-    to_dict = _to_dict
+    to_dict = dataclass_to_dict
 
 @dataclass
 class Connections:
@@ -134,7 +124,7 @@ class Connections:
     """
     network: Optional[str] = None
     username: Optional[str] = None
-    to_dict = _to_dict
+    to_dict = dataclass_to_dict
 
 @dataclass
 class Project:
@@ -155,7 +145,7 @@ class Project:
     location: Optional[str] = None
     summary: Optional[str] = None
     highlights: Optional[List[str]] = None
-    to_dict = _to_dict
+    to_dict = dataclass_to_dict
 
 # ========== DOCUMENT TYPE =========
 DocumentType = Literal['resume', 'portfolio']
