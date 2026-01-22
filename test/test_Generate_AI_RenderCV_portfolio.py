@@ -9,8 +9,6 @@ from unittest.mock import patch, MagicMock, mock_open
 # Suppress third-party deprecation warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="google.genai")
 
-from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import RenderCVDocument, Project, Connections
-
 
 class TestPortfolio(unittest.TestCase):
     """
