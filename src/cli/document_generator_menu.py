@@ -12,12 +12,8 @@ delegates to the underlying RenderCVDocument service.
 import json
 import os
 import shutil
-import threading
-import time
 from pathlib import Path
 from typing import Optional
-
-from tqdm import tqdm
 
 from src.core.app_context import runtimeAppContext
 from src.reporting.Generate_AI_Resume import GenerateProjectResume, GenerateLocalResume
@@ -1424,10 +1420,10 @@ def _view_document(doc: RenderCVDocument) -> None:
 
 def _render_document(doc: RenderCVDocument) -> None:
     """
-    Render the document to PDF with a progress indicator.
+    Render the document to PDF.
 
-    Runs the render process in a background thread while displaying a progress
-    bar. Optionally allows the user to save the PDF to a custom location.
+    Calls the render method on the document and optionally allows
+    the user to save the PDF to a custom location.
 
     Args:
         doc: The RenderCVDocument instance to render
@@ -1436,58 +1432,16 @@ def _render_document(doc: RenderCVDocument) -> None:
         None: Prints success/error message with PDF path and returns
     """
     print("\n=== Rendering Document to PDF ===")
+    print("Rendering... (this may take a moment)")
 
-    # Use tqdm for progress indication
-    render_steps = [
-        "Validating document",
-        "Processing template",
-        "Generating LaTeX",
-        "Compiling PDF",
-        "Finalizing output"
-    ]
-
-    pdf_path = None
-    status = None
-    error = None
-    render_complete = False
-
-    def do_render():
-        nonlocal pdf_path, status, error, render_complete
-        try:
-            status, pdf_path = doc.render()
-        except Exception as e:
-            error = e
-        finally:
-            render_complete = True
-
-    # Start render in background thread
-    render_thread = threading.Thread(target=do_render)
-    render_thread.start()
-
-    # Show progress bar - cycle through all steps
-    step_progress = 100 // len(render_steps)
-    with tqdm(total=100, bar_format="{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt}") as pbar:
-        for i, step_name in enumerate(render_steps):
-            pbar.set_description(step_name)
-
-            # Wait a bit for each step (min 0.4s per step for visibility)
-            for _ in range(4):
-                time.sleep(0.1)
-                if render_complete and i >= len(render_steps) - 2:
-                    # If render finished and we're near the end, complete quickly
-                    break
-
-            # Update progress
-            if i < len(render_steps) - 1:
-                pbar.update(step_progress)
-            else:
-                pbar.n = 100
-                pbar.refresh()
-
-    render_thread.join()
-
-    if error:
+    try:
+        status, pdf_path = doc.render()
+    except Exception as error:
         print(f"\n[ERROR] Could not render PDF: {error}")
+        return
+
+    if not pdf_path:
+        print(f"\n[ERROR] {status}")
         return
 
     print(f"\n[INFO] Render status: {status}")
