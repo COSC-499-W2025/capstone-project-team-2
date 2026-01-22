@@ -6,6 +6,8 @@ import warnings
 from pathlib import Path
 from unittest.mock import patch, MagicMock, mock_open
 
+from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import RenderCVDocument, Connections, Project
+
 # Suppress third-party deprecation warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="google.genai")
 
