@@ -32,6 +32,9 @@ from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
 from src.cli.document_generator_menu import (
     _add_connection,
     _modify_delete_connections,
+    _manage_connections,
+    _manage_education,
+    _manage_skills,
     _add_project_manually,
 )
 
