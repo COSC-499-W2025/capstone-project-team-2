@@ -671,6 +671,7 @@ class RenderCVDocument:
             self.sections['summary'] = []
         self.sections['summary'] = [new_content]
         self._auto_save_if_enabled()
+
         return "Summary updated successfully"
 
     @requires_data
