@@ -555,7 +555,7 @@ def main_menu(ctx: AppContext) -> int:
             elif choice == "4":
                 delete_analysis_menu(ctx)
             elif choice == "5":
-                document_generator_menu(ctx)
+                document_generator_menu()
             elif choice == "6":
                 project_insights_menu(ctx)
             elif choice == "0":
