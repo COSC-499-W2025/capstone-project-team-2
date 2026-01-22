@@ -187,29 +187,24 @@ def _document_edit_menu(doc: RenderCVDocument) -> None:
 
         print("\n-- Contact & Social --")
         print("  5) Edit contact information")
-        print("  6) Add social network")
-        print("  7) Modify/Delete social networks")
+        print("  6) Manage social networks")
 
         if doc.doc_type == 'resume':
-            print("\n-- Education --")
-            print("  8) Add education")
-            print("  9) Modify/Delete education")
-
-            print("\n-- Skills --")
-            print("  10) Add skills")
-            print("  11) Modify/Delete skills")
+            print("\n-- Education & Skills --")
+            print("  7) Manage education")
+            print("  8) Manage skills")
 
             print("\n-- Summary --")
-            print("  12) Update summary")
+            print("  9) Update summary")
 
             print("\n-- Document --")
-            print("  13) View full document")
-            print("  14) Render to PDF")
+            print("  10) View full document")
+            print("  11) Render to PDF")
         else:
             # Portfolio uses sequential numbering
             print("\n-- Document --")
-            print("  8) View full document")
-            print("  9) Render to PDF")
+            print("  7) View full document")
+            print("  8) Render to PDF")
 
         print(f"\n{'─' * 50}")
         print("  0) Save and return")
@@ -231,31 +226,25 @@ def _document_edit_menu(doc: RenderCVDocument) -> None:
         elif choice == "5":
             _edit_contact_info(doc)
         elif choice == "6":
-            _add_connection(doc)
+            _manage_connections(doc)
         elif choice == "7":
-            _modify_delete_connections(doc)
-        elif choice == "8":
             if doc.doc_type == 'resume':
-                _add_education(doc)
+                _manage_education(doc)
             else:
                 _view_document(doc)
-        elif choice == "9":
+        elif choice == "8":
             if doc.doc_type == 'resume':
-                _modify_delete_education(doc)
+                _manage_skills(doc)
             else:
                 _render_document(doc)
-        elif choice == "10" and doc.doc_type == 'resume':
-            _add_skills(doc)
-        elif choice == "11" and doc.doc_type == 'resume':
-            _modify_delete_skills(doc)
-        elif choice == "12" and doc.doc_type == 'resume':
+        elif choice == "9" and doc.doc_type == 'resume':
             _update_summary(doc)
-        elif choice == "13" and doc.doc_type == 'resume':
+        elif choice == "10" and doc.doc_type == 'resume':
             _view_document(doc)
-        elif choice == "14" and doc.doc_type == 'resume':
+        elif choice == "11" and doc.doc_type == 'resume':
             _render_document(doc)
         else:
-            max_opt = "14" if doc.doc_type == 'resume' else "9"
+            max_opt = "11" if doc.doc_type == 'resume' else "8"
             print(f"Please choose a valid option (0-{max_opt}).")
 
 
@@ -480,6 +469,102 @@ def _edit_contact_info(doc: RenderCVDocument) -> None:
     print("[SUCCESS] Contact information updated.")
 
 
+def _manage_connections(doc: RenderCVDocument) -> None:
+    """
+    Unified menu for managing social network connections.
+
+    Provides options to add, modify, or delete social network connections
+    in a single submenu interface.
+
+    Args:
+        doc: The RenderCVDocument instance to manage connections for
+
+    Returns:
+        None: Returns when user selects back option
+    """
+    while True:
+        cv_data = doc.data.get('cv', {})
+        connections = cv_data.get('social_networks', [])
+
+        print("\n=== Manage Social Networks ===")
+        print("Common networks: LinkedIn, GitHub, GitLab, Twitter, Instagram, YouTube\n")
+
+        if connections:
+            print("Current connections:")
+            for i, conn in enumerate(connections, start=1):
+                network = conn.get('network', 'Unknown')
+                username = conn.get('username', 'N/A')
+                print(f"  {i}) {network}: {username}")
+            print()
+
+        print("Actions:")
+        print("  a) Add new connection")
+        if connections:
+            print("  m) Modify existing connection")
+            print("  d) Delete connection")
+        print("  0) Back")
+
+        choice = input("\nSelect an action: ").strip().lower()
+
+        if choice == "0":
+            return
+        elif choice == "a":
+            _add_connection(doc)
+        elif choice == "m" and connections:
+            _select_and_modify_connection(doc, connections)
+        elif choice == "d" and connections:
+            _select_and_delete_connection(doc, connections)
+        else:
+            print("[ERROR] Invalid option.")
+
+
+def _select_and_modify_connection(doc: RenderCVDocument, connections: list) -> None:
+    """
+    Select and modify a social network connection.
+
+    Args:
+        doc: The RenderCVDocument instance
+        connections: List of current connections
+    """
+    sel = input("Enter connection number to modify: ").strip()
+    try:
+        idx = int(sel) - 1
+        if idx < 0 or idx >= len(connections):
+            print("[ERROR] Invalid selection.")
+            return
+    except ValueError:
+        print("[ERROR] Please enter a number.")
+        return
+
+    _modify_connection_entry(doc, idx, connections[idx])
+
+
+def _select_and_delete_connection(doc: RenderCVDocument, connections: list) -> None:
+    """
+    Select and delete a social network connection.
+
+    Args:
+        doc: The RenderCVDocument instance
+        connections: List of current connections
+    """
+    sel = input("Enter connection number to delete: ").strip()
+    try:
+        idx = int(sel) - 1
+        if idx < 0 or idx >= len(connections):
+            print("[ERROR] Invalid selection.")
+            return
+    except ValueError:
+        print("[ERROR] Please enter a number.")
+        return
+
+    conn = connections[idx]
+    confirm = input(f"Delete '{conn.get('network')}' connection? (y/n): ").strip().lower()
+    if confirm == 'y':
+        connections.pop(idx)
+        doc.save()
+        print("[SUCCESS] Connection deleted.")
+
+
 def _add_connection(doc: RenderCVDocument) -> None:
     """
     Add a social network connection to the document.
@@ -609,6 +694,193 @@ def _modify_connection_entry(doc: RenderCVDocument, idx: int, conn: dict) -> Non
 
     doc.save()
     print("[SUCCESS] Connection updated.")
+
+
+def _manage_education(doc: RenderCVDocument) -> None:
+    """
+    Unified menu for managing education entries.
+
+    Provides options to add, modify, or delete education entries
+    in a single submenu interface.
+
+    Args:
+        doc: The RenderCVDocument instance to manage education for
+
+    Returns:
+        None: Returns when user selects back option
+    """
+    while True:
+        sections = doc.data.get('cv', {}).get('sections', {})
+        education = sections.get('education', [])
+
+        print("\n=== Manage Education ===\n")
+
+        if education:
+            print("Current education entries:")
+            for i, e in enumerate(education, start=1):
+                degree_info = f"{e.get('degree', '')} {e.get('area', '')}".strip()
+                print(f"  {i}) {degree_info} at {e.get('institution', 'Unknown')}")
+            print()
+
+        print("Actions:")
+        print("  a) Add new education")
+        if education:
+            print("  m) Modify existing education")
+            print("  d) Delete education")
+        print("  0) Back")
+
+        choice = input("\nSelect an action: ").strip().lower()
+
+        if choice == "0":
+            return
+        elif choice == "a":
+            _add_education(doc)
+        elif choice == "m" and education:
+            _select_and_modify_education(doc, education)
+        elif choice == "d" and education:
+            _select_and_delete_education(doc, education)
+        else:
+            print("[ERROR] Invalid option.")
+
+
+def _select_and_modify_education(doc: RenderCVDocument, education: list) -> None:
+    """
+    Select and modify an education entry.
+
+    Args:
+        doc: The RenderCVDocument instance
+        education: List of current education entries
+    """
+    sel = input("Enter education number to modify: ").strip()
+    try:
+        idx = int(sel) - 1
+        if idx < 0 or idx >= len(education):
+            print("[ERROR] Invalid selection.")
+            return
+    except ValueError:
+        print("[ERROR] Please enter a number.")
+        return
+
+    _modify_education_entry(doc, idx, education[idx])
+
+
+def _select_and_delete_education(doc: RenderCVDocument, education: list) -> None:
+    """
+    Select and delete an education entry.
+
+    Args:
+        doc: The RenderCVDocument instance
+        education: List of current education entries
+    """
+    sel = input("Enter education number to delete: ").strip()
+    try:
+        idx = int(sel) - 1
+        if idx < 0 or idx >= len(education):
+            print("[ERROR] Invalid selection.")
+            return
+    except ValueError:
+        print("[ERROR] Please enter a number.")
+        return
+
+    edu = education[idx]
+    confirm = input(f"Delete '{edu.get('degree')} at {edu.get('institution')}'? (y/n): ").strip().lower()
+    if confirm == 'y':
+        education.pop(idx)
+        doc.save()
+        print("[SUCCESS] Education entry deleted.")
+
+
+def _manage_skills(doc: RenderCVDocument) -> None:
+    """
+    Unified menu for managing skill entries.
+
+    Provides options to add, modify, or delete skill entries
+    in a single submenu interface.
+
+    Args:
+        doc: The RenderCVDocument instance to manage skills for
+
+    Returns:
+        None: Returns when user selects back option
+    """
+    while True:
+        sections = doc.data.get('cv', {}).get('sections', {})
+        skills = sections.get('skills', [])
+
+        print("\n=== Manage Skills ===\n")
+
+        if skills:
+            print("Current skill categories:")
+            for i, s in enumerate(skills, start=1):
+                print(f"  {i}) {s.get('label', 'Unknown')}: {s.get('details', '')[:40]}...")
+            print()
+
+        print("Actions:")
+        print("  a) Add new skill category")
+        if skills:
+            print("  m) Modify existing skill")
+            print("  d) Delete skill")
+        print("  0) Back")
+
+        choice = input("\nSelect an action: ").strip().lower()
+
+        if choice == "0":
+            return
+        elif choice == "a":
+            _add_skills(doc)
+        elif choice == "m" and skills:
+            _select_and_modify_skill(doc, skills)
+        elif choice == "d" and skills:
+            _select_and_delete_skill(doc, skills)
+        else:
+            print("[ERROR] Invalid option.")
+
+
+def _select_and_modify_skill(doc: RenderCVDocument, skills: list) -> None:
+    """
+    Select and modify a skill entry.
+
+    Args:
+        doc: The RenderCVDocument instance
+        skills: List of current skill entries
+    """
+    sel = input("Enter skill number to modify: ").strip()
+    try:
+        idx = int(sel) - 1
+        if idx < 0 or idx >= len(skills):
+            print("[ERROR] Invalid selection.")
+            return
+    except ValueError:
+        print("[ERROR] Please enter a number.")
+        return
+
+    _modify_skill_entry(doc, idx, skills[idx])
+
+
+def _select_and_delete_skill(doc: RenderCVDocument, skills: list) -> None:
+    """
+    Select and delete a skill entry.
+
+    Args:
+        doc: The RenderCVDocument instance
+        skills: List of current skill entries
+    """
+    sel = input("Enter skill number to delete: ").strip()
+    try:
+        idx = int(sel) - 1
+        if idx < 0 or idx >= len(skills):
+            print("[ERROR] Invalid selection.")
+            return
+    except ValueError:
+        print("[ERROR] Please enter a number.")
+        return
+
+    skill = skills[idx]
+    confirm = input(f"Delete skill category '{skill.get('label')}'? (y/n): ").strip().lower()
+    if confirm == 'y':
+        skills.pop(idx)
+        doc.save()
+        print("[SUCCESS] Skill entry deleted.")
 
 
 def _add_education(doc: RenderCVDocument) -> None:
