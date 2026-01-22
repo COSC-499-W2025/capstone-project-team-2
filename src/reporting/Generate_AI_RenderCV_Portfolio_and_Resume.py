@@ -653,6 +653,7 @@ class RenderCVDocument:
         return f"Successfully deleted: {network_name}"
 
     # ============== RESUME-ONLY METHODS ==============
+
     @requires_data
     @requires_resume
     def update_summary(self, new_content: str) -> str:
