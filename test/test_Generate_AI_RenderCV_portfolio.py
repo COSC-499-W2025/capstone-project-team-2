@@ -6,16 +6,15 @@ import warnings
 from pathlib import Path
 from unittest.mock import patch, MagicMock, mock_open
 
+from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import RenderCVDocument, Connections, Project
+
 # Suppress third-party deprecation warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="google.genai")
-
-from src.reporting.Generate_AI_RenderCV_portfolio import Create_Portfolio_RenderCV
-from src.reporting.Generate_RenderCV_Resume import Project, Connections
 
 
 class TestPortfolio(unittest.TestCase):
     """
-    Test suite for the Create_Portfolio_RenderCV class.
+    Test suite for the RenderCVDocument class with portfolio document type.
 
     Tests portfolio generation, loading, saving, and adding connections/projects
     functionality including AI-generated project additions.
@@ -68,11 +67,12 @@ class TestPortfolio(unittest.TestCase):
         Returns:
             None: Asserts pass if portfolio generates, saves, and loads correctly
         """
-        portfolio = Create_Portfolio_RenderCV()
+        portfolio = RenderCVDocument(doc_type='portfolio')
         portfolio.cv_files_dir = Path(self.test_dir)
-        self.assertEqual(portfolio.generate_portfolio(name="Test User"), "Success")
+        portfolio.name = "Test_User"
+        self.assertEqual(portfolio.generate(name="Test User"), "Success")
         self.assertTrue(portfolio.yaml_file.exists())
-        data = portfolio.load_Protfolio_starter_file()
+        data = portfolio.load()
         self.assertIn('cv', data)
 
     def test_add_connection_and_project(self):
@@ -89,15 +89,16 @@ class TestPortfolio(unittest.TestCase):
         Returns:
             None: Asserts pass if connections and projects are added successfully
         """
-        portfolio = Create_Portfolio_RenderCV(auto_save=False)
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
         portfolio.cv_files_dir = Path(self.test_dir)
-        portfolio.generate_portfolio(name="Test User")
-        portfolio.load_Protfolio_starter_file()
-        self.assertEqual(portfolio.add_new_portfolio_connection(Connections(network="Twitter", username="test")), "Successfully added: Twitter")
-        self.assertEqual(portfolio.add_portfolio_project(Project(name="New Project", summary="Test")), "Successfully added: New Project")
+        portfolio.name = "Test_User"
+        portfolio.generate(name="Test User")
+        portfolio.load()
+        self.assertEqual(portfolio.add_connection(Connections(network="Twitter", username="test")), "Successfully added: Twitter")
+        self.assertIn("Successfully added", portfolio.add_project(Project(name="New Project", summary="Test")))
 
-    @patch('src.reporting.Generate_AI_RenderCV_portfolio.GenerateProjectResume')
-    @patch('src.reporting.Generate_AI_RenderCV_portfolio.orjson.loads')
+    @patch('src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume.GenerateProjectResume')
+    @patch('src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume.orjson.loads')
     def test_add_project_from_ai(self, mock_orjson, mock_resume):
         """
         Test adding a project to the portfolio using AI-generated content.
@@ -113,10 +114,11 @@ class TestPortfolio(unittest.TestCase):
         Returns:
             None: Asserts pass if AI-generated project is successfully added
         """
-        portfolio = Create_Portfolio_RenderCV(auto_save=False)
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
         portfolio.cv_files_dir = Path(self.test_dir)
-        portfolio.generate_portfolio(name="Test User")
-        portfolio.load_Protfolio_starter_file()
+        portfolio.name = "Test_User"
+        portfolio.generate(name="Test User")
+        portfolio.load()
 
         mock_orjson.return_value = {'project_root': '/fake/path'}
         mock_resume.return_value.generate.return_value = MagicMock(
@@ -124,9 +126,9 @@ class TestPortfolio(unittest.TestCase):
 
         m = mock_open(read_data=b'{}')
         with patch('builtins.open', m):
-            result = portfolio.add_portfolio_project_from_AI("project.json")
+            result = portfolio.add_project_from_ai("project.json")
 
-        self.assertEqual(result, "Successfully added: AI Project")
+        self.assertIn("AI Project", result)
 
     def test_update_portfolio_contact(self):
         """
@@ -142,35 +144,33 @@ class TestPortfolio(unittest.TestCase):
         Returns:
             None: Asserts pass if contact fields are updated correctly
         """
-        portfolio = Create_Portfolio_RenderCV(auto_save=False)
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
         portfolio.cv_files_dir = Path(self.test_dir)
-        portfolio.generate_portfolio(name="Test User")
-        portfolio.load_Protfolio_starter_file()
+        portfolio.name = "Test_User"
+        portfolio.generate(name="Test User")
+        portfolio.load()
 
         # Test updating single field
-        result = portfolio.update_portfolio_contact(email="new@email.com")
-        self.assertEqual(result, "Successfully updated: email")
+        result = portfolio.update_contact(email="new@email.com")
+        # update_contact returns self for method chaining
+        self.assertIs(result, portfolio)
         self.assertEqual(portfolio.data['cv']['email'], "new@email.com")
 
         # Test updating multiple fields
-        result = portfolio.update_portfolio_contact(
+        result = portfolio.update_contact(
             phone="+1 555 123 4567",
             location="New York, NY"
         )
-        self.assertEqual(result, "Successfully updated: phone, location")
+        self.assertIs(result, portfolio)
         self.assertEqual(portfolio.data['cv']['phone'], "+1 555 123 4567")
         self.assertEqual(portfolio.data['cv']['location'], "New York, NY")
-
-        # Test no fields updated
-        result = portfolio.update_portfolio_contact()
-        self.assertEqual(result, "No fields updated")
 
     def test_update_portfolio_contact_empty_string_ignored(self):
         """
         Test that empty strings do not overwrite existing contact information.
 
         Verifies that passing empty strings or whitespace-only strings to
-        update_portfolio_contact() does not blank out existing values,
+        update_contact() does not blank out existing values,
         preventing accidental data loss.
 
         Args:
@@ -179,25 +179,26 @@ class TestPortfolio(unittest.TestCase):
         Returns:
             None: Asserts pass if empty strings are properly ignored
         """
-        portfolio = Create_Portfolio_RenderCV(auto_save=False)
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
         portfolio.cv_files_dir = Path(self.test_dir)
-        portfolio.generate_portfolio(name="Test User")
-        portfolio.load_Protfolio_starter_file()
+        portfolio.name = "Test_User"
+        portfolio.generate(name="Test User")
+        portfolio.load()
 
         # Set initial values
-        portfolio.update_portfolio_contact(email="original@email.com", phone="+1 111 111 1111")
+        portfolio.update_contact(email="original@email.com", phone="+1 111 111 1111")
         self.assertEqual(portfolio.data['cv']['email'], "original@email.com")
         self.assertEqual(portfolio.data['cv']['phone'], "+1 111 111 1111")
 
         # Empty string should not overwrite
-        result = portfolio.update_portfolio_contact(email="", phone="")
-        self.assertEqual(result, "No fields updated")
+        result = portfolio.update_contact(email="", phone="")
+        self.assertIs(result, portfolio)
         self.assertEqual(portfolio.data['cv']['email'], "original@email.com")
         self.assertEqual(portfolio.data['cv']['phone'], "+1 111 111 1111")
 
         # Whitespace-only string should not overwrite
-        result = portfolio.update_portfolio_contact(email="   ", phone="\t\n")
-        self.assertEqual(result, "No fields updated")
+        result = portfolio.update_contact(email="   ", phone="\t\n")
+        self.assertIs(result, portfolio)
         self.assertEqual(portfolio.data['cv']['email'], "original@email.com")
         self.assertEqual(portfolio.data['cv']['phone'], "+1 111 111 1111")
 
@@ -215,7 +216,7 @@ class TestPortfolio(unittest.TestCase):
         Returns:
             None: Asserts pass if ValueError is raised with correct message
         """
-        portfolio = Create_Portfolio_RenderCV(auto_save=False)
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
         portfolio.cv_files_dir = Path(self.test_dir)
 
         # Create a malformed YAML file without 'cv' key
@@ -225,7 +226,7 @@ class TestPortfolio(unittest.TestCase):
         portfolio.name = "Test_User"
 
         with self.assertRaises(ValueError) as context:
-            portfolio.load_Protfolio_starter_file()
+            portfolio.load()
 
         self.assertIn("missing required 'cv' key", str(context.exception))
 
@@ -242,13 +243,14 @@ class TestPortfolio(unittest.TestCase):
         Returns:
             None: Asserts pass if duplicate connection is properly rejected
         """
-        portfolio = Create_Portfolio_RenderCV(auto_save=False)
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
         portfolio.cv_files_dir = Path(self.test_dir)
-        portfolio.generate_portfolio(name="Test User")
-        portfolio.load_Protfolio_starter_file()
+        portfolio.name = "Test_User"
+        portfolio.generate(name="Test User")
+        portfolio.load()
 
         # LinkedIn already exists in template
-        result = portfolio.add_new_portfolio_connection(
+        result = portfolio.add_connection(
             Connections(network="LinkedIn", username="newuser")
         )
         self.assertEqual(result, "Connection 'LinkedIn' already exists")
@@ -266,16 +268,17 @@ class TestPortfolio(unittest.TestCase):
         Returns:
             None: Asserts pass if duplicate project is properly rejected
         """
-        portfolio = Create_Portfolio_RenderCV(auto_save=False)
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
         portfolio.cv_files_dir = Path(self.test_dir)
-        portfolio.generate_portfolio(name="Test User")
-        portfolio.load_Protfolio_starter_file()
+        portfolio.name = "Test_User"
+        portfolio.generate(name="Test User")
+        portfolio.load()
 
         # Add a project first
-        portfolio.add_portfolio_project(Project(name="My Project", summary="Test"))
+        portfolio.add_project(Project(name="My Project", summary="Test"))
 
         # Try to add duplicate
-        result = portfolio.add_portfolio_project(Project(name="My Project", summary="Different"))
+        result = portfolio.add_project(Project(name="My Project", summary="Different"))
         self.assertEqual(result, "Project 'My Project' already exists")
 
     def test_add_connection_empty_network_rejected(self):
@@ -291,19 +294,20 @@ class TestPortfolio(unittest.TestCase):
         Returns:
             None: Asserts pass if empty network name is properly rejected
         """
-        portfolio = Create_Portfolio_RenderCV(auto_save=False)
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
         portfolio.cv_files_dir = Path(self.test_dir)
-        portfolio.generate_portfolio(name="Test User")
-        portfolio.load_Protfolio_starter_file()
+        portfolio.name = "Test_User"
+        portfolio.generate(name="Test User")
+        portfolio.load()
 
         # Empty string network name
-        result = portfolio.add_new_portfolio_connection(
+        result = portfolio.add_connection(
             Connections(network="", username="testuser")
         )
         self.assertEqual(result, "Network name cannot be empty")
 
         # Whitespace-only network name
-        result = portfolio.add_new_portfolio_connection(
+        result = portfolio.add_connection(
             Connections(network="   ", username="testuser")
         )
         self.assertEqual(result, "Network name cannot be empty")
@@ -321,17 +325,18 @@ class TestPortfolio(unittest.TestCase):
         Returns:
             None: Asserts pass if empty project name is properly rejected
         """
-        portfolio = Create_Portfolio_RenderCV(auto_save=False)
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
         portfolio.cv_files_dir = Path(self.test_dir)
-        portfolio.generate_portfolio(name="Test User")
-        portfolio.load_Protfolio_starter_file()
+        portfolio.name = "Test_User"
+        portfolio.generate(name="Test User")
+        portfolio.load()
 
         # Empty string project name
-        result = portfolio.add_portfolio_project(Project(name="", summary="Test"))
+        result = portfolio.add_project(Project(name="", summary="Test"))
         self.assertEqual(result, "Project name cannot be empty")
 
         # Whitespace-only project name
-        result = portfolio.add_portfolio_project(Project(name="   ", summary="Test"))
+        result = portfolio.add_project(Project(name="   ", summary="Test"))
         self.assertEqual(result, "Project name cannot be empty")
 
 

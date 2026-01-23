@@ -19,3 +19,4 @@ COSC 344 Assignment 7/
 # macOS junk
 .DS_Store
 __MACOSX/
+.idea/vcs.xml

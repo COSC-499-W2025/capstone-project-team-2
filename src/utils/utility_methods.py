@@ -1,5 +1,23 @@
 import datetime
 import pandas as pd
+from dataclasses import asdict
+
+
+def dataclass_to_dict(obj) -> dict:
+    """
+    Convert a dataclass instance to dictionary, excluding fields with None values.
+
+    This utility function is used to serialize dataclass objects for YAML output,
+    ensuring that optional fields with no value are omitted from the final output.
+
+    Args:
+        obj: A dataclass instance to be converted to a dictionary.
+
+    Returns:
+        dict: A dictionary containing only the non-None fields from the dataclass.
+    """
+    return {k: v for k, v in asdict(obj).items() if v is not None}
+
 
 def convertStringToTimeDelta(deltatime: str) -> datetime.timedelta:
         '''

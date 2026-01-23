@@ -14,8 +14,7 @@ import sys
 from typing import List, Optional, Tuple, Any
 
 from src.reporting.portfolio_service import PortfolioShowcase
-from src.reporting.Generate_AI_RenderCV_portfolio import Create_Portfolio_RenderCV
-from src.reporting.Generate_RenderCV_Resume import Project
+from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import RenderCVDocument, Project
 
 class PortfolioRenderCVService:
     """
@@ -31,9 +30,9 @@ class PortfolioRenderCVService:
             name (str): Name used for the RenderCV YAML file.
             auto_save (bool): Automatically save YAML after each mutation.
         """
-        self.cv = Create_Portfolio_RenderCV(auto_save=auto_save)
-        self.cv.generate_portfolio(name=name)
-        self.cv.load_Protfolio_starter_file(name=name)
+        self.cv = RenderCVDocument(doc_type='portfolio', auto_save=auto_save)
+        self.cv.generate(name=name)
+        self.cv.load(name=name)
         self._remove_placeholder_content()
 
     def _remove_placeholder_content(self) -> None:
@@ -49,14 +48,14 @@ class PortfolioRenderCVService:
                 if cv.get(key) in ("", None, placeholder):
                     cv.pop(key, None)
 
-            self.cv.remove_portfolio_project("Project Name")
+            self.cv.remove_project("Project Name")
 
             if self.cv.current_connections:
                 for conn in list(self.cv.current_connections):
                     network = conn.get("network")
                     username = (conn.get("username") or "").strip()
                     if network and not username:
-                        self.cv.remove_portfolio_connection(network)
+                        self.cv.remove_connection(network)
 
             self.cv.save()
         except Exception:
@@ -111,7 +110,7 @@ class PortfolioRenderCVService:
             str: Status message from create_Render_CV.add_project
         """
         project = self.build_rendercv_project(ps)
-        return self.cv.add_portfolio_project(project)
+        return self.cv.add_project(project)
 
     def list_portfolios(self) -> List[dict]:
         """
@@ -159,7 +158,7 @@ class PortfolioRenderCVService:
         Returns:
             str: Status message.
         """
-        return self.cv.modify_portfolio_project(
+        return self.cv.modify_project(
             project_name=project_name,
             field=field,
             new_value=value
@@ -175,7 +174,7 @@ class PortfolioRenderCVService:
         Returns:
             str: Status message.
         """
-        return self.cv.remove_portfolio_project(project_name)
+        return self.cv.remove_project(project_name)
 
     def render_portfolio_pdf(self) -> Tuple[str, Optional[Path]]:
         """
@@ -185,7 +184,7 @@ class PortfolioRenderCVService:
             Tuple[str, Path | None]: Render status and PDF path.
         """
         try:
-            result = self.cv.render_portfolio()
+            result = self.cv.render()
         except FileNotFoundError as e:
             if "rendercv" not in str(e):
                 raise
@@ -207,9 +206,12 @@ class PortfolioRenderCVService:
             source_filename = f"{self.cv.name}_CV.pdf"
             source_pdf = output_dir / source_filename
             if source_pdf.exists():
-                return "successfully rendered", source_pdf
+                # Rename PDF to include document type
+                doc_type_label = "Resume" if self.cv.doc_type == 'resume' else "Portfolio"
+                renamed_pdf = output_dir / f"{self.cv.name}_{doc_type_label}.pdf"
+                source_pdf.rename(renamed_pdf)
+                return "successfully rendered", renamed_pdf
             return f"render failed - PDF not found at {source_pdf}", None
 
-        if isinstance(result, tuple):
-            return result[0], None
-        return "successfully rendered", result
+        # render() returns (status, pdf_path) tuple directly
+        return result

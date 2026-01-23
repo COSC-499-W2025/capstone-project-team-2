@@ -40,6 +40,7 @@ from src.config.user_startup_config import ConfigLoader
 from src.config.Configuration import configuration_for_users
 from src.reporting.Generate_AI_Resume import GenerateProjectResume, GenerateLocalResume
 from src.reporting.resume_pdf_generator import SimpleResumeGenerator
+from src.cli.document_generator_menu import document_generator_menu
 import os
 
 
@@ -539,10 +540,8 @@ def main_menu(ctx: AppContext) -> int:
         print("2) Analyze project")
         print("3) Saved projects")
         print("4) Delete analysis")
-        print("5) Portfolio Generator")
-        print("6) AI Resume Line Generator")
-        print("7) Local Resume Generator (No External AI)")
-        print("8) Project insights")
+        print("5) Document Generator (Resume & Portfolio)")
+        print("6) Project insights")
         print("0) Exit")
         choice = input("Select an option: ").strip()
 
@@ -556,18 +555,14 @@ def main_menu(ctx: AppContext) -> int:
             elif choice == "4":
                 delete_analysis_menu(ctx)
             elif choice == "5":
-                get_portfolio_menu(ctx)
+                document_generator_menu()
             elif choice == "6":
-                ai_resume_line_menu(ctx)
-            elif choice == "7":
-                local_resume_menu(ctx)
-            elif choice == "8":
                 project_insights_menu(ctx)
             elif choice == "0":
                 print("Goodbye!")
                 return 0
             else:
-                print("Please choose a valid option (0-8).")
+                print("Please choose a valid option (0-6).")
         except KeyboardInterrupt:
             print("\n[Interrupted] Returning to menu.")
         except Exception as e:
