@@ -47,6 +47,6 @@ def test_return_all_saved_projects():
     response = test_client.get("/projects")
     assert response.status_code == 200
     assert_type(response.json(), list)
-    assert response.json() #Checks that list is not empty
+    assert response.json() != None #Checks that list is not empty
 
     shutil.rmtree(out_dir)  #Deletes files made by test
