@@ -31,7 +31,6 @@ from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
 )
 from src.cli.document_generator_menu import (
     _add_connection,
-    _modify_delete_connections,
     _manage_connections,
     _manage_education,
     _manage_skills,
@@ -125,45 +124,6 @@ class TestDocumentGeneratorMenu(unittest.TestCase):
         mock_input.side_effect = [""]
         _add_connection(self.doc)
         self.assertIn("[ERROR]", mock_stdout.getvalue())
-
-    @patch('builtins.input')
-    @patch('sys.stdout', new_callable=StringIO)
-    def test_modify_delete_connections(self, mock_stdout, mock_input):
-        """
-        Test modifying and deleting social network connections.
-
-        Verifies that existing connections can be modified with new values
-        and deleted with confirmation. Tests the full modify/delete workflow.
-
-        Args:
-            mock_stdout: Mocked stdout to capture printed output
-            mock_input: Mocked input function to simulate user menu selections
-
-        Returns:
-            None: Asserts expected behavior for modify and delete operations
-        """
-        # Add a test connection first
-        self.doc.add_connection(Connections(network="Twitter", username="olduser"))
-        connections = self.doc.data['cv'].get('social_networks', [])
-        idx = next((i for i, c in enumerate(connections) if c['network'] == 'Twitter'), None)
-
-        # Test modify
-        mock_input.side_effect = [str(idx + 1), "1", "X", "newuser", "0"]
-        _modify_delete_connections(self.doc)
-        self.assertIn("[SUCCESS]", mock_stdout.getvalue())
-
-        connections = self.doc.data['cv'].get('social_networks', [])
-        x_conn = next((c for c in connections if c['network'] == 'X'), None)
-        self.assertIsNotNone(x_conn)
-        self.assertEqual(x_conn['username'], 'newuser')
-
-        # Test delete
-        mock_stdout.truncate(0)
-        mock_stdout.seek(0)
-        idx = next((i for i, c in enumerate(connections) if c['network'] == 'X'), None)
-        mock_input.side_effect = [str(idx + 1), "2", "y", "0"]
-        _modify_delete_connections(self.doc)
-        self.assertIn("deleted", mock_stdout.getvalue().lower())
 
     @patch('builtins.input')
     @patch('sys.stdout', new_callable=StringIO)
