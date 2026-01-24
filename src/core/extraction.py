@@ -68,12 +68,14 @@ class extractInfo:
         """
 
         if isinstance(zip_file, Path):
-            zip_file = str(zip_file)
+            file = str(zip_file)
+        if isinstance(zip_file, UploadFile):
+            file = zip_file.file
 
         workingdirectory = os.getcwd()
         os.makedirs(file_name, exist_ok=True)
         temp_file_path = os.path.join(workingdirectory, file_name)
-        with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+        with zipfile.ZipFile(file, 'r') as zip_ref:
             zip_ref.extractall(temp_file_path)
 
     def verifyZIP(self, zip_file: Path | UploadFile) -> str | None:
@@ -86,13 +88,15 @@ class extractInfo:
         Return None if file is validated, or error text if file invalid
         """
         if isinstance(zip_file, Path):
-            zip_file = str(zip_file)
-            if not os.path.exists(zip_file):    #Checks filepath
-                return self.PATH_ERROR_TEXT + zip_file
-        if not zipfile.is_zipfile(zip_file):    #checks if zip file is a zip file
+            file = str(zip_file)
+            if not os.path.exists(file):    #Checks filepath
+                return self.PATH_ERROR_TEXT + file
+        if isinstance(zip_file, UploadFile):
+            file = zip_file.file
+        if not zipfile.is_zipfile(file):    #checks if zip file is a zip file
             return self.NOT_ZIP_ERROR_TEXT
         try:
-            with zipfile.ZipFile(zip_file, 'r') as zip_test:
+            with zipfile.ZipFile(file, 'r') as zip_test:
                 bad_file = zip_test.testzip()   #Checks for corruption in zip file
                 if (bad_file == None):
                     return None
