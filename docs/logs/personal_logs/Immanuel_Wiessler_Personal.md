@@ -1236,7 +1236,7 @@ This approach replaces traditional `for` loops with index tracking, providing a 
 # 📝 Personal Log – Week 17 (01/19/2026 – 01/25/2026)
 
 ## 📊 Peer Evaluation
-*(Screenshot not available for this week)*
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/23-01-2026.png)
 
 ---
 
@@ -1363,7 +1363,7 @@ self.sections = {}
 
 This experience reinforced the importance of thorough code review and testing before merging. 
 
-The second major task was implementing full CRUD operations into the CLI for the demo (PR #317). This was achieved through the creation of `document_generator_menu.py` with 17+ menu options, allowing users to interactively add, modify, and delete connections, projects, skills, and education sections.
+The second major task was implementing full CRUD operations into the CLI for the demo  This was achieved through the creation of `document_generator_menu.py` with  menu options, allowing users to interactively add, modify, and delete connections, projects, skills, and education sections.
 
 ```python
 def _document_edit_menu(ctx: AppContext, doc: RenderCVDocument) -> None:
