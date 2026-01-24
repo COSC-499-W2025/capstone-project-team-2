@@ -1,6 +1,7 @@
 import pytest
 from pathlib import Path
 from src.analyzers.c.cpp_analyzer import cppanalysis
+from src. analyzers.c.base_c_analyzer_utils import cutilities
 
 analyzer = cppanalysis()
 source = "class Cat { public: void meow(); };"

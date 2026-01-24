@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Dict, Any, List, Generator, Type
 from tree_sitter import Language, Parser
 import tree_sitter_cpp as tscpp
+from .base_c_analyzer_utils import cutilities
 import os
 import re
 
@@ -89,14 +90,10 @@ class cppanalysis:
             "cpp_spec": {},
             "syntax_ok": False,
         }
-    def tree_walk(self, node) -> Generator:
-         yield node
-         for child in node.children:
-              yield from self.tree_walk(child)
 
     def extract_includes(self, root, source: str) -> List[str]:
          includes = []
-         for node in self.tree_walk(root):
+         for node in cutilities.tree_walk(root):
               if node.type in ("preproc_include"):
                    includes.append(source[node.start_byte:node.end_byte].strip())
          
@@ -105,7 +102,7 @@ class cppanalysis:
 
     def extract_classes(self, root, source: str, path: Path):
          classes = []
-         for node in self.tree_walk(root):
+         for node in cutilities.tree_walk(root):
               if node.type in ("class_specifier", "struct_specifier"):
                    classes.append(self.parse_class(node, source, path))
          
@@ -180,7 +177,7 @@ class cppanalysis:
                                     virtual_methods.append(mname)
                                 if methodinf["is_override"]:
                                     override_methods.append(mname)
-                                if self.is_special(mname):
+                                if cutilities.is_special(mname):
                                     special_methods.append(mname)
                           
 
@@ -199,7 +196,7 @@ class cppanalysis:
                                if methodinf["is_override"]:
                                     override_methods.append(mname)
                                 
-                               if self.is_special(mname):
+                               if cutilities.is_special(mname):
                                     special_methods.append(mname)
          return {
             "name": name,
@@ -236,7 +233,7 @@ class cppanalysis:
          is_virtual = "virtual" in mtext.split("(")[0]
          is_override = "override" in mtext
 
-         for node in self.tree_walk(method_node):
+         for node in cutilities.tree_walk(method_node):
             if node.type == "function_declarator":
                 for child in node.children:
                     if child.type == "operator_name":
@@ -275,13 +272,6 @@ class cppanalysis:
             "is_destructor": is_destructor,
          }
     
-    def is_special(self, name: str) -> bool:
-         return(
-            name.startswith("operator") or
-            name.startswith("~") or
-            name in {"toString", "clone", "equals", "begin", "end"}
-         )
-    
     def cpp_spec(self, root, source: str) -> Dict[str, int]:
         """Extract C++-specific OOP patterns and features"""
         cpp_spec = {
@@ -297,7 +287,7 @@ class cppanalysis:
         class_names = set()
         pure_virtual_classes = set()
 
-        for node in self.tree_walk(root):
+        for node in cutilities.tree_walk(root):
             if node.type == "template_declaration":
                 # Check if it contains a class
                 for child in node.children:
@@ -316,7 +306,7 @@ class cppanalysis:
 
             # Operator overload
             elif node.type == "function_definition":
-                for child in self.tree_walk(node):
+                for child in cutilities.tree_walk(node):
                     if child.type == "operator_name":
                         cpp_spec["operator_overloads"] += 1
                         break
@@ -374,7 +364,7 @@ class cppanalysis:
             "dynamic_memory": 0,
             "pointer_arrays": 0,
         }
-        for node in self.tree_walk(root):
+        for node in cutilities.tree_walk(root):
             if node.type == "field_declaration":
                 field_text = source[node.start_byte:node.end_byte]
         
@@ -428,10 +418,10 @@ class cppanalysis:
         nested_loops = 0
         max_depth = 0
 
-        for node in self.tree_walk(root):
+        for node in cutilities.tree_walk(root):
             if node.type == "function_definition":
                 total_functions += 1
-                depth = self.calculate_loop_depth(node)
+                depth = cutilities.calculate_loop_depth(node)
                 max_depth = max(max_depth, depth)
                 if depth >= 2:
                     nested_loops += 1
@@ -441,28 +431,11 @@ class cppanalysis:
             "functions_with_nested_loops": nested_loops,
             "max_loop_depth": max_depth,
         }
-
-    def calculate_loop_depth(self, node) -> int:
-        """Calculate maximum loop nesting depth within a function"""
-        max_depth = 0
-    
-        def traverse(x, current_depth):
-            nonlocal max_depth
-        
-            if x.type in ("for_statement", "while_statement", "do_statement"):
-                current_depth += 1
-                max_depth = max(max_depth, current_depth)
-        
-            for child in x.children:
-                traverse(child, current_depth)
-    
-        traverse(node, 0)
-        return max_depth
     
     def extract_base_classes(self, base_clause, source: str) -> List[str]:
         """Extract base class names from base_class_clause"""
         bases = []
-        for node in self.tree_walk(base_clause):
+        for node in cutilities.tree_walk(base_clause):
             if node.type in ("type_identifier", "template_type"):
                 base_name = source[node.start_byte:node.end_byte]
                 if base_name and base_name not in ("public", "private", "protected"):
