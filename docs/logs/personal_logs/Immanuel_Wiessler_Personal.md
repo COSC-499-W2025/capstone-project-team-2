@@ -5,7 +5,7 @@
 ## Quick Navigation
 
 ### Term 2
-
+- [Week 17 (01/19/2026 – 01/25/2026)](#-personal-log--week-17-01192026--01252026)
 - [Week 16 (01/12/2026 – 01/18/2026)](#-personal-log--week-16-01122026--01182026)
 - [Week 15 (01/05/2026 – 01/11/2026)](#-personal-log--week-15-01052026--01112026)
 
@@ -1116,7 +1116,7 @@ Building on the Resume Generator class (`Generate_RenderCV_Resume.py`) completed
 
 ## ⚠️ Issues/Blockers
 
-- None this week. Development proceeded smoothly.
+- No issue for this week
 
 -----
 
@@ -1128,7 +1128,6 @@ Building on the Resume Generator class (`Generate_RenderCV_Resume.py`) completed
 -----
 
 ## 🧠 Reflection on Current Cycle (Week 16)
-
 This week, I focused on creating the Portfolio Generator using the RenderCV library. The goal was to create a fully-featured portfolio suitable for real-world settings to showcase users to potential employers.
 
 Following last week's work, I modified my Resume Generator class (`Generate_RenderCV_Resume.py`) by creating a new class (`Generate_AI_RenderCV_portfolio.py`) to generate professional portfolios. This was done by modifying the starter YAML file to use a portfolio-focused structure, removing resume-specific sections (like work experience and education) and keeping only portfolio-relevant fields:
@@ -1229,3 +1228,217 @@ def modify_portfolio_connection(self, network_name: str, new_username: str):
 This approach replaces traditional `for` loops with index tracking, providing a more Pythonic and readable way to find and modify specific items in a collection. The `next()` function with a default value of `None` elegantly handles the case where no matching connection is found.
 
 **Note on Line Count:** The reason my PR reached close to 591 lines is largely due to comprehensive documentation—every function and test includes detailed docstrings explaining purpose, parameters, return values, and edge cases. While this added to the line count, thorough documentation is essential for code maintainability and helps teammates understand the codebase during future development.
+
+
+
+# 📝 Personal Log – Week 17 (01/19/2026 – 01/25/2026)
+
+## 📊 Peer Evaluation
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/23-01-2026.png)
+
+---
+
+## 🔗 Connection to Previous Week
+
+- Building on Week 16's Portfolio Generator work using RenderCV, this week focused on consolidating the separate resume and portfolio generation systems into a unified `RenderCVDocument` class. 
+Additionally, I implemented full CRUD operations into the CLI to allow users to interactively manage their portfolios and resumes for the upcoming demo.
+
+---
+
+## 🚀 Work Completed
+
+### Coding Tasks
+
+**[PR #317](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/317) - Implement CRUD Operations into CLI for Demo**
+- Consolidated Resume and Portfolio generation into a unified `RenderCVDocument` class
+- Fixed multiple self-made bugs:
+  - Typo "Expereince" → "Experience"
+  - "ConnectionInfo" → "Connection" naming
+  - `self.name` assignment issue in generate() method
+  - `self.sections` storing dict instead of list
+  - "project" → "projects" in section validation
+- Implemented full CRUD operations for managing portfolios and resumes through CLI
+- Created `document_generator_menu.py` with 17+ menu options for document management
+- Added helper methods for YAML file loading
+- Refactored `portfolio_rendercv_service.py` and `Generate_AI_RenderCV_Portfolio_and_Resume.py`
+
+### Testing/Debugging Tasks
+
+**[PR #317](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/317)**
+
+**Test Consolidation (84% Reduction)**
+- Consolidated test file from 82 tests down to 13 focused tests
+- Unified portfolio and resume test suite using shared `RenderCVDocument` class
+- Modified test files: `test_Generate_AI_RenderCV_portfolio.py`, `test_Generate_Render_CV_Resume.py`
+- All 23 tests passing across both test files
+
+**CLI CRUD Operations Testing**
+Created comprehensive test suite (`test_document_generator_menu.py`) covering four key areas:
+
+1. **Connection validation and CRUD operations**
+2. **Theme modification functionality**
+3. **Project addition with highlights** (from saved analysis, AI analysis, and manual entry)
+4. **Education and skill management**
+
+### Reviewing/Collaboration Tasks
+-[added API endpoint for POST /privacy-consent and GET /skills](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/322)
+-[C# analysis](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/327)
+
+---
+
+## 📌 Associated Tasks from Project Board
+- [Implement CRUD Operations into CLI for Demo](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/316)
+
+---
+
+## 📈 Progress Update
+
+| Task/Issue                                        | Status |
+|---------------------------------------------------|--------|
+| Refactoring document generation                   |![Complete](https://img.shields.io/badge/Complete-green)|
+| Integration of CRUD operations into CLI for Demo  |![Complete](https://img.shields.io/badge/Complete-green)|
+
+---
+
+## ⚠️ Issues/Blockers
+I encountered a massive issue which is that I didn't check to see if the other test that were associated with the CLI
+and spent some time fixing the test to make sure that they pass with the no issue which slowed down my development time
+
+---
+
+## 🎯 Next Week's Goals
+- Get ready for peer heuristics that is happening in class
+- Continue to keep working on improve and fixing critical bugs in our system
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 17)
+Week 17 was focused on refactoring and enhancing 
+the document generation system in preparation for the upcoming demo.
+
+The first major task was consolidating the separate resume and portfolio generation 
+system into a unified `RenderCVDocument` class ([PR #317](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/317)). 
+This refactoring effort eliminated duplicate coding and created a cleaner, more maintainable architecture.
+
+```python
+class RenderCVDocument:
+    """Unified class for generating both resumes and portfolios using RenderCV."""
+    def __init__(self, name: str, document_type: str = "resume"):
+        self.name = name
+        self.document_type = document_type
+        self.sections = {}  # Fixed: was incorrectly storing as list
+```
+
+During this process, I discovered and fixed several self-made bugs:
+- Typo fix: `'Expereince'` → `'Experience'`
+- Naming convention: `ConnectionInfo` → `Connection`
+- Data structure: `self.sections = []` → `self.sections = {}`
+
+The second major task was implementing full CRUD operations into the CLI for the demo. 
+This was achieved through the creation of `document_generator_menu.py` 
+with comprehensive menu options. Note: PR #317 and PR #316 were combined together 
+for this implementation.
+
+**Document Edit Menu with Dynamic Options:**
+
+This menu presents different options based on 
+document type (**resume** vs **portfolio**). 
+Resume documents have additional sections for education, skills, 
+and summary that are not available for portfolios.
+
+```python
+def _document_edit_menu(doc: RenderCVDocument) -> None:
+    """Display and handle the edit menu for a loaded RenderCV document."""
+    doc_type_label = "Resume" if doc.doc_type == 'resume' else "Portfolio"
+
+    print("\n-- Projects --")
+    print("  1) Add from saved analysis")
+    print("  2) Add from AI analysis")
+    print("  3) Add manually")
+    print("  4) Modify/Delete")
+    print("\n-- Contact & Social --")
+    print("  5) Edit contact info")
+    print("  6) Manage social networks")
+    # Resume has additional options: Education, Skills, Summary
+```
+
+**Adding Projects from Saved Analysis:**
+
+This function lists all saved project analyses 
+from the default save directory and allows the user to select one. 
+The selected analysis is converted to a resume item 
+using `GenerateLocalResume` and added to the document.
+
+```python
+def _add_project_from_analysis(doc: RenderCVDocument) -> None:
+    """Add a project to the document from a saved local analysis."""
+    folder = Path(runtimeAppContext.default_save_dir).resolve()
+    items = list_saved_projects(folder)
+
+    if not items:
+        print("[INFO] No saved projects found.")
+        return
+
+    # User selects a project from the list...
+    data = json.loads(chosen_path.read_text(encoding="utf-8"))
+    resume_item = GenerateLocalResume(data, project_name).generate()
+
+    project = Project(
+        name=resume_item.project_title,
+        summary=resume_item.one_sentence_summary,
+        highlights=resume_item.key_responsibilities or []
+    )
+    doc.add_project(project)
+```
+
+**Adding Projects from AI Analysis:**
+
+This function requires external consent to be enabled. 
+It lists saved project 
+analyses and uses `GenerateProjectResume` 
+to create an AI-generated resume item 
+from the project root path stored in the analysis.
+
+```python
+def _add_project_from_ai(doc: RenderCVDocument) -> None:
+    """Add a project using AI-powered analysis (requires external consent)."""
+    if not runtimeAppContext.external_consent:
+        print("[INFO] External services disabled. Enable in Settings.")
+        return
+
+    ai_resume = GenerateProjectResume(project_root).generate(saveToJson=False)
+    project = Project(
+        name=ai_resume.project_title,
+        summary=ai_resume.one_sentence_summary,
+        highlights=ai_resume.key_responsibilities or []
+    )
+    doc.add_project(project)
+```
+
+**Manual Project Addition:**
+
+This function prompts the user to enter project details including name, dates, summary, and highlights. 
+It then creates a Project object and adds it to the document.
+
+```python
+def _add_project_manually(doc: RenderCVDocument) -> None:
+    """Manually add a project through user input."""
+    name = input("Project name: ").strip()
+    summary = input("Brief summary: ").strip()
+    # Collect highlights in a loop...
+
+    project = Project(name=name, summary=summary, highlights=highlights)
+    doc.add_project(project)
+```
+
+**Module Architecture:**
+
+The `document_generator_menu.py` module serves as the CLI interface layer that delegates to the underlying `RenderCVDocument` service, ensuring separation of concerns between UI and business logic.
+
+Looking ahead to next week, I plan to prepare for peer heuristics testing and continue addressing any critical bugs discovered during the demo preparation. I will also be planning/creating meeting agendas to help us stay focused and on track. 
+
+To end this Reflection, I also worked on two PR reviews, one being [C# analysis #327](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/327) and [Added API endpoint for POST /privacy-consent and GET /skills #322](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/322), and added recommendations. 
+
+
+
+
