@@ -276,7 +276,9 @@ def analyze_project_menu(ctx: AppContext) -> None:
             else:
                 print("Please choose a valid option (0–2).")
                 continue
-                
+            
+            print("Analysis successful, saved to saved projects.")
+
             # After successful analysis, prompt for thumbnail upload
             if project_name:
                 # Get the UUID from the newly created insight

@@ -29,7 +29,7 @@ def test_extract_if_zip_raises_on_error(monkeypatch):
         def runExtraction(self):
             return "Error: bad zip"
 
-    monkeypatch.setattr(mod, "extractInfo", lambda path: FakeExtractor(path))
+    monkeypatch.setattr(mod, "runExtraction", lambda path: FakeExtractor(path))
 
     with pytest.raises(ValueError):
         mod.extract_if_zip(Path("bad.zip"))

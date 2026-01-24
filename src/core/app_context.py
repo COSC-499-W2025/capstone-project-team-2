@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+from fastapi import UploadFile
 import mysql.connector
 from mysql.connector import Error
 import sys
@@ -20,6 +21,7 @@ class AppContext:
         legacy_save_dir (Path): Legacy config/insight base directory.
         default_save_dir (Path): Default nested directory for new insights.
         external_consent (bool): consent for external llm use
+        currently_uploaded_file (Path | UploadFile): file currently uploaded, can be a file-like object or a file path
     """
 
     conn: mysql.connector.MySQLConnection
@@ -27,7 +29,7 @@ class AppContext:
     legacy_save_dir: Path
     default_save_dir: Path
     external_consent: bool
-    currently_uploaded_path: Path
+    currently_uploaded_file: Path | UploadFile
 
     def close(self) -> None:
         """Close the DB connection safely."""
@@ -86,7 +88,7 @@ def create_app_context(external_consent_value=False) -> AppContext:
         legacy_save_dir=legacy_save_dir,
         default_save_dir=default_save_dir,
         external_consent=external_consent_value,
-        currently_uploaded_path=None
+        currently_uploaded_file=None
     )
 
 runtimeAppContext = create_app_context()
