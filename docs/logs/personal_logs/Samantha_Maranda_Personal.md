@@ -535,3 +535,84 @@
 * Refactoring started with analysis methods. Removed all CLI input and part of CLI output. Need some of the output to be adapted to error handling and some errors were discovered and temporary solutions were needed until the root of the problem can be determined.
 * Finally took the time to learn how to pip into a virtual environment as to not brick my linux setup, was able to run the program properly on linux for the first time and it worked well with exception for issues with getting metadata from files.
 * Next week I will work on more FastAPI, particularly uploading files so I can finish some functionality. Will also entertain rebuilding the CLI to start working with the API methods but cutting out the API as FastAPI is not meant to be used for CLI. Will still build documentation for how to handle API as if it was being used through FastAPI and will always test that it works with mock frontend that uvicorn lets me quickly do.
+* 
+---------------------------
+
+## Sunday (18/01/2026 - 25/01/2026)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/24-01-2026_PeerEval_SamM.jpg)
+
+### Features Worked on this Week
+  * #1: FastAPI implementation for uploading files
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description        | Feature   | Assigned To | Status   |
+| ------- | ------------------ | --------- | ----------- | -------- |
+| #320   | FastAPI implementation for uploading files | API call for uploading files | Samantha Maranda  | Complete |
+
+### Progress Update (since 18/01/2026) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>FastAPI for uploading files
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+ <tr>
+        <!-- Task/Issue # -->
+        <td>non-FastAPI method for uploading files in CLI
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+     <tr>
+        <!-- Task/Issue # -->
+        <td>Refactor analysis backend to remove CLI I/O
+        </td>
+        <!-- Status -->
+        <td>In Progress
+        </td>
+    </tr>
+ <tr>
+        <!-- Task/Issue # -->
+        <td>FastAPI for returning saved projects
+        </td>
+        <!-- Status -->
+        <td>Future Changes Needed
+        </td>
+    </tr>
+ <tr>
+        <!-- Task/Issue # -->
+        <td>FastAPI for returning project by id
+        </td>
+        <!-- Status -->
+        <td>In Progress
+        </td>
+    </tr>
+ <tr>
+        <!-- Task/Issue # -->
+        <td>Rebuild zip extraction to take file-like objects
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+* Spent a lot of time learning how to handle file-like objects in our current zip extraction system and applying the neccessary changes. The PR is small but the change was complex.
+* Finished a test for the analysis API now that I understood certain issues around using that API call
+* Learned that API responses are a bit unpredictable and writing tests can be complicated when you don't know the exact output
+* Next week I want to ensure we have propper test coverage on top of my code contributions for the week. Will work on more API, starting to expand into neccessary calls that are not required by the milestone 2 requirements but are needed for our program to function only through API interface to the front end. This will require deconstructing a lot of our CLI and understanding input and output of any system that is currently interacting with the front end to build the interface. I also want to start building error handling in places I have skipped over after removing print functions that displayed such errors, instead raising those errors to API methods, catching them and outputting the errors as strings. Some error handling will also involve making sure a system doesn't break when one part stops functioning, allowing semi-functional systems to still return valid output in the event of catastrophic failure.
