@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Dict, Any, List, Generator, Type
 from tree_sitter import Language, Parser
-import tree_sitter_c_sharp as tscs
+import tree_sitter_c_sharp as tscs 
 from .base_c_analyzer_utils import cutilities
 
 class csharpanalysis:
@@ -21,7 +21,7 @@ class csharpanalysis:
             report["syntax_ok"] = False
             return report
         
-        report["imports"] = self.extract_includes(root, source)
+        report["imports"] = self.extract_usings(root, source)
         report["classes"] = self.extract_classes(root, source, path)
         report["data_structures"] = self.extract_data_structures(root, source)
         report["complexity"] = self.extract_complexity(root)
@@ -62,10 +62,15 @@ class csharpanalysis:
 
     def get_access(self, node) -> str:
         for child in node.children:
-            if child.type == "modifier":
-                mod = child.text.decode()
-                if mod in ("private", "protected"):
-                    return "private"
+            if child.type == "modifiers":
+                for mod in child.children:
+                    mod_text = mod.text.decode()
+                    if mod_text in ("private", "protected"):
+                        return "private"
+                    elif mod_text == "public":
+                        return "public"
+        if node.type == "field_declaration":
+            return "private"
         return "public"
     
     def parse_class(self, node, source: str, path: Path) -> Dict[str, Any]:
@@ -162,3 +167,38 @@ class csharpanalysis:
             "functions_with_nested_loops": nested_loops,
             "max_loop_depth": max_depth,
         }
+    
+    def extract_data_structures(self, root, source: str) -> Dict[str, int]:
+        ds = {
+            "arrays": 0,
+            "lists": 0,
+            "dictionaries": 0,
+            "queues": 0,
+            "stacks": 0,
+            "hash_sets": 0,
+            "dynamic_memory": 0,
+        }
+
+        for node in cutilities.tree_walk(root):
+            # Fields and properties
+            if node.type in ("field_declaration", "property_declaration"):
+                text = source[node.start_byte:node.end_byte]
+
+                if "[]" in text or "Array" in text:
+                    ds["arrays"] += 1
+                if "List<" in text:
+                    ds["lists"] += 1
+                if "Dictionary<" in text:
+                    ds["dictionaries"] += 1
+                if "Queue<" in text:
+                    ds["queues"] += 1
+                if "Stack<" in text:
+                    ds["stacks"] += 1
+                if "HashSet<" in text:
+                    ds["hash_sets"] += 1
+
+            # Dynamic memory allocations (new keyword)
+            if node.type == "object_creation_expression":
+                ds["dynamic_memory"] += 1
+
+        return ds
