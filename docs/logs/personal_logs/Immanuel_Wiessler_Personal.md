@@ -1282,6 +1282,7 @@ Created comprehensive test suite (`test_document_generator_menu.py`) covering fo
 
 ### Reviewing/Collaboration Tasks
 -[added API endpoint for POST /privacy-consent and GET /skills](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/322)
+-[C# analysis](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/327)
 
 ---
 
@@ -1435,6 +1436,8 @@ def _add_project_manually(doc: RenderCVDocument) -> None:
 The `document_generator_menu.py` module serves as the CLI interface layer that delegates to the underlying `RenderCVDocument` service, ensuring separation of concerns between UI and business logic.
 
 Looking ahead to next week, I plan to prepare for peer heuristics testing and continue addressing any critical bugs discovered during the demo preparation. I will also be planning/creating meeting agendas to help us stay focused and on track. 
+
+To end this Reflection I also worked on two PR reviews one being [C# analysis #327](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/327) and [Added API endpoint for POST /privacy-consent and GET /skills #322](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/322) add recommed some changes and recommedations
 
 
 
