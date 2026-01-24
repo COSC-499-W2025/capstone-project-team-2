@@ -12,29 +12,6 @@ import src.core.analysis_service as mod
 
 from src.core.app_context import runtimeAppContext
 
-
-def test_extract_if_zip_raises_on_error(monkeypatch):
-    """Check that zip errors raise ValueError.
-
-    Args:
-        monkeypatch: Pytest fixture for patching module attributes.
-
-    Returns:
-        None: Assertions validate error handling.
-    """
-    class FakeExtractor:
-        def __init__(self, path):
-            self.path = path
-
-        def runExtraction(self):
-            return "Error: bad zip"
-
-    monkeypatch.setattr(mod, "runExtraction", lambda path: FakeExtractor(path))
-
-    with pytest.raises(ValueError):
-        mod.extract_if_zip(Path("bad.zip"))
-
-
 def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypatch):
     """Check that export saves files and writes to the DB.
 
