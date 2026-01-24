@@ -1312,316 +1312,127 @@ and spent some time fixing the test to make sure that they pass with the no issu
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 17)
-Week 17 was focused on refactoring and enhancing the document
-generation system in preparation for the upcoming demo. My primary goal this week
-involved two significant PRs:
+Week 17 was focused on refactoring and enhancing 
+the document generation system in preparation for the upcoming demo.
 
-The first major task that I did this week was consolidating the separate resume and portfolio generation system into a unified `RenderCVDocument` class ([PR #317](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/317)). This refactoring effort eliminated duplicate coding and created a cleaner, more maintainable architecture.
+The first major task was consolidating the separate resume and portfolio generation 
+system into a unified `RenderCVDocument` class ([PR #317](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/317)). 
+This refactoring effort eliminated duplicate coding and created a cleaner, more maintainable architecture.
 
 ```python
 class RenderCVDocument:
-    """
-    Unified class for generating both resumes and portfolios using RenderCV.
-    Consolidates previously separate Resume and Portfolio generator classes.
-    """
+    """Unified class for generating both resumes and portfolios using RenderCV."""
     def __init__(self, name: str, document_type: str = "resume"):
         self.name = name
         self.document_type = document_type
         self.sections = {}  # Fixed: was incorrectly storing as list
 ```
 
-During this process, I discovered and fixed several self-made bugs that I had introduced in previous weeks:
+During this process, I discovered and fixed several self-made bugs:
+- Typo fix: `'Expereince'` → `'Experience'`
+- Naming convention: `ConnectionInfo` → `Connection`
+- Data structure: `self.sections = []` → `self.sections = {}`
 
-**Typo fix ("Expereince" → "Experience"):**
-```python
-# Before
-'Expereince': [...]
+The second major task was implementing full CRUD operations into the CLI for the demo. 
+This was achieved through the creation of `document_generator_menu.py` 
+with comprehensive menu options. Note: PR #317 and PR #316 were combined together 
+for this implementation.
 
-# After
-'Experience': [...]
-```
+**Document Edit Menu with Dynamic Options:**
 
-**Naming convention fix ("ConnectionInfo" → "Connection"):**
-```python
-# Before
-class ConnectionInfo:
-    network: str
-    username: str
+This menu presents different options based on 
+document type (**resume** vs **portfolio**). 
+Resume documents have additional sections for education, skills, 
+and summary that are not available for portfolios.
 
-# After
-class Connection:
-    network: str
-    username: str
-```
-
-**Data structure fix (`self.sections`):**
-```python
-# Before - incorrectly storing as list
-self.sections = []
-
-# After - correctly storing as dict
-self.sections = {}
-```
-
-This experience reinforced the importance of thorough code review and testing before merging.
-
-The second major task was implementing full CRUD operations into the CLI for the demo ([PR #317](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/317)). This was achieved through the creation of `document_generator_menu.py` with comprehensive menu options, allowing users to interactively add, modify, and delete connections, projects, skills, and education sections. Note: PR #317 and PR #316 were combined together for this implementation.
-
-**Key Features Added in PR #317:**
-- Unified document generator menu for both resumes and portfolios
-- Helper methods and dataclasses for RenderCV entries (`Project`, `Education`, `Skills`, `Connections`)
-- Full CRUD operations for all document sections
-- AI-powered project addition using `GenerateProjectResume`
-- Local analysis project addition using `GenerateLocalResume`
-- PDF rendering with custom save location support
-- Comprehensive docstrings throughout the codebase
-
-**Main Entry Point - Document Generator Menu:**
-```python
-def document_generator_menu() -> None:
-    """
-    Unified menu for creating and editing resumes and portfolios using RenderCV.
-
-    Allows users to:
-    - Create new resume or portfolio documents
-    - Load existing documents
-    - Add projects from saved analyses (local or AI-powered)
-    - Edit contact information and sections
-    - Render to PDF
-    """
-    while True:
-        print("\n=== Document Generator (Resume & Portfolio) ===")
-        print("1) Create new Resume")
-        print("2) Create new Portfolio")
-        print("3) Load existing document")
-        print("0) Back to main menu")
-
-        choice = input("Select an option: ").strip()
-
-        if choice == "0":
-            return
-        elif choice == "1":
-            name = input("Enter your name (0 to cancel): ").strip()
-            if name == "0":
-                continue
-            if not name:
-                print("[ERROR] Name cannot be empty.")
-                continue
-            doc = RenderCVDocument(doc_type='resume', auto_save=True)
-            result = doc.generate(name=name)
-            # ... handle result and load document
-```
-
-**Document Edit Menu with Dynamic Options Based on Document Type:**
 ```python
 def _document_edit_menu(doc: RenderCVDocument) -> None:
-    """
-    Display and handle the edit menu for a loaded RenderCV document.
-
-    Presents different menu options based on document type (resume vs portfolio).
-    Resume documents have additional sections for education, skills,
-    and summary that are not available for portfolios.
-    """
+    """Display and handle the edit menu for a loaded RenderCV document."""
     doc_type_label = "Resume" if doc.doc_type == 'resume' else "Portfolio"
 
-    while True:
-        print(f"\n{'=' * 50}")
-        print(f"  Editing {doc_type_label}: {doc.name.replace('_', ' ')}")
-        print(f"{'=' * 50}")
-
-        print("\n-- Projects --")
-        print("  1) Add from saved analysis")
-        print("  2) Add from AI analysis")
-        print("  3) Add manually")
-        print("  4) Modify/Delete")
-
-        print("\n-- Contact & Social --")
-        print("  5) Edit contact information")
-        print("  6) Manage social networks")
-
-        if doc.doc_type == 'resume':
-            print("\n-- Education & Skills --")
-            print("  7) Manage education")
-            print("  8) Manage skills")
-
-            print("\n-- Summary --")
-            print("  9) Update summary")
-
-            print("\n-- Document --")
-            print("  10) View full document")
-            print("  11) Render to PDF")
-        else:
-            # Portfolio uses sequential numbering
-            print("\n-- Document --")
-            print("  7) View full document")
-            print("  8) Render to PDF")
-
-        print(f"\n{'─' * 50}")
-        print("  0) Save and return")
+    print("\n-- Projects --")
+    print("  1) Add from saved analysis")
+    print("  2) Add from AI analysis")
+    print("  3) Add manually")
+    print("  4) Modify/Delete")
+    print("\n-- Contact & Social --")
+    print("  5) Edit contact info")
+    print("  6) Manage social networks")
+    # Resume has additional options: Education, Skills, Summary
 ```
 
-**Unified Connection Management Menu:**
+**Adding Projects from Saved Analysis:**
+
+This function lists all saved project analyses 
+from the default save directory and allows the user to select one. 
+The selected analysis is converted to a resume item 
+using `GenerateLocalResume` and added to the document.
+
 ```python
-def _manage_connections(doc: RenderCVDocument) -> None:
-    """
-    Unified menu for managing social network connections.
-
-    Provides options to add, modify, or delete social network connections
-    in a single submenu interface.
-    """
-    while True:
-        cv_data = doc.data.get('cv', {})
-        connections = cv_data.get('social_networks', [])
-
-        print("\n=== Manage Social Networks ===")
-        print("Common networks: LinkedIn, GitHub, GitLab, Twitter, Instagram, YouTube\n")
-
-        if connections:
-            print("Current connections:")
-            for i, conn in enumerate(connections, start=1):
-                network = conn.get('network', 'Unknown')
-                username = conn.get('username', 'N/A')
-                print(f"  {i}) {network}: {username}")
-            print()
-
-        print("Actions:")
-        print("  a) Add new connection")
-        if connections:
-            print("  m) Modify existing connection")
-            print("  d) Delete connection")
-        print("  0) Back")
-
-        choice = input("\nSelect an action: ").strip().lower()
-        # ... handle CRUD operations
-```
-
-**Adding Projects from AI Analysis:**
-```python
-def _add_project_from_ai(doc: RenderCVDocument) -> None:
-    """
-    Add a project to the document using AI-powered analysis.
-
-    Requires external consent to be enabled. Lists saved project analyses and
-    uses GenerateProjectResume to create an AI-generated resume item.
-    """
-    if not runtimeAppContext.external_consent:
-        print("\n[INFO] External services are disabled in your consent settings.")
-        print("Enable external services in Settings to use AI analysis.\n")
-        return
-
+def _add_project_from_analysis(doc: RenderCVDocument) -> None:
+    """Add a project to the document from a saved local analysis."""
     folder = Path(runtimeAppContext.default_save_dir).resolve()
     items = list_saved_projects(folder)
 
-    # ... list and select project
-
-    print("[INFO] Generating AI analysis... (this may take a moment)")
-    try:
-        ai_resume = GenerateProjectResume(project_root).generate(saveToJson=False)
-
-        summary = ai_resume.one_sentence_summary
-        if ai_resume.tech_stack:
-            summary = f"{summary} Tech stack: {ai_resume.tech_stack}"
-
-        project = Project(
-            name=ai_resume.project_title,
-            summary=summary,
-            highlights=ai_resume.key_responsibilities or []
-        )
-
-        result = doc.add_project(project)
-        print(f"[SUCCESS] {result}")
-    except Exception as e:
-        print(f"[ERROR] Could not generate AI analysis: {e}")
-```
-
-**Manual Project Addition with Validation:**
-```python
-def _add_project_manually(doc: RenderCVDocument) -> None:
-    """
-    Manually add a project to the document through user input.
-
-    Prompts the user to enter project details including name, dates, summary,
-    and highlights. Creates a Project object and adds it to the document.
-    """
-    print("\n=== Add Project Manually ===")
-    print("(Enter 0 to cancel)\n")
-    name = input("Project name: ").strip()
-    if name == "0":
-        print("[INFO] Cancelled adding project.")
-        return
-    if not name:
-        print("[ERROR] Project name is required.")
+    if not items:
+        print("[INFO] No saved projects found.")
         return
 
-    start_date = input("Start date (YYYY-MM, optional): ").strip()
-    end_date = input("End date (YYYY-MM, optional): ").strip()
-
-    print("\nEnter a brief summary of the project:")
-    summary = input("> ").strip()
-
-    print("\nEnter highlights/key features (one per line, empty line to finish):")
-    highlights = []
-    while True:
-        h = input("  - ").strip()
-        if not h:
-            break
-        highlights.append(h)
+    # User selects a project from the list...
+    data = json.loads(chosen_path.read_text(encoding="utf-8"))
+    resume_item = GenerateLocalResume(data, project_name).generate()
 
     project = Project(
-        name=name,
-        start_date=start_date if start_date else None,
-        end_date=end_date if end_date else None,
-        summary=summary if summary else None,
-        highlights=highlights if highlights else None
+        name=resume_item.project_title,
+        summary=resume_item.one_sentence_summary,
+        highlights=resume_item.key_responsibilities or []
     )
-
-    result = doc.add_project(project)
-    print(f"[SUCCESS] {result}")
+    doc.add_project(project)
 ```
 
-**PDF Rendering with Custom Save Location:**
+**Adding Projects from AI Analysis:**
+
+This function requires external consent to be enabled. 
+It lists saved project 
+analyses and uses `GenerateProjectResume` 
+to create an AI-generated resume item 
+from the project root path stored in the analysis.
+
 ```python
-def _render_document(doc: RenderCVDocument) -> None:
-    """
-    Render the document to PDF.
-
-    Calls the render method on the document and optionally allows
-    the user to save the PDF to a custom location.
-    """
-    print("\n=== Rendering Document to PDF ===")
-    print("Rendering... (this may take a moment)")
-
-    try:
-        status, pdf_path = doc.render()
-    except Exception as error:
-        print(f"\n[ERROR] Could not render PDF: {error}")
+def _add_project_from_ai(doc: RenderCVDocument) -> None:
+    """Add a project using AI-powered analysis (requires external consent)."""
+    if not runtimeAppContext.external_consent:
+        print("[INFO] External services disabled. Enable in Settings.")
         return
 
-    if pdf_path:
-        print(f"[SUCCESS] PDF generated at: {pdf_path}")
+    ai_resume = GenerateProjectResume(project_root).generate(saveToJson=False)
+    project = Project(
+        name=ai_resume.project_title,
+        summary=ai_resume.one_sentence_summary,
+        highlights=ai_resume.key_responsibilities or []
+    )
+    doc.add_project(project)
+```
 
-        save_custom = input("\nSave PDF to a custom location? (y/n): ").strip().lower()
-        if save_custom == "y":
-            custom_folder = input("Enter the folder path: ").strip()
-            if os.path.exists(custom_folder):
-                custom_path = Path(custom_folder) / pdf_path.name
-                shutil.copy2(pdf_path, custom_path)
-                print(f"[SUCCESS] PDF saved to: {custom_path}")
+**Manual Project Addition:**
+
+This function prompts the user to enter project details including name, dates, summary, and highlights. 
+It then creates a Project object and adds it to the document.
+
+```python
+def _add_project_manually(doc: RenderCVDocument) -> None:
+    """Manually add a project through user input."""
+    name = input("Project name: ").strip()
+    summary = input("Brief summary: ").strip()
+    # Collect highlights in a loop...
+
+    project = Project(name=name, summary=summary, highlights=highlights)
+    doc.add_project(project)
 ```
 
 **Module Architecture:**
-The `document_generator_menu.py` module follows a similar pattern to `portfolio.py`, serving as the CLI interface layer that delegates to the underlying `RenderCVDocument` service. Key imports include:
 
-```python
-from src.core.app_context import runtimeAppContext
-from src.reporting.Generate_AI_Resume import GenerateProjectResume, GenerateLocalResume
-from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
-    RenderCVDocument, Project, Education, Skills, Connections
-)
-from src.storage.saved_projects import list_saved_projects
-```
-
-This design ensures separation of concerns between the UI layer (menu handling) and the business logic layer (document generation and manipulation).
+The `document_generator_menu.py` module serves as the CLI interface layer that delegates to the underlying `RenderCVDocument` service, ensuring separation of concerns between UI and business logic.
 
 Looking ahead to next week, I plan to prepare for peer heuristics testing and continue addressing any critical bugs discovered during the demo preparation. I will also be planning/creating meeting agendas to help us stay focused and on track. 
 
