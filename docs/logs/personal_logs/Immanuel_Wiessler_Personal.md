@@ -1281,7 +1281,7 @@ Created comprehensive test suite (`test_document_generator_menu.py`) covering fo
 4. **Education and skill management**
 
 ### Reviewing/Collaboration Tasks
--
+-[added API endpoint for POST /privacy-consent and GET /skills](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/322)
 
 ---
 
