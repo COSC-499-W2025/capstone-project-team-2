@@ -1300,7 +1300,7 @@ Created comprehensive test suite (`test_document_generator_menu.py`) covering fo
 ---
 
 ## ⚠️ Issues/Blockers
-I encountered a massive issue which is that I didnt check to see if the other test that were associated with the CLI
+I encountered a massive issue which is that I didn't check to see if the other test that were associated with the CLI
 and spent some time fixing the test to make sure that they pass with the no issue which slowed down my development time
 
 ---
