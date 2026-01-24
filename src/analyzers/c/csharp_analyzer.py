@@ -6,12 +6,36 @@ import tree_sitter_c_sharp as tscs # type: ignore
 from .base_c_analyzer_utils import cutilities
 
 class csharpanalysis:
+    """
+    Analyze C# source code for object-oriented structure and static metrics.
+    Output strictly follows the C analyzer aggregation schema:
+        report["classes"][]
+        report["imports"]
+        report["data_structures"]
+        report["complexity"]
+    Args:
+        None
+    Returns:
+        Dict[str, Any]: Analysis report containing detected classes,
+        inheritance, methods, encapsulation, complexity metrics,
+        and C#-specific language features.
+    """
 
     def __init__(self):
         self.parser = Parser()
         self.parser.language = Language(tscs.language())
     
     def analyze_file(self, source: str, path: Path) -> Dict[str, Any]:
+        """
+        Analyze a C# source file and extract structural information.
+        
+        Args:
+            source: C# source code as string
+            path: File path for reference
+            
+        Returns:
+            Dict containing classes, imports, data structures, and complexity metrics
+        """
         report = self.empty_report(path)
 
         try:
@@ -30,6 +54,15 @@ class csharpanalysis:
         return report
     
     def empty_report(self, path: Path) -> Dict[str, Any]:
+            """
+        Create an empty analysis report structure.
+        
+        Args:
+            path: File path for the report
+            
+        Returns:
+            Empty report dictionary with default values
+        """
             return {
         "file": str(path),
         "module": "",
@@ -42,6 +75,16 @@ class csharpanalysis:
 
     
     def extract_usings(self, root, source: str) -> List[str]:
+        """
+        Extract using directives (imports) from C# code.
+        
+        Args:
+            root: Parse tree root node
+            source: Source code string
+            
+        Returns:
+            List of using directive strings
+        """
         imports = []
         for node in cutilities.tree_walk(root):
             if node.type == "using_directive":
@@ -49,6 +92,17 @@ class csharpanalysis:
         return imports
     
     def extract_classes(self, root, source: str, path: Path) -> List[Dict[str, Any]]:
+        """
+        Extract all class and struct declarations from the parse tree.
+        
+        Args:
+            root: Parse tree root node
+            source: Source code string
+            path: File path for reference
+            
+        Returns:
+            List of class information dictionaries
+        """
         classes = []
         for node in cutilities.tree_walk(root):
             if node.type in ("class_declaration", "struct_declaration"):
@@ -56,12 +110,32 @@ class csharpanalysis:
         return classes
     
     def get_identifier(self, node, source: str) -> str:
+        """
+        Extract identifier name from a node (for classes, methods, etc.).
+        
+        Args:
+            node: Tree-sitter node
+            source: Source code string
+            
+        Returns:
+            Identifier name as string, or empty string if not found
+        """
         for child in cutilities.tree_walk(node):
             if child.type == "identifier":
                 return source[child.start_byte:child.end_byte]
         return ""
 
     def get_access(self, node) -> str:
+        """
+        Determine access level (public/private) of a class member.
+        C# fields are private by default, methods are public by default.
+        
+        Args:
+            node: Tree-sitter node representing a class member
+            
+        Returns:
+            "private" or "public"
+        """
         for child in node.children:
             if child.type == "modifier":
                 for mod in child.children:
@@ -75,7 +149,17 @@ class csharpanalysis:
         return "public"
     
     def get_field_name(self, node, source: str) -> str:
-        """Get field name from field_declaration node"""
+        """
+        Extract field name from field_declaration node.
+        C# field declarations have structure: field_declaration -> variable_declaration -> variable_declarator -> identifier
+        
+        Args:
+            node: field_declaration node
+            source: Source code string
+            
+        Returns:
+            Field name as string, or empty string if not found
+        """
         for child in node.children:
             if child.type == "variable_declaration":
                 for subchild in child.children:
@@ -86,6 +170,24 @@ class csharpanalysis:
         return ""
     
     def parse_class(self, node, source: str, path: Path) -> Dict[str, Any]:
+        """
+        Parse a class or struct declaration and extract all relevant information.
+        
+        Args:
+            node: class_declaration or struct_declaration node
+            source: Source code string
+            path: File path for reference
+            
+        Returns:
+            Dictionary containing:
+                - name: class/struct name
+                - bases: list of inherited classes/interfaces
+                - methods: list of method names
+                - private_attrs: list of private field names
+                - public_attrs: list of public field names
+                - special_methods: list of constructors, destructors, operators
+                - has_constructor: boolean indicating presence of constructor
+        """
         name = "<anonymous>"
         bases = []
         methods = []
@@ -161,6 +263,18 @@ class csharpanalysis:
         }
     
     def extract_complexity(self, root) -> Dict[str, int]:
+        """
+        Calculate cyclomatic complexity metrics.
+        
+        Args:
+            root: Parse tree root node
+            
+        Returns:
+            Dictionary containing:
+                - total_functions: count of all methods and constructors
+                - functions_with_nested_loops: count of functions with loop depth >= 2
+                - max_loop_depth: maximum nesting depth of loops found
+        """
         total_functions = 0
         nested_loops = 0
         max_depth = 0
@@ -180,6 +294,22 @@ class csharpanalysis:
         }
     
     def extract_data_structures(self, root, source: str) -> Dict[str, int]:
+        """
+        Count usage of common C# data structures and collections.
+        
+        Args:
+            root: Parse tree root node
+            source: Source code string
+            
+        Returns:
+            Dictionary with counts for:
+                - arrays: Array[] or Array types
+                - lists: List<T> collections
+                - dictionaries: Dictionary<K,V> collections
+                - queues: Queue<T> collections
+                - stacks: Stack<T> collections
+                - hash_sets: HashSet<T> collections
+        """
         ds = {
             "arrays": 0,
             "lists": 0,
