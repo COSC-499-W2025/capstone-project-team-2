@@ -24,6 +24,7 @@ class TestConsentAPI(unittest.TestCase):
         """
         self.client = TestClient(app)
         self.original_external = runtimeAppContext.external_consent
+        self.original_data = runtimeAppContext.data_consent
 
     def tearDown(self) -> None:
         """
@@ -33,6 +34,7 @@ class TestConsentAPI(unittest.TestCase):
             None
         """
         runtimeAppContext.external_consent = self.original_external
+        runtimeAppContext.data_consent = self.original_data
 
     def test_privacy_consent_updates_config(self) -> None:
         """
@@ -64,6 +66,7 @@ class TestConsentAPI(unittest.TestCase):
         config_instance.save_with_consent.assert_called_once_with(False, True)
         config_instance.save_config.assert_called_once()
         self.assertFalse(runtimeAppContext.external_consent)
+        self.assertTrue(runtimeAppContext.data_consent)
 
     def test_privacy_consent_rejects_external_without_data(self) -> None:
         """
@@ -83,7 +86,6 @@ class TestConsentAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         mock_loader.assert_not_called()
         mock_config_class.assert_not_called()
-
 
 if __name__ == "__main__":
     unittest.main()

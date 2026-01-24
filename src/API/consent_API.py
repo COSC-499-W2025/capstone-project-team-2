@@ -50,9 +50,10 @@ def update_privacy_consent(payload: PrivacyConsentRequest) -> dict:
         raise HTTPException(
             status_code=500,
             detail=f"Failed to persist consent: {exc}",
-        ) from exc
+        )
 
     runtimeAppContext.external_consent = payload.external_consent
+    runtimeAppContext.data_consent = payload.data_consent
     return {
         "data_consent": payload.data_consent,
         "external_consent": payload.external_consent,
