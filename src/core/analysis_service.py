@@ -108,11 +108,11 @@ def export_json(project_name: str, analysis: Dict[str, Any]) -> str | None:
     analysis_serializable = convert_datetime_to_string(analysis_copy)
 
     saver = SaveFileAnalysisAsJSON()
-    saver.saveAnalysis(project_name, analysis, str(out_dir))
+    saver.saveAnalysis(project_name, analysis_serializable, str(out_dir))
     file_path = out_dir / filename
 
     try:
-        record_id = runtimeAppContext.store.insert_json(filename, analysis)
+        record_id = runtimeAppContext.store.insert_json(filename, analysis_serializable)
         #print(f"[INFO] Saved to database (ID: {record_id})")
     except Exception as e:
         pass
