@@ -1,7 +1,8 @@
 from pathlib import Path
+import sys
 from typing import Dict, Any, List, Generator, Type
 from tree_sitter import Language, Parser
-import tree_sitter_c_sharp as tscs 
+import tree_sitter_c_sharp as tscs # type: ignore
 from .base_c_analyzer_utils import cutilities
 
 class csharpanalysis:
@@ -62,16 +63,27 @@ class csharpanalysis:
 
     def get_access(self, node) -> str:
         for child in node.children:
-            if child.type == "modifiers":
+            if child.type == "modifier":
                 for mod in child.children:
                     mod_text = mod.text.decode()
-                    if mod_text in ("private", "protected"):
+                    if mod_text in ("private", "protected", "internal", "protected internal", "private protected"):
                         return "private"
                     elif mod_text == "public":
                         return "public"
         if node.type == "field_declaration":
             return "private"
         return "public"
+    
+    def get_field_name(self, node, source: str) -> str:
+        """Get field name from field_declaration node"""
+        for child in node.children:
+            if child.type == "variable_declaration":
+                for subchild in child.children:
+                    if subchild.type == "variable_declarator":
+                        for identifier in subchild.children:
+                            if identifier.type == "identifier":
+                                return source[identifier.start_byte:identifier.end_byte]
+        return ""
     
     def parse_class(self, node, source: str, path: Path) -> Dict[str, Any]:
         name = "<anonymous>"
@@ -97,24 +109,23 @@ class csharpanalysis:
 
         # body
         for child in node.children:
-            if child.type == "class_body":
+            if child.type == "declaration_list":
                 for member in child.children:
                     # fields
                     if member.type == "field_declaration":
                         access = self.get_access(member)
-                        fname = self.get_identifier(member, source)
+                        fname = self.get_field_name(member, source)
                         if fname:
                             if access == "private":
                                 private_attrs.append(fname)
                             else:
                                 public_attrs.append(fname)
-
                     # methods
                     elif member.type == "method_declaration":
                         mname = self.get_identifier(member, source)
                         if mname:
                             methods.append(mname)
-                            if cutilities.is_special(member):
+                            if cutilities.is_special(mname):
                                 special_methods.append(mname)
 
                     # constructor
@@ -124,7 +135,7 @@ class csharpanalysis:
                         special_methods.append(name)
 
                     # destructor
-                    elif member.type == "destructor_declaration":
+                    elif member.type in ("destructor_declaration", "finalizer_declaration"):
                         dname = f"~{name}"
                         methods.append(dname)
                         special_methods.append(dname)
