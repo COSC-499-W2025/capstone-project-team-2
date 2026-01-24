@@ -104,6 +104,27 @@ def test_delete_analysis_menu_deletes(monkeypatch, tmp_path):
 
     assert delete_calls["id"] == 1
 
+def test_delete_analysis_menu_deletes_without_db_refs(monkeypatch, tmp_path):
+    """Delete menu attempts file removal even when DB has no matching rows."""
+    file_path = tmp_path / "orphan.json"
+    file_path.write_text("{}")
+
+    monkeypatch.setattr(mod, "list_saved_projects", lambda folder: [file_path])
+    monkeypatch.setattr(mod, "get_saved_projects_from_db", lambda ctx: [])
+
+    calls = {"deleted": False}
+    def _delete_file(filename, ctx):
+        calls["deleted"] = True
+        return True
+    monkeypatch.setattr(mod, "delete_file_from_disk", _delete_file)
+
+    monkeypatch.setattr("builtins.input", _inputs(["1", "y", "n"]))
+
+    ctx = SimpleNamespace(default_save_dir=tmp_path, external_consent=False)
+    mod.delete_analysis_menu(ctx)
+
+    assert calls["deleted"] is True
+
 def test_main_menu_exit_returns_zero(monkeypatch):
     """Selecting 0 exits main menu with status code 0."""
     monkeypatch.setattr("builtins.input", _inputs(["0"]))
