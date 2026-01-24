@@ -1,41 +1,47 @@
 from fastapi import APIRouter, UploadFile
-
-from src.storage import saved_projects
-from src.storage.saved_projects import list_saved_projects
+from src.storage.saved_projects import get_saved_projects_from_db, get_project_by_id
 from src.core.app_context import runtimeAppContext
 
-projectsRouter = APIRouter(
-    prefix="/projects"
-)
+projectsRouter = APIRouter(prefix="/projects")
 
-#TODO
+
 @projectsRouter.post("/upload")
 async def upload_project(upload_file: UploadFile):
-    pass
+    # TODO: implement later
+    return {"error": "Not implemented"}
+
 
 @projectsRouter.get("/")
-def return_all_saved_projects() -> list:
+def return_all_saved_projects() -> list[dict]:
     """
-    API call for returning list of all saved projects
+    Returns all saved projects from the database.
 
-    HTTP call is /projects
-
-    Args:
-        None
-
-    Returns:
-        list: list of all saved project names
+    Output format:
+      [
+        {"id": 1, "name": "MyProject", "filename": "MyProject.json", "uploaded_at": "..."},
+        ...
+      ]
     """
-    save_paths = list_saved_projects(runtimeAppContext.default_save_dir)    #Pulling paths of saved projects
+    projects = get_saved_projects_from_db(runtimeAppContext)
 
-    #Converting Path objects in project names
-    saved_projects = list()
-    for path in save_paths:
-        saved_projects.append(path.stem)
+    out: list[dict] = []
+    for record_id, filename, uploaded_at in projects:
+        name = filename[:-5] if filename.endswith(".json") else filename
+        out.append(
+            {
+                "id": record_id,
+                "name": name,
+                "filename": filename,
+                "uploaded_at": uploaded_at.isoformat() if uploaded_at else None,
+            }
+        )
 
-    return saved_projects
+    return out
 
-#TODO What should I output?
-@projectsRouter.get("/{id}")
-def get_project_by_name(project_name: str):
-    return id
+
+@projectsRouter.get("/{project_id}")
+def get_project_by_id_endpoint(project_id: int):
+    """
+    Returns a specific project by ID from the database.
+    """
+    return get_project_by_id(project_id, runtimeAppContext)

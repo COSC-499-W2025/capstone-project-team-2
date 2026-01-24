@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 # Analysis helpers used by the CLI menus for project ingestion and persistence.
+from src.core.app_context import AppContext
 from src.core.app_context import runtimeAppContext
 from src.core.data_extraction import FileMetadataExtractor
 from src.core.extraction import extractInfo
@@ -12,7 +13,6 @@ from src.core.project_duration_estimation import Project_Duration_Estimator
 from src.reporting.project_insights import record_project_insight
 from src.analyzers.multilang_orchestrator import MultiLangOrchestrator
 from src.reporting.resume_item_generator import generate_resume_item
-from src.storage.file_data_saving import SaveFileAnalysisAsJSON
 from src.core.ai_data_scrubbing import ai_data_scrubber
 from src.core.AI_analysis_code import codeAnalysisAI
 from src.utils.utility_methods import *
@@ -86,40 +86,61 @@ def oop_analysis(root: Path, languages_found) -> Dict[str, Any] | None:
 
     return None
 
-def export_json(project_name: str, analysis: Dict[str, Any]) -> str | None:
+# def export_json(project_name: str, analysis: Dict[str, Any]) -> str | None:
+#     """
+#     Persist analyzed project to disk and database.
+
+#     Args:
+#         project_name (str): Filename stem for the saved JSON.
+#         analysis (Dict[str, Any]): Serializable analysis payload.
+
+#     Returns:
+#         Error string or none (Errors not passed yet). Writes to filesystem/DB.
+#     """
+
+#     out_dir = Path(runtimeAppContext.default_save_dir).resolve()
+#     out_dir.mkdir(parents=True, exist_ok=True)  #Makes directory where we will save json file
+
+#     filename = project_name + ".json"
+
+#     #Shouldn't need to be converted here, could be earlier
+#     analysis_copy = copy.deepcopy(analysis)
+#     analysis_serializable = convert_datetime_to_string(analysis_copy)
+
+#     saver = SaveFileAnalysisAsJSON()
+#     saver.saveAnalysis(project_name, analysis, str(out_dir))
+#     file_path = out_dir / filename
+
+#     try:
+#         record_id = runtimeAppContext.store.insert_json(filename, analysis)
+#         #print(f"[INFO] Saved to database (ID: {record_id})")
+#     except Exception as e:
+#         pass
+#         #print(f"[WARNING] Could not save to database: {e}")
+
+def save_to_database(project_name: str, analysis: Dict[str, Any]) -> Optional[int]:
     """
-    Persist analyzed project to disk and database.
+    Persist analyzed project to the database.
 
     Args:
-        project_name (str): Filename stem for the saved JSON.
+        project_name (str): Filename stem for the saved record.
         analysis (Dict[str, Any]): Serializable analysis payload.
 
     Returns:
-        Error string or none (Errors not passed yet). Writes to filesystem/DB.
+        int | None: The database record ID, or None if save failed.
     """
-
-    out_dir = Path(runtimeAppContext.default_save_dir).resolve()
-    out_dir.mkdir(parents=True, exist_ok=True)  #Makes directory where we will save json file
-
     filename = project_name + ".json"
-
-    #Shouldn't need to be converted here, could be earlier
     analysis_copy = copy.deepcopy(analysis)
     analysis_serializable = convert_datetime_to_string(analysis_copy)
 
-    saver = SaveFileAnalysisAsJSON()
-    saver.saveAnalysis(project_name, analysis, str(out_dir))
-    file_path = out_dir / filename
-
     try:
-        record_id = runtimeAppContext.store.insert_json(filename, analysis)
-        #print(f"[INFO] Saved to database (ID: {record_id})")
+        record_id = ctx.store.insert_json(filename, analysis_serializable)
+        return record_id
     except Exception as e:
-        pass
-        #print(f"[WARNING] Could not save to database: {e}")
+        print(f"[WARNING] Could not save to database: {e}")
+        return None
 
-
-def analyze_project(root: Path, use_ai_analysis=False) -> None:
+def analyze_project(root: Path, use_ai_analysis: bool = False) -> Optional[int]:
     """
     Analyze a project folder and persist results.
 
@@ -128,7 +149,7 @@ def analyze_project(root: Path, use_ai_analysis=False) -> None:
         use_ai_analysis (bool): If true, uses ollama AI analysis
 
     Returns:
-        None
+        int | None: The database ID of the saved analysis, or None if save failed.
     """
 
     display_name = root.name
@@ -200,7 +221,25 @@ def analyze_project(root: Path, use_ai_analysis=False) -> None:
     }
         
     ps = build_portfolio_showcase(portfolio_input, portfolio_yaml)   
-     
+    
+    # Save to database and get record ID
+    record_id = save_to_database(display_name, analysis)
+
+    # Record project insight with link to project_data
+    record_id = save_to_database(ctx, display_name, analysis)
+
+    if record_id:
+        try:
+            record_project_insight(
+                analysis,
+                contributors=contributors_data,
+                project_data_id=record_id,
+            )
+        except Exception as e:
+            print(f"[WARN] Failed to record project insight: {e}")
+
+    return record_id
+
     #Project insights likely needs to be rebuilt
     #try:
     #    insight = record_project_insight(
@@ -218,4 +257,4 @@ def analyze_project(root: Path, use_ai_analysis=False) -> None:
     #    ps = analysis["portfolio_showcase"]
     #    display_portfolio_showcase(ps)
     #    return
-    export_json(display_name, analysis)
+    # export_json(display_name, analysis)

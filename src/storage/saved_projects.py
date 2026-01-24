@@ -1,73 +1,80 @@
-import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 # Utilities for reading, listing, and cleaning up saved analysis artifacts.
 from src.core.app_context import AppContext
 from src.aggregation.oop_aggregator import pretty_print_oop_report
 
 
-def list_saved_projects(folder: Path) -> list[Path]:
+# def list_saved_projects(folder: Path) -> list[Path]:
+#     """
+#     Return saved analysis files from the configured folder and legacy location.
+
+#     Args:
+#         folder (Path): New default storage directory.
+
+#     Returns:
+#         list[Path]: Unique JSON analysis files excluding config artifacts.
+#     """
+#     candidate_dirs: list[Path] = []
+
+#     if folder.exists():
+#         candidate_dirs.append(folder)
+
+#     legacy_dir = folder.parent
+#     if legacy_dir.exists() and legacy_dir not in candidate_dirs:
+#         candidate_dirs.append(legacy_dir)
+
+#     if not candidate_dirs:
+#         return []
+
+#     all_files: list[Path] = []
+#     for d in candidate_dirs:
+#         all_files.extend(sorted(d.glob("*.json")))
+
+#     seen = set()
+#     unique_files: list[Path] = []
+#     for f in all_files:
+#         resolved = f.resolve()
+#         if resolved not in seen:
+#             seen.add(resolved)
+#             unique_files.append(f)
+
+#     filtered = [
+#         f
+#         for f in unique_files
+#         if f.name
+#         not in {
+#             "UserConfigs.json",
+#             "default_user_configuration.json",
+#             "project_insights.json",
+#         }
+#     ]
+
+#     return filtered
+
+def get_project_by_id(record_id: int, ctx: AppContext) -> Optional[dict]:
     """
-    Return saved analysis files from the configured folder and legacy location.
+    Fetch a specific project's analysis data by ID.
 
     Args:
-        folder (Path): New default storage directory.
+        record_id (int): The database ID of the project.
+        ctx (AppContext): Shared DB context.
 
     Returns:
-        list[Path]: Unique JSON analysis files excluding config artifacts.
+        dict | None: The project analysis data, or None if not found.
     """
-    candidate_dirs: list[Path] = []
-
-    if folder.exists():
-        candidate_dirs.append(folder)
-
-    legacy_dir = folder.parent
-    if legacy_dir.exists() and legacy_dir not in candidate_dirs:
-        candidate_dirs.append(legacy_dir)
-
-    if not candidate_dirs:
-        return []
-
-    all_files: list[Path] = []
-    for d in candidate_dirs:
-        all_files.extend(sorted(d.glob("*.json")))
-
-    seen = set()
-    unique_files: list[Path] = []
-    for f in all_files:
-        resolved = f.resolve()
-        if resolved not in seen:
-            seen.add(resolved)
-            unique_files.append(f)
-
-    filtered = [
-        f
-        for f in unique_files
-        if f.name
-        not in {
-            "UserConfigs.json",
-            "default_user_configuration.json",
-            "project_insights.json",
-        }
-    ]
-
-    return filtered
+    return ctx.store.fetch_by_id(record_id)
 
 
-def show_saved_summary(path: Path) -> None:
+def show_saved_summary(data: dict, title: str = "Project Analysis") -> None:
     """
     Display a summary of a saved analysis JSON.
 
-    Args:
-        path (Path): Location of the saved analysis file.
+   Args:
+        data (dict): The analysis data dictionary (fetched from database).
+        title (str): Title to display (e.g., filename or project name).
     """
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except Exception as e:
-        print(f"[ERROR] Could not read {path.name}: {e}")
-        return
-
     analysis: dict[str, Any] = data if isinstance(data, dict) else {}
     if "analysis" in analysis and isinstance(analysis["analysis"], dict):
         analysis = analysis["analysis"]
@@ -113,7 +120,7 @@ def show_saved_summary(path: Path) -> None:
                 tmp.append((name, count, pct))
         contributors_list = sorted(tmp, key=lambda tup: tup[1], reverse=True)
 
-    print(f"\n== {path.name} ==")
+    print(f"\n== {title} ==")
     print(f"Project root : {analysis.get('project_root', '—')}")
     print(f"Type         : {pt} (mode={mode})")
     print(f"Languages    : {', '.join(langs) or '—'}")
@@ -159,16 +166,7 @@ def get_saved_projects_from_db(ctx: AppContext) -> list[tuple]:
     Returns:
         list[tuple]: (id, filename, uploaded_at) rows.
     """
-    cursor = ctx.conn.cursor()
-    try:
-        cursor.execute(
-            # We only need identifiers and metadata for deletion checks.
-            "SELECT id, filename, uploaded_at "
-            "FROM project_data ORDER BY uploaded_at DESC"
-        )
-        return cursor.fetchall()
-    finally:
-        cursor.close()
+    return ctx.store.fetch_all_projects()
 
 
 def delete_from_database_by_id(record_id: int, ctx: AppContext) -> bool:
@@ -185,44 +183,44 @@ def delete_from_database_by_id(record_id: int, ctx: AppContext) -> bool:
     return ctx.store.delete(record_id)
 
 
-def delete_file_from_disk(filename: str, ctx: AppContext) -> bool:
-    """
-    Delete a file only if no remaining DB records reference it.
+# def delete_file_from_disk(filename: str, ctx: AppContext) -> bool:
+#     """
+#     Delete a file only if no remaining DB records reference it.
 
-    Args:
-        filename (str): Target filename.
-        ctx (AppContext): Shared DB/store context.
+#     Args:
+#         filename (str): Target filename.
+#         ctx (AppContext): Shared DB/store context.
 
-    Returns:
-        bool: True if the file was removed.
-    """
-    try:
-        base_dir = Path(ctx.default_save_dir).expanduser().resolve()
-        file_path = base_dir / filename
+#     Returns:
+#         bool: True if the file was removed.
+#     """
+#     try:
+#         base_dir = Path(ctx.default_save_dir).expanduser().resolve()
+#         file_path = base_dir / filename
 
-        if not file_path.exists():
-            legacy_path = base_dir.parent / filename
-            if legacy_path.exists():
-                file_path = legacy_path
-            else:
-                return False
+#         if not file_path.exists():
+#             legacy_path = base_dir.parent / filename
+#             if legacy_path.exists():
+#                 file_path = legacy_path
+#             else:
+#                 return False
 
-        try:
-            refs = ctx.store.count_file_references(filename)
-        except Exception as e:
-            print(f"[WARNING] Could not check DB references for '{filename}': {e}")
-            return False
+#         try:
+#             refs = ctx.store.count_file_references(filename)
+#         except Exception as e:
+#             print(f"[WARNING] Could not check DB references for '{filename}': {e}")
+#             return False
 
-        if refs > 0:
-            print(
-                f"[INFO] File '{filename}' is still referenced by {refs} record(s). "
-                "Not deleting."
-            )
-            return False
+#         if refs > 0:
+#             print(
+#                 f"[INFO] File '{filename}' is still referenced by {refs} record(s). "
+#                 "Not deleting."
+#             )
+#             return False
 
-        file_path.unlink()
-        return True
+#         file_path.unlink()
+#         return True
 
-    except Exception as e:
-        print(f"[WARNING] Failed to delete file '{filename}': {e}")
-        return False
+#     except Exception as e:
+#         print(f"[WARNING] Failed to delete file '{filename}': {e}")
+#         return False

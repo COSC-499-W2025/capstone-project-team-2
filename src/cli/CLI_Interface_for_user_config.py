@@ -1,5 +1,4 @@
 import time
-import orjson
 from src.config.Configuration import configuration_for_users
 from src.config.user_startup_config import ConfigLoader
 import pathlib as pa
@@ -7,7 +6,7 @@ import os
 
 
 class ConfigurationForUsersUI:
-    def __init__(self, Configuration_json):
+    def __init__(self, config_data: dict = None):
         """Initialize the ConfigurationForUsersUI with configuration data.
 
         Args:
@@ -17,9 +16,13 @@ class ConfigurationForUsersUI:
         Returns:
             None: Initializes instance attributes
         """
-        self.Configuration_json = Configuration_json
-
-
+        if config_data is not None:
+           self.config_data = config_data
+        else:
+           # Load from database
+           config = configuration_for_users()
+           self.config_data = config.config_data
+           
     def display_settings(self):
         """
         Displays the current configuration settings to the console
@@ -29,7 +32,7 @@ class ConfigurationForUsersUI:
 
         """
         print("------------------------")
-        for index, (key, value) in enumerate(self.Configuration_json.items()):
+        for index, (key, value) in enumerate(self.config_data.items()):
             print(f"{index+1} - {key} : {value}")
         print("------------------------")
 
@@ -43,23 +46,17 @@ class ConfigurationForUsersUI:
             ValueError: If choice is not a number
 
     """
-        Setting_to_change = input("Please choose a setting you want to change or 0 for main menu:")
+        setting_to_change = input("Please choose a setting you want to change or 0 for main menu:")
 
-
-
-        if Setting_to_change == "0":
+        if setting_to_change == "0":
             return "Quit"
 
-
-
-        elif Setting_to_change is not None:
-            choice_index = int(Setting_to_change) - 1
-            if choice_index < 0 or choice_index >= len(self.Configuration_json):
+        elif setting_to_change is not None:
+            choice_index = int(setting_to_change) - 1
+            if choice_index < 0 or choice_index >= len(self.config_data):
                 raise IndexError()
-            chosen_setting = list(self.Configuration_json.keys())[choice_index]
+            chosen_setting = list(self.config_data.keys())[choice_index]
             return chosen_setting
-
-
 
 
     def validate_modifiable_field(self,chosen_setting):
@@ -107,8 +104,6 @@ class ConfigurationForUsersUI:
             except ValueError:
                 return new_value
 
-
-
         return new_value
 
 
@@ -143,8 +138,7 @@ class ConfigurationForUsersUI:
         :return:
             bool: True if modification was successful, False otherwise
         """
-        json_functions = configuration_for_users(self.Configuration_json)
-        current_entry = self.Configuration_json.get(chosen_setting)
+        current_entry = self.config_data.get(chosen_setting)
         new_update = self.confirm_modification(chosen_setting, current_entry)
 
         if new_update is None:
@@ -156,23 +150,21 @@ class ConfigurationForUsersUI:
             time.sleep(1.5)
             return False
 
-        # Update and save only if value changed
-        self.Configuration_json[chosen_setting] = new_update
-        print(f"{chosen_setting} is now set from {current_entry} to {new_update}")
-        json_functions.save_config()
+        # Update local data
+        self.config_data[chosen_setting] = new_update
+        print(f"{chosen_setting}) is now set from {current_entry} to {new_update}")
+        
+        # Save to database
+        config = configuration_for_users(self.config_data)
+        config.save_config()
+        
         time.sleep(1.5)
         return True
-
-
-
-
 
     def run_configuration_cli(self):
         """
         Main function to run the configuration CLI
         """
-
-
 
         while True:
             self.display_settings()
@@ -185,26 +177,21 @@ class ConfigurationForUsersUI:
                 self.validate_modifiable_field(chosen_setting)
                 self.modify_settings(chosen_setting)
 
-
-
             except IndexError:
                 print("ERROR: Please select a valid choice")
                 time.sleep(1.5)
             except ValueError:
                 print("ERROR: Please enter a valid number")
                 time.sleep(1.5)
-
             except Exception as e:
                 print(f"ERROR: {str(e)}")
                 time.sleep(1.5)
-
             except KeyboardInterrupt:
                 print("Exiting configuration")
                 break
 
 
 if __name__ == "__main__":
-
-    Original_config_data=ConfigLoader().load()
-    UI=ConfigurationForUsersUI(Original_config_data)
+    # Load config from database and run UI
+    UI=ConfigurationForUsersUI()
     UI.run_configuration_cli()

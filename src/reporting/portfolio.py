@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 
 # Render saved analyses as portfolio-style output, honoring consent settings.
@@ -15,24 +14,19 @@ from src.reporting.portfolio_service import (
 import os
 import shutil
 
-def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
+
+def display_portfolio_and_generate_pdf(data: dict, ctx: AppContext) -> None:
     """
-    Read a saved project JSON file and print a formatted portfolio summary.
+    Display a formatted portfolio summary from analysis data.
     Optionally generate a PDF using RenderCV or legacy PDF generator.
 
     Args:
-        path (Path): Saved analysis file.
+        data (dict): The analysis data dictionary (fetched from database).
         ctx (AppContext): Shared context for consent/config paths.
 
     Returns:
         None
     """
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except Exception as e:
-        print(f"[ERROR] Could not read {path.name}: {e}")
-        return
-
     has_external = ctx.external_consent
 
     if not has_external:
@@ -42,20 +36,20 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
 
         project_name = analysis.get("resume_item", {}).get("project_name", "Portfolio")
 
-        # Rebuild PortfolioShowcase object 
+        # Rebuild PortfolioShowcase object
         portfolio_yaml = load_portfolio_showcase(project_name)
         ps = build_portfolio_showcase(analysis, portfolio_yaml)
 
         display_portfolio_showcase(ps)
-        
+
         # PDF Prompt
-        #print("=" * 50)
-        generate_pdf_input = "Y" #input("Would you like to generate a PDF? (y/n): ").strip().upper()
-        
+        generate_pdf_input = "Y"  # input("Would you like to generate a PDF? (y/n): ").strip().upper()
+
         if generate_pdf_input == "Y":
             name_of_file = (
-                input("Enter the name of the PDF file or press enter to use default name (Portfolio): ").strip()or "Portfolio")
-            
+                input("Enter the name of the PDF file or press enter to use default name (Portfolio): ").strip() or "Portfolio"
+            )
+
             # Collect folder path only for fallback (RenderCV uses its own output directory)
             folder_path = None
             try:
@@ -87,7 +81,7 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
 
             except Exception as e:
                 print(f"[WARN] RenderCV export failed, falling back to legacy PDF: {e}")
-                
+
                 # Collect folder path for fallback PDF generator
                 if folder_path is None:
                     attempts = 0
@@ -100,7 +94,7 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
                     else:
                         print("Maximum attempts reached. Cannot generate fallback PDF.")
                         return
-                
+
                 resume_item = analysis.get("resume_item") or {}
                 tech_stack_parts = []
                 if resume_item.get("languages"):
@@ -121,7 +115,7 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
                 SimpleResumeGenerator(folder_path, data=legacy_data, fileName=name_of_file).display_and_run(portfolio_only=True)
 
         return
-    
+
     try:
         directory_file_path = data.get("project_root")
         docker = GenerateProjectResume(directory_file_path).generate(
@@ -138,7 +132,7 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
 
     print("Key Skills Used:")
     for skill in docker.key_skills_used:
-        print(f"  • {skill}")
+        print(f"  - {skill}")
     print()
 
     print("Tech Stack:")
@@ -147,11 +141,11 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
         tech_stack = [tech_stack]
 
     if tech_stack:
-        print("  • " + ", ".join(tech_stack))
+        print("  - " + ", ".join(tech_stack))
     else:
         print("  (None detected)")
     print()
-    
+
     generate_pdf_input = input("Would you like to generate a PDF? (y/n): ").strip().upper()
     if generate_pdf_input == "Y":
         attempts = 0
@@ -166,7 +160,7 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
             return
 
         name_of_file = (
-            input("Enter the name of the PDF file or press enter to use default name (Portfolio): ").strip() or "Portfolio")
+            input("Enter the name of the PDF file or press enter to use default name (Portfolio): ").strip() or "Portfolio"
+        )
 
         SimpleResumeGenerator(folder_path, data=docker, fileName=name_of_file).display_and_run(portfolio_only=True)
-        

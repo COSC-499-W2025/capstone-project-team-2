@@ -1,65 +1,104 @@
 import os
 from pathlib import Path
 import orjson
+from typing import Dict, Any
+from src.core.app_context import runtimeAppContext
 
 class configuration_for_users:
 
     """
-    This is class which takes in json file which in this case is the user configuration
-    and save locally
+    This is class handles user configuration storage using the MySQL database.
+    All configuration data is stored in the user_config table.
 
     """
-    def __init__(self,jsonfile,loc_to_save='User_config_files'):
+    def __init__(self, initial_data: Dict[str, Any] = None):
         """
         Initializes the Configuration class instance
 
-        This constructor sets up the user configuration file, determines the
-        root directory of the project, and defines the path where configuration file("UserConfigs.json")
-        will be stored
-
-        :param jsonfile: User Configuration **json file**
+        Args: 
+            initial_data: Optional dictionary to initialize config with. 
+            If None, loads, existing config from dataset
         """
-        self.jsonfile = jsonfile
+        if initial_data is not None:
+            self.config_data = initial_data
+        else:
+            # Load existing config from database, or start with empty dict
+            self.config_data = runtimeAppContext.store.get_config("user_settings") or {}
 
-        project_root = Path(__file__).resolve().parents[2]
-
-        self.config_dir = project_root / "User_config_files"
-        self.loc_to_save = self.config_dir / "UserConfigs.json"
-
-        self.config_dir.mkdir(parents=True, exist_ok=True)
 
     def save_with_consent(self, external_consent:bool=False,data_consent:bool=False):
         """
         Adds a new entry to the json file with consent preferences
 
-       :param external_consent: (bool) Whether user consents to external data sharing (default: False)
-       :param data_consent: (bool) Whether user consents to data collection (default: False)
+       Args:
+            external_consent: Whether user consents to external data sharing (default: False)
+            data_consent: Whether user consents to data collection (default: False)
+            
         """
-        if self.jsonfile is not None:
-            self.jsonfile.update({'consented':{
-                "external": external_consent,
-                "Data consent": data_consent
-            }})
-            #Here I am added a new key,value pair to the actual user configuration when the json file is not none
+        self.config_data["consented"] ={
+            "external": external_consent,
+            "Data consent": data_consent
+        }
 
 
     def save_config(self):
 
         """
-           Saves the JSON configuration file to the user's system.
+           Saves to MySQL
 
            :return:
                bool: True if the file was saved successfully, False otherwise.
            """
 
+        return runtimeAppContext.store.save_config(self.config_data, "user_settings")
 
-        with open(self.loc_to_save, "wb") as f: #Reading the json_file
-            print("HIT")
-            f.write(orjson.dumps(self.jsonfile,option=orjson.OPT_INDENT_2)) #dumping the data it to be saved using the orjson library
+    def load_config(self) -> Dict[str, Any]:
+        """
+        Loads the configuration from the database.
 
-        return os.path.exists(self.loc_to_save)
-        #Returns bool state to see if the actually file exists and created successfully
+        Returns:
+            dict: The configuration dictionary, or empty dict if not found.
+        """
+        self.config_data = runtimeAppContext.store.get_config("user_settings") or {}
+        return self.config_data
 
+    def get_consent_status(self) -> Dict[str, bool]:
+        """
+        Get the current consent settings.
+
+        Returns:
+            dict: Dictionary with 'external' and 'data_consent' boolean values.
+        """
+        return runtimeAppContext.store.get_consent_settings()
+
+    def update_field(self, key: str, value: Any) -> bool:
+        """
+        Update a specific field in the configuration.
+
+        Args:
+            key: The configuration key to update.
+            value: The new value for the key.
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        self.config_data[key] = value
+        return self.save_config()
+
+    def get_field(self, key: str, default: Any = None) -> Any:
+        """
+        Get a specific field from the configuration.
+
+        Args:
+            key: The configuration key to retrieve.
+            default: Default value if key doesn't exist.
+
+        Returns:
+            The value for the key, or default if not found.
+        """
+        if not self.config_data:
+            self.load_config()
+        return self.config_data.get(key, default)
 
 
 

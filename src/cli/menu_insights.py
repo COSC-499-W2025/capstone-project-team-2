@@ -7,10 +7,8 @@ Provides an interactive CLI loop that:
 - Ranks projects via composite scoring (contrib + recency + skills)
 - Surfaces top-ranked summaries with rationale
 
-Kept separate from menus.py to keep navigation wiring lean.
+All data is now stored in MySQL database.
 """
-
-from pathlib import Path
 
 from src.reporting.project_insights import (
     list_project_insights,
@@ -24,14 +22,12 @@ def project_insights_menu(ctx) -> None:
     """
     View stored project insights: chronological projects, skill history, rankings, and top summaries.
 
-    Uses the JSON log at User_config_files/project_insights.json to present:
+    Uses the database to present:
       - Chronological projects (oldest to newest) with type and stack
       - Chronological skills exercised per project
       - Contribution-based ranking (optionally filtered by contributor)
       - Top-ranked project summaries with scores
     """
-    storage_path = Path(ctx.legacy_save_dir) / "project_insights.json"
-
     while True:
         print("\n=== Project Insights ===")
         print("1) Chronological list of projects")
@@ -49,7 +45,7 @@ def project_insights_menu(ctx) -> None:
                 since_str = input("Only include analyses since (YYYY-MM-DD, optional): ").strip() or None
                 since_dt = parse_date(since_str)
 
-                projects = list_project_insights(storage_path=storage_path)
+                projects = list_project_insights()
                 projects = filter_insights(
                     projects,
                     language=language,
@@ -60,11 +56,11 @@ def project_insights_menu(ctx) -> None:
                 if not projects:
                     print("[INFO] No insights recorded yet.")
                 else:
-                    print("\nProjects (oldest → newest):\n")
+                    print("\nProjects (oldest -> newest):\n")
                     for i, p in enumerate(projects, start=1):
-                        langs = ", ".join(p.languages) or "—"
-                        frws = ", ".join(p.frameworks) or "—"
-                        summary = p.summary or "—"
+                        langs = ", ".join(p.languages) or "-"
+                        frws = ", ".join(p.frameworks) or "-"
+                        summary = p.summary or "-"
                         print(
                             f"{i}) {p.project_name} | analyzed_at={p.analyzed_at} | "
                             f"type={p.project_type} ({p.detection_mode}) | "
@@ -78,7 +74,7 @@ def project_insights_menu(ctx) -> None:
                 since_str = input("Only include analyses since (YYYY-MM-DD, optional): ").strip() or None
                 since_dt = parse_date(since_str)
 
-                history = list_skill_history(storage_path=storage_path)
+                history = list_skill_history()
                 if since_dt or skill:
                     filtered = []
                     for entry in history:
@@ -95,7 +91,7 @@ def project_insights_menu(ctx) -> None:
                 else:
                     print("\nSkills (chronological):\n")
                     for entry in history:
-                        skills = ", ".join(entry.get("skills", [])) or "—"
+                        skills = ", ".join(entry.get("skills", [])) or "-"
                         print(
                             f"- {entry.get('project_name', 'unknown')} "
                             f"@ {entry.get('analyzed_at', 'unknown')} "
@@ -116,7 +112,7 @@ def project_insights_menu(ctx) -> None:
                     print("[INFO] Invalid number; defaulting to 5.")
                     top_n = 5
 
-                ranked = list_project_insights(storage_path=storage_path)
+                ranked = list_project_insights()
                 ranked = filter_insights(
                     ranked,
                     language=language,
@@ -125,7 +121,6 @@ def project_insights_menu(ctx) -> None:
                 )
                 if contributor:
                     ranked = rank_projects_by_contribution(
-                        storage_path=storage_path,
                         contributor=contributor,
                         top_n=None,
                     )
@@ -169,7 +164,7 @@ def project_insights_menu(ctx) -> None:
                     print("[INFO] Invalid number; defaulting to 3.")
                     top_n = 3
 
-                insights = list_project_insights(storage_path=storage_path)
+                insights = list_project_insights()
                 insights = filter_insights(
                     insights,
                     language=language,
@@ -178,7 +173,6 @@ def project_insights_menu(ctx) -> None:
                 )
                 if contributor:
                     insights = rank_projects_by_contribution(
-                        storage_path=storage_path,
                         contributor=contributor,
                         top_n=None,
                     )
@@ -204,7 +198,7 @@ def project_insights_menu(ctx) -> None:
                         print(
                             f"{i}) {insight.project_name} | composite={score:.2f}"
                         )
-                        print(f"    summary: {insight.summary or '—'}")
+                        print(f"    summary: {insight.summary or '-'}")
                         print(f"    rationale: {rationale}")
                 input("\nPress Enter to continue...")
 

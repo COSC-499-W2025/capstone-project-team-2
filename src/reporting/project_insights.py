@@ -13,21 +13,16 @@ Responsibilities:
 
 from __future__ import annotations
 
-import json
 import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Union
+import json
+from src.core.app_context import runtimeAppContext
 
 JsonEntry = Dict[str, Any]
 ContributorData = Dict[str, Dict[str, Any]]
-PathLike = Union[str, Path]
-
-# Use absolute path based on project root to avoid CWD-dependent path issues
-_PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_STORAGE = _PROJECT_ROOT / "User_config_files" / "project_insights.json"
-
 
 def _now_iso(ts: Optional[datetime] = None) -> str:
     """Return an ISO 8601 timestamp in UTC."""
@@ -38,42 +33,42 @@ def _now_iso(ts: Optional[datetime] = None) -> str:
     return ts.astimezone(timezone.utc).isoformat()
 
 
-def _ensure_dir(path: Path) -> None:
-    """Ensure the parent directory for the provided file path exists."""
-    path.parent.mkdir(parents=True, exist_ok=True)
+# def _ensure_dir(path: Path) -> None:
+#     """Ensure the parent directory for the provided file path exists."""
+#     path.parent.mkdir(parents=True, exist_ok=True)
 
 
-def _stash_corrupted_file(path: Path) -> None:
-    """Rename corrupted JSON logs so a clean file can be created safely."""
-    timestamp = datetime.now(tz=timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    backup = path.with_name(f"{path.name}.corrupt-{timestamp}")
-    try:
-        path.replace(backup)
-    except Exception:
-        pass
+# def _stash_corrupted_file(path: Path) -> None:
+#     """Rename corrupted JSON logs so a clean file can be created safely."""
+#     timestamp = datetime.now(tz=timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+#     backup = path.with_name(f"{path.name}.corrupt-{timestamp}")
+#     try:
+#         path.replace(backup)
+#     except Exception:
+#         pass
 
 
-def _read_entries(path: Path) -> List[JsonEntry]:
-    """Read raw JSON entries from ``path`` and fall back to an empty list on error."""
-    if not path.exists():
-        return []
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-        if isinstance(data, list):
-            return data
-        _stash_corrupted_file(path)
-        return []
-    except json.JSONDecodeError:
-        _stash_corrupted_file(path)
-        return []
-    except OSError:
-        return []
+# def _read_entries(path: Path) -> List[JsonEntry]:
+#     """Read raw JSON entries from ``path`` and fall back to an empty list on error."""
+#     if not path.exists():
+#         return []
+#     try:
+#         data = json.loads(path.read_text(encoding="utf-8"))
+#         if isinstance(data, list):
+#             return data
+#         _stash_corrupted_file(path)
+#         return []
+#     except json.JSONDecodeError:
+#         _stash_corrupted_file(path)
+#         return []
+#     except OSError:
+#         return []
 
 
-def _write_entries(path: Path, entries: Sequence[JsonEntry]) -> None:
-    """Serialize entries with indentation to aid manual inspection."""
-    _ensure_dir(path)
-    path.write_text(json.dumps(list(entries), indent=2), encoding="utf-8")
+# def _write_entries(path: Path, entries: Sequence[JsonEntry]) -> None:
+#     """Serialize entries with indentation to aid manual inspection."""
+#     _ensure_dir(path)
+#     path.write_text(json.dumps(list(entries), indent=2), encoding="utf-8")
 
 
 def _normalize_contributors(contributors: Optional[ContributorData]) -> ContributorData:
@@ -120,8 +115,14 @@ def _summarize_contributors(contributors: ContributorData) -> Dict[str, Any]:
     }
 
 
-def _parse_analyzed_at(ts: str) -> datetime:
+def _parse_analyzed_at(ts: Union[str, datetime, None]) -> datetime:
     """Parse an ISO 8601 timestamp, falling back to a minimal UTC datetime on error."""
+    if ts is None:
+        return datetime.min.replace(tzinfo=timezone.utc)
+    if isinstance(ts, datetime):
+        if ts.tzinfo is None:
+            ts = ts.replace(tzinfo=timezone.utc)
+        return ts
     try:
         dt = datetime.fromisoformat(ts)
         if dt.tzinfo is None:
@@ -129,7 +130,7 @@ def _parse_analyzed_at(ts: str) -> datetime:
         return dt
     except Exception:
         return datetime.min.replace(tzinfo=timezone.utc)
-
+    
 
 def _flatten_file_nodes(hierarchy: JsonEntry) -> List[JsonEntry]:
     """
@@ -314,6 +315,7 @@ class ProjectInsight:
     stats: JsonEntry = field(default_factory=dict)
     file_analysis: JsonEntry = field(default_factory=dict)
     thumbnail: Optional[Dict[str, Any]] = None
+    project_data_id: Optional[int] = None
 
     def contribution_score(self, contributor: Optional[str] = None) -> int:
         """
@@ -340,6 +342,54 @@ class ProjectInsight:
 
     def to_dict(self) -> JsonEntry:
         return asdict(self)
+
+def _db_row_to_dataclass(row: Dict[str, Any]) -> ProjectInsight:
+    """
+    Convert a database row dict to ``ProjectInsight`` while normalizing fields.
+
+    This method smooths out data so our dataclass stays predictable and easy to work with.
+    """
+    raw_contributors = row.get("contributors", {}) or {}
+    contributors = _normalize_contributors(raw_contributors)
+
+    skills = sorted(row.get("skills", []) or [])
+
+    raw_stats = row.get("stats") or {}
+    stats: Dict[str, Any] = dict(raw_stats)
+
+    contrib_stats = _summarize_contributors(contributors)
+    stats.setdefault("contributors", contrib_stats["contributors"])
+    stats.setdefault("total_file_contributions", contrib_stats["total_file_contributions"])
+    stats.setdefault("top_contributor", contrib_stats["top_contributor"])
+    stats.setdefault("top_contribution_count", contrib_stats["top_contribution_count"])
+    stats.setdefault("skill_count", len(skills))
+
+    analyzed_at = row.get("analyzed_at", _now_iso())
+    if isinstance(analyzed_at, datetime):
+        analyzed_at = analyzed_at.isoformat()
+
+    file_analysis = row.get("file_analysis")
+    if not isinstance(file_analysis, dict):
+        file_analysis = {}
+
+    return ProjectInsight(
+        id=row.get("id", str(uuid.uuid4())),
+        project_name=str(row.get("project_name", "unknown")),
+        summary=row.get("summary", ""),
+        analyzed_at=analyzed_at,
+        languages=sorted(row.get("languages", []) or []),
+        frameworks=sorted(row.get("frameworks", []) or []),
+        skills=skills,
+        project_type=row.get("project_type", "unknown"),
+        detection_mode=row.get("detection_mode", "local"),
+        duration_estimate=str(row.get("duration_estimate", "unavailable")),
+        hierarchy=row.get("hierarchy", {}),
+        contributors=contributors,
+        stats=stats,
+        file_analysis=file_analysis,
+        thumbnail=row.get("thumbnail"),
+        project_data_id=row.get("project_data_id"),
+    )
 
 
 def _entry_to_dataclass(entry: JsonEntry) -> ProjectInsight:
@@ -392,10 +442,10 @@ def _entry_to_dataclass(entry: JsonEntry) -> ProjectInsight:
 def record_project_insight(
     analysis: JsonEntry,
     *,
-    storage_path: PathLike = DEFAULT_STORAGE,
     contributors: Optional[ContributorData] = None,
     analyzed_at: Optional[datetime] = None,
     insight_id: Optional[str] = None,
+    project_data_id: Optional[int] = None,
 ) -> ProjectInsight:
     """
     Save a new project insight to the JSON log.
@@ -418,7 +468,7 @@ def record_project_insight(
     project_root = analysis.get("project_root")
     project_name = resume.get("project_name")
 
-    if not project_name and project_root:
+    if not project_name:
         try:
             project_name = Path(project_root).name or project_root
         except Exception:
@@ -430,12 +480,37 @@ def record_project_insight(
     stats = _summarize_contributors(normalized)
     stats["skill_count"] = len(resume.get("skills", []))
     hierarchy = analysis.get("hierarchy", {})
+    
+    generated_id = insight_id or str(uuid.uuid4())
+    timestamp = analyzed_at or datetime.now(timezone.utc)
 
-    insight = ProjectInsight(
-        id=insight_id or str(uuid.uuid4()),
+    file_analysis = _compute_file_analysis(hierarchy)
+
+    # Insert into database
+    runtimeAppContext.store.insert_insight(
+        insight_id=generated_id,
         project_name=str(project_name),
         summary=resume.get("summary", ""),
-        analyzed_at=_now_iso(analyzed_at),
+        analyzed_at=timestamp,
+        languages=sorted(resume.get("languages", []) or []),
+        frameworks=sorted(resume.get("frameworks", []) or []),
+        skills=sorted(resume.get("skills", []) or []),
+        project_type=resume.get("project_type", "unknown"),
+        detection_mode=resume.get("detection_mode", "local"),
+        duration_estimate=str(analysis.get("duration_estimate", "unavailable")),
+        contributors=normalized,
+        stats=stats,
+        file_analysis=file_analysis,
+        thumbnail=None,
+        project_data_id=project_data_id,
+    )
+
+    # Return the insight object
+    return ProjectInsight(
+        id=generated_id,
+        project_name=str(project_name),
+        summary=resume.get("summary", ""),
+        analyzed_at=_now_iso(timestamp),
         languages=sorted(resume.get("languages", []) or []),
         frameworks=sorted(resume.get("frameworks", []) or []),
         skills=sorted(resume.get("skills", []) or []),
@@ -445,18 +520,11 @@ def record_project_insight(
         hierarchy=hierarchy,
         contributors=normalized,
         stats=stats,
-        file_analysis=_compute_file_analysis(hierarchy),
+        file_analysis=file_analysis,
+        project_data_id=project_data_id,
     )
 
-    path = Path(storage_path)
-    entries = _read_entries(path)
-    entries.append(insight.to_dict())
-    _write_entries(path, entries)
-
-    return insight
-
-
-def list_project_insights(storage_path: PathLike = DEFAULT_STORAGE) -> List[ProjectInsight]:
+def list_project_insights() -> List[ProjectInsight]:
     """
     Return all stored insights in chronological order (oldest → newest).
 
@@ -466,14 +534,38 @@ def list_project_insights(storage_path: PathLike = DEFAULT_STORAGE) -> List[Proj
     Returns:
         List of ProjectInsight objects sorted by analyzed_at timestamp.
     """
-    path = Path(storage_path)
-    insights = (_entry_to_dataclass(e) for e in _read_entries(path))
-    return sorted(insights, key=lambda i: _parse_analyzed_at(i.analyzed_at))
+    rows = runtimeAppContext.store.fetch_all_insights(order_by="analyzed_at", ascending=True)
+    return [_db_row_to_dataclass(row) for row in rows]
 
+def get_insight_by_id(insight_id: str) -> Optional[ProjectInsight]:
+    """
+    Retrieve a specific insight by its UUID.
+
+    Args:
+        insight_id: The UUID of the insight to retrieve.
+
+    Returns:
+        ProjectInsight if found, None otherwise.
+    """
+    row = runtimeAppContext.store.fetch_insight_by_id(insight_id)
+    if row:
+        return _db_row_to_dataclass(row)
+    return None
+
+def delete_insight(insight_id: str) -> bool:
+    """
+    Delete a project insight by its UUID.
+
+    Args:
+        insight_id: The UUID of the insight to delete.
+
+    Returns:
+        True if deleted, False otherwise.
+    """
+    return runtimeAppContext.store.delete_insight(insight_id)
 
 def rank_projects_by_contribution(
     *,
-    storage_path: PathLike = DEFAULT_STORAGE,
     contributor: Optional[str] = None,
     top_n: Optional[int] = None,
 ) -> List[ProjectInsight]:
@@ -492,7 +584,7 @@ def rank_projects_by_contribution(
         List of ProjectInsight objects sorted by contribution score (highest first).
     """
     ranked = sorted(
-        list_project_insights(storage_path),
+        list_project_insights(),
         key=lambda i: i.contribution_score(contributor),
         reverse=True,
     )
@@ -503,7 +595,7 @@ def rank_projects_by_contribution(
     return ranked[:top_n]
 
 
-def list_skill_history(storage_path: PathLike = DEFAULT_STORAGE) -> List[Dict[str, Any]]:
+def list_skill_history() -> List[Dict[str, Any]]:
     """
     Build a simple timeline of what skills were used in each project.
 
@@ -524,13 +616,12 @@ def list_skill_history(storage_path: PathLike = DEFAULT_STORAGE) -> List[Dict[st
             "analyzed_at": insight.analyzed_at,
             "skill_count": len(insight.skills),
         }
-        for insight in list_project_insights(storage_path)
+        for insight in list_project_insights()
     ]
 
 
 def summaries_for_top_ranked_projects(
     *,
-    storage_path: PathLike = DEFAULT_STORAGE,
     contributor: Optional[str] = None,
     top_n: int = 3,
 ) -> List[Dict[str, Any]]:
@@ -555,7 +646,6 @@ def summaries_for_top_ranked_projects(
         return []
 
     ranked = rank_projects_by_contribution(
-        storage_path=storage_path,
         contributor=contributor,
         top_n=top_n,
     )
@@ -575,7 +665,6 @@ def summaries_for_top_ranked_projects(
 def update_thumbnail_in_insights(
     project_id: str,
     thumbnail_path: Path,
-    storage_path: PathLike = DEFAULT_STORAGE,
 ) -> bool:
     """
     Update thumbnail information for a project in the insights JSON.
@@ -588,31 +677,15 @@ def update_thumbnail_in_insights(
     Returns:
         True if updated successfully, False otherwise
     """
-    path = Path(storage_path)
-    entries = _read_entries(path)
-    
-    updated = False
-    for entry in entries:
-        if entry.get("id") == project_id:
-            entry["thumbnail"] = {
-                "path": str(thumbnail_path),
-                "filename": thumbnail_path.name,
-                "exists": True,
-                "added_at": _now_iso(),
-            }
-            updated = True
-            break
-    
-    if updated:
-        _write_entries(path, entries)
-    
-    return updated
+    thumbnail_data = {
+        "path": str(thumbnail_path),
+        "filename": thumbnail_path.name,
+        "exists": True,
+        "added_at": _now_iso(),
+    }
+    return runtimeAppContext.store.update_insight(project_id, thumbnail=thumbnail_data)
 
-
-def remove_thumbnail_from_insights(
-    project_id: str,
-    storage_path: PathLike = DEFAULT_STORAGE,
-) -> bool:
+def remove_thumbnail_from_insights(project_id: str) -> bool:
     """
     Remove thumbnail information from a project in the insights JSON.
     
@@ -623,24 +696,23 @@ def remove_thumbnail_from_insights(
     Returns:
         True if removed successfully, False otherwise
     """
-    path = Path(storage_path)
-    entries = _read_entries(path)
+    # Get current thumbnail path
+    row = runtimeAppContext.store.fetch_insight_by_id(project_id)
+    if row and row.get("thumbnail"):
+        thumb_info = row["thumbnail"]
+        if isinstance(thumb_info, dict) and thumb_info.get("path"):
+            thumb_path = Path(thumb_info["path"])
+            if thumb_path.exists():
+                try:
+                    thumb_path.unlink()
+                except Exception:
+                    pass  # File deletion failed, but continue to update database
     
-    updated = False
-    for entry in entries:
-        if entry.get("id") == project_id:
-            entry["thumbnail"] = None
-            updated = True
-            break
-    
-    if updated:
-        _write_entries(path, entries)
-    
-    return updated
+    # Update database to remove thumbnail reference
+    return runtimeAppContext.store.update_insight(project_id, thumbnail=None)
 
-def get_thumbnail_from_insight(
-    insight: ProjectInsight
-) -> Optional[Path]:
+
+def get_thumbnail_from_insight(insight: ProjectInsight) -> Optional[Path]:
     """
     Get thumbnail path from a ProjectInsight if it exists.
     
@@ -664,14 +736,17 @@ def get_thumbnail_from_insight(
     path = Path(thumb_path)
     return path if path.exists() else None
 
+
 __all__ = [
     "ProjectInsight",
     "record_project_insight",
     "list_project_insights",
+    "get_insight_by_id",
+    "delete_insight",
     "rank_projects_by_contribution",
     "list_skill_history",
     "summaries_for_top_ranked_projects",
-    "update_thumbnail_in_insights",      
-    "remove_thumbnail_from_insights", 
+    "update_thumbnail_in_insights",
+    "remove_thumbnail_from_insights",
     "get_thumbnail_from_insight",
 ]
