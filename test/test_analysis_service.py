@@ -1,7 +1,9 @@
 import datetime
+import tempfile
+import unittest
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from typing import List
 
@@ -94,6 +96,68 @@ def test_oop_analysis_runs(tmp_path, monkeypatch):
 
     assert result == metrics
 
+class TestAnalysisService(unittest.TestCase):
+    def test_analyze_project_uses_stack_detection_for_oop_languages(self):
+        """Ensure OOP analysis uses stack detection + resume languages union."""
+        class FakeExtractor:
+            def __init__(self, root):
+                self.root = root
+
+            def file_hierarchy(self):
+                return {"type": "DIR", "children": []}
+
+        class FakeDurationEstimator:
+            def __init__(self, hierarchy):
+                self.hierarchy = hierarchy
+
+            def get_duration(self):
+                return 0
+
+        class FakeDocAnalyzer:
+            def __init__(self, root):
+                self.root = root
+
+            def analyze(self):
+                return {}
+
+        captured = {}
+
+        def fake_oop_analysis(root, languages_found):
+            captured["languages_found"] = languages_found
+            return {"score": {"oop_score": 0.5}}
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            with (
+                patch.object(mod, "FileMetadataExtractor", FakeExtractor),
+                patch.object(mod, "Project_Duration_Estimator", FakeDurationEstimator),
+                patch.object(
+                    mod,
+                    "generate_resume_item",
+                    lambda root, project_name: SimpleNamespace(
+                        project_name=project_name,
+                        summary="Built project",
+                        highlights=["h1"],
+                        project_type="collaborative",
+                        detection_mode="local",
+                        languages=["Python"],
+                        frameworks=[],
+                        skills=[],
+                        framework_sources={},
+                    ),
+                ),
+                patch.object(mod, "DocumentAnalyzer", FakeDocAnalyzer),
+                patch.object(mod, "contribution_summary", lambda root: None),
+                patch.object(mod, "load_portfolio_showcase", lambda display_name: None),
+                patch.object(mod, "build_portfolio_showcase", lambda data, yaml: None),
+                patch.object(mod, "export_json", lambda project_name, analysis: None),
+                patch.object(mod, "detect_project_stack", lambda root: {"languages": ["C++"]}),
+                patch.object(mod, "oop_analysis", fake_oop_analysis),
+            ):
+                mod.analyze_project(root)
+
+        self.assertEqual(captured["languages_found"], ["C++", "Python"])
+
 @pytest.mark.skip
 def test_analyze_project_builds_analysis_and_exports(tmp_path, monkeypatch):
     """Check that analysis builds results and triggers export.
@@ -144,11 +208,7 @@ def test_analyze_project_builds_analysis_and_exports(tmp_path, monkeypatch):
         "record_project_insight",
         lambda analysis, contributors=None: SimpleNamespace(id=1, project_name=analysis["resume_item"]["project_name"]),
     )
-    monkeypatch.setattr(
-        mod,
-        "oop_analysis",
-        lambda root, languages_found, legacy: {"score": {"oop_score": 0.75}},
-    )
+    monkeypatch.setattr(mod, "oop_analysis", lambda root, languages_found: {"score": {"oop_score": 0.75}})
 
     captured = {}
     monkeypatch.setattr(

@@ -6,7 +6,7 @@ OOP metrics, including class stats, encapsulation, polymorphism, data
 structures, complexity, and a narrative summary.
 """
 
-from typing import List, Dict, Any, Set
+from typing import List, Dict, Any, Set, Tuple
 
 # Expected canonical class/file shapes 
 # Each canonical report (per file) should be a dict like:
@@ -29,7 +29,6 @@ from typing import List, Dict, Any, Set
 #   "syntax_ok": True
 # }
 
-
 def aggregate_canonical_reports(canonical_reports: List[Dict[str, Any]], total_files: int = None) -> Dict[str, Any]:
     """
     Turn a list of canonical per-file reports into the full project-level metrics dict
@@ -38,38 +37,317 @@ def aggregate_canonical_reports(canonical_reports: List[Dict[str, Any]], total_f
         canonical_reports (List[Dict[str, Any]]): List of per-file canonical reports.
         total_files (int, optional): Total number of files analyzed (including syntax errors).
     """
-    
-    # Detect language from reports
-    language = detect_language(canonical_reports)
-    
-    # Branch based on language
-    if language == "C":
-        return aggregate_c_reports(canonical_reports, total_files)
-    else:
+    if not canonical_reports:
         return aggregate_python_canonical_reports(canonical_reports, total_files)
 
+    language_groups = group_reports_by_language(canonical_reports)
+    if len(language_groups) == 1:
+        language = next(iter(language_groups))
+        handler = LANGUAGE_AGGREGATORS.get(language, aggregate_python_canonical_reports)
+        metrics = handler(language_groups[language], total_files)
+        if "language" not in metrics:
+            metrics["language"] = language
+        return metrics
 
+    return aggregate_multi_language_reports(canonical_reports, total_files)
 
 def detect_language(canonical_reports: List[Dict[str, Any]]) -> str:
     """Detect language from canonical reports"""
     if not canonical_reports:
         return "Python"  # default
-    
-    # Check first valid report
-    for rep in canonical_reports:
-        # C reports have c_spec field
-        if "c_spec" in rep:
-            return "C"
-        # C reports have file extensions .c or .h
-        file = rep.get("file", "")
-        if file.endswith((".c", ".h")):
-            return "C"
-        # Java files
-        if file.endswith(".java"):
-            return "Java"
-    
-    return "Python"  # default
 
+    languages = {detect_language_for_report(rep) for rep in canonical_reports}
+    languages.discard("Unknown")
+    if not languages:
+        return "Python"
+    if len(languages) == 1:
+        return next(iter(languages))
+    return "Multi"
+
+def detect_language_for_report(report: Dict[str, Any]) -> str:
+    """Detect language for a single canonical report."""
+    explicit = report.get("language")
+    if explicit:
+        return explicit
+    if "c_spec" in report:
+        return "C"
+    if "cpp_spec" in report:
+        return "C++"
+
+    file = report.get("file", "") or report.get("file_path", "")
+    file = file.lower()
+    if file.endswith((".py",)):
+        return "Python"
+    if file.endswith((".java",)):
+        return "Java"
+    if file.endswith((".js", ".jsx", ".mjs")):
+        return "JavaScript"
+    if file.endswith((".c",)):
+        return "C"
+    if file.endswith((".cpp", ".cc", ".cxx", ".hpp", ".hh", ".hxx")):
+        return "C++"
+    if file.endswith((".cs",)):
+        return "C#"
+    if file.endswith((".h",)):
+        return "C"
+
+    return "Unknown"
+
+def group_reports_by_language(canonical_reports: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
+    """
+    Group canonical reports by detected language.
+
+    Args:
+        canonical_reports: Canonical per-file reports to group.
+
+    Returns:
+        Mapping of language name to list of reports for that language.
+    """
+    groups: Dict[str, List[Dict[str, Any]]] = {}
+    for rep in canonical_reports:
+        lang = detect_language_for_report(rep)
+        groups.setdefault(lang, []).append(rep)
+    if "Unknown" in groups:
+        groups.setdefault("Python", []).extend(groups.pop("Unknown"))
+    return groups
+
+def _merge_numeric_or_bool(target: Dict[str, Any], src: Dict[str, Any]) -> None:
+    """
+    Merge numeric counters (sum) and boolean flags (OR) into target.
+
+    Args:
+        target: Destination dictionary to update in-place.
+        src: Source dictionary with numeric/boolean values.
+
+    Returns:
+        None. Mutates target in-place.
+    """
+    for key, value in src.items():
+        if isinstance(value, bool):
+            target[key] = target.get(key, False) or value
+        elif isinstance(value, (int, float)):
+            target[key] = target.get(key, 0) + value
+
+def _score_rating_comment(n_classes: int, oop_score: float) -> Tuple[str, str]:
+    """
+    Return rating and comment text based on class count and OOP score.
+
+    Args:
+        n_classes: Total number of classes detected.
+        oop_score: Normalized OOP score in [0, 1].
+
+    Returns:
+        Tuple of (rating, comment).
+    """
+    if n_classes == 0:
+        return (
+            "none",
+            "No classes were found in this project, so OOP usage appears minimal or absent.",
+        )
+    if oop_score < 0.3:
+        return (
+            "low",
+            "The project shows limited use of object-oriented design. There are some classes, "
+            "but inheritance, encapsulation, and polymorphism are either absent or lightly used.",
+        )
+    if oop_score < 0.6:
+        return (
+            "medium",
+            "The project demonstrates moderate OOP usage. Classes and methods are present, with "
+            "some inheritance or encapsulation, but there is still room to deepen abstraction "
+            "and polymorphism.",
+        )
+    return (
+        "high",
+        "The project exhibits strong object-oriented design: classes are well-used, encapsulation "
+        "is present, and inheritance with method overriding provides clear polymorphic behavior "
+        "and expressive interfaces.",
+    )
+
+def aggregate_multi_language_reports(
+    canonical_reports: List[Dict[str, Any]], total_files: int = None
+) -> Dict[str, Any]:
+    """
+    Aggregate a mixed set of canonical reports into a single multi-language report.
+
+    Args:
+        canonical_reports: Canonical per-file reports across languages.
+        total_files: Optional total number of analyzed files.
+
+    Returns:
+        Combined multi-language metrics dictionary.
+    """
+    language_groups = group_reports_by_language(canonical_reports)
+    language_metrics: Dict[str, Dict[str, Any]] = {}
+
+    for language, reports in language_groups.items():
+        handler = LANGUAGE_AGGREGATORS.get(language, aggregate_python_canonical_reports)
+        metrics = handler(reports, total_files=len(reports))
+        metrics["language"] = language
+        language_metrics[language] = metrics
+
+    return combine_language_metrics(language_metrics, total_files)
+
+def combine_language_metrics(
+    language_metrics: Dict[str, Dict[str, Any]], total_files: int = None
+) -> Dict[str, Any]:
+    """
+    Combine multiple per-language metric dicts into a single report.
+
+    Args:
+        language_metrics: Mapping of language name to per-language metrics.
+        total_files: Optional total number of analyzed files.
+
+    Returns:
+        Combined multi-language metrics dictionary.
+    """
+    total_files_count = total_files if total_files is not None else sum(
+        m.get("files_analyzed", 0) for m in language_metrics.values()
+    )
+
+    total_classes = sum(m.get("classes", {}).get("count", 0) for m in language_metrics.values())
+    total_methods = 0.0
+    inheritance_classes = 0
+    classes_with_init = 0 
+    private_attr_classes = 0
+    override_classes = 0
+    override_method_count = 0
+    dunder_rich = 0
+
+    combined_ds: Dict[str, Any] = {}
+    combined_cx: Dict[str, Any] = {
+        "total_functions": 0,
+        "functions_with_nested_loops": 0,
+        "max_loop_depth": 0,
+    }
+    combined_cx_extra: Dict[str, Any] = {}
+
+    combined_syntax_errors: List[str] = []
+    total_score_weight = 0.0
+    weighted_score_sum = 0.0
+
+    for metrics in language_metrics.values():
+        classes = metrics.get("classes", {})
+        count = classes.get("count", 0)
+        avg_methods = classes.get("avg_methods_per_class", 0)
+        total_methods += avg_methods * count
+        inheritance_classes += classes.get("with_inheritance", 0)
+        classes_with_init += classes.get("with_init", 0)
+
+        encaps = metrics.get("encapsulation", {})
+        private_attr_classes += encaps.get("classes_with_private_attrs", 0)
+
+        poly = metrics.get("polymorphism", {})
+        override_classes += poly.get("classes_overriding_base_methods", 0)
+        override_method_count += poly.get("override_method_count", 0)
+
+        special = metrics.get("special_methods", {})
+        dunder_rich += special.get("classes_with_multiple_dunders", 0)
+
+        _merge_numeric_or_bool(combined_ds, metrics.get("data_structures", {}))
+
+        cx = metrics.get("complexity", {})
+        combined_cx["total_functions"] += cx.get("total_functions", 0)
+        combined_cx["functions_with_nested_loops"] += cx.get("functions_with_nested_loops", 0)
+        combined_cx["max_loop_depth"] = max(
+            combined_cx["max_loop_depth"], cx.get("max_loop_depth", 0)
+        )
+        for key, value in cx.items():
+            if key in {"total_functions", "functions_with_nested_loops", "max_loop_depth", "nested_loop_ratio"}:
+                continue
+            if isinstance(value, bool):
+                combined_cx_extra[key] = combined_cx_extra.get(key, False) or value
+            elif isinstance(value, (int, float)):
+                combined_cx_extra[key] = combined_cx_extra.get(key, 0) + value
+
+        combined_syntax_errors.extend(metrics.get("syntax_errors", []) or [])
+
+        weight = metrics.get("files_analyzed", 0) or 0
+        if weight:
+            total_score_weight += weight
+            weighted_score_sum += weight * metrics.get("score", {}).get("oop_score", 0)
+
+    avg_methods_per_class = (total_methods / total_classes) if total_classes else 0.0
+    total_funcs = combined_cx["total_functions"]
+    nested = combined_cx["functions_with_nested_loops"]
+    nested_ratio = (nested / total_funcs) if total_funcs else 0.0
+
+    oop_score = (weighted_score_sum / total_score_weight) if total_score_weight else 0.0
+    oop_score = max(0.0, min(1.0, oop_score))
+    rating, comment = _score_rating_comment(total_classes, oop_score)
+
+    metrics = {
+        "language": "Multi",
+        "files_analyzed": total_files_count,
+        "languages": language_metrics,
+        "classes": {
+            "count": total_classes,
+            "avg_methods_per_class": round(avg_methods_per_class, 2),
+            "with_inheritance": inheritance_classes,
+            "with_init": classes_with_init,
+        },
+        "encapsulation": {
+            "classes_with_private_attrs": private_attr_classes,
+        },
+        "polymorphism": {
+            "classes_overriding_base_methods": override_classes,
+            "override_method_count": override_method_count,
+        },
+        "special_methods": {
+            "classes_with_multiple_dunders": dunder_rich,
+        },
+        "data_structures": combined_ds,
+        "complexity": {
+            "total_functions": combined_cx["total_functions"],
+            "functions_with_nested_loops": combined_cx["functions_with_nested_loops"],
+            "nested_loop_ratio": round(nested_ratio, 2),
+            "max_loop_depth": combined_cx["max_loop_depth"],
+            **combined_cx_extra,
+        },
+        "score": {
+            "oop_score": round(oop_score, 2),
+            "rating": rating,
+            "comment": comment,
+        },
+        "syntax_errors": combined_syntax_errors,
+    }
+
+    metrics["narrative"] = build_multi_language_narrative(metrics)
+    return metrics
+
+def build_multi_language_narrative(metrics: Dict[str, Any]) -> Dict[str, str]:
+    """
+    Build a combined narrative for multi-language metrics.
+
+    Args:
+        metrics: Combined metrics dictionary with per-language breakdowns.
+
+    Returns:
+        Dictionary containing narrative strings for OOP, data structures, and complexity.
+    """
+    base = build_narrative(metrics)
+    languages = sorted((metrics.get("languages") or {}).keys())
+    if languages:
+        prefix = (
+            f"This report aggregates OOP metrics across {len(languages)} language(s): "
+            f"{', '.join(languages)}."
+        )
+        base["oop"] = prefix + " " + base.get("oop", "")
+
+    ds = metrics.get("data_structures", {})
+    numeric_ds_total = sum(v for v in ds.values() if isinstance(v, (int, float)))
+    if numeric_ds_total == 0:
+        base["data_structures"] = (
+            "The analysis did not detect notable data-structure usage across the combined "
+            "languages in this artifact."
+        )
+    else:
+        base["data_structures"] = (
+            f"The analysis detected {numeric_ds_total} data-structure indicator(s) across the "
+            "combined languages. See the per-language breakdown for details."
+        )
+
+    return base
 
 def aggregate_python_canonical_reports(canonical_reports: List[Dict[str, Any]], total_files: int = None) -> Dict[str, Any]:
     """
@@ -281,7 +559,6 @@ def aggregate_python_canonical_reports(canonical_reports: List[Dict[str, Any]], 
     metrics["narrative"] = build_narrative(metrics)
     return metrics
 
-
 def aggregate_c_reports(canonical_reports: List[Dict[str, Any]], total_files: int = None) -> Dict[str, Any]:
     """Aggregate C-specific reports"""
     
@@ -484,10 +761,52 @@ def aggregate_c_reports(canonical_reports: List[Dict[str, Any]], total_files: in
     metrics["narrative"] = build_c_narrative(metrics)
     return metrics
 
+def aggregate_cpp_reports(canonical_reports: List[Dict[str, Any]], total_files: int = None) -> Dict[str, Any]:
+    """
+    Aggregate C++ reports into project-level metrics.
 
-#------------------------------------------------------------------------------------------------------------------------------
-# NARRATIVES
-#------------------------------------------------------------------------------------------------------------------------------
+    Args:
+        canonical_reports: Canonical per-file reports for C++ sources.
+        total_files: Optional total number of analyzed files.
+
+    Returns:
+        Aggregated C++ metrics dictionary.
+    """
+    metrics = aggregate_c_reports(canonical_reports, total_files)
+    metrics["language"] = "C++"
+
+    cpp_spec = {
+        "template_classes": 0,
+        "namespaces": 0,
+        "abstract_classes": 0,
+        "smart_pointers": 0,
+        "raii_classes": 0,
+        "operator_overloads": 0,
+    }
+    for rep in canonical_reports:
+        spec = rep.get("cpp_spec") or {}
+        for key in cpp_spec:
+            cpp_spec[key] += spec.get(key, 0)
+
+    metrics["cpp_spec"] = cpp_spec
+    metrics["narrative"] = build_cpp_narrative(metrics)
+    return metrics
+
+def aggregate_csharp_reports(canonical_reports: List[Dict[str, Any]], total_files: int = None) -> Dict[str, Any]:
+    """
+    Aggregate C# reports into project-level metrics.
+
+    Args:
+        canonical_reports: Canonical per-file reports for C# sources.
+        total_files: Optional total number of analyzed files.
+
+    Returns:
+        Aggregated C# metrics dictionary.
+    """
+    metrics = aggregate_python_canonical_reports(canonical_reports, total_files)
+    metrics["language"] = "C#"
+    metrics["narrative"] = build_csharp_narrative(metrics)
+    return metrics
 
 def build_narrative(metrics: Dict[str, Any]) -> Dict[str, str]:
     """
@@ -705,7 +1024,15 @@ def build_narrative(metrics: Dict[str, Any]) -> Dict[str, str]:
 
 # C narrative
 def build_c_narrative(metrics: Dict[str, Any]) -> Dict[str, str]:
-    """Build narrative for C code analysis"""
+    """
+    Build narrative for C code analysis.
+
+    Args:
+        metrics: Aggregated C metrics dictionary.
+
+    Returns:
+        Dictionary containing narrative strings for OOP, data structures, and complexity.
+    """
     classes = metrics["classes"]
     encaps = metrics["encapsulation"]
     poly = metrics["polymorphism"]
@@ -799,10 +1126,144 @@ def build_c_narrative(metrics: Dict[str, Any]) -> Dict[str, str]:
         "complexity": cx_narrative,
     }
 
+def build_cpp_narrative(metrics: Dict[str, Any]) -> Dict[str, str]:
+    """
+    Build narrative for C++ code analysis.
 
-#------------------------------------------------------------------------------------------------------------------------------
-# PRETTY PRINT
-#------------------------------------------------------------------------------------------------------------------------------
+    Args:
+        metrics: Aggregated C++ metrics dictionary.
+
+    Returns:
+        Dictionary containing narrative strings for OOP, data structures, and complexity.
+    """
+    classes = metrics["classes"]
+    encaps = metrics["encapsulation"]
+    poly = metrics["polymorphism"]
+    ds = metrics.get("data_structures", {})
+    cx = metrics.get("complexity", {})
+
+    n_classes = classes["count"]
+    oop_lines = []
+
+    if n_classes == 0:
+        oop_lines.append("No classes were detected, so the codebase appears primarily procedural.")
+    else:
+        oop_lines.append(
+            f"The project defines {n_classes} class(es) with an average of "
+            f"{classes['avg_methods_per_class']} method(s) per class."
+        )
+
+        if classes["with_inheritance"] == 0:
+            oop_lines.append("No classes use inheritance, so subclassing is not a primary pattern here.")
+        else:
+            oop_lines.append(
+                f"{classes['with_inheritance']} class(es) use inheritance, indicating some hierarchy usage."
+            )
+
+        if encaps["classes_with_private_attrs"] == 0:
+            oop_lines.append("No private attributes were detected, so encapsulation is limited.")
+        else:
+            oop_lines.append(
+                f"Encapsulation is present: {encaps['classes_with_private_attrs']} class(es) use private attributes."
+            )
+
+        if poly["classes_overriding_base_methods"] == 0:
+            oop_lines.append("No method overrides were detected, indicating limited polymorphism.")
+        else:
+            oop_lines.append(
+                f"{poly['classes_overriding_base_methods']} class(es) override "
+                f"{poly['override_method_count']} inherited method(s), showing polymorphism."
+            )
+
+    oop_narrative = " ".join(oop_lines)
+
+    ds_lines = []
+    arrays = ds.get("arrays", 0)
+    hash_tables = ds.get("hash_tables", 0)
+    linked_lists = ds.get("linked_lists", 0)
+    trees = ds.get("trees", 0)
+    queues = ds.get("queues", 0)
+    stacks = ds.get("stacks", 0)
+    dynamic_mem = ds.get("dynamic_memory", 0)
+
+    total_structs = arrays + hash_tables + linked_lists + trees + queues + stacks
+    if total_structs == 0:
+        ds_lines.append("Minimal container usage detected in the C++ code.")
+    else:
+        ds_lines.append(
+            f"The code uses {total_structs} container instance(s): "
+            f"{arrays} array/vector-like, {hash_tables} hash table(s), {linked_lists} list(s), "
+            f"{trees} tree/set(s), {queues} queue(s), and {stacks} stack(s)."
+        )
+        if dynamic_mem > 0:
+            ds_lines.append(
+                f"Dynamic allocation appears {dynamic_mem} time(s), indicating heap-managed structures."
+            )
+
+    ds_narrative = " ".join(ds_lines)
+
+    cx_lines = []
+    total_funcs = cx.get("total_functions", 0)
+    nested_funcs = cx.get("functions_with_nested_loops", 0)
+    max_depth = cx.get("max_loop_depth", 0)
+
+    if total_funcs == 0:
+        cx_lines.append("No functions were detected for complexity analysis.")
+    else:
+        cx_lines.append(
+            f"Analyzed {total_funcs} function(s); {nested_funcs} contain nested loops "
+            f"(max depth {max_depth})."
+        )
+
+    cx_narrative = " ".join(cx_lines)
+
+    return {
+        "oop": oop_narrative,
+        "data_structures": ds_narrative,
+        "complexity": cx_narrative,
+    }
+
+def build_csharp_narrative(metrics: Dict[str, Any]) -> Dict[str, str]:
+    """
+    Build narrative for C# code analysis.
+
+    Args:
+        metrics: Aggregated C# metrics dictionary.
+
+    Returns:
+        Dictionary containing narrative strings for OOP, data structures, and complexity.
+    """
+    base = build_narrative(metrics)
+    ds = metrics.get("data_structures", {})
+    arrays = ds.get("arrays", 0)
+    lists = ds.get("lists", 0)
+    dictionaries = ds.get("dictionaries", 0)
+    queues = ds.get("queues", 0)
+    stacks = ds.get("stacks", 0)
+    hash_sets = ds.get("hash_sets", 0)
+    total_structs = arrays + lists + dictionaries + queues + stacks + hash_sets
+
+    if total_structs == 0:
+        base["data_structures"] = (
+            "The analysis did not detect common collection types in this C# artifact."
+        )
+    else:
+        base["data_structures"] = (
+            f"The code uses {total_structs} collection instance(s): {arrays} array(s), "
+            f"{lists} list(s), {dictionaries} dictionary(ies), {queues} queue(s), "
+            f"{stacks} stack(s), and {hash_sets} hash set(s)."
+        )
+
+    return base
+
+LANGUAGE_AGGREGATORS = {
+    "Python": aggregate_python_canonical_reports,
+    "Java": aggregate_python_canonical_reports,
+    "JavaScript": aggregate_python_canonical_reports,
+    "C": aggregate_c_reports,
+    "C++": aggregate_cpp_reports,
+    "C#": aggregate_csharp_reports,
+}
 
 def pretty_print_oop_report(metrics: dict):
     """Print a formatted OOP analysis report to stdout."""
@@ -811,7 +1272,6 @@ def pretty_print_oop_report(metrics: dict):
     if language == "C":
         print_c_report(metrics)
         return
-
 
     print("\n" + "="*60)
     print("        OOP ANALYSIS REPORT")
@@ -890,7 +1350,6 @@ def pretty_print_oop_report(metrics: dict):
         print(narrative["complexity"])
 
     print("\n" + "="*60 + "\n")
-
 
 # C specific printing
 def print_c_report(metrics: dict):

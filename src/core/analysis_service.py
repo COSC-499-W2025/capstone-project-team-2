@@ -17,6 +17,7 @@ from src.core.ai_data_scrubbing import ai_data_scrubber
 from src.core.AI_analysis_code import codeAnalysisAI
 from src.utils.utility_methods import *
 from src.core.document_analysis import DocumentAnalyzer
+from src.core.project_stack_detection import detect_project_stack
 from src.reporting.portfolio_service import (
     load_portfolio_showcase,
     build_portfolio_showcase,
@@ -59,7 +60,7 @@ def extract_if_zip(zip_path: Path) -> Path:
 def oop_analysis(root: Path, languages_found) -> Dict[str, Any] | None:
     """
     Run OOP analysis when Python/Java/C is present.
-    Uses MultiLangOrchestrator to analyze projects containing Python, Java, and/or C.
+    Uses MultiLangOrchestrator to analyze projects containing Python, Java, C, C# and/or C++.
 
     Args:
         root (Path): Project root to scan.
@@ -70,7 +71,7 @@ def oop_analysis(root: Path, languages_found) -> Dict[str, Any] | None:
     """
 
     # Check if project has Python, Java, C, or JavaScript
-    supported_languages = {"Python", "Java", "C", "JavaScript"}
+    supported_languages = {"Python", "Java", "C", "JavaScript", "C++", "C#"}
     detected_languages = set(languages_found) & supported_languages
 
     if detected_languages:
@@ -186,7 +187,9 @@ def analyze_project(root: Path, use_ai_analysis=False) -> None:
     if contributors_data:
         analysis["contributors"] = contributors_data
 
-    oop_metrics = oop_analysis(root, resume.languages)
+    stack_languages = detect_project_stack(root).get("languages", [])
+    languages_for_oop = sorted(set(stack_languages) | set(resume.languages))
+    oop_metrics = oop_analysis(root, languages_for_oop)
         
     if oop_metrics is not None:
         analysis["oop_analysis"] = oop_metrics

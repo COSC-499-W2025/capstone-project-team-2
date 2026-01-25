@@ -1,24 +1,24 @@
 """
 Multi-Language OOP Orchestrator
 
-Analyzes projects containing Python, Java, Javascript and C source files,
+Analyzes projects containing Python, Java, Javascript, C, C++ and C# source files,
 merging results into a single unified OOP metrics report.
 """
 
 from pathlib import Path
 from typing import Dict, Any, List, Tuple
 import json
-import sys
-
-sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from src.analyzers.c.c_oop_analyzer import analyze_source as analyze_c_source
-from src.analyzers.python.python_oop_analyzer import PythonOOPAstAnalyzer, ClassInfo
+from src.analyzers.c.cpp_analyzer import cppanalysis
+from src.analyzers.c.csharp_analyzer import csharpanalysis
+from src.analyzers.python.python_oop_analyzer import PythonOOPAstAnalyzer
 from src.analyzers.java.java_analyzer import analyze_source as analyze_java_source, per_file_to_classinfo_list
 from src.analyzers.javascript.javascript_oop_analyzer import JavaScriptOOPAnalyzer
+from src.aggregation.oop_aggregator import aggregate_canonical_reports, combine_language_metrics
 
 class MultiLangOrchestrator:
-    """Orchestrator for analyzing multi-language (Python + Java + C + Javascript) projects.
+    """Orchestrator for analyzing multi-language (Python + Java + C + Javascript + C# + C++) projects.
     Merges analysis results into a unified OOP metrics report.
     """
 
@@ -30,20 +30,20 @@ class MultiLangOrchestrator:
         self.py_analyzer = PythonOOPAstAnalyzer(self.root)
         self.js_analyzer = JavaScriptOOPAnalyzer(self.root)
 
-    def discover_files(self) -> Tuple[List[Path], List[Path], List[Path], List[Path]]:
+    def discover_files(self) -> Tuple[List[Path], List[Path], List[Path], List[Path], List[Path], List[Path]]:
         """
-        Discover all Python, Java, JavaScript, and C files, skipping common ignore dirs.
+        Discover all Python, Java, JavaScript, C, C++, and C# files, skipping common ignore dirs.
 
         Args:
             None
 
         Returns:
-            Tuple[List[Path], List[Path], List[Path], List[Path]]:
-                Four lists containing discovered Python, Java, JavaScript,
-                and C/C header files, respectively.
+            Tuple[List[Path], List[Path], List[Path], List[Path], List[Path], List[Path]]:
+                Six lists containing discovered Python, Java, JavaScript,
+                C/C header files, C++ files, and C# files, respectively.
         """
         
-        py_files, java_files, js_files, c_files = [], [], [], []
+        py_files, java_files, js_files, c_files, cpp_files, cs_files = [], [], [], [], [], []
 
         for p in self.root.rglob("*"):
             if any(part in self.IGNORE_DIRS for part in p.parts) or not p.is_file():
@@ -56,131 +56,15 @@ class MultiLangOrchestrator:
                 js_files.append(p)
             elif p.suffix in (".c", ".h"):
                 c_files.append(p)
+            elif p.suffix in (".cpp", ".cc", ".cxx", ".hpp", ".hh", ".hxx"):
+                cpp_files.append(p)
+            elif p.suffix == ".cs":
+                cs_files.append(p)
 
-        return py_files, java_files, js_files, c_files
-
-    def _merge_java_file(self, per_file: Dict[str, Any]) -> None:
-        """
-        Merge a single Java file's analysis into the Python analyzer.
-
-        Args:
-            per_file: Dictionary containing analysis results for a single Java file.
-
-        Returns:
-            None
-        """
-        # Merge class infos
-        self.py_analyzer.class_infos.extend(
-            per_file_to_classinfo_list(per_file, ClassInfo)
-        )
-
-        # Merge data structure counts
-        ds = per_file.get("data_structures", {})
-        for key in ("list_literals", "dict_literals", "set_literals"):
-            self.py_analyzer.ds_counts[key] += ds.get(key, 0)
-        for key in ("uses_heapq", "uses_sorted"):
-            if ds.get(key):
-                self.py_analyzer.alg_usage[key] = True
-
-        # Merge complexity stats
-        cx = per_file.get("complexity", {})
-        self.py_analyzer.complexity_stats["total_functions"] += cx.get("total_functions", 0)
-        self.py_analyzer.complexity_stats["functions_with_nested_loops"] += cx.get("functions_with_nested_loops", 0)
-        self.py_analyzer.complexity_stats["max_loop_depth"] = max(
-            self.py_analyzer.complexity_stats["max_loop_depth"],
-            cx.get("max_loop_depth", 0)
-        )
-
-    def _merge_c_file(self, per_file: Dict[str, Any]) -> None:
-        """Merge a single C file's analysis into the Python analyzer.
-        
-        Args:
-            per_file: Dictionary containing analysis results for a single C file.
-
-        Returns:
-            None
-    """
-        # Convert C structs to ClassInfo objects
-        for struct in per_file.get("classes", []):
-            # Count special methods as dunder_methods equivalent
-            special_methods = struct.get("special_methods", [])
-            class_info = ClassInfo(
-                name=struct.get("name", "anonymous"),
-                module=struct.get("module", "N/A"),
-                file_path=Path(struct.get("file_path", "")),
-                bases=struct.get("bases", []),
-                methods=set(struct.get("methods", [])),
-                has_init=struct.get("has_constructor", False),
-                dunder_methods=len(special_methods),
-                private_attrs=set(struct.get("private_attrs", [])),
-                public_attrs=set(struct.get("public_attrs", [])),
-            )
-            self.py_analyzer.class_infos.append(class_info)
-
-        # Merge data structure counts
-        ds = per_file.get("data_structures", {})
-        for key in ("list_literals", "dict_literals", "set_literals"):
-            self.py_analyzer.ds_counts[key] += ds.get(key, 0)
-        for key in ("uses_heapq", "uses_sorted", "uses_bisect"):
-            if ds.get(key):
-                self.py_analyzer.alg_usage[key] = True
-
-        # Merge complexity stats
-        cx = per_file.get("complexity", {})
-        self.py_analyzer.complexity_stats["total_functions"] += cx.get("total_functions", 0)
-        self.py_analyzer.complexity_stats["functions_with_nested_loops"] += cx.get("functions_with_nested_loops", 0)
-        self.py_analyzer.complexity_stats["max_loop_depth"] = max(
-            self.py_analyzer.complexity_stats["max_loop_depth"],
-            cx.get("max_loop_depth", 0)
-        )
-        
-    def _merge_js_metrics(self, js_metrics: Dict[str, Any]) -> None:
-        """
-        Merge JavaScript analyzer metrics into the Python analyzer accumulator.
-        
-        Args:
-            js_metrics: Dictionary containing aggregated analysis metrics produced by the
-                JavaScript analyzer.
-
-        Returns:
-            None
-        """
-
-        # Merge class infos
-        for report in js_metrics.get("reports", []):
-            for cls in report.get("classes", []):
-                self.py_analyzer.class_infos.append(
-                    ClassInfo(
-                        name=cls["name"],
-                        module=report.get("module", ""),
-                        file_path=Path(report["file"]),
-                        bases=cls.get("bases", []),
-                        methods=set(cls.get("methods", [])),
-                        has_init=cls.get("has_constructor", False),
-                        dunder_methods=len(cls.get("special_methods", [])),
-                        private_attrs=set(cls.get("private_attrs", [])),
-                        public_attrs=set(cls.get("public_attrs", [])),
-                    )
-                )
-
-        # Merge data structures
-        ds = js_metrics.get("data_structures", {})
-        for key in ("list_literals", "dict_literals", "set_literals"):
-            self.py_analyzer.ds_counts[key] += ds.get(key, 0)
-
-        # Merge complexity
-        cx = js_metrics.get("complexity", {})
-        self.py_analyzer.complexity_stats["total_functions"] += cx.get("total_functions", 0)
-        self.py_analyzer.complexity_stats["functions_with_nested_loops"] += cx.get(
-            "functions_with_nested_loops", 0
-        )
-        self.py_analyzer.complexity_stats["max_loop_depth"] = max(
-            self.py_analyzer.complexity_stats["max_loop_depth"],
-            cx.get("max_loop_depth", 0),
-        )
+        return py_files, java_files, js_files, c_files, cpp_files, cs_files
 
     def analyze(self) -> Dict[str, Any]:
-        """Analyze all Python, Java, Javascript and C files and return unified OOP metrics.
+        """Analyze all Python, Java, Javascript, C, C++, and C# files and return unified OOP metrics.
         
         Args:
             None
@@ -189,28 +73,48 @@ class MultiLangOrchestrator:
             Dict[str, Any]: A dictionary containing unified object-oriented
                 programming metrics computed across all analyzed source files.
         """
-        py_files, java_files, js_files, c_files = self.discover_files()
-        
-        # Track all source files for accurate file count
-        self.py_analyzer.python_files = py_files + java_files + js_files + c_files
+        py_files, java_files, js_files, c_files, cpp_files, cs_files = self.discover_files()
+
+        language_metrics: Dict[str, Dict[str, Any]] = {}
+        total_files = (
+            len(py_files)
+            + len(java_files)
+            + len(js_files)
+            + len(c_files)
+            + len(cpp_files)
+            + len(cs_files)
+        )
 
         # Analyze Python files
+        self.py_analyzer.python_files = py_files
         for p in py_files:
             self.py_analyzer.analyze_file(p)
+        if py_files:
+            py_metrics = self.py_analyzer.compute_metrics()
+            py_metrics["language"] = "Python"
+            language_metrics["Python"] = py_metrics
 
-        # Analyze Java files and merge
-        for jpath in java_files:
-            try:
-                src = jpath.read_text(encoding="utf-8")
-            except Exception:
-                continue
-            per_file = analyze_java_source(src, jpath)
-            if per_file.get("syntax_ok", True):
-                self._merge_java_file(per_file)
-            else:
-                self.py_analyzer.syntax_errors.append(jpath)
+        # Analyze Java files
+        if java_files:
+            java_reports = []
+            for jpath in java_files:
+                try:
+                    src = jpath.read_text(encoding="utf-8")
+                except Exception:
+                    continue
+                per_file = analyze_java_source(src, jpath)
+                java_reports.append(per_file)
+            java_metrics = aggregate_canonical_reports(java_reports, total_files=len(java_files))
+            java_metrics["language"] = "Java"
+            language_metrics["Java"] = java_metrics
 
-        # Analyze C files and merge
+        # Analyze JavaScript files
+        if js_files:
+            js_metrics = self.js_analyzer.analyze()
+            js_metrics["language"] = "JavaScript"
+            language_metrics["JavaScript"] = js_metrics
+
+        # Analyze C files
         if c_files:
             c_reports = []
             for cpath in c_files:
@@ -230,23 +134,62 @@ class MultiLangOrchestrator:
                         "syntax_error": str(e),
                         "c_spec": {},
                     })
-            from src.aggregation.oop_aggregator import aggregate_canonical_reports 
-            # Get Python/Java metrics first 
-            py_java_metrics = self.py_analyzer.compute_metrics() 
-            # Create a pseudo-canonical report for Python/Java 
-            py_java_report = { "file": "python_java_combined", 
-                              "module": "N/A", 
-                              "classes": [], # Already processed
-                              "imports": [], 
-                              "data_structures": py_java_metrics.get("data_structures", {}), 
-                              "complexity": py_java_metrics.get("complexity", {}), 
-                              "syntax_ok": True, 
-                              } 
-            # Combine and use aggregator 
-            all_reports = [py_java_report] + c_reports 
-            return aggregate_canonical_reports(all_reports, total_files=len(py_files) + len(java_files) + len(c_files)) 
-        else: # No C files, use existing Python/Java flow 
-            return self.py_analyzer.compute_metrics()
+            c_metrics = aggregate_canonical_reports(c_reports, total_files=len(c_files))
+            c_metrics["language"] = "C"
+            language_metrics["C"] = c_metrics
+
+        # Analyze C++ files
+        if cpp_files:
+            cpp_reports = []
+            cpp_analyzer = cppanalysis()
+            for cpp_path in cpp_files:
+                try:
+                    src = cpp_path.read_text(encoding="utf-8", errors="ignore")
+                    cpp_reports.append(cpp_analyzer.analyze_file(src, cpp_path))
+                except Exception as e:
+                    cpp_reports.append({
+                        "file": str(cpp_path),
+                        "module": "",
+                        "classes": [],
+                        "imports": [],
+                        "data_structures": {},
+                        "complexity": {},
+                        "cpp_spec": {},
+                        "syntax_ok": False,
+                        "error": str(e),
+                    })
+            cpp_metrics = aggregate_canonical_reports(cpp_reports, total_files=len(cpp_files))
+            cpp_metrics["language"] = "C++"
+            language_metrics["C++"] = cpp_metrics
+
+        # Analyze C# files
+        if cs_files:
+            cs_reports = []
+            cs_analyzer = csharpanalysis()
+            for cs_path in cs_files:
+                try:
+                    src = cs_path.read_text(encoding="utf-8", errors="ignore")
+                    cs_reports.append(cs_analyzer.analyze_file(src, cs_path))
+                except Exception as e:
+                    cs_reports.append({
+                        "file": str(cs_path),
+                        "module": "",
+                        "classes": [],
+                        "imports": [],
+                        "data_structures": {},
+                        "complexity": {},
+                        "syntax_ok": False,
+                        "error": str(e),
+                    })
+            cs_metrics = aggregate_canonical_reports(cs_reports, total_files=len(cs_files))
+            cs_metrics["language"] = "C#"
+            language_metrics["C#"] = cs_metrics
+
+        if not language_metrics:
+            return aggregate_canonical_reports([], total_files=0)
+        if len(language_metrics) == 1:
+            return next(iter(language_metrics.values()))
+        return combine_language_metrics(language_metrics, total_files=total_files)
 
 if __name__ == "__main__":
     import argparse
