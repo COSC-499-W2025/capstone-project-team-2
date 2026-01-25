@@ -193,7 +193,7 @@ class DocumentAnalyzer:
         headings = parsed.headings[:10]
         lower_text = text.lower()
         title = self._extract_title(text, headings)
-        venue = ""
+        venue = self._extract_venue(text)
         return {
             "path": rel_path,
             "format": suffix.lstrip(".").upper(),
@@ -210,9 +210,12 @@ class DocumentAnalyzer:
             "title": title,
             "summary": self._extract_summary(text, headings),
             "key_points": self._extract_key_points(text, headings),
-            "authors": [],
+            "authors": self._extract_authors(text, title),
             "venue": venue,
-            "published_year": "",
+            "published_year": self._extract_year_from_venue(venue),
+            "references_count": self._count_references(text),
+            "figure_count": self._count_figures(text),
+            "table_count": self._count_tables(text),
             "page_count": parsed.page_count,
         }
 
@@ -691,3 +694,100 @@ class DocumentAnalyzer:
                 scored.append((score, s_clean))
         scored = sorted(scored, key=lambda t: (-t[0], len(t[1])))
         return [s for _, s in scored[:1]]
+
+    def _extract_year_from_venue(self, venue: str) -> str:
+        """
+        Pull a year out of the venue line if present.
+        Args: venue (str): Venue line.
+        Returns: str: Year if found, else empty string.
+        """
+        if not venue:
+            return ""
+        match = re.search(r"\b(19\d{2}|20\d{2})\b", venue)
+        return match.group(1) if match else ""
+
+    def _extract_authors(self, text: str, title: str) -> List[str]:
+        """
+        Extract author-like names near the top of the document.
+        Args: text (str): Full document text.
+              title (str): Title text to exclude from author candidates.
+        Returns: List[str]: Author name candidates.
+        """
+        lines = [l.strip() for l in text.splitlines()[:80] if l.strip()]
+        ignore_snippets = ["provided proper attribution", "permission to reproduce", "copyright", "all rights reserved", "conference", "proceedings", "arxiv"]
+        author_lines = []
+        for line in lines:
+            if "abstract" in line.lower():
+                break
+            lower = line.lower()
+            if any(s in lower for s in ignore_snippets):
+                continue
+            if "," in line and re.search(r"[A-Z][a-z]+", line):
+                author_lines.append(line)
+        joined = " ".join(author_lines)
+        org_terms = {"University", "Institute", "Laboratory", "Labs", "Research", "Department", "School", "College", "Inc", "Ltd", "LLC", "Company", "Google", "Microsoft", "Facebook", "Meta", "Amazon", "Apple"}
+        blacklist_words = {"Abstract", "Conference", "Proceedings", "Information", "Systems", "Beach", "Attention", "Neural", "Need", "The", "Long", "Beach", "Introduction", "Recurrent", "Convolutional", "Decoder", "Encoder"}
+        title_words = {w for w in re.findall(r"[A-Za-z]+", title) if len(w) > 3}
+        if not joined:
+            header = " ".join(lines[:120])
+            joined = header
+        candidates = re.findall(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}\b", joined)
+        authors = []
+        for name in candidates:
+            if any(term in name for term in org_terms):
+                continue
+            if any(word in name.split() for word in blacklist_words):
+                continue
+            if any(word in name for word in title_words):
+                continue
+            if len(name) > 60:
+                continue
+            authors.append(name)
+            if len(authors) >= 10:
+                break
+        return self._dedupe_preserve_order(authors)
+
+    def _extract_venue(self, text: str) -> str:
+        """
+        Extract a venue/conference line if present.
+        Args: text (str): Full document text.
+        Returns: str: Venue line if found.
+        """
+        for line in text.splitlines()[:120]:
+            l = line.strip()
+            if not l:
+                continue
+            if re.search(r"\bconference\b|\bproceedings\b|\bjournal\b|\bworkshop\b", l, re.IGNORECASE):
+                if len(l) <= 160:
+                    return l
+        return ""
+
+    def _count_references(self, text: str) -> int:
+        """
+        Count reference-like entries from a references section.
+        Args: text (str): Full document text.
+        Returns: int: Approximate reference count.
+        """
+        lower = text.lower()
+        idx = lower.find("references")
+        if idx == -1:
+            return 0
+        tail = text[idx: idx + 3000]
+        hits = re.findall(r"\n\s*\[\d+\]\s+", tail)
+        return min(len(hits), 200)
+
+    def _count_figures(self, text: str) -> int:
+        """
+        Count figure mentions.
+        Args: text (str): Full document text.
+        Returns: int: Number of figure mentions.
+        """
+        return min(len(re.findall(r"\bfig(?:ure)?\.?\s*\d+", text, flags=re.IGNORECASE)), 200)
+
+    def _count_tables(self, text: str) -> int:
+        """
+        Count table mentions.
+        Args: text (str): Full document text.
+        Returns: int: Number of table mentions.
+        """
+        return min(len(re.findall(r"\btable\s*\d+", text, flags=re.IGNORECASE)), 200)

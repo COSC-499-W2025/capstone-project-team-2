@@ -83,3 +83,21 @@ def test_unreadable_file_goes_to_errors(tmp_path: Path, monkeypatch) -> None:
     assert result["duplicates"] == []
     assert result["summary"]["unique_documents"] == 0
     assert any("boom" in e for e in result["errors"])
+
+
+def test_reference_figure_table_counts(tmp_path: Path) -> None:
+    """
+    Reference, figure, and table counts should be detected from text content.
+    """
+    md = tmp_path / "paper.md"
+    md.write_text(
+        "# Title\n\nFigure 1 shows results.\nTable 1 lists metrics.\n\n"
+        "## References\n[1] First ref.\n[2] Second ref.\n"
+    )
+
+    result = DocumentAnalyzer(tmp_path).analyze()
+    doc = result["documents"][0]
+
+    assert doc["references_count"] >= 2
+    assert doc["figure_count"] >= 1
+    assert doc["table_count"] >= 1

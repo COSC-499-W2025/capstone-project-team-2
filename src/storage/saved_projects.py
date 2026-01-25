@@ -208,9 +208,22 @@ def show_saved_summary(path: Path) -> None:
                     title = doc.get("title")
                     summary = doc.get("summary")
                     key_points = doc.get("key_points") or []
+                    authors = doc.get("authors") or []
+                    venue = doc.get("venue")
+                    year = doc.get("published_year")
                     page_count = doc.get("page_count")
+                    refs = doc.get("references_count")
+                    figures = doc.get("figure_count")
+                    tables = doc.get("table_count")
                     if title:
                         print(f"      Title   : {title}")
+                    if authors:
+                        print(f"      Authors : {', '.join(authors[:6])}")
+                    if venue:
+                        if year:
+                            print(f"      Venue   : {venue} ({year})")
+                        else:
+                            print(f"      Venue   : {venue}")
                     if summary:
                         print(f"      Summary : {summary}")
                     if key_points:
@@ -219,6 +232,12 @@ def show_saved_summary(path: Path) -> None:
                     metrics_bits = []
                     if page_count:
                         metrics_bits.append(f"{page_count} pages")
+                    if refs:
+                        metrics_bits.append(f"{refs} references")
+                    if figures:
+                        metrics_bits.append(f"{figures} figures")
+                    if tables:
+                        metrics_bits.append(f"{tables} tables")
                     if metrics_bits:
                         print(f"      Doc stats: {', '.join(metrics_bits)}")
                 remaining = len(documents) - 10
