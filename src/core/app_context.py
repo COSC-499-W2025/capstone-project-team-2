@@ -27,6 +27,7 @@ class AppContext:
     legacy_save_dir: Path
     default_save_dir: Path
     external_consent: bool
+    data_consent: bool
     currently_uploaded_path: Path
 
     def close(self) -> None:
@@ -38,7 +39,7 @@ class AppContext:
             pass
 
 
-def create_app_context(external_consent_value=False) -> AppContext:
+def create_app_context(external_consent_value=False, data_consent_value=False) -> AppContext:
     """
     Initialize database connection, helper store, and shared paths.
 
@@ -86,6 +87,7 @@ def create_app_context(external_consent_value=False) -> AppContext:
         legacy_save_dir=legacy_save_dir,
         default_save_dir=default_save_dir,
         external_consent=external_consent_value,
+        data_consent=data_consent_value,
         currently_uploaded_path=None
     )
 
