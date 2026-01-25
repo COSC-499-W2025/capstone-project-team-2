@@ -1,3 +1,38 @@
+## Dates of Sprint: (1/18/2025 – 1/26/2025)
+
+### Peer Eval Screenshot:
+
+<img width="1092" height="626" alt="image" src= "https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Cameron-Personal-Logs/docs/logs/peer_eval_screenshots/PL_Cameron_1-24-26.png" />
+
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: C# Analysis
+
+
+
+
+## Associated Tasks from Project Board:
+
+| Description        | Status   |
+| ------------------ | -------- |
+| [C# analyzer]  | [Complete] |
+
+
+
+
+---
+## Next week goals
+- complete C# analyzer
+- work out aggregation issues
+
+### Extra Details:
+
+<details>
+this week i set out to complete the final piece of c code analyzer logic, which was completed with relative ease given it uses similar logic to the CPP analyzer. Throught the process it was really intresting re-assembling the the analyzer restructuring it to handle C# and finding that there is some logic that actually doesnt need to be changed so i refactored my CPP analyzer to have those duplicate methods in a seperate file so i can share them between the two analyzers AND theoretically after some more digging I might be able to shift my C# analyzer into other languages given they are a similar structure now having built this sort of analyzer twice. I also did some research into our aggregation issues and have found a few small solutions that should solve our troubles. this wasent an explicit task this week but i wanted to do it regardless.
+
+
+</details>
+
 ## Dates of Sprint: (1/11/2025 – 1/18/2025)
 
 ### Peer Eval Screenshot:
