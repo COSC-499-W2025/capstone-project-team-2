@@ -2,6 +2,7 @@ import shutil
 import zipfile
 import os
 from pathlib import Path
+from fastapi import UploadFile
 
 
 
@@ -29,35 +30,32 @@ class extractInfo:
         '.zip': b'PK\x03\x04',
     }
 
-    def __init__(self, zipfilePath):
-
+    def runExtraction(self, zip_file: Path | UploadFile) -> str:
         """
-        Initializes the extractor with file path to the
-        ZIP file/archive
+        Method that runs all zip extraction protocols
 
-        :param str zipfilePath : path to the ZIP file
+        Args:
+            zipfile (Path | UploadFile): File path or file-like object that contains a zip file to be extracted.
 
+        Returns:
+            str: returns errors encountered, otherwise returns the string path for the temp folder that files were extracted to
         """
-
-        self.zipfilePath = Path(zipfilePath)
-
-    def runExtraction(self) -> str:
-        """
-        Method that runs all extraction protocols
-
-        Returns any errors encountered, otherwise returns the path for the temp folder that files were extracted to
-        """
-        error = self.verifyZIP()
+        error = self.verifyZIP(zip_file)
         if error != None:
             return error
-        self.extractFiles()
-        temp_path = os.path.join(os.getcwd(), self.zipfilePath.stem)
+        if (isinstance(zip_file, Path)):
+            file_name: str = zip_file.stem
+        elif isinstance(zip_file, UploadFile):
+            file_name: str = zip_file.filename.split(".")[0] #Should return the file name without the extension
+        self.extractFiles(zip_file, file_name)  
+        temp_path = os.path.join(os.getcwd(), file_name)
         error = self.validateExtractedFiles(temp_path)
         if error != None:
             return error
         return temp_path
+        
 
-    def extractFiles(self):
+    def extractFiles(self, zip_file: Path | UploadFile, file_name: str):
         """
         Extracts the contents of the defined ZIP file/archive
         into a directory in current working directory named after the zip file.
@@ -67,38 +65,38 @@ class extractInfo:
         performs extraction where the extracted files are placed
         into the 'temp' folder
 
-        :raises FileNotFoundError: if the entered zip file path is not found or not vaild
-        :raises zipfile.BadZipFile: if the entered zip file is invalid or corrupted
-
         """
 
-
-        if not os.path.exists(self.zipfilePath):
-            raise FileNotFoundError(f'ZIP file: {self.zipfilePath} not found please make sure of the file path')
-
-        if not zipfile.is_zipfile(self.zipfilePath):
-            raise zipfile.BadZipFile(f"{self.zipfilePath} is either Invalid or corrupted  ")
-
-
+        if isinstance(zip_file, Path):
+            file = str(zip_file)
+        if isinstance(zip_file, UploadFile):
+            file = zip_file.file
 
         workingdirectory = os.getcwd()
-        os.makedirs(self.zipfilePath.stem, exist_ok=True)
-        temp_file_path = os.path.join(workingdirectory, self.zipfilePath.stem)
-        with zipfile.ZipFile(self.zipfilePath, 'r') as zip_ref:
+        os.makedirs(file_name, exist_ok=True)
+        temp_file_path = os.path.join(workingdirectory, file_name)
+        with zipfile.ZipFile(file, 'r') as zip_ref:
             zip_ref.extractall(temp_file_path)
 
-    def verifyZIP(self) -> str | None:
+    def verifyZIP(self, zip_file: Path | UploadFile) -> str | None:
         """
-        Tests that file at self.zipfilePath is a valid zip file
+        Tests that file is a valid zip file
+
+        Args:
+            zip_file(Path | UploadFile): Path or file-like object to be ensured is a zip file
 
         Return None if file is validated, or error text if file invalid
         """
-        if not os.path.exists(self.zipfilePath):    #Checks filepath
-            return self.PATH_ERROR_TEXT + str(self.zipfilePath)
-        if not zipfile.is_zipfile(self.zipfilePath):    #checks if zip file is a zip file
-            return self.NOT_ZIP_ERROR_TEXT + str(self.zipfilePath)
+        if isinstance(zip_file, Path):
+            file = str(zip_file)
+            if not os.path.exists(file):    #Checks filepath
+                return self.PATH_ERROR_TEXT + file
+        if isinstance(zip_file, UploadFile):
+            file = zip_file.file
+        if not zipfile.is_zipfile(file):    #checks if zip file is a zip file
+            return self.NOT_ZIP_ERROR_TEXT
         try:
-            with zipfile.ZipFile(self.zipfilePath, 'r') as zip_test:
+            with zipfile.ZipFile(file, 'r') as zip_test:
                 bad_file = zip_test.testzip()   #Checks for corruption in zip file
                 if (bad_file == None):
                     return None
