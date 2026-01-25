@@ -85,6 +85,8 @@ class DocumentAnalyzer:
                 continue
             if path.name.startswith("._") or "__MACOSX" in path.parts:
                 continue
+            if ".git" in path.parts:
+                continue
             suffix = path.suffix.lower()
             if suffix not in SUPPORTED_DOC_EXTS:
                 continue
