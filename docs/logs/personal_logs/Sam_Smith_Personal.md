@@ -1,5 +1,6 @@
 ### Navigation
 ## Term 2
+- [Week 3](#t2-week-3-01192025--01252025)
 - [Week 2](#t2-week-2-01122025--01182025)
 - [Week 1](#t2-week-1-01052025--01112025)
 ## Term 1
@@ -14,6 +15,59 @@
 - [Week 5](#week-5-09292025---10052025)
 - [Week 4](#week-4-09222025---09282025)
 - [Week 3](#week-3-09152025---09212025)
+
+## T2 Week 3 (01/19/2025- 01/25/2025)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+<img width="1295" height="741" alt="image" src="https://github.com/user-attachments/assets/34d4f8a3-887d-4b73-83d0-a1e45fa4c500" />
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: json migration to database
+ 
+## Associated Tasks from Project Board:
+
+| Task ID | Description                     | Feature                   | Assigned To | Status   |
+| ------- | ------------------------------- | ------------------------- | ----------- | -------- |
+|[#219](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/319)| json migration to database | ssmith86 | in prograss | [ssmith86] |
+
+### Progress Update (since 10/26/2025) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td> 219: https://github.com/COSC-499-W2025/capstone-project-team-2/issues/319
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+    </table>
+
+
+### Extra Details:
+**Coding Tasks**
+- Migration of json files to databse. Note: my coding contribution was not merged into dev this week because the merge was quite large and we were concerned about major breaks in the code this close to peer testing.
+
+**Other Tasks**
+- addition of testing files for peer testing
+- worked on the peer testing document that will be used by peers while testing our code
+
+**Reviewing / Collaboration Tasks**
+- reviewed the following PR's: [#224](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/334), [#322](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/322
+
+**Connection to Previous Week**
+- There were some issues in the code where some things were being saved in json files and some things in the database. It was causing some files to be duplicated when saves were pulled and fragility in the saving system overall
+
+**Plan for Next Week**
+- Debugging of the migration code
+- Updating of the migration code as some code was added this week that hasn't been incorporated into the migration
+- Fixing issues discovered during peer testing
 
 
 ## T2 Week 2 (01/12/2025- 01/18/2025)
