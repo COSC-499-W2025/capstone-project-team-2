@@ -92,7 +92,7 @@ def test_zip_round_trip_document_analysis(tmp_path):
     zip_path = tmp_path / "proj.zip"
     shutil.make_archive(str(zip_path.with_suffix("")), "zip", proj)
 
-    extracted = Path(extractInfo(str(zip_path)).runExtraction())
+    extracted = Path(extractInfo().runExtraction(zip_path))
     result = DocumentAnalyzer(extracted).analyze()
 
     assert result["errors"] == []
