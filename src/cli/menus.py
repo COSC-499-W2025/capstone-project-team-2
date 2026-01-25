@@ -446,24 +446,24 @@ def delete_analysis_menu(ctx: AppContext) -> None:
                 if not deleted_any:
                     print("[INFO] No DB records were deleted.")
 
-                try:
-                    file_deleted = delete_file_from_disk(filename, ctx)
-                except Exception as e:
-                    print(
-                        f"[WARNING] Unexpected error while attempting to delete "
-                        f"file '{filename}': {e}"
-                    )
-                    file_deleted = False
+            try:
+                file_deleted = delete_file_from_disk(filename, ctx)
+            except Exception as e:
+                print(
+                    f"[WARNING] Unexpected error while attempting to delete "
+                    f"file '{filename}': {e}"
+                )
+                file_deleted = False
 
-                if file_deleted:
-                    print(
-                        f"[SUCCESS] Deleted '{filename}' from filesystem!"
-                    )
+            if file_deleted:
+                print(
+                    f"[SUCCESS] Deleted '{filename}' from filesystem!"
+                )
+            else:
+                if file_path.exists():
+                    print(f"[INFO] File remains on disk at: {file_path}")
                 else:
-                    if file_path.exists():
-                        print(f"[INFO] File remains on disk at: {file_path}")
-                    else:
-                        print(f"[INFO] File not found on disk.")
+                    print(f"[INFO] File not found on disk.")
 
             another = input("\nDelete another analysis? (y/n): ").strip().lower()
             if not another.startswith("y"):

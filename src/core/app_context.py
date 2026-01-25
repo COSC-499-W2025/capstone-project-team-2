@@ -30,6 +30,7 @@ class AppContext:
     default_save_dir: Path
     external_consent: bool
     currently_uploaded_file: Path | UploadFile
+    data_consent: bool
 
     def close(self) -> None:
         """Close the DB connection safely."""
@@ -40,7 +41,7 @@ class AppContext:
             pass
 
 
-def create_app_context(external_consent_value=False) -> AppContext:
+def create_app_context(external_consent_value=False, data_consent_value=False) -> AppContext:
     """
     Initialize database connection, helper store, and shared paths.
 
@@ -88,7 +89,8 @@ def create_app_context(external_consent_value=False) -> AppContext:
         legacy_save_dir=legacy_save_dir,
         default_save_dir=default_save_dir,
         external_consent=external_consent_value,
-        currently_uploaded_file=None
+        currently_uploaded_file=None,
+        data_consent=data_consent_value
     )
 
 runtimeAppContext = create_app_context()
