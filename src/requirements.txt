@@ -32,3 +32,4 @@ python-multipart
 tree_sitter
 tree_sitter_cpp
 tree_sitter_c_sharp
+python-multipart

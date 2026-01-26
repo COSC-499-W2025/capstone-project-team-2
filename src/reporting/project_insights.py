@@ -19,6 +19,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Union
+from src.utils.utility_methods import convert_datetime_to_string
 
 JsonEntry = Dict[str, Any]
 ContributorData = Dict[str, Dict[str, Any]]
@@ -442,7 +443,7 @@ def record_project_insight(
         project_type=resume.get("project_type", "unknown"),
         detection_mode=resume.get("detection_mode", "local"),
         duration_estimate=str(analysis.get("duration_estimate", "unavailable")),
-        hierarchy=hierarchy,
+        hierarchy=convert_datetime_to_string(hierarchy),
         contributors=normalized,
         stats=stats,
         file_analysis=_compute_file_analysis(hierarchy),
