@@ -1,6 +1,44 @@
 ## Term 2 Links
+- [Week 3 (19/01/2026 – 25/01/2026)](#week-2026-01-19)
 - [Week 2 (12/01/2026 – 18/01/2026)](#week-2026-01-12)
 - [Week 1 (05/01/2026 – 11/01/2026)](#week-2026-01-05)
+
+# Sprint Log: Week 3 (19/01/2026 – 25/01/2026) <a id="week-2026-01-19"></a>
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/25-01-2026_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Summary
+### Coding tasks
+- **PR #325 – Fix delete flow and safer JSON saves:** Adjusted delete behavior so JSON files are removed correctly even when DB rows are missing, and fixed JSON serialization by converting datetime/timedelta values before writing.
+- **PR #334 – Add local document analysis insights, CLI display, and tests:** Built richer document insights (summary, highlights, type, metrics/dates/skills/roles, dedupe), surfaced them in the Saved Projects CLI, and added metadata/stats for research style documents.
+
+### Testing or debugging tasks
+- Added `test_document_analysis.py` to cover signals, doc type classification, deduplication, error handling, and reference/figure/table counting.
+
+### Reviewing or collaboration tasks
+- Reviewed PR **#322** (“Added API endpoint for POST /privacy-consent and GET /skills”) by **mahigangal**.
+- Reviewed PR **#328** (“Upload file api”) by **Weebtrain**.
+- Reviewed PR **#339 – Adding_Code_Back_Hotfix** by **Weebtrain**.
+- Reviewed PR **#333 – oop aggregator unified report** by **mahigangal**.
+- Prepared and submitted the **Team Log** entry for this week.
+
+### Connection to last week
+- Built out a full user facing document insights view (summary, highlights, metadata, and stats) and added test coverage to validate correctness across signals, deduplication, and failure handling.
+
+### Plan / goals for next week
+- Add FastAPI endpoints for document analysis (analyze, list, fetch details).
+- Add API tests for the document endpoints.
+- Implement non coding document analysis via the API.
+
+### Issues / blockers
+- None this week.
+
+## ====================================================
 
 # Sprint Log: Week 2 (12/01/2026 – 18/01/2026) <a id="week-2026-01-12"></a>
 
