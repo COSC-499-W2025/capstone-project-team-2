@@ -23,6 +23,8 @@
 ### Reviewing or collaboration tasks
 - Reviewed PR **#322** (“Added API endpoint for POST /privacy-consent and GET /skills”) by **mahigangal**.
 - Reviewed PR **#328** (“Upload file api”) by **Weebtrain**.
+- Reviewed PR **#339 – Adding_Code_Back_Hotfix** by **Weebtrain**.
+- Reviewed PR **#333 – oop aggregator unified report** by **mahigangal**.
 - Prepared and submitted the **Team Log** entry for this week.
 
 ### Connection to last week
