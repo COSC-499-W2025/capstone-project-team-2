@@ -3,8 +3,6 @@ import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from fastapi import UploadFile
-
 # Analysis helpers used by the CLI menus for project ingestion and persistence.
 from src.core.app_context import runtimeAppContext
 from src.core.data_extraction import FileMetadataExtractor
@@ -25,12 +23,12 @@ from src.reporting.portfolio_service import (
     display_portfolio_showcase,
 )
 
-def extract_if_zip(zip_path: Path | UploadFile) -> Path:
+def extract_if_zip(zip_path: Path) -> Path:
     """
     Validate and extract a ZIP archive.
 
     Args:
-        zip_path (Path | UploadPath): Location of the ZIP file or a file-like object.
+        zip_path (Path): Location of the ZIP file.
 
     Returns:
         Path: Extracted folder path.
@@ -40,7 +38,7 @@ def extract_if_zip(zip_path: Path | UploadFile) -> Path:
         ValueError: Extraction reported an error string.
         FileNotFoundError: Expected extracted folder missing.
     """
-    out = extractInfo().runExtraction(zip_path)
+    out = extractInfo(str(zip_path)).runExtraction()
 
     if not out:
         raise RuntimeError("Extraction returned empty result.")
@@ -107,14 +105,14 @@ def export_json(project_name: str, analysis: Dict[str, Any]) -> str | None:
 
     #Shouldn't need to be converted here, could be earlier
     analysis_copy = copy.deepcopy(analysis)
-
+    analysis_serializable = convert_datetime_to_string(analysis_copy)
 
     saver = SaveFileAnalysisAsJSON()
-    saver.saveAnalysis(project_name, analysis_copy, str(out_dir))
+    saver.saveAnalysis(project_name, analysis_serializable, str(out_dir))
     file_path = out_dir / filename
 
     try:
-        record_id = runtimeAppContext.store.insert_json(filename, analysis_copy)
+        record_id = runtimeAppContext.store.insert_json(filename, analysis_serializable)
         #print(f"[INFO] Saved to database (ID: {record_id})")
     except Exception as e:
         pass
@@ -220,4 +218,4 @@ def analyze_project(root: Path, use_ai_analysis=False) -> None:
     #    ps = analysis["portfolio_showcase"]
     #    display_portfolio_showcase(ps)
     #    return
-    export_json(display_name, convert_datetime_to_string(analysis))
+    export_json(display_name, analysis)

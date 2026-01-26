@@ -69,6 +69,9 @@ class TestExtraction(unittest.TestCase):
             f.write("Random")
 
 
+        self.instance = extractInfo(self.test_zip_file_path)
+
+
     def test_empty_zip(self):
         """
         This test checks to see if the uploaded zip file after
@@ -80,7 +83,8 @@ class TestExtraction(unittest.TestCase):
 
         """
 
-        extractInfo().extractFiles(Path(self.empty_zip_path), "empty")
+        empty_zip_path=extractInfo(self.empty_zip_path)
+        empty_zip_path.extractFiles()
         temp_path = os.path.join(self.temp_dir, Path(self.empty_zip_path).stem)
         self.assertEqual(os.listdir(temp_path),[])
 
@@ -97,7 +101,7 @@ class TestExtraction(unittest.TestCase):
 
         """
 
-        extractInfo().extractFiles(Path(self.test_zip_file_path), "test")
+        self.instance.extractFiles()
         temp_path = os.path.join(self.temp_dir, Path(self.test_zip_file_path).stem)
         for file in os.listdir(temp_path):
             file_path = os.path.join(temp_path, file)
@@ -113,9 +117,9 @@ class TestExtraction(unittest.TestCase):
           upload zip file.
 
         """
-
+        bad_instance = extractInfo(self.not_zip_file_path)
         with self.assertRaises(zipfile.BadZipFile):
-            extractInfo().extractFiles(Path(self.not_zip_file_path), "name")
+            bad_instance.extractFiles()
 
 
     def test_file_not_found_error(self):
@@ -127,9 +131,9 @@ class TestExtraction(unittest.TestCase):
           to that particular zip is not valid.
 
         """
-        
+        file_not_exist_instance=extractInfo(self.does_not_exist_zip)
         with self.assertRaises(FileNotFoundError):
-            extractInfo().extractFiles(Path(self.does_not_exist_zip), "name")
+            file_not_exist_instance.extractFiles()
 
     
     def test_verifyZIP_no_path(self):
@@ -141,8 +145,9 @@ class TestExtraction(unittest.TestCase):
         - Correct error text is returned when file path is invalid
         """
     
-        text = extractInfo().verifyZIP(Path(self.does_not_exist_zip))
-        self.assertTrue(extractInfo.PATH_ERROR_TEXT in text)
+        extractInfo_instance = extractInfo(self.does_not_exist_zip)
+        text = extractInfo_instance.verifyZIP()
+        self.assertTrue(extractInfo_instance.PATH_ERROR_TEXT in text)
 
     def test_verifyZIP_not_zip(self):
         """
@@ -155,8 +160,9 @@ class TestExtraction(unittest.TestCase):
         path = os.path.join(self.original_cwd, "test")
         path = os.path.join(path, "TestZIPs")
         path = os.path.join(path, "test.txt")
-        text = extractInfo().verifyZIP(Path(path))
-        self.assertTrue(extractInfo.NOT_ZIP_ERROR_TEXT in text)
+        extractInfo_instance = extractInfo(path)
+        text = extractInfo_instance.verifyZIP()
+        self.assertTrue(extractInfo_instance.NOT_ZIP_ERROR_TEXT in text)
 
     def test_verifyZIP_bad_zip(self):
         """
@@ -169,9 +175,10 @@ class TestExtraction(unittest.TestCase):
         path = os.path.join(self.original_cwd, "test")
         path = os.path.join(path, "TestZIPs")
         path = os.path.join(path, "CorruptInternalZIP.zip")
-        text = extractInfo().runExtraction(Path(path))
+        extractInfo_instance = extractInfo(path)
+        text = extractInfo_instance.runExtraction()
         print(text)
-        self.assertTrue(extractInfo.CORRUPT_FILE_ERROR_TEXT in text)
+        self.assertTrue(extractInfo_instance.CORRUPT_FILE_ERROR_TEXT in text)
 
     def test_verifyZIP_not_bad_not_zip(self):
         """
@@ -184,8 +191,9 @@ class TestExtraction(unittest.TestCase):
         path = os.path.join(self.original_cwd, "test")
         path = os.path.join(path, "TestZIPs")
         path = os.path.join(path, "test.txt")
-        text = extractInfo().verifyZIP(Path(path))
-        self.assertFalse(extractInfo.BAD_ZIP_ERROR_TEXT in text)
+        extractInfo_instance = extractInfo(path)
+        text = extractInfo_instance.verifyZIP()
+        self.assertFalse(extractInfo_instance.BAD_ZIP_ERROR_TEXT in text)
 
     def test_runExtraction_no_path(self):
         """
@@ -196,8 +204,9 @@ class TestExtraction(unittest.TestCase):
         - Correct error text is returned when file path is invalid
         """
     
-        text = extractInfo().runExtraction(Path(self.does_not_exist_zip))
-        self.assertTrue(extractInfo.PATH_ERROR_TEXT in text)
+        extractInfo_instance = extractInfo(self.does_not_exist_zip)
+        text = extractInfo_instance.runExtraction()
+        self.assertTrue(extractInfo_instance.PATH_ERROR_TEXT in text)
 
     def test_runExtraction_not_zip(self):
         """
@@ -210,8 +219,9 @@ class TestExtraction(unittest.TestCase):
         path = os.path.join(self.original_cwd, "test")
         path = os.path.join(path, "TestZIPs")
         path = os.path.join(path, "test.txt")
-        text = extractInfo().runExtraction(Path(path))
-        self.assertTrue(extractInfo.NOT_ZIP_ERROR_TEXT in text)
+        extractInfo_instance = extractInfo(path)
+        text = extractInfo_instance.runExtraction()
+        self.assertTrue(extractInfo_instance.NOT_ZIP_ERROR_TEXT in text)
 
     def test_runExtraction_bad_zip(self):
         """
@@ -224,8 +234,10 @@ class TestExtraction(unittest.TestCase):
         path = os.path.join(self.original_cwd, "test")
         path = os.path.join(path, "TestZIPs")
         path = os.path.join(path, "CorruptInternalZIP.zip")
-        text = extractInfo().runExtraction(Path(path))
-        self.assertTrue(extractInfo.CORRUPT_FILE_ERROR_TEXT in text)
+        extractInfo_instance = extractInfo(path)
+        text = extractInfo_instance.runExtraction()
+        print(text)
+        self.assertTrue(extractInfo_instance.CORRUPT_FILE_ERROR_TEXT in text)
 
     def test_runExtraction_empty_zip(self):
         """
@@ -238,7 +250,8 @@ class TestExtraction(unittest.TestCase):
 
         """
 
-        temp_path = extractInfo().runExtraction(Path(self.empty_zip_path))
+        empty_zip_path=extractInfo(self.empty_zip_path)
+        temp_path = empty_zip_path.runExtraction()
         self.assertEqual(os.listdir(temp_path),[])
 
     def test_runExtraction_extract_all_files(self):
@@ -253,7 +266,7 @@ class TestExtraction(unittest.TestCase):
 
 
         """
-        temp_path = extractInfo().runExtraction(Path(self.test_zip_file_path))
+        temp_path = self.instance.runExtraction()
         for file in os.listdir(temp_path):
             file_path = os.path.join(temp_path, file)
             self.assertTrue(os.path.exists(file_path))

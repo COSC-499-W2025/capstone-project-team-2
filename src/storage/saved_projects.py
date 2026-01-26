@@ -144,6 +144,110 @@ def show_saved_summary(path: Path) -> None:
         print(f"Résumé line  : {summary}")
     print()
 
+    doc_analysis = analysis.get("document_analysis")
+    if isinstance(doc_analysis, dict) and doc_analysis:
+        doc_summary = doc_analysis.get("summary") or {}
+        documents = doc_analysis.get("documents") or []
+        duplicates = doc_analysis.get("duplicates") or []
+        errors = doc_analysis.get("errors") or []
+
+        unique_count = doc_summary.get("unique_documents", 0)
+        dup_count = doc_summary.get("duplicate_documents", 0)
+        total_words = doc_summary.get("total_words", 0)
+        by_format = doc_summary.get("by_format") or {}
+        by_type = doc_summary.get("by_type") or {}
+
+        if unique_count or dup_count or total_words or documents or duplicates or errors:
+            fmt_str = ", ".join(f"{k}:{v}" for k, v in by_format.items()) or "—"
+            type_str = ", ".join(f"{k}:{v}" for k, v in by_type.items()) or "—"
+            all_metrics = []
+            all_dates = []
+            all_topics = []
+            for doc in documents:
+                all_metrics.extend(doc.get("metrics") or [])
+                all_dates.extend(doc.get("dates") or [])
+                all_topics.extend(doc.get("topics") or [])
+
+            def _uniq(seq):
+                seen = set()
+                out = []
+                for item in seq:
+                    key = str(item).lower()
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    out.append(str(item))
+                return out
+
+            all_metrics = _uniq(all_metrics)[:8]
+            all_dates = _uniq(all_dates)[:8]
+            all_topics = _uniq(all_topics)[:10]
+
+            print("Document analysis:")
+            print(f"  Unique docs : {unique_count}")
+            print(f"  Duplicates  : {dup_count}")
+            print(f"  Total words : {total_words}")
+            print(f"  Formats     : {fmt_str}")
+            print(f"  Types       : {type_str}")
+            if all_topics:
+                print(f"  Key topics  : {', '.join(all_topics)}")
+            if all_metrics:
+                print(f"  Metrics     : {', '.join(all_metrics)}")
+            if all_dates:
+                print(f"  Dates       : {', '.join(all_dates)}")
+
+            if documents:
+                print("  Files:")
+                for doc in documents[:10]:
+                    doc_path = doc.get("path", "—")
+                    doc_format = doc.get("format", "—")
+                    doc_words = doc.get("word_count", 0)
+                    doc_type = (doc.get("doc_type") or {}).get("label", "unknown")
+                    doc_conf = (doc.get("doc_type") or {}).get("confidence", "unknown")
+                    print(f"    - {doc_path} ({doc_format}, {doc_words} words, {doc_type}, {doc_conf})")
+                    title = doc.get("title")
+                    summary = doc.get("summary")
+                    key_points = doc.get("key_points") or []
+                    authors = doc.get("authors") or []
+                    venue = doc.get("venue")
+                    year = doc.get("published_year")
+                    page_count = doc.get("page_count")
+                    refs = doc.get("references_count")
+                    figures = doc.get("figure_count")
+                    tables = doc.get("table_count")
+                    if title:
+                        print(f"      Title   : {title}")
+                    if authors:
+                        print(f"      Authors : {', '.join(authors[:6])}")
+                    if venue:
+                        if year:
+                            print(f"      Venue   : {venue} ({year})")
+                        else:
+                            print(f"      Venue   : {venue}")
+                    if summary:
+                        print(f"      Summary : {summary}")
+                    if key_points:
+                        kp = "; ".join(key_points[:4])
+                        print(f"      Highlights: {kp}")
+                    metrics_bits = []
+                    if page_count:
+                        metrics_bits.append(f"{page_count} pages")
+                    if refs:
+                        metrics_bits.append(f"{refs} references")
+                    if figures:
+                        metrics_bits.append(f"{figures} figures")
+                    if tables:
+                        metrics_bits.append(f"{tables} tables")
+                    if metrics_bits:
+                        print(f"      Doc stats: {', '.join(metrics_bits)}")
+                remaining = len(documents) - 10
+                if remaining > 0:
+                    print(f"    ... and {remaining} more")
+
+            if errors:
+                print(f"  Errors      : {len(errors)}")
+            print()
+
     oop_analysis = analysis.get("oop_analysis")
     if oop_analysis and isinstance(oop_analysis, dict):
         pretty_print_oop_report(oop_analysis)

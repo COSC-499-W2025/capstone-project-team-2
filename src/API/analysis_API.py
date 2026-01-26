@@ -6,7 +6,7 @@ from src.core.app_context import runtimeAppContext
 
 from pathlib import Path
 
-from fastapi import APIRouter, UploadFile
+from fastapi import APIRouter
 
 analysisRouter = APIRouter(
     prefix="/analyze"
@@ -27,15 +27,12 @@ def perform_analysis_API(use_ai: bool = False) -> str:
         str: string stating finished state or error code (Not all errors implemented yet)
     """
     
-    folder_path = runtimeAppContext.currently_uploaded_file
+    folder_path = runtimeAppContext.currently_uploaded_path
 
     try:
-        if isinstance(folder_path, Path):
-            if (folder_path.suffix.lower() == ".zip"):
-                folder_path = extract_if_zip(folder_path)
-        elif isinstance(folder_path, UploadFile):
+        if (folder_path.suffix.lower() == ".zip"):
             folder_path = extract_if_zip(folder_path)
         analyze_project(folder_path, use_ai_analysis=use_ai)
-        return "Analysis Finished and Saved"
+        return "finished"
     except Exception as e:
         return str(e)
