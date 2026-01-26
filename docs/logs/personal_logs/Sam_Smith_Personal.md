@@ -29,7 +29,7 @@
 
 | Task ID | Description                     | Feature                   | Assigned To | Status   |
 | ------- | ------------------------------- | ------------------------- | ----------- | -------- |
-|[#219](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/319)| json migration to database | ssmith86 | in prograss | [ssmith86] |
+|[#319](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/319)| json migration to database | ssmith86 | in prograss | [ssmith86] |
 
 ### Progress Update (since 10/26/2025) 
 <table>
@@ -41,10 +41,10 @@
     </tr>
     <tr>
         <!-- Task/Issue # -->
-        <td> 219: https://github.com/COSC-499-W2025/capstone-project-team-2/issues/319
+        <td> https://github.com/COSC-499-W2025/capstone-project-team-2/issues/319
         </td>
         <!-- Status -->
-        <td>Complete
+        <td>in progress
         </td>
     </tr>
     </table>
