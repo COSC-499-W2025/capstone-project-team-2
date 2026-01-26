@@ -1,5 +1,6 @@
 import subprocess
 import shutil
+import sys
 from functools import wraps
 from pathlib import Path
 from dataclasses import dataclass, asdict
@@ -419,7 +420,7 @@ class RenderCVDocument:
         if default_output.exists():
             shutil.rmtree(default_output)
 
-        result= subprocess.run(['rendercv', 'render', str(self.yaml_file)],capture_output=True,text=True, encoding='utf-8',errors='replace')
+        result= subprocess.run([sys.executable, '-m', 'rendercv', 'render', str(self.yaml_file)],capture_output=True,text=True, encoding='utf-8',errors='replace')
 
         if source_pdf.exists():
             # Rename PDF to include document type (Resume or Portfolio)
