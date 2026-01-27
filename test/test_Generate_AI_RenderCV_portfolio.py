@@ -6,7 +6,7 @@ import warnings
 from pathlib import Path
 from unittest.mock import patch, MagicMock, mock_open
 
-from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import RenderCVDocument, Connections, Project
+from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import RenderCVDocument, Connections, Project, Skills
 
 # Suppress third-party deprecation warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="google.genai")
@@ -338,6 +338,414 @@ class TestPortfolio(unittest.TestCase):
         # Whitespace-only project name
         result = portfolio.add_project(Project(name="   ", summary="Test"))
         self.assertEqual(result, "Project name cannot be empty")
+
+    # ============== SUMMARY TESTS ==============
+
+    def test_update_summary(self):
+        """Test updating the summary section."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        result = portfolio.update_summary("This is my new professional summary.")
+        self.assertEqual(result, "Summary updated successfully")
+        self.assertEqual(portfolio.sections['summary'][0], "This is my new professional summary.")
+
+    def test_get_summary(self):
+        """Test getting the current summary text."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        # Get the default summary
+        summary = portfolio.get_summary()
+        self.assertIn("A brief summary about yourself and your professional background.", summary)
+
+        # Update and get new summary
+        portfolio.update_summary("My custom summary")
+        self.assertEqual(portfolio.get_summary(), "My custom summary")
+
+    def test_get_summary_empty(self):
+        """Test getting summary when none exists."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        # Clear summary
+        portfolio.summary = []
+        result = portfolio.get_summary()
+        self.assertEqual(result, "")
+
+    # ============== SKILLS TESTS ==============
+
+    def test_add_skills(self):
+        """Test adding a new skill category."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        result = portfolio.add_skills(Skills(label="Databases", details="PostgreSQL, MongoDB, Redis"))
+        self.assertEqual(result, "Successfully added skills")
+        self.assertTrue(any(s['label'] == 'Databases' for s in portfolio.current_skills))
+
+    def test_add_skills_duplicate_rejected(self):
+        """Test that adding a duplicate skill label is rejected."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        # Languages already exists in template
+        result = portfolio.add_skills(Skills(label="Languages", details="Go, Rust"))
+        self.assertEqual(result, "Duplicate skill label")
+
+    def test_add_skills_empty_label_rejected(self):
+        """Test that adding a skill with empty label is rejected."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        result = portfolio.add_skills(Skills(label="", details="Some skills"))
+        self.assertEqual(result, "Skill label cannot be empty")
+
+        result = portfolio.add_skills(Skills(label="   ", details="Some skills"))
+        self.assertEqual(result, "Skill label cannot be empty")
+
+    def test_modify_skill(self):
+        """Test modifying an existing skill category."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        result = portfolio.modify_skill("Languages", "Python, Go, Rust, TypeScript")
+        self.assertEqual(result, "Successfully updated skill 'Languages'")
+
+        skill = next(s for s in portfolio.current_skills if s['label'] == 'Languages')
+        self.assertEqual(skill['details'], "Python, Go, Rust, TypeScript")
+
+    def test_modify_skill_not_found(self):
+        """Test modifying a non-existent skill category."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        result = portfolio.modify_skill("NonExistent", "Some details")
+        self.assertEqual(result, "Skill 'NonExistent' not found")
+
+    def test_remove_skill(self):
+        """Test removing a skill category."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        initial_count = len(portfolio.current_skills)
+        result = portfolio.remove_skill("Languages")
+        self.assertEqual(result, "Successfully deleted skill")
+        self.assertEqual(len(portfolio.current_skills), initial_count - 1)
+        self.assertFalse(any(s['label'] == 'Languages' for s in portfolio.current_skills))
+
+    def test_remove_skill_not_found(self):
+        """Test removing a non-existent skill category."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        result = portfolio.remove_skill("NonExistent")
+        self.assertEqual(result, "Skill 'NonExistent' not found")
+
+    def test_get_skills(self):
+        """Test getting all skill categories."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        skills = portfolio.get_skills()
+        self.assertIsInstance(skills, list)
+        self.assertTrue(len(skills) > 0)
+        self.assertTrue(all('label' in s and 'details' in s for s in skills))
+
+    def test_count_skills(self):
+        """Test counting skill categories."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        count = portfolio.count_skills()
+        self.assertEqual(count, 3)  # Template has 3 skills
+
+        portfolio.add_skills(Skills(label="New Skill", details="Test"))
+        self.assertEqual(portfolio.count_skills(), 4)
+
+    def test_has_skills(self):
+        """Test checking if skills exist."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        self.assertTrue(portfolio.has_skills())
+
+        portfolio.clear_skills()
+        self.assertFalse(portfolio.has_skills())
+
+    def test_clear_skills(self):
+        """Test clearing all skills."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        initial_count = len(portfolio.current_skills)
+        result = portfolio.clear_skills()
+        self.assertIn(f"Successfully cleared {initial_count}", result)
+        self.assertEqual(len(portfolio.current_skills), 0)
+
+    def test_clear_skills_empty(self):
+        """Test clearing skills when none exist."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        portfolio.current_skills.clear()
+        result = portfolio.clear_skills()
+        self.assertEqual(result, "No skills to clear")
+
+    # ============== PROJECT HELPER TESTS ==============
+
+    def test_get_projects(self):
+        """Test getting all projects."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        projects = portfolio.get_projects()
+        self.assertIsInstance(projects, list)
+        self.assertTrue(len(projects) > 0)
+
+    def test_count_projects(self):
+        """Test counting projects."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        count = portfolio.count_projects()
+        self.assertEqual(count, 1)  # Template has 1 project
+
+        portfolio.add_project(Project(name="New Project", summary="Test"))
+        self.assertEqual(portfolio.count_projects(), 2)
+
+    def test_has_projects(self):
+        """Test checking if projects exist."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        self.assertTrue(portfolio.has_projects())
+
+        portfolio.clear_projects()
+        self.assertFalse(portfolio.has_projects())
+
+    def test_clear_projects(self):
+        """Test clearing all projects."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        initial_count = len(portfolio.current_projects)
+        result = portfolio.clear_projects()
+        self.assertIn(f"Successfully cleared {initial_count}", result)
+        self.assertEqual(len(portfolio.current_projects), 0)
+
+    def test_clear_projects_empty(self):
+        """Test clearing projects when none exist."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        portfolio.current_projects.clear()
+        result = portfolio.clear_projects()
+        self.assertEqual(result, "No projects to clear")
+
+    def test_modify_project(self):
+        """Test modifying a project field."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        # Modify the template project
+        result = portfolio.modify_project("Project Name", "summary", "Updated summary")
+        self.assertEqual(result, "Successfully modified summary")
+
+        project = next(p for p in portfolio.current_projects if p['name'] == 'Project Name')
+        self.assertEqual(project['summary'], "Updated summary")
+
+    def test_modify_project_not_found(self):
+        """Test modifying a non-existent project."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        result = portfolio.modify_project("NonExistent", "summary", "Test")
+        self.assertEqual(result, "Project 'NonExistent' not found")
+
+    def test_modify_project_invalid_field(self):
+        """Test modifying a project with invalid field."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        result = portfolio.modify_project("Project Name", "invalid_field", "Test")
+        self.assertIn("Invalid field", result)
+
+    def test_remove_project(self):
+        """Test removing a project."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        initial_count = len(portfolio.current_projects)
+        result = portfolio.remove_project("Project Name")
+        self.assertIn("Successfully deleted", result)
+        self.assertEqual(len(portfolio.current_projects), initial_count - 1)
+
+    def test_remove_project_not_found(self):
+        """Test removing a non-existent project."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        result = portfolio.remove_project("NonExistent")
+        self.assertEqual(result, "Project 'NonExistent' not found")
+
+    # ============== CONNECTION HELPER TESTS ==============
+
+    def test_modify_connection(self):
+        """Test modifying a connection username."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        result = portfolio.modify_connection("LinkedIn", "newusername")
+        self.assertEqual(result, "Successfully updated: LinkedIn")
+
+        connection = next(c for c in portfolio.current_connections if c['network'] == 'LinkedIn')
+        self.assertEqual(connection['username'], "newusername")
+
+    def test_modify_connection_not_found(self):
+        """Test modifying a non-existent connection."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        result = portfolio.modify_connection("NonExistent", "username")
+        self.assertEqual(result, "Connection 'NonExistent' not found")
+
+    def test_remove_connection(self):
+        """Test removing a connection."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        initial_count = len(portfolio.current_connections)
+        result = portfolio.remove_connection("LinkedIn")
+        self.assertEqual(result, "Successfully deleted: LinkedIn")
+        self.assertEqual(len(portfolio.current_connections), initial_count - 1)
+
+    def test_remove_connection_not_found(self):
+        """Test removing a non-existent connection."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        result = portfolio.remove_connection("NonExistent")
+        self.assertEqual(result, "Connection 'NonExistent' not found")
+
+    def test_get_connections(self):
+        """Test getting all connections."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        connections = portfolio.get_connections()
+        self.assertIsInstance(connections, list)
+        self.assertTrue(len(connections) > 0)
+        self.assertTrue(all('network' in c for c in connections))
+
+    # ============== CONTACT & THEME HELPER TESTS ==============
+
+    def test_get_contact_info(self):
+        """Test getting contact information."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        contact = portfolio.get_contact_info()
+        self.assertIsInstance(contact, dict)
+        self.assertIn('name', contact)
+        self.assertIn('email', contact)
+        self.assertIn('phone', contact)
+        self.assertIn('location', contact)
+        self.assertIn('website', contact)
+
+    def test_get_theme(self):
+        """Test getting the current theme."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        theme = portfolio.get_theme()
+        self.assertEqual(theme, "sb2nov")  # Default theme
+
+    def test_update_theme(self):
+        """Test updating the theme."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        result = portfolio.update_theme("classic")
+        self.assertIn("Successfully updated", result)
+        self.assertEqual(portfolio.get_theme(), "classic")
+
+    def test_update_theme_invalid(self):
+        """Test updating with an invalid theme."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+
+        with self.assertRaises(ValueError) as context:
+            portfolio.update_theme("invalid_theme")
+        self.assertIn("Invalid theme", str(context.exception))
 
 
 if __name__ == '__main__':
