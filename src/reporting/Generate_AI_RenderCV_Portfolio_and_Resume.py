@@ -467,6 +467,25 @@ class RenderCVDocument:
                 cv[field_name] = value
         self._auto_save_if_enabled()
         return self
+
+    @requires_data
+    def get_contact_info(self) -> dict:
+        """
+        Get all contact information as a dictionary.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            dict: Dictionary containing name, email, phone, location, and website
+        """
+        cv = self.data.get('cv', {})
+        return {
+            'name': cv.get('name', ''),
+            'email': cv.get('email', ''),
+            'phone': cv.get('phone', ''),
+            'location': cv.get('location', ''),
+            'website': cv.get('website', '')
+        }
+
     @requires_data
     def update_theme(self,selected_theme:str):
         """
@@ -486,6 +505,51 @@ class RenderCVDocument:
         self.data['design']['theme'] = selected_theme
         self._auto_save_if_enabled()
         return f"Successfully updated theme '{selected_theme}'"
+
+    @requires_data
+    def get_theme(self) -> str:
+        """
+        Get the current document theme.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            str: The current theme name
+        """
+        return self.data.get('design', {}).get('theme', 'sb2nov')
+
+    # ============== SUMMARY (shared) ==============
+
+    @requires_data
+    def update_summary(self, new_content: str) -> str:
+        """
+        Update the professional summary section at the top of the document.
+        Available for both resume and portfolio document types.
+
+        Args:
+            new_content: The complete summary text to replace existing content
+
+        Returns:
+            str: Confirmation message that the summary was updated
+        """
+        if 'summary' not in self.sections:
+            self.sections['summary'] = []
+        self.sections['summary'] = [new_content]
+        self._auto_save_if_enabled()
+
+        return "Summary updated successfully"
+
+    @requires_data
+    def get_summary(self) -> str:
+        """
+        Get the current summary text.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            str: The current summary text, or empty string if no summary exists
+        """
+        if not self.summary:
+            return ""
+        return self.summary[0] if self.summary else ""
 
     # ============== PROJECTS (shared) ==============
     @requires_data
@@ -595,6 +659,58 @@ class RenderCVDocument:
         return self.add_project(project)
 
     @requires_data
+    def get_projects(self) -> List[dict]:
+        """
+        Get all current projects.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            List[dict]: List of project dictionaries with project details
+        """
+        return self.current_projects if self.current_projects else []
+
+    def count_projects(self) -> int:
+        """
+        Get the number of projects in the document.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            int: Number of projects, or 0 if no data is loaded
+        """
+        if self.current_projects is None:
+            return 0
+        return len(self.current_projects)
+
+    def has_projects(self) -> bool:
+        """
+        Check if the document has any projects.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            bool: True if there are projects, False otherwise
+        """
+        return self.count_projects() > 0
+
+    @requires_data
+    def clear_projects(self) -> str:
+        """
+        Remove all projects from the document.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            str: Success message with number of projects removed
+        """
+        if not self.current_projects:
+            return "No projects to clear"
+
+        count = len(self.current_projects)
+        self.current_projects.clear()
+        self._auto_save_if_enabled()
+        return f"Successfully cleared {count} project(s)"
+
+    # ============== CONNECTIONS (shared) ==============
+
+    @requires_data
     def add_connection(self,connection_info: Connections):
         """
         Add a new social network connection to the CV header.
@@ -663,26 +779,18 @@ class RenderCVDocument:
         self._auto_save_if_enabled()
         return f"Successfully deleted: {network_name}"
 
-    # ============== RESUME-ONLY METHODS ==============
-
     @requires_data
-    def update_summary(self, new_content: str) -> str:
+    def get_connections(self) -> List[dict]:
         """
-        Update the professional summary section at the top of the document.
+        Get all social network connections.
         Available for both resume and portfolio document types.
 
-        Args:
-            new_content: The complete summary text to replace existing content
-
         Returns:
-            str: Confirmation message that the summary was updated
+            List[dict]: List of connection dictionaries with 'network' and 'username' keys
         """
-        if 'summary' not in self.sections:
-            self.sections['summary'] = []
-        self.sections['summary'] = [new_content]
-        self._auto_save_if_enabled()
+        return self.current_connections if self.current_connections else []
 
-        return "Summary updated successfully"
+    # ============== EXPERIENCE (resume-only) ==============
 
     @requires_data
     @requires_resume
@@ -914,21 +1022,6 @@ class RenderCVDocument:
         self._auto_save_if_enabled()
         return f"Successfully updated skill '{label}'"
 
-    # ============== GETTER METHODS (shared) ==============
-
-    @requires_data
-    def get_summary(self) -> str:
-        """
-        Get the current summary text.
-        Available for both resume and portfolio document types.
-
-        Returns:
-            str: The current summary text, or empty string if no summary exists
-        """
-        if not self.summary:
-            return ""
-        return self.summary[0] if self.summary else ""
-
     @requires_data
     def get_skills(self) -> List[dict]:
         """
@@ -939,69 +1032,6 @@ class RenderCVDocument:
             List[dict]: List of skill dictionaries with 'label' and 'details' keys
         """
         return self.current_skills if self.current_skills else []
-
-    @requires_data
-    def get_projects(self) -> List[dict]:
-        """
-        Get all current projects.
-        Available for both resume and portfolio document types.
-
-        Returns:
-            List[dict]: List of project dictionaries with project details
-        """
-        return self.current_projects if self.current_projects else []
-
-    @requires_data
-    def get_connections(self) -> List[dict]:
-        """
-        Get all social network connections.
-        Available for both resume and portfolio document types.
-
-        Returns:
-            List[dict]: List of connection dictionaries with 'network' and 'username' keys
-        """
-        return self.current_connections if self.current_connections else []
-
-    @requires_data
-    def get_contact_info(self) -> dict:
-        """
-        Get all contact information as a dictionary.
-        Available for both resume and portfolio document types.
-
-        Returns:
-            dict: Dictionary containing name, email, phone, location, and website
-        """
-        cv = self.data.get('cv', {})
-        return {
-            'name': cv.get('name', ''),
-            'email': cv.get('email', ''),
-            'phone': cv.get('phone', ''),
-            'location': cv.get('location', ''),
-            'website': cv.get('website', '')
-        }
-
-    @requires_data
-    def get_theme(self) -> str:
-        """
-        Get the current document theme.
-        Available for both resume and portfolio document types.
-
-        Returns:
-            str: The current theme name
-        """
-        return self.data.get('design', {}).get('theme', 'sb2nov')
-
-    def count_projects(self) -> int:
-        """
-        Get the number of projects in the document.
-        Available for both resume and portfolio document types.
-
-        Returns:
-            int: Number of projects, or 0 if no data is loaded
-        """
-        if self.current_projects is None:
-            return 0
-        return len(self.current_projects)
 
     def count_skills(self) -> int:
         """
@@ -1015,16 +1045,6 @@ class RenderCVDocument:
             return 0
         return len(self.current_skills)
 
-    def has_projects(self) -> bool:
-        """
-        Check if the document has any projects.
-        Available for both resume and portfolio document types.
-
-        Returns:
-            bool: True if there are projects, False otherwise
-        """
-        return self.count_projects() > 0
-
     def has_skills(self) -> bool:
         """
         Check if the document has any skills.
@@ -1034,23 +1054,6 @@ class RenderCVDocument:
             bool: True if there are skills, False otherwise
         """
         return self.count_skills() > 0
-
-    @requires_data
-    def clear_projects(self) -> str:
-        """
-        Remove all projects from the document.
-        Available for both resume and portfolio document types.
-
-        Returns:
-            str: Success message with number of projects removed
-        """
-        if not self.current_projects:
-            return "No projects to clear"
-
-        count = len(self.current_projects)
-        self.current_projects.clear()
-        self._auto_save_if_enabled()
-        return f"Successfully cleared {count} project(s)"
 
     @requires_data
     def clear_skills(self) -> str:
@@ -1069,7 +1072,7 @@ class RenderCVDocument:
         self._auto_save_if_enabled()
         return f"Successfully cleared {count} skill category(ies)"
 
-    # ============== RESUME-ONLY GETTER METHODS ==============
+    # ============== EDUCATION (resume-only) ==============
 
     @requires_data
     @requires_resume
