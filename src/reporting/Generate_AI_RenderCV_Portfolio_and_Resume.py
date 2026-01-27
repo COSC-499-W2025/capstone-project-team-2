@@ -279,7 +279,7 @@ class RenderCVDocument:
             else:
                 base_template['cv']['sections'] = {
                     'summary': [
-                        'A brief introduction about yourself and what you specialize in.'
+                        'A brief summary about yourself and your professional background.'
                     ],
                     'projects': [{
                         'name': 'Project Name',
@@ -534,6 +534,7 @@ class RenderCVDocument:
         if 'summary' not in self.sections:
             self.sections['summary'] = []
         self.sections['summary'] = [new_content]
+        self.summary = self.sections['summary']
         self._auto_save_if_enabled()
 
         return "Summary updated successfully"
@@ -547,9 +548,10 @@ class RenderCVDocument:
         Returns:
             str: The current summary text, or empty string if no summary exists
         """
-        if not self.summary:
-            return ""
-        return self.summary[0] if self.summary else ""
+        summary_section = self.summary if self.summary is not None else (self.sections.get('summary', []) if self.sections else [])
+        if isinstance(summary_section, list):
+            return summary_section[0] if summary_section else ""
+        return str(summary_section) if summary_section else ""
 
     # ============== PROJECTS (shared) ==============
     @requires_data
@@ -1155,3 +1157,4 @@ class RenderCVDocument:
             return f"Successfully removed section: {section_name}"
 
         return f"Section '{section_name}' not found"
+
