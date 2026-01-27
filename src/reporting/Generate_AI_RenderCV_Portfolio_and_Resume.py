@@ -388,7 +388,7 @@ class RenderCVDocument:
             raise ValueError("No data loaded")
 
         output_file=Path(filename) if filename else self.yaml_file
-        with open(self.yaml_file, 'w') as f:
+        with open(output_file, 'w') as f:
             self.yaml.dump(self.data, f)
 
         return output_file
@@ -548,10 +548,9 @@ class RenderCVDocument:
         Returns:
             str: The current summary text, or empty string if no summary exists
         """
-        summary_section = self.summary if self.summary is not None else (self.sections.get('summary', []) if self.sections else [])
-        if isinstance(summary_section, list):
-            return summary_section[0] if summary_section else ""
-        return str(summary_section) if summary_section else ""
+        if self.summary:
+            return self.summary[0]
+        return ""
 
     # ============== PROJECTS (shared) ==============
     @requires_data
