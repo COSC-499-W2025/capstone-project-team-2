@@ -891,6 +891,69 @@ class RenderCVDocument:
         return "Successfully deleted skill"
 
     @requires_data
+    def modify_skill(self, label: str, new_details: str) -> str:
+        """
+        Modify the details of an existing skill category.
+        Available for both resume and portfolio document types.
+
+        Args:
+            label: The exact label of the skill category to modify (e.g., "Languages", "Frameworks")
+            new_details: The new comma-separated string of skills (e.g., "Python, JavaScript, Go")
+
+        Returns:
+            str: Success message confirming the update, or error if no skills exist or label not found
+        """
+        if not self.current_skills:
+            return "No skills to modify"
+
+        skill = next((s for s in self.current_skills if s.get('label') == label), None)
+        if skill is None:
+            return f"Skill '{label}' not found"
+
+        skill['details'] = new_details
+        self._auto_save_if_enabled()
+        return f"Successfully updated skill '{label}'"
+
+    # ============== GETTER METHODS (shared) ==============
+
+    @requires_data
+    def get_summary(self) -> str:
+        """
+        Get the current summary text.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            str: The current summary text, or empty string if no summary exists
+        """
+        if not self.summary:
+            return ""
+        return self.summary[0] if self.summary else ""
+
+    @requires_data
+    def get_skills(self) -> List[dict]:
+        """
+        Get all current skill categories.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            List[dict]: List of skill dictionaries with 'label' and 'details' keys
+        """
+        return self.current_skills if self.current_skills else []
+
+    @requires_data
+    def get_projects(self) -> List[dict]:
+        """
+        Get all current projects.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            List[dict]: List of project dictionaries with project details
+        """
+        return self.current_projects if self.current_projects else []
+
+    # ============== RESUME-ONLY METHODS ==============
+
+    @requires_data
     @requires_resume
     def remove_section(self, section_num: int) -> str:
         """
