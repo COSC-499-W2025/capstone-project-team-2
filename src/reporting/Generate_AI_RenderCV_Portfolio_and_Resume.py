@@ -951,6 +951,176 @@ class RenderCVDocument:
         """
         return self.current_projects if self.current_projects else []
 
+    @requires_data
+    def get_connections(self) -> List[dict]:
+        """
+        Get all social network connections.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            List[dict]: List of connection dictionaries with 'network' and 'username' keys
+        """
+        return self.current_connections if self.current_connections else []
+
+    @requires_data
+    def get_contact_info(self) -> dict:
+        """
+        Get all contact information as a dictionary.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            dict: Dictionary containing name, email, phone, location, and website
+        """
+        cv = self.data.get('cv', {})
+        return {
+            'name': cv.get('name', ''),
+            'email': cv.get('email', ''),
+            'phone': cv.get('phone', ''),
+            'location': cv.get('location', ''),
+            'website': cv.get('website', '')
+        }
+
+    @requires_data
+    def get_theme(self) -> str:
+        """
+        Get the current document theme.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            str: The current theme name
+        """
+        return self.data.get('design', {}).get('theme', 'sb2nov')
+
+    def count_projects(self) -> int:
+        """
+        Get the number of projects in the document.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            int: Number of projects, or 0 if no data is loaded
+        """
+        if self.current_projects is None:
+            return 0
+        return len(self.current_projects)
+
+    def count_skills(self) -> int:
+        """
+        Get the number of skill categories in the document.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            int: Number of skill categories, or 0 if no data is loaded
+        """
+        if self.current_skills is None:
+            return 0
+        return len(self.current_skills)
+
+    def has_projects(self) -> bool:
+        """
+        Check if the document has any projects.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            bool: True if there are projects, False otherwise
+        """
+        return self.count_projects() > 0
+
+    def has_skills(self) -> bool:
+        """
+        Check if the document has any skills.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            bool: True if there are skills, False otherwise
+        """
+        return self.count_skills() > 0
+
+    @requires_data
+    def clear_projects(self) -> str:
+        """
+        Remove all projects from the document.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            str: Success message with number of projects removed
+        """
+        if not self.current_projects:
+            return "No projects to clear"
+
+        count = len(self.current_projects)
+        self.current_projects.clear()
+        self._auto_save_if_enabled()
+        return f"Successfully cleared {count} project(s)"
+
+    @requires_data
+    def clear_skills(self) -> str:
+        """
+        Remove all skills from the document.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            str: Success message with number of skills removed
+        """
+        if not self.current_skills:
+            return "No skills to clear"
+
+        count = len(self.current_skills)
+        self.current_skills.clear()
+        self._auto_save_if_enabled()
+        return f"Successfully cleared {count} skill category(ies)"
+
+    # ============== RESUME-ONLY GETTER METHODS ==============
+
+    @requires_data
+    @requires_resume
+    def get_education(self) -> List[dict]:
+        """
+        Get all education entries.
+        Available only for resume document type.
+
+        Returns:
+            List[dict]: List of education dictionaries with education details
+        """
+        return self.current_education if self.current_education else []
+
+    @requires_data
+    @requires_resume
+    def get_experience(self) -> List[dict]:
+        """
+        Get all experience entries.
+        Available only for resume document type.
+
+        Returns:
+            List[dict]: List of experience dictionaries with experience details
+        """
+        return self.current_experience if self.current_experience else []
+
+    @requires_resume
+    def count_education(self) -> int:
+        """
+        Get the number of education entries in the document.
+        Available only for resume document type.
+
+        Returns:
+            int: Number of education entries, or 0 if no data is loaded
+        """
+        if self.current_education is None:
+            return 0
+        return len(self.current_education)
+
+    @requires_resume
+    def count_experience(self) -> int:
+        """
+        Get the number of experience entries in the document.
+        Available only for resume document type.
+
+        Returns:
+            int: Number of experience entries, or 0 if no data is loaded
+        """
+        if self.current_experience is None:
+            return 0
+        return len(self.current_experience)
+
     # ============== RESUME-ONLY METHODS ==============
 
     @requires_data
