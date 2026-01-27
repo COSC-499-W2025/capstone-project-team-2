@@ -278,13 +278,21 @@ class RenderCVDocument:
                 }
             else:
                 base_template['cv']['sections'] = {
+                    'summary': [
+                        'A brief introduction about yourself and what you specialize in.'
+                    ],
                     'projects': [{
                         'name': 'Project Name',
                         'start_date': '2023-01',
                         'end_date': '2024-05',
                         'summary': 'Brief description of the project',
                         'highlights': ['Key feature 1', 'Key feature 2']
-                    }]
+                    }],
+                    'skills': [
+                        {'label': 'Languages', 'details': 'Python, JavaScript, etc.'},
+                        {'label': 'Technologies', 'details': 'React, Docker, AWS, etc.'},
+                        {'label': 'Tools', 'details': 'Git, VS Code, etc.'}
+                    ]
                 }
             return base_template
 
@@ -354,11 +362,13 @@ class RenderCVDocument:
         self.current_connections=self.data['cv'].get('social_networks', [])
         self.data['cv']['name'] = str(self.name).replace("_", " ")
 
+        # Shared sections for both resume and portfolio
+        self.current_skills = self.sections.get('skills', [])
+        self.summary = self.sections.get('summary', [])
+
         if self.doc_type == 'resume':
             self.current_education=self.sections.get('education', [])
-            self.current_skills=self.sections.get('skills', [])
             self.current_experience=self.sections.get('experience',[])
-            self.summary = self.sections.get('summary', [])
 
         return self.data
 
@@ -656,11 +666,10 @@ class RenderCVDocument:
     # ============== RESUME-ONLY METHODS ==============
 
     @requires_data
-    @requires_resume
     def update_summary(self, new_content: str) -> str:
         """
-        Update the professional summary section at the top of the resume.
-        Available only for resume document type.
+        Update the professional summary section at the top of the document.
+        Available for both resume and portfolio document types.
 
         Args:
             new_content: The complete summary text to replace existing content
@@ -831,11 +840,10 @@ class RenderCVDocument:
         return "Successfully deleted education"
 
     @requires_data
-    @requires_resume
     def add_skills(self, skill: Skills) -> str:
         """
         Add a new skill category to the skills section.
-        Available only for resume document type. Creates the section if it doesn't exist.
+        Available for both resume and portfolio document types. Creates the section if it doesn't exist.
         Prevents duplicate skill labels.
 
         Args:
@@ -860,11 +868,10 @@ class RenderCVDocument:
         return "Successfully added skills"
 
     @requires_data
-    @requires_resume
     def remove_skill(self, label: str) -> str:
         """
         Remove a skill category by its label.
-        Available only for resume document type.
+        Available for both resume and portfolio document types.
 
         Args:
             label: The exact label of the skill category to remove (e.g., "Languages", "Frameworks")
