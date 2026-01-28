@@ -1,9 +1,12 @@
 import datetime
+from os.path import exists
 import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
+import os
+import shutil
 
 from typing import List
 
@@ -13,6 +16,15 @@ import pytest
 import src.core.analysis_service as mod
 
 from src.core.app_context import runtimeAppContext
+
+def test_export_if_zip():
+    """
+    Checks that extract_if_zip() extracts and returns the directory extracted to
+    """
+    path = Path(os.getcwd()).absolute().resolve() / "src" / "TEST.zip"
+    extracted_path = mod.extract_if_zip(path)
+    assert exists(extracted_path)
+    shutil.rmtree(extracted_path)
 
 def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypatch):
     """Check that export saves files and writes to the DB.
@@ -134,69 +146,3 @@ class TestAnalysisService(unittest.TestCase):
                 mod.analyze_project(root)
 
         self.assertEqual(captured["languages_found"], ["C++", "Python"])
-
-@pytest.mark.skip
-def test_analyze_project_builds_analysis_and_exports(tmp_path, monkeypatch):
-    """Check that analysis builds results and triggers export.
-
-    Args:
-        tmp_path: Pytest fixture providing a temporary directory.
-        monkeypatch: Pytest fixture for patching module attributes.
-
-    Returns:
-        None: Assertions validate export behavior.
-    """
-    ctx = SimpleNamespace(
-        default_save_dir=tmp_path / "saves",
-        legacy_save_dir=tmp_path / "legacy",
-        store=SimpleNamespace(),
-    )
-
-    class FakeExtractor:
-        def __init__(self, root):
-            self.root = root
-
-        def file_hierarchy(self):
-            return {"type": "DIR", "children": []}
-
-    monkeypatch.setattr(mod, "FileMetadataExtractor", FakeExtractor)
-    monkeypatch.setattr(
-        mod,
-        "generate_resume_item",
-        lambda root, project_name: SimpleNamespace(
-            project_name=project_name,
-            summary="Built project",
-            highlights=["h1"],
-            project_type="collaborative",
-            detection_mode="local",
-            languages=["Python"],
-            frameworks=["FastAPI"],
-            skills=["Python"],
-            framework_sources={},
-        ),
-    )
-    monkeypatch.setattr(
-        mod,
-        "contribution_summary",
-        lambda root: {"metric": "files", "contributors": {"Alice": {"file_count": 2, "percentage": "100%"}}},
-    )
-    monkeypatch.setattr(
-        mod,
-        "record_project_insight",
-        lambda analysis, contributors=None: SimpleNamespace(id=1, project_name=analysis["resume_item"]["project_name"]),
-    )
-    monkeypatch.setattr(mod, "oop_analysis", lambda root, languages_found: {"score": {"oop_score": 0.75}})
-
-    captured = {}
-    monkeypatch.setattr(
-        mod,
-        "export_json",
-        lambda project_name, analysis: captured.update(
-            {"project_name": project_name, "analysis": analysis}
-        ),
-    )
-
-    mod.analyze_project(tmp_path)
-
-    assert captured["project_name"] == tmp_path.name
-    assert captured["ctx"] is ctx
