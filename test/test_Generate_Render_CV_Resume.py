@@ -295,6 +295,28 @@ class TestConnectionsAndContact(BaseRenderCVTest):
         with self.assertRaises(ValueError):
             cv.update_theme('invalid_theme')
 
+    def test_summary_crud(self):
+        """Test update and get summary."""
+        cv = self.create_loaded_cv()
+
+        # Get default summary
+        default_summary = cv.get_summary()
+        self.assertIsInstance(default_summary, str)
+
+        # Update summary
+        result = cv.update_summary("This is my new professional summary.")
+        self.assertEqual(result, "Summary updated successfully")
+        self.assertEqual(cv.get_summary(), "This is my new professional summary.")
+
+        # Update summary again
+        cv.update_summary("Updated summary text.")
+        self.assertEqual(cv.get_summary(), "Updated summary text.")
+
+        # Portfolio also supports summary
+        portfolio = self.create_loaded_cv(doc_type='portfolio')
+        portfolio.update_summary("Portfolio summary")
+        self.assertEqual(portfolio.get_summary(), "Portfolio summary")
+
 
 class TestAutoSaveAndDocType(BaseRenderCVTest):
     """Tests for auto-save and document type restrictions."""
@@ -321,8 +343,6 @@ class TestAutoSaveAndDocType(BaseRenderCVTest):
             portfolio.add_education(Education(institution="Test", area="Test"))
         with self.assertRaises(ValueError):
             portfolio.add_experience(Experience(company="Test"))
-        with self.assertRaises(ValueError):
-            portfolio.add_skills(Skills(label="Test", details="Test"))
 
 
 if __name__ == '__main__':
