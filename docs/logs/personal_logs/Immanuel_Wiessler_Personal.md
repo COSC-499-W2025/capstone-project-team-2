@@ -5,6 +5,7 @@
 ## Quick Navigation
 
 ### Term 2
+- [Week 18 (01/26/2026 – 02/01/2026)](#-personal-log--week-18-01262026--02012026)
 - [Week 17 (01/19/2026 – 01/25/2026)](#-personal-log--week-17-01192026--01252026)
 - [Week 16 (01/12/2026 – 01/18/2026)](#-personal-log--week-16-01122026--01182026)
 - [Week 15 (01/05/2026 – 01/11/2026)](#-personal-log--week-15-01052026--01112026)
@@ -1437,8 +1438,105 @@ The `document_generator_menu.py` module serves as the CLI interface layer that d
 
 Looking ahead to next week, I plan to prepare for peer heuristics testing and continue addressing any critical bugs discovered during the demo preparation. I will also be planning/creating meeting agendas to help us stay focused and on track. 
 
-To end this Reflection, I also worked on two PR reviews, one being [C# analysis #327](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/327) and [Added API endpoint for POST /privacy-consent and GET /skills #322](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/322), and added recommendations. 
+To end this Reflection, I also worked on two PR reviews, one being [C# analysis #327](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/327) and [Added API endpoint for POST /privacy-consent and GET /skills #322](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/322), and added recommendations.
 
 
 
+# 📝 Personal Log – Week 18 (01/26/2026 – 02/01/2026)
 
+## 📊 Peer Evaluation
+
+
+---
+
+## 🔗 Connection to Previous Week
+
+Following Week 17's preparation for peer heuristics testing, 
+this week focused on fixing bugs discovered during peer testing, 
+including RenderCV PDF creation inconsistency 
+and a consent display issue in the CLI.
+
+---
+
+## 🚀 Work Completed
+
+### Coding Tasks
+- Fixed RenderCV PDF creation inconsistency by changing subprocess call to use `sys.executable -m rendercv` instead of direct rendercv invocation ([PR #344](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/344))
+- Corrected `save()` method bug where the filename parameter was being ignored
+- Simplified `get_summary()` method from 7 lines to 4 lines
+- Modified `_get_template()` to include summary and skill sections for portfolio templates
+- Added getter and utility methods for better data access across both resume and portfolio documents
+- Fixed `show_consent_file()` file path bug — adjusted directory traversal to go up 3 levels from `src/config/user_consent.py` to correctly locate `consent_document.md` ([PR #345](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/345))
+
+### Testing/Debugging Tasks
+- Added comprehensive CRUD test coverage for summary functionality
+- Consolidated portfolio tests from 44 tests down to 8 focused tests
+- All 24 tests passing (8 portfolio + 16 resume) covering connections, projects, skills, summary, contact info, and theme
+- Verified consent fix with 45 passing tests across consent API tests, user consent tests, and user consent update tests
+- Manual testing completed on Windows 10 and Linux
+
+### Reviewing/Collaboration Tasks
+
+
+---
+
+## 📌 Associated Tasks from Project Board
+- [RenderCV issue #343](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/343)
+- [View consent not showing #341](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/341)
+
+---
+
+## 📈 Progress Update
+
+| Task/Issue | Status |
+|------------|--------|
+| **Fixed RenderCV PDF creation inconsistency** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Fixed consent document not displaying** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+
+---
+
+## ⚠️ Issues/Blockers
+
+- **RenderCV PDF inconsistency**: PDF creation was not producing consistent results due to direct rendercv subprocess invocation
+- **Resolution**: Changed to use `sys.executable -m rendercv` for reliable cross-platform execution
+- **Consent display bug**: `show_consent_file()` returned `Constent_md` not showing because the file path traversal was incorrect
+- **Resolution**: Adjusted path navigation to go up 3 directory levels to reach the project root
+
+---
+
+## 🎯 Next Week's Goals
+- Continuing keep working on milestone 2 requirements
+
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 18)
+**Week 18** was centered around addressing some of the issues and bugs that were 
+shown during peer testing this week and improving my documentation generation system, which proved valuable in uncovering issues 
+that were not caught during internal development and manual testing of our 
+current system
+
+The first bug that I tackled was the RenderCV PDF creation issue, where the generation 
+of the **resumes** and **Portfolio** was not consistent/reliable across different platforms. 
+([#343](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/343))
+In other words, some systems were unable to produce a PDF and received error messages as a result.
+After some digging, I discovered that the root issue turned out to be a simple problem, which was
+that the way in which that subprocess was invoking rendercv directly, which would behave differently
+across different platforms, the hotfix/fix that was made was switching to `sys. executable -m rendercv.`
+which solved and ensured that the correct Python environment was always used. At the same time I also
+took the opportunity  to clean up the codebase, correcting a bug in my `save()` method 
+where the filename parameter was being ignored, I simplified the `get_summary()` and added some 
+getter and utility methods for better data access. In addition, after consulting the professor about my current
+layout, I decided to improve the Portfolio template to include a summary and skill section now.
+
+The second bug was the consent display issue, which was that when typing
+`view consent` in the CLI would not show our `Constent_md` and this was a straightforward bug to fix, which was in `show_consent_file()`, the function was not
+traversing enough directory levels to reach the project root from `src/config/user_consent.py` to fix this, I just needed to adjust the path to go up  3 levels, and through manual testing, I confirmed this fix solved the issue.
+
+Overall, this week was interesting because it reinforced the importance
+of peer-testing, where the issues that were raised in my eyes would have actually 
+impacted the end users, and having fresh eyes on the system helped identify quickly,
+As we advance, I want to keep working on the milestone requirements that are still 
+missing from the system so that I can relax when the midterm break comes around.
+
+---
