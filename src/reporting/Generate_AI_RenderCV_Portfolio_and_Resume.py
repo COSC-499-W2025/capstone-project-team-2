@@ -705,7 +705,8 @@ class RenderCVDocument:
             return "No projects to clear"
 
         count = len(self.current_projects)
-        self.current_projects.clear()
+        self.sections['projects'] = []
+        self.current_projects = self.sections['projects']
         self._auto_save_if_enabled()
         return f"Successfully cleared {count} project(s)"
 
