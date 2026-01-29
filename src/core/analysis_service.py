@@ -85,7 +85,7 @@ def oop_analysis(root: Path, languages_found) -> Dict[str, Any] | None:
         except (FileNotFoundError, ValueError) as e: 
             
             #print(f"[ERROR] OOP analysis failed: {e}")
-            return None
+            raise RuntimeError(f"OOP analysis failed: {e}")
 
     return None
 
@@ -117,7 +117,7 @@ def export_json(project_name: str, analysis: Dict[str, Any]) -> str | None:
         record_id = runtimeAppContext.store.insert_json(filename, analysis_copy)
         #print(f"[INFO] Saved to database (ID: {record_id})")
     except Exception as e:
-        pass
+        raise RuntimeError(f"Could not save to database: {e}")
         #print(f"[WARNING] Could not save to database: {e}")
 
 
@@ -154,10 +154,11 @@ def analyze_project(root: Path, use_ai_analysis=False) -> None:
         contrib_summary = contribution_summary(root)
         contributors_data = (contrib_summary or {}).get("contributors") or None
     except Exception as e:
+        raise RuntimeError(f"Contribution percentage analysis failed: {e}")
         #print(f"[WARN] Contribution percentage analysis failed: {e}")
-        contrib_summary = None
-        contributors_data = None
-
+        #contrib_summary = None
+        #contributors_data = None
+        
     analysis: Dict[str, Any] = {
         "project_root": str(root),
         "hierarchy": hierarchy,
@@ -212,7 +213,8 @@ def analyze_project(root: Path, use_ai_analysis=False) -> None:
             contributors=contributors_data,
         )
     except Exception as e:
-        print(f"[WARN] Failed to record project insight: {e}")
+        #print(f"[WARN] Failed to record project insight: {e}")
+        raise RuntimeError(f"Failed to record project insight: {e}")
 
     #Need to remember this exists but also this can't be here
     #portfolio_yaml = load_portfolio_showcase(display_name)
