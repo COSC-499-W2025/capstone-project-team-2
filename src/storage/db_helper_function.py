@@ -48,8 +48,14 @@ class HelperFunct:
             "INSERT INTO project_data (filename, content, file_blob) VALUES (%s, %s, %s)",
             (filename, json.dumps(data), raw_bytes)
             )
+            cursor.execute(
+                "INSERT INTO project_versions (project_id, version_number, filename, content, file_blob) "
+                "VALUES (%s, 1, %s, %s, %s)",
+                (project_id, filename, json.dumps(data), raw_bytes)
+            )
             self.conn.commit()
-            return cursor.lastrowid
+            
+            return project_id
         finally:
             cursor.close()
 
