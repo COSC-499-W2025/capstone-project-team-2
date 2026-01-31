@@ -66,7 +66,6 @@ class TestDurationEstimator(unittest.TestCase):
         '''
         self.assertEqual(self.Duration_Estimator.get_duration(), self.correct_duration)
 
-    @pytest.mark.skip
     def test_no_files(self):
         '''
         Negative Test.
