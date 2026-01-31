@@ -1445,6 +1445,8 @@ To end this Reflection, I also worked on two PR reviews, one being [C# analysis 
 # 📝 Personal Log – Week 18 (01/26/2026 – 02/01/2026)
 
 ## 📊 Peer Evaluation
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/1-16-2026.png)
+
 
 
 ---
