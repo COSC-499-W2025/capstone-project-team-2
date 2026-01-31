@@ -1478,6 +1478,7 @@ and a consent display issue in the CLI.
 ### Reviewing/Collaboration Tasks
 - [Print statements converted to error raising for API add on in analysis_service.py ](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/348)
 - Worked together with other members to ensure that the renderCV document generation works on all platforms 
+[Skills endpoint Error Handling](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/349)
 
 ---
 
