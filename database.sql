@@ -8,26 +8,25 @@ CREATE TABLE IF NOT EXISTS project_data (
     filename VARCHAR(255) NOT NULL,
     content JSON NOT NULL,
     file_blob LONGBLOB,
-    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     current_version INT DEFAULT 1,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
     INDEX idx_filename (filename)
 ) ENGINE=InnoDB;
 
--- project history table--
-CREATE TABLE IF NOT EXISTS project_data (
+-- project versions table -- 
+CREATE TABLE IF NOT EXISTS project_versions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     project_id INT NOT NULL,
     version_number INT NOT NULL,
     filename VARCHAR(255) NOT NULL,
     content JSON NOT NULL,
     file_blob LONGBLOB,
+    
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
     INDEX idx_project_versions (project_id, version_number),
     INDEX idx_created_at (created_at),
-    
+
     FOREIGN KEY (project_id) REFERENCES project_data(id) ON DELETE CASCADE,
     UNIQUE KEY unique_project_version (project_id, version_number)
 ) ENGINE=InnoDB;
@@ -44,19 +43,20 @@ CREATE PROCEDURE update_project_with_version(
 )
 BEGIN
     DECLARE current_ver INT;
-    
-    -- Get current version number
-    SELECT current_version INTO current_ver 
-    FROM project_data 
+
+    -- Get current version
+    SELECT current_version
+    INTO current_ver
+    FROM project_data
     WHERE id = p_project_id;
-    
-    -- Save current state to version history
+
+    -- Save current version
     INSERT INTO project_versions (project_id, version_number, filename, content, file_blob)
     SELECT id, current_version, filename, content, file_blob
     FROM project_data
     WHERE id = p_project_id;
-    
-    -- Update to new version
+
+    -- Update project
     UPDATE project_data
     SET filename = p_filename,
         content = p_content,
@@ -77,22 +77,27 @@ BEGIN
     DECLARE v_content JSON;
     DECLARE v_file_blob LONGBLOB;
     DECLARE current_ver INT;
-    
-    -- Get the version data to restore
-    SELECT filename, content, file_blob INTO v_filename, v_content, v_file_blob
+
+    -- Load version to restore
+    SELECT filename, content, file_blob
+    INTO v_filename, v_content, v_file_blob
     FROM project_versions
-    WHERE project_id = p_project_id AND version_number = p_version_number;
-    
-    -- Get current version number
-    SELECT current_version INTO current_ver FROM project_data WHERE id = p_project_id;
-    
-    -- Save current state before restoring
+    WHERE project_id = p_project_id
+      AND version_number = p_version_number;
+
+    -- Get current version
+    SELECT current_version
+    INTO current_ver
+    FROM project_data
+    WHERE id = p_project_id;
+
+    -- Save current state
     INSERT INTO project_versions (project_id, version_number, filename, content, file_blob)
     SELECT id, current_version, filename, content, file_blob
     FROM project_data
     WHERE id = p_project_id;
-    
-    -- Restore the selected version
+
+    -- Restore
     UPDATE project_data
     SET filename = v_filename,
         content = v_content,

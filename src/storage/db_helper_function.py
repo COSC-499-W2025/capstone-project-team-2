@@ -48,6 +48,9 @@ class HelperFunct:
             "INSERT INTO project_data (filename, content, file_blob) VALUES (%s, %s, %s)",
             (filename, json.dumps(data), raw_bytes)
             )
+
+            project_id = cursor.lastrowid   
+
             cursor.execute(
                 "INSERT INTO project_versions (project_id, version_number, filename, content, file_blob) "
                 "VALUES (%s, 1, %s, %s, %s)",
@@ -145,21 +148,39 @@ class HelperFunct:
         else:
             raise ValueError("new_input must be a dict or bytes")
 
-        sql = "UPDATE project_data SET content=%s, file_blob=%s"
-        params = [json.dumps(content), blob]
-
-        if filename is not None:
-            sql += ", filename=%s"
-            params.append(filename)
-
-        sql += " WHERE id=%s"
-        params.append(row_id)
-
         cursor = self.conn.cursor()
+
         try:
+            # Get current version
+            cursor.execute("SELECT current_version, filename FROM project_data WHERE id=%s", (row_id,))
+            row = cursor.fetchone()
+            if not row:
+                return False
+            current_version, old_filename = row
+            new_version = current_version + 1
+
+            # Update project_data with new content
+            sql = "UPDATE project_data SET content=%s, file_blob=%s, current_version=%s"
+            params = [json.dumps(content), blob, new_version]
+
+            if filename is not None:
+                sql += ", filename=%s"
+                params.append(filename)
+
+            sql += " WHERE id=%s"
+            params.append(row_id)
+
             cursor.execute(sql, tuple(params))
+
+            # Insert new version into project_versions
+            cursor.execute(
+                "INSERT INTO project_versions (project_id, version_number, filename, content, file_blob) "
+                "VALUES (%s, %s, %s, %s, %s)",
+                (row_id, new_version, filename or old_filename, json.dumps(content), blob)
+            )
+
             self.conn.commit()
-            return cursor.rowcount > 0
+            return True
         finally:
             cursor.close()
 
