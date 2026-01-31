@@ -37,10 +37,11 @@ VIEW_CONSENT_FORM = "\n Type 'view' to read the full consent document."
 def show_consent_file():
     """
     Get project root (folder above /src)
-    
+
     Returns: None
     """
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    # __file__ is src/config/user_consent.py, so we need to go up 3 levels to reach project root
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     consent_path = os.path.join(project_root, "consent_document.md")
 
     try:
