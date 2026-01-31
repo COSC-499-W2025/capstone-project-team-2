@@ -1,6 +1,7 @@
 import json
 import mysql.connector
 from mysql.connector import Error
+from typing import Dict, List, Union
 
 
 class HelperFunct:
