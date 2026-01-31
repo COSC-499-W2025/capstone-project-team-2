@@ -8,6 +8,14 @@ CREATE TABLE IF NOT EXISTS project_data (
     content JSON NOT NULL,
     file_blob LONGBLOB,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+    current_version INT DEFAULT 1,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
+    INDEX idx_filename (filename)
+) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS project_data (
+
+);
 
