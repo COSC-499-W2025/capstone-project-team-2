@@ -32,10 +32,12 @@ def perform_analysis_API(use_ai: bool = False) -> str:
     try:
         if isinstance(folder_path, Path):
             if (folder_path.suffix.lower() == ".zip"):
-                folder_path = extract_if_zip(folder_path)
-        elif isinstance(folder_path, UploadFile):
-            folder_path = extract_if_zip(folder_path)
-        analyze_project(folder_path, use_ai_analysis=use_ai)
+                folder = extract_if_zip(folder_path)
+            else:
+                folder = folder_path
+        else:   #Can only be an UploadFile at this point
+            folder = extract_if_zip(folder_path)
+        analyze_project(folder, use_ai_analysis=use_ai)
         return "Analysis Finished and Saved"
     except Exception as e:
         return str(e)
