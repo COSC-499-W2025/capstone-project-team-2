@@ -25,5 +25,10 @@ CREATE TABLE IF NOT EXISTS project_data (
     file_blob LONGBLOB,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-);
+    INDEX idx_project_versions (project_id, version_number),
+    INDEX idx_created_at (created_at),
+    
+    FOREIGN KEY (project_id) REFERENCES project_data(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_project_version (project_id, version_number)
+) ENGINE=InnoDB;
 
