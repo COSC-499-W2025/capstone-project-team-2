@@ -152,7 +152,9 @@ class HelperFunct:
 
         try:
             # Get current version
-            cursor.execute("SELECT current_version, filename FROM project_data WHERE id=%s", (row_id,))
+            cursor.execute(
+                "SELECT current_version, filename FROM project_data WHERE id=%s FOR UPDATE", (row_id,)
+            )
             row = cursor.fetchone()
             if not row:
                 return False
