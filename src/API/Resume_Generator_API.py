@@ -22,7 +22,6 @@ resumeRouter = APIRouter()
 
 """Request / Response Models"""
 
-
 class GenerateResumeRequest(BaseModel):
     name:str
     theme: Optional[str] = 'sb2nov'
@@ -269,6 +268,4 @@ def remove_item(id: str, payload: RemoveItemRequest):
 
     result = _check_result(remove_map[section]())
     return {"status": result}
-
-
 
