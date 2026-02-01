@@ -1,8 +1,24 @@
 """
-FASTAPI endpoints for resume generation and editing via RenderCV
+FastAPI endpoints for resume generation and editing via RenderCV.
 
+Provides a RESTful API for creating, reading, updating, and deleting
+resume documents backed by RenderCV YAML files. Resumes are identified
+by a unique ID (name + UUID suffix) returned in the X-Resume-ID header
+upon generation.
+
+Endpoints:
+    POST   /resume/generate          - Create a new resume and render to PDF
+    GET    /resume/{id}              - Retrieve full resume data as JSON
+    POST   /resume/{id}/edit         - Modify a field on an existing section item
+    POST   /resume/{id}/add/experience - Add a work experience entry
+    POST   /resume/{id}/add/education  - Add an education entry
+    POST   /resume/{id}/add/project    - Add a project entry
+    POST   /resume/{id}/add/skill      - Add a skill category
+    POST   /resume/{id}/remove         - Remove an item from a section
+    DELETE /resume/{id}                - Delete the resume YAML file entirely
 """
-from typing import Optional,List,Any
+
+from typing import Optional, List, Any
 import uuid
 import shutil
 from fastapi import APIRouter, HTTPException, BackgroundTasks
@@ -23,17 +39,44 @@ resumeRouter = APIRouter()
 """Request / Response Models"""
 
 class GenerateResumeRequest(BaseModel):
-    name:str
+    """Request payload for generating a new resume.
+
+    Attributes:
+        name: The person's name used as the base filename.
+        theme: RenderCV theme to apply. Defaults to 'sb2nov'.
+               Valid: classic, engineeringclassic, engineeringresumes, moderncv, sb2nov.
+        overwrite: If True, replaces an existing resume with the same name.
+    """
+    name: str
     theme: Optional[str] = 'sb2nov'
     overwrite: bool = False
 
 class EditResumeRequest(BaseModel):
+    """Request payload for editing a resume section item.
+
+    Attributes:
+        section: The section to edit. Valid: experience, education, projects,
+                 skills, summary, contact, theme.
+        item_name: Identifier for the item within the section (e.g., company
+                   name for experience, institution for education).
+        field: The specific field to modify (e.g., 'position', 'area').
+        new_value: The new value to set for the field.
+    """
     section: str
     item_name: str
     field: str
     new_value: str
 
 class ContactUpdateRequest(BaseModel):
+    """Request payload for updating contact information.
+
+    Attributes:
+        email: Email address to display.
+        phone: Phone number with country code.
+        location: City and state/country.
+        website: Personal website URL.
+        name: Full name to display at the top of the CV.
+    """
     email: Optional[str] = None
     phone: Optional[str] = None
     location: Optional[str] = None
@@ -41,6 +84,16 @@ class ContactUpdateRequest(BaseModel):
     name: Optional[str] = None
 
 class ExperienceRequest(BaseModel):
+    """Request payload for adding a work experience entry.
+
+    Attributes:
+        company: Name of the company (required).
+        position: Job title or role held.
+        start_date: Start date in 'YYYY-MM' format.
+        end_date: End date in 'YYYY-MM' format, or 'present'.
+        location: City, State or City, Country.
+        highlights: List of accomplishments or responsibilities.
+    """
     company: str
     position: Optional[str] = None
     start_date: Optional[str] = None
@@ -48,8 +101,19 @@ class ExperienceRequest(BaseModel):
     location: Optional[str] = None
     highlights: Optional[List[str]] = None
 
-
 class EducationRequest(BaseModel):
+    """Request payload for adding an education entry.
+
+    Attributes:
+        institution: Name of the university or school (required).
+        area: Field of study or major (required).
+        degree: Degree type (e.g., 'BS', 'MS', 'PhD').
+        start_date: Start date in 'YYYY-MM' format.
+        end_date: End date in 'YYYY-MM' format.
+        location: City, State or City, Country.
+        gpa: Grade point average.
+        highlights: List of achievements or relevant coursework.
+    """
     institution: str
     area: str
     degree: Optional[str] = None
@@ -59,8 +123,17 @@ class EducationRequest(BaseModel):
     gpa: Optional[str] = None
     highlights: Optional[List[str]] = None
 
-
 class ProjectRequest(BaseModel):
+    """Request payload for adding a project entry.
+
+    Attributes:
+        name: Name of the project (required).
+        start_date: Start date in 'YYYY-MM' format.
+        end_date: End date in 'YYYY-MM' format.
+        location: City, State or City, Country.
+        summary: Brief description of the project.
+        highlights: List of key features or accomplishments.
+    """
     name: str
     start_date: Optional[str] = None
     end_date: Optional[str] = None
@@ -69,33 +142,90 @@ class ProjectRequest(BaseModel):
     highlights: Optional[List[str]] = None
 
 class SkillsRequest(BaseModel):
+    """Request payload for adding a skill category.
+
+    Attributes:
+        label: Category name (e.g., 'Languages', 'Frameworks') (required).
+        details: Comma-separated string of skills (required).
+    """
     label: str
     details: str
 
 class RemoveItemRequest(BaseModel):
+    """Request payload for removing an item from a resume section.
+
+    Attributes:
+        section: The section to remove from. Valid: experience, education, projects, skills.
+        item_name: Identifier for the item to remove (e.g., company name, project name).
+    """
     section: str
     item_name: str
 
 """-------Helper Methods-------"""
-def _load_resume(name:str) ->RenderCVDocument:
-    doc=RenderCVDocument(doc_type="resume")
+
+def _load_resume(name: str) -> RenderCVDocument:
+    """Load an existing resume YAML by name.
+
+    Args:
+        name: The resume identifier (name + UUID suffix).
+
+    Returns:
+        RenderCVDocument: The loaded resume document.
+
+    Raises:
+        HTTPException: 404 if the resume YAML file does not exist.
+    """
+    doc = RenderCVDocument(doc_type="resume")
     try:
         doc.load(name=name)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail=f"Resume '{name}' not found")
     return doc
 
-"""POST /Resume/generate"""
+def _check_result(result: str):
+    """Validate the result string from a RenderCVDocument operation.
+
+    Args:
+        result: Status message returned by a RenderCVDocument method.
+
+    Returns:
+        str: The result string if it indicates success.
+
+    Raises:
+        HTTPException: 400 if the result does not contain 'Successfully'.
+    """
+    if "Successfully" not in result:
+        raise HTTPException(status_code=400, detail=result)
+    return result
+
+
 @resumeRouter.post("/resume/generate")
 def generate_resume(payload: GenerateResumeRequest, background_tasks: BackgroundTasks):
-    doc=RenderCVDocument(doc_type="resume")
-    resume_id=str(uuid.uuid4())[:8]
-    full_name=f"{payload.name}_{resume_id}"
+    """Create a new resume from a starter template and render it to PDF.
 
+    Generates a unique resume ID by appending a UUID suffix to the provided name.
+    The YAML file is created, optionally themed, and rendered to PDF via RenderCV.
+    The rendercv_output directory is cleaned up after the PDF response is sent.
 
-    gen_result=doc.generate(name=full_name,overwrite=payload.overwrite)
+    Args:
+        payload: GenerateResumeRequest with name, optional theme, and overwrite flag.
+        background_tasks: FastAPI background tasks for post-response cleanup.
 
-    if gen_result== "Skipping generation":
+    Returns:
+        FileResponse: The rendered PDF file with content-type application/pdf.
+            Includes X-Resume-ID header with the full resume identifier.
+
+    Raises:
+        HTTPException: 409 if resume already exists and overwrite is False.
+        HTTPException: 500 if PDF rendering fails.
+    """
+    doc = RenderCVDocument(doc_type="resume")
+    resume_id = str(uuid.uuid4())[:8]
+    full_name = f"{payload.name}_{resume_id}"
+
+    gen_result = doc.generate(name=full_name, overwrite=payload.overwrite)
+
+    if gen_result == "Skipping generation":
         raise HTTPException(status_code=409,
                             detail=f"Resume '{payload.name}' already exists. Set overwrite=true to replace it.",
                             )
@@ -104,20 +234,34 @@ def generate_resume(payload: GenerateResumeRequest, background_tasks: Background
     if payload.theme and payload.theme != 'sb2nov':
         doc.update_theme(payload.theme)
 
-    status,pdf_path=doc.render()
+    status, pdf_path = doc.render()
     if pdf_path is None:
-        raise HTTPException(status_code=500,detail=status)
+        raise HTTPException(status_code=500, detail=status)
 
     output_dir = pdf_path.parent
     background_tasks.add_task(shutil.rmtree, output_dir, True)
 
-    return FileResponse(str(pdf_path),media_type='application/pdf',filename=f"resume_{full_name}.pdf",
+    return FileResponse(str(pdf_path), media_type='application/pdf', filename=f"resume_{full_name}.pdf",
                         headers={"X-Resume-ID": full_name})
 
-"""GET /resume/{id}"""
+
 @resumeRouter.get("/resume/{id}")
 def get_resume(id: str):
-    doc=_load_resume(id)
+    """Retrieve the full resume data as JSON.
+
+    Returns all sections of the resume including contact info, theme,
+    summary, experience, education, projects, skills, and connections.
+
+    Args:
+        id: The resume identifier (name + UUID suffix from generation).
+
+    Returns:
+        dict: JSON object containing all resume sections.
+
+    Raises:
+        HTTPException: 404 if the resume does not exist.
+    """
+    doc = _load_resume(id)
     return {
         "name": id,
         "contact": doc.get_contact_info(),
@@ -130,21 +274,38 @@ def get_resume(id: str):
         "connections": doc.get_connections(),
     }
 
-"""POST /Resume/{id}/edit"""
+
 @resumeRouter.post("/resume/{id}/edit")
-def edit_resume(id:str,payload: EditResumeRequest):
-    doc=_load_resume(id)
-    section=payload.section.lower()
+def edit_resume(id: str, payload: EditResumeRequest):
+    """Edit a single field on an existing resume section item.
+
+    Supports editing items within experience, education, projects, and skills
+    sections by item name and field. Also supports updating the summary,
+    contact fields, and theme directly.
+
+    Args:
+        id: The resume identifier.
+        payload: EditResumeRequest with section, item_name, field, and new_value.
+
+    Returns:
+        dict: {"status": "Successfully modified <field>"} on success.
+
+    Raises:
+        HTTPException: 400 if the section is unknown or the item/field is not found.
+        HTTPException: 404 if the resume does not exist.
+    """
+    doc = _load_resume(id)
+    section = payload.section.lower()
     modify_map = {
         "experience": lambda: doc.modify_experience(payload.item_name, payload.field, payload.new_value),
         "education": lambda: doc.modify_education(payload.item_name, payload.field, payload.new_value),
         "projects": lambda: doc.modify_project(payload.item_name, payload.field, payload.new_value),
         "skills": lambda: doc.modify_skill(payload.item_name, payload.new_value),
     }
-    if section=="summary":
-        result=doc.update_summary(str(payload.new_value))
+    if section == "summary":
+        result = doc.update_summary(str(payload.new_value))
 
-    elif section=="contact":
+    elif section == "contact":
         doc.update_contact(**{payload.field: payload.new_value})
         result = f"Successfully updated contact field '{payload.field}'"
 
@@ -157,18 +318,26 @@ def edit_resume(id:str,payload: EditResumeRequest):
     else:
         raise HTTPException(status_code=400,
                             detail=f"Unknown section '{section}'. Valid: experience, education, projects, skills, summary, contact, theme",
-)
+        )
     return {"status": result}
 
-def _check_result(result: str):
-    """Raise 400 if the RenderCVDocument operation did not succeed."""
-    if "Successfully" not in result:
-        raise HTTPException(status_code=400, detail=result)
-    return result
 
-"""POST /resume/{id}/add"""
 @resumeRouter.post("/resume/{id}/add/experience")
 def add_experience(id: str, payload: ExperienceRequest):
+    """Add a new work experience entry to the resume.
+
+    Args:
+        id: The resume identifier.
+        payload: ExperienceRequest with company (required) and optional fields.
+
+    Returns:
+        dict: {"status": "Successfully added experience"} on success.
+
+    Raises:
+        HTTPException: 400 if the company name is empty.
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 500 if an unexpected error occurs during save.
+    """
     doc = _load_resume(id)
     exp = Experience(
         company=payload.company,
@@ -186,8 +355,23 @@ def add_experience(id: str, payload: ExperienceRequest):
         raise HTTPException(status_code=500, detail=f"Failed to add experience: {e}")
     return {"status": result}
 
+
 @resumeRouter.post("/resume/{id}/add/education")
 def add_education(id: str, payload: EducationRequest):
+    """Add a new education entry to the resume.
+
+    Args:
+        id: The resume identifier.
+        payload: EducationRequest with institution and area (required) and optional fields.
+
+    Returns:
+        dict: {"status": "Successfully added education"} on success.
+
+    Raises:
+        HTTPException: 400 if the institution is empty or a duplicate entry exists.
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 500 if an unexpected error occurs during save.
+    """
     doc = _load_resume(id)
     edu = Education(
         institution=payload.institution,
@@ -207,8 +391,23 @@ def add_education(id: str, payload: EducationRequest):
         raise HTTPException(status_code=500, detail=f"Failed to add education: {e}")
     return {"status": result}
 
+
 @resumeRouter.post("/resume/{id}/add/project")
 def add_project(id: str, payload: ProjectRequest):
+    """Add a new project entry to the resume.
+
+    Args:
+        id: The resume identifier.
+        payload: ProjectRequest with name (required) and optional fields.
+
+    Returns:
+        dict: {"status": "Successfully added project '<name>'"} on success.
+
+    Raises:
+        HTTPException: 400 if the project name is empty or a duplicate exists.
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 500 if an unexpected error occurs during save.
+    """
     doc = _load_resume(id)
     proj = Project(
         name=payload.name,
@@ -229,6 +428,18 @@ def add_project(id: str, payload: ProjectRequest):
 
 @resumeRouter.delete("/resume/{id}")
 def delete_resume(id: str):
+    """Delete a resume YAML file entirely from the system.
+
+    Args:
+        id: The resume identifier.
+
+    Returns:
+        dict: {"status": "Successfully deleted resume '<id>'"} on success.
+
+    Raises:
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 500 if the file cannot be deleted (e.g., permission error).
+    """
     doc = _load_resume(id)
     try:
         doc.yaml_file.unlink()
@@ -236,8 +447,23 @@ def delete_resume(id: str):
         raise HTTPException(status_code=500, detail=f"Failed to delete resume: {e}")
     return {"status": f"Successfully deleted resume '{id}'"}
 
+
 @resumeRouter.post("/resume/{id}/add/skill")
 def add_skill(id: str, payload: SkillsRequest):
+    """Add a new skill category to the resume.
+
+    Args:
+        id: The resume identifier.
+        payload: SkillsRequest with label and details (both required).
+
+    Returns:
+        dict: {"status": "Successfully added skills"} on success.
+
+    Raises:
+        HTTPException: 400 if the label is empty or a duplicate exists.
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 500 if an unexpected error occurs during save.
+    """
     doc = _load_resume(id)
     skill = Skills(label=payload.label, details=payload.details)
     try:
@@ -248,9 +474,25 @@ def add_skill(id: str, payload: SkillsRequest):
         raise HTTPException(status_code=500, detail=f"Failed to add skill: {e}")
     return {"status": result}
 
-"""POST /resume/{id}/remove"""
+
 @resumeRouter.post("/resume/{id}/remove")
 def remove_item(id: str, payload: RemoveItemRequest):
+    """Remove an item from a resume section by name.
+
+    Supports removing items from experience (by company name), education
+    (by institution), projects (by project name), and skills (by label).
+
+    Args:
+        id: The resume identifier.
+        payload: RemoveItemRequest with section and item_name.
+
+    Returns:
+        dict: {"status": "Successfully deleted: <item_name>"} on success.
+
+    Raises:
+        HTTPException: 400 if the section is unknown or the item is not found.
+        HTTPException: 404 if the resume does not exist.
+    """
     doc = _load_resume(id)
     section = payload.section.lower()
     remove_map = {
@@ -268,4 +510,3 @@ def remove_item(id: str, payload: RemoveItemRequest):
 
     result = _check_result(remove_map[section]())
     return {"status": result}
-
