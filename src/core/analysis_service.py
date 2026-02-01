@@ -25,6 +25,7 @@ from src.reporting.portfolio_service import (
     build_portfolio_showcase,
     display_portfolio_showcase,
 )
+from src.analysis.file_traverser import ProjectTraversalModule
 
 def extract_if_zip(zip_path: Path | UploadFile) -> Path:
     """
@@ -134,6 +135,11 @@ def analyze_project(root: Path, use_ai_analysis=False) -> None:
     """
 
     display_name = root.name
+
+    #For use when ready
+    #traverser = ProjectTraversalModule(root)
+    #analysis = traverser.build_analysis_with_project()
+
     hierarchy = FileMetadataExtractor(root).file_hierarchy()  #Metadata extracted and datetime objects converted to strings
     duration = str(Project_Duration_Estimator(hierarchy).get_duration()) #Project duration estimate
     resume = generate_resume_item(root, project_name=display_name)
