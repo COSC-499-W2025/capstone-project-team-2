@@ -1,7 +1,6 @@
 import copy
-import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from fastapi import UploadFile
 
@@ -17,13 +16,12 @@ from src.reporting.resume_item_generator import generate_resume_item
 from src.storage.file_data_saving import SaveFileAnalysisAsJSON
 from src.core.ai_data_scrubbing import ai_data_scrubber
 from src.core.AI_analysis_code import codeAnalysisAI
-from src.utils.utility_methods import *
+from src.utils.utility_methods import convert_datetime_to_string
 from src.core.document_analysis import DocumentAnalyzer
 from src.core.project_stack_detection import detect_project_stack
 from src.reporting.portfolio_service import (
     load_portfolio_showcase,
     build_portfolio_showcase,
-    display_portfolio_showcase,
 )
 
 def extract_if_zip(zip_path: Path | UploadFile) -> Path:
@@ -111,7 +109,6 @@ def export_json(project_name: str, analysis: Dict[str, Any]) -> str | None:
 
     saver = SaveFileAnalysisAsJSON()
     saver.saveAnalysis(project_name, analysis_copy, str(out_dir))
-    file_path = out_dir / filename
 
     try:
         record_id = runtimeAppContext.store.insert_json(filename, analysis_copy)
@@ -134,8 +131,8 @@ def analyze_project(root: Path, use_ai_analysis=False) -> None:
     """
 
     display_name = root.name
-    hierarchy = FileMetadataExtractor(root).file_hierarchy()  #Metadata extracted and datetime objects converted to strings
-    duration = str(Project_Duration_Estimator(hierarchy).get_duration()) #Project duration estimate
+    hierarchy = FileMetadataExtractor(root).file_hierarchy()  #Metadata extracted with datetime objects
+    duration = Project_Duration_Estimator(hierarchy).get_duration_human() #Project duration estimate
     resume = generate_resume_item(root, project_name=display_name)
 
     doc_analysis = DocumentAnalyzer(root).analyze()
