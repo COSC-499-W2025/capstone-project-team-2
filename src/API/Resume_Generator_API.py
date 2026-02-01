@@ -72,6 +72,10 @@ class SkillsRequest(BaseModel):
     label: str
     details: str
 
+class RemoveItemRequest(BaseModel):
+    section: str
+    item_name: str
+
 """-------Helper Methods-------"""
 def _load_resume(name:str) ->RenderCVDocument:
     doc=RenderCVDocument(doc_type="resume")
@@ -122,3 +126,38 @@ def get_resume(id: str):
         "skills": doc.get_skills(),
         "connections": doc.get_connections(),
     }
+
+"""POST /Resume/{id}/edit"""
+@resumeRouter.post("/resume/{id}/edit")
+def edit_resume(id:str,payload: EditResumeRequest):
+    doc=_load_resume(id)
+    section=payload.section.lower()
+    modify_map = {
+        "experience": lambda: doc.modify_experience(payload.item_name, payload.field, payload.new_value),
+        "education": lambda: doc.modify_education(payload.item_name, payload.field, payload.new_value),
+        "projects": lambda: doc.modify_project(payload.item_name, payload.field, payload.new_value),
+        "skills": lambda: doc.modify_skill(payload.item_name, payload.new_value),
+    }
+    if section=="summary":
+        result=doc.update_summary(str(payload.new_value))
+
+    elif section=="contact":
+        doc.update_contact(**{payload.field: payload.new_value})
+        result = f"Successfully updated contact field '{payload.field}'"
+
+    elif section == "theme":
+        result = doc.update_theme(str(payload.new_value))
+
+    elif section in modify_map:
+        result = modify_map[section]()
+
+    else:
+        raise HTTPException(status_code=400,
+                            detail=f"Unknown section '{section}'. Valid: experience, education, projects, skills, summary, contact, theme",
+)
+
+
+
+
+
+
