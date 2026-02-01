@@ -12,9 +12,14 @@ test_client = TestClient(app)
 
 def test_analysis_API_performed():
     """
-    Esnures that when passing a zip file to analysis API, that analysis is performed without error
+    Ensures that when passing a zip file to analysis API, analysis completes and returns dedup info.
+
+    Args:
+        None
     """
     runtimeAppContext.currently_uploaded_file = Path(os.getcwd()).absolute().resolve() / "src" / "TEST.zip"
     response = test_client.get("/analyze")
     assert response.status_code == 200
-    assert response.json() == "Analysis Finished and Saved"
+    body = response.json()
+    assert body["status"] == "Analysis Finished and Saved"
+    assert "dedup" in body
