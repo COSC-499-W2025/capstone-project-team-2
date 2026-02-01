@@ -20,7 +20,7 @@ class ProjectTraversalModule:
     #vvvvvv
 
     #Example suffix list for sorting condition
-    PYTHON_SUFFIXES = list(".py")
+    PYTHON_SUFFIXES = [".py"]
 
     #^^^^^^
 
@@ -85,7 +85,7 @@ class ProjectTraversalModule:
         """
         try:
             children = list(self.root_dir.iterdir())
-        except:
+        except OSError:
             return
         for c in children:
             self._helper_traversal(c)
@@ -105,7 +105,7 @@ class ProjectTraversalModule:
         else:
             try:
                 children = list(current_dir.iterdir())
-            except:
+            except OSError:
                 return
             for c in children:
                 self._helper_traversal(c)
