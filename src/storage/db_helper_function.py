@@ -278,7 +278,7 @@ class HelperFunct:
         finally:
             cursor.close()
 
-    def retrieve_selected_version(self, project_id: int, version_number: int) -> List[Dict]:
+    def retrieve_selected_version(self, project_id: int, version_number: int) -> Dict | None:
         """
         Retrieve the full data for a user-selected version.
         Returns everything needed to display or work with that version.

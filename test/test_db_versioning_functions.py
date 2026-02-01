@@ -39,6 +39,29 @@ class TestVersioningHelper(unittest.TestCase):
 
     # ---------- Create / Fetch ----------
 
+    def test_restore_previous_version(self):
+        """
+        Verify that we can restore a previous version by retrieving it
+        and updating the project with that old content.
+        """
+        row_id = self.store.insert_json("file.json", {"data": 1})
+        self.store.update(row_id, {"data": 2})
+        self.store.update(row_id, {"data": 3})
+
+        version_to_restore = 2
+        old_data = self.store.retrieve_selected_version(row_id, version_to_restore)
+        self.assertIsNotNone(old_data)
+
+        restored = self.store.update(row_id, old_data['content'])
+        self.assertTrue(restored)
+
+        latest_version = self.store.get_version_list(row_id)[0]
+        self.assertEqual(latest_version['version_number'], 4) 
+        self.assertTrue(latest_version['is_current'])
+
+        restored_content = self.store.fetch_by_id(row_id)
+        self.assertEqual(restored_content, {"data": 2})
+
     def test_create_and_fetch_latest_version(self):
         """
         Verify that inserting initial content creates version 1 and that
@@ -46,7 +69,6 @@ class TestVersioningHelper(unittest.TestCase):
         """
         row_id = self.store.insert_json("file.json", {"data": 1})
     
-        # Update once (creates version 2)
         self.store.update(row_id, {"data": 2})
     
         versions = self.store.get_version_list(row_id)
@@ -59,7 +81,7 @@ class TestVersioningHelper(unittest.TestCase):
         selected = self.store.retrieve_selected_version(row_id, 1)
         self.assertEqual(selected['content'], {"data": 1})
 
-    def test_restore_previous_version(self):
+    def test_delete_cascades_to_versions(self):
         row_id = self.store.insert_json("file.json", {"data": 1})
         self.store.update(row_id, {"data": 2})
         self.store.update(row_id, {"data": 3})
@@ -68,7 +90,6 @@ class TestVersioningHelper(unittest.TestCase):
         versions_before = self.store.get_version_list(row_id)
         self.assertEqual(len(versions_before), 3)
 
-        # Delete the project row (should cascade to versions)
         deleted = self.store.delete(row_id)
         self.assertTrue(deleted)
 
@@ -95,13 +116,13 @@ class TestVersioningHelper(unittest.TestCase):
         old_data = self.store.retrieve_selected_version(row_id, version_to_restore)
         self.assertIsNotNone(old_data)
 
-        # Perform update with old content (simulate restore)
+        # Perform update with old content
         restored = self.store.update(row_id, old_data['content'])
         self.assertTrue(restored)
 
         # Latest version should now match restored content
         latest_version = self.store.get_version_list(row_id)[0]
-        self.assertEqual(latest_version['version_number'], 4)  # auto-incremented
+        self.assertEqual(latest_version['version_number'], 4)
         self.assertTrue(latest_version['is_current'])
 
         restored_content = self.store.fetch_by_id(row_id)
