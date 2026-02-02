@@ -1,7 +1,7 @@
 import json
 import mysql.connector
 from mysql.connector import Error
-from typing import Union
+from typing import Dict, List, Union
 
 
 class HelperFunct:
@@ -48,8 +48,17 @@ class HelperFunct:
             "INSERT INTO project_data (filename, content, file_blob) VALUES (%s, %s, %s)",
             (filename, json.dumps(data), raw_bytes)
             )
+
+            project_id = cursor.lastrowid   
+
+            cursor.execute(
+                "INSERT INTO project_versions (project_id, version_number, filename, content, file_blob) "
+                "VALUES (%s, 1, %s, %s, %s)",
+                (project_id, filename, json.dumps(data), raw_bytes)
+            )
             self.conn.commit()
-            return cursor.lastrowid
+            
+            return project_id
         finally:
             cursor.close()
 
@@ -139,21 +148,41 @@ class HelperFunct:
         else:
             raise ValueError("new_input must be a dict or bytes")
 
-        sql = "UPDATE project_data SET content=%s, file_blob=%s"
-        params = [json.dumps(content), blob]
-
-        if filename is not None:
-            sql += ", filename=%s"
-            params.append(filename)
-
-        sql += " WHERE id=%s"
-        params.append(row_id)
-
         cursor = self.conn.cursor()
+
         try:
+            # Get current version
+            cursor.execute(
+                "SELECT current_version, filename FROM project_data WHERE id=%s FOR UPDATE", (row_id,)
+            )
+            row = cursor.fetchone()
+            if not row:
+                return False
+            current_version, old_filename = row
+            new_version = current_version + 1
+
+            # Update project_data with new content
+            sql = "UPDATE project_data SET content=%s, file_blob=%s, current_version=%s"
+            params = [json.dumps(content), blob, new_version]
+
+            if filename is not None:
+                sql += ", filename=%s"
+                params.append(filename)
+
+            sql += " WHERE id=%s"
+            params.append(row_id)
+
             cursor.execute(sql, tuple(params))
+
+            # Insert new version into project_versions
+            cursor.execute(
+                "INSERT INTO project_versions (project_id, version_number, filename, content, file_blob) "
+                "VALUES (%s, %s, %s, %s, %s)",
+                (row_id, new_version, filename or old_filename, json.dumps(content), blob)
+            )
+
             self.conn.commit()
-            return cursor.rowcount > 0
+            return True
         finally:
             cursor.close()
 
@@ -196,5 +225,145 @@ class HelperFunct:
             cursor.execute("DELETE FROM project_data WHERE id = %s", (row_id,))
             self.conn.commit()
             return cursor.rowcount > 0
+        finally:
+            cursor.close()
+
+    def get_version_list(self, project_id: int) -> List[Dict]:
+        """
+        Get a simple list of all versions for display to the user.
+        Perfect for showing a selection menu.
+
+        Args:
+            project_id: The unique database ID of the project.
+
+        Returns:
+            list: A list of dictionaries containing:
+                - version_number: The version number
+                - filename: Filename at that version
+                - created_at: Timestamp when version was created
+                - is_current: Whether this is the current active version
+            
+            Ordered from newest to oldest.
+        
+        Example:
+            versions = helper.get_version_list(5)
+            for v in versions:
+                status = "(Current)" if v['is_current'] else ""
+                print(f"Version {v['version_number']}: {v['filename']} - {v['created_at']} {status}")
+        """
+        cursor = self.conn.cursor(dictionary=True)
+        try:
+            cursor.execute("""
+                SELECT 
+                    pv.version_number,
+                    pv.filename,
+                    pv.created_at,
+                    CASE 
+                        WHEN pv.version_number = pd.current_version THEN TRUE
+                        ELSE FALSE
+                    END as is_current
+                FROM project_versions pv
+                JOIN project_data pd ON pv.project_id = pd.id
+                WHERE pv.project_id = %s
+                ORDER BY pv.version_number DESC
+            """, (project_id,))
+            
+            versions = cursor.fetchall()
+            
+            # Convert is_current to boolean
+            for version in versions:
+                version['is_current'] = bool(version['is_current'])
+                
+            return versions
+        finally:
+            cursor.close()
+
+    def retrieve_selected_version(self, project_id: int, version_number: int) -> Dict | None:
+        """
+        Retrieve the full data for a user-selected version.
+        Returns everything needed to display or work with that version.
+
+        Args:
+            project_id: The unique database ID of the project.
+            version_number: The version number the user selected.
+
+        Returns:
+            dict | None: A dictionary containing:
+                - version_number: The version number
+                - filename: Filename at that version
+                - content: Parsed JSON content (dict)
+                - file_blob: Raw binary data (bytes)
+                - created_at: Timestamp when version was created
+            Returns None if version doesn't exist.
+        
+        Example:
+            selected = helper.retrieve_selected_version(5, 3)
+            if selected:
+                print(f"Loaded: {selected['filename']}")
+                analysis_data = selected['content']
+                raw_file = selected['file_blob']
+        """
+        cursor = self.conn.cursor(dictionary=True)
+        try:
+            cursor.execute("""
+                SELECT 
+                    version_number,
+                    filename,
+                    content,
+                    file_blob,
+                    created_at
+                FROM project_versions
+                WHERE project_id = %s AND version_number = %s
+            """, (project_id, version_number))
+            
+            version = cursor.fetchone()
+            
+            if version:
+                # Parse the JSON content
+                version['content'] = json.loads(version['content'])
+                
+            return version
+        finally:
+            cursor.close()
+
+    def get_all_projects_with_versions(self) -> List[Dict]:
+        """
+        Get a list of all projects showing their version counts.
+        Useful for displaying a master list of all projects.
+
+        Args:
+            None
+
+        Returns:
+            list: A list of dictionaries containing:
+                - project_id: The project ID
+                - filename: Current filename
+                - current_version: Current version number
+                - total_versions: Total number of saved versions
+                - uploaded_at: When project was first created
+                - updated_at: When project was last updated
+        
+        Example:
+            projects = helper.get_all_projects_with_versions()
+            for p in projects:
+                print(f"{p['filename']}: Version {p['current_version']} ({p['total_versions']} total versions)")
+        """
+        cursor = self.conn.cursor(dictionary=True)
+        try:
+            cursor.execute("""
+                SELECT 
+                    pd.id as project_id,
+                    pd.filename,
+                    pd.current_version,
+                    pd.uploaded_at,
+                    pd.updated_at,
+                    COUNT(pv.id) as total_versions
+                FROM project_data pd
+                LEFT JOIN project_versions pv ON pd.id = pv.project_id
+                GROUP BY pd.id
+                ORDER BY pd.updated_at DESC
+            """)
+            
+            return cursor.fetchall()
         finally:
             cursor.close()
