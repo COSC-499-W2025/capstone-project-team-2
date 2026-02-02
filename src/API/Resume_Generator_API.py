@@ -334,7 +334,7 @@ def add_project(id: str, project_id: int, payload: Optional[ProjectRequest] = No
         name=payload.name if payload and payload.name else resume_item.get("project_name", ""),
         start_date=payload.start_date if payload and payload.start_date else "2025-01",
         end_date=payload.end_date if payload and payload.end_date else "2026-02",
-        location=payload.location if payload and payload.location else "N/A",
+        location=payload.location if payload and payload.location else "City, Country",
         summary=payload.summary if payload and payload.summary else resume_item.get("summary"),
         highlights=payload.highlights if payload and payload.highlights else resume_item.get("highlights"),
     )
