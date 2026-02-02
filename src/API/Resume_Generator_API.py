@@ -259,28 +259,33 @@ def edit_resume(id: str, payload: EditResumeRequest):
         HTTPException: 404 if the resume does not exist.
     """
     doc = _load_resume(id)
+    modify_map = {
+        "experience": doc.modify_experience,
+        "education": doc.modify_education,
+        "projects": doc.modify_project,
+    }
     results = []
 
     for edit in payload.edits:
         section = edit.section.lower()
-        modify_map = {
-            "experience": lambda e=edit: doc.modify_experience(e.item_name, e.field, e.new_value),
-            "education": lambda e=edit: doc.modify_education(e.item_name, e.field, e.new_value),
-            "projects": lambda e=edit: doc.modify_project(e.item_name, e.field, e.new_value),
-            "skills": lambda e=edit: doc.modify_skill(e.item_name, e.new_value),
-        }
+
         if section == "summary":
             result = doc.update_summary(str(edit.new_value))
 
         elif section == "contact":
+            # ** unpacks the dict into a keyword argument so the dynamic
+            # field name (e.g. "email") is passed as update_contact(email=new_value)
             doc.update_contact(**{edit.field: edit.new_value})
             result = f"Successfully updated contact field '{edit.field}'"
 
         elif section == "theme":
             result = doc.update_theme(str(edit.new_value))
 
+        elif section == "skills":
+            result = doc.modify_skill(edit.item_name, edit.new_value)
+
         elif section in modify_map:
-            result = modify_map[section]()
+            result = modify_map[section](edit.item_name, edit.field, edit.new_value)
 
         else:
             raise HTTPException(status_code=400,
