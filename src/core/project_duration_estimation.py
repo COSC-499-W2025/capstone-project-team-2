@@ -58,14 +58,7 @@ class Project_Duration_Estimator:
         '''
         self.hierarchy = hierarchy  #stores hierarchy for use
         self.__list_dates()
-        if (len(self.file_ranges) == 0):  #Ensures that error is raised at relevant time if there are no files to pull dates from
-            raise Exception("No files found. Estimate cannot be made.")
-        else: 
-            try:
-                self.__find_duration()
-            except: #Added for situation where None exists in metadata and error is returned, will handle better later
-                self.start_estimate = datetime.datetime.now()
-                self.end_estimate = datetime.datetime.now()
+        self.__find_duration()
 
     def __list_dates(self):
         '''

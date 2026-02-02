@@ -21,7 +21,9 @@ def test_analysis_API_performed():
     runtimeAppContext.currently_uploaded_file = Path(os.getcwd()).absolute().resolve() / "src" / "TEST.zip"
     response = test_client.get("/analyze")
     assert response.status_code == 200
-    assert response.json() == "Analysis Finished and Saved"
+    body = response.json()
+    assert body["status"] == "Analysis Finished and Saved"
+    assert "dedup" in body
 
 def test_analysis_API_performed_with_upload_file():
     """
