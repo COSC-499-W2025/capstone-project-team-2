@@ -85,11 +85,11 @@ def generate_portfolio(payload: GeneratePorfirioRequest, background_tasks: Backg
                         headers={"X-Portfolio-ID": full_name})
 
 
-@portfolioRouter.get("/portfolio/{id}")
-def get_portfolio(id: str):
-    doc=_load_portfolio(id)
+@portfolioRouter.get("/portfolio/{portfolio_id}")
+def get_portfolio(portfolio_id: str):
+    doc=_load_portfolio(portfolio_id)
     return {
-        "name": id,
+        "name": portfolio_id,
         "contact": doc.get_contact_info(),
         "theme": doc.get_theme(),
         "summary": doc.get_summary(),
@@ -98,9 +98,9 @@ def get_portfolio(id: str):
         "connections": doc.get_connections(),
     }
 
-@portfolioRouter.post("/portfolio/{id}/edit")
-def edit_portfolio(id:str,payload: EditProjectRequest):
-    doc=_load_portfolio(id)
+@portfolioRouter.post("/portfolio/{portfolio_id}/edit")
+def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
+    doc=_load_portfolio(portfolio_id)
     modify_map={
         "projects": doc.modify_project,
     }
@@ -128,3 +128,29 @@ def edit_portfolio(id:str,payload: EditProjectRequest):
         results.append(result)
     return {"results": results}
 
+
+@portfolioRouter.post("/portfolio/{portfolio_id}/add/project/{project_id}")
+def add_project(portfolio_id:str,project_id:int,payload: Optional[ProjectRequest]=None):
+    doc=_load_portfolio(portfolio_id)
+    project_data=runtimeAppContext.store.fetch_by_id(project_id)
+    if project_data is None:
+        raise HTTPException(status_code=404, detail=f"Project {project_id} not found in database")
+    resume_item=project_data.get("resume_item",{}) if isinstance(project_data,dict) else {}
+    if not resume_item:
+        raise HTTPException(status_code=404, detail=f"Project record {project_id} has no resume_item data")
+
+    proj= Project(
+        name=payload.name if payload and payload.name else resume_item.get("project_name",""),
+        start_date=payload.start_date if payload and payload.start_date else "2025-01",
+        end_date=payload.end_date if payload and payload.end_date else "2026-02",
+        location=payload.location if payload and payload.location else "N/A",
+        summary=payload.summary if payload and payload.summary else resume_item.get("summary"),
+        highlights=payload.highlights if payload and payload.highlights else resume_item.get("highlights"),
+    )
+    try:
+        result = _check_result(doc.add_project(proj))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
+    return {"status": result}
