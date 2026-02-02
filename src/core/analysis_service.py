@@ -2,7 +2,7 @@ import copy
 import datetime
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from fastapi import UploadFile
 
@@ -19,13 +19,12 @@ from src.storage.file_data_saving import SaveFileAnalysisAsJSON
 from src.storage.dedup_index import deduplicate_project
 from src.core.ai_data_scrubbing import ai_data_scrubber
 from src.core.AI_analysis_code import codeAnalysisAI
-from src.utils.utility_methods import *
+from src.utils.utility_methods import convert_datetime_to_string
 from src.core.document_analysis import DocumentAnalyzer
 from src.core.project_stack_detection import detect_project_stack
 from src.reporting.portfolio_service import (
     load_portfolio_showcase,
     build_portfolio_showcase,
-    display_portfolio_showcase,
 )
 from src.analysis.file_traverser import ProjectTraversalModule
 
@@ -133,13 +132,13 @@ def analyze_project(root: Path, use_ai_analysis=False) -> Dict[str, Any]:
     """
 
     display_name = root.name
+    hierarchy = FileMetadataExtractor(root).file_hierarchy()  #Metadata extracted with datetime objects
+    duration = Project_Duration_Estimator(hierarchy).get_duration_human() #Project duration estimate
 
     #For use when ready
     #traverser = ProjectTraversalModule(root)
     #analysis = traverser.build_analysis_with_project()
 
-    hierarchy = FileMetadataExtractor(root).file_hierarchy()  #Metadata extracted and datetime objects converted to strings
-    duration = str(Project_Duration_Estimator(hierarchy).get_duration()) #Project duration estimate
     resume = generate_resume_item(root, project_name=display_name)
 
     doc_analysis = DocumentAnalyzer(root).analyze()

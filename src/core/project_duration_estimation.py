@@ -1,21 +1,54 @@
 import datetime
 
+def _format_duration(delta: datetime.timedelta) -> str:
+    '''
+    Formats a timedelta into a human-readable string.
+
+    Args:
+        delta (datetime.timedelta): Duration to format.
+
+    Returns:
+        str: Human-readable duration string.
+    '''
+    total_seconds = delta.total_seconds()
+    if total_seconds == 0:
+        return "0 seconds"
+    if 0 < total_seconds < 1:
+        return "less than 1 second"
+
+    sign = ""
+    if total_seconds < 0:
+        sign = "-"
+        total_seconds = abs(total_seconds)
+
+    total_seconds = int(total_seconds)
+    days, rem = divmod(total_seconds, 86400)
+    hours, rem = divmod(rem, 3600)
+    minutes, seconds = divmod(rem, 60)
+
+    parts = []
+    if days:
+        parts.append(f"{days} day" + ("s" if days != 1 else ""))
+    if hours:
+        parts.append(f"{hours} hour" + ("s" if hours != 1 else ""))
+    if minutes:
+        parts.append(f"{minutes} minute" + ("s" if minutes != 1 else ""))
+    if seconds or not parts:
+        parts.append(f"{seconds} second" + ("s" if seconds != 1 else ""))
+
+    return sign + ", ".join(parts)
+
 class Project_Duration_Estimator:
     '''
-    Class for estiamting the duration of a project after the files have had metadata extracted
-    Takes dictionary format of file hieracrhy on initialization and extracts "created" and "modified" dates from the files to create an estimate of project duration.
+    Estimate project duration from file metadata.
 
-    self.start_estimate stores the start date. Can be modified for future scenarios of user input.
-    self.end_estimate stores the end date. Can be modified for future scenarios of user input.
-    get/set functions are not designed for these yet.
-
-    get_duration() returns the project duration.
+    Takes a dictionary hierarchy and extracts "created" and "modified" dates
+    from files to estimate project duration.
     '''
-
 
     def __init__(self, hierarchy: dict):
         '''
-        Takes in hierarchy of files with metadata upon initialization and pulls the datetime information neccessary
+        Takes a hierarchy of files with metadata and pulls the datetime information needed.
 
         Args:
             hierarchy (dict): hierarchy of files with metadata of last modified dates and created dates
@@ -25,23 +58,14 @@ class Project_Duration_Estimator:
         '''
         self.hierarchy = hierarchy  #stores hierarchy for use
         self.__list_dates()
-        if (self.created_dates.count == 0 or self.mod_dates == 0):  #Ensures that error is raised at relevant time if there are no files to pull dates from
-            raise Exception("No files found. Estimate cannot be made.")
-        else: 
-            try:
-                self.__find_duration()
-            except: #Added for situation where None exists in metadata and error is returned, will handle better later
-                self.start_estimate = datetime.datetime.now()
-                self.end_estimate = datetime.datetime.now()
+        self.__find_duration()
 
     def __list_dates(self):
         '''
-        Recursive method that traverses dictionary of hierarchy for creation and last modified datetimes
+        Recursive method that traverses dictionary of hierarchy and collects per-file earliest and latest timestamps.
         '''
-        self.created_dates = [] #list for all creation dates of files
-        self.mod_dates = [] #list for all last modified dates of files
-
-        self.__list_dates_recurse(self.hierarchy)   #recursion function helper to this method
+        self.file_ranges = []
+        self.__list_dates_recurse(self.hierarchy)
 
     def __list_dates_recurse(self, node: dict):
         '''
@@ -56,28 +80,29 @@ class Project_Duration_Estimator:
 
     def __add_file_dates(self, file: dict):
         '''
-        Function that takes a file from the recursive method list_dates_recursive and extracts the creation and last modified dates of files
+        Extracts earliest and latest timestamps for a single file.
         '''
-        self.created_dates.append(file["created"])
-        self.mod_dates.append(file["modified"])
+        created = file.get("created")
+        modified = file.get("modified")
+        
+        timestamps = [t for t in (created, modified) if t is not None]
+        
+        if not timestamps:
+            return  # file has no usable timestamps
+        
+        self.file_ranges.append((min(timestamps), max(timestamps)))
 
     def __find_duration(self):
         '''
-        Takes a list of creation dates and last modified dates of files, finding the earliest creation date and latest last modified date for the use of estimating project length.
+        Finds project duration using per-file earliest and latest timestamps.
         '''
-        start_estimate = self.created_dates[0]  #Starter for earliest creation date
-        end_estimate = self.mod_dates[0]    #Starter for latest last modified date
-        for date in self.created_dates: #Finds earliest creation date
-            if date < start_estimate:
-                start_estimate = date
-
-        for date in self.mod_dates: #Finds latest last modified date
-            if date > end_estimate:
-                end_estimate = date
-
-        self.start_estimate = start_estimate
-        self.end_estimate = end_estimate
-
+        
+        if not self.file_ranges:
+            raise Exception("No files with valid timestamps. Estimate cannot be made.")
+        
+        self.start_estimate = min(start for start, _ in self.file_ranges)
+        self.end_estimate = max(end for _, end in self.file_ranges)
+        
     def get_duration(self) -> datetime.timedelta:
         '''
         Returns a datetime.timedelta showing the project duration estimate.
@@ -90,3 +115,8 @@ class Project_Duration_Estimator:
         '''
         return self.end_estimate - self.start_estimate
 
+    def get_duration_human(self) -> str:
+        '''
+        Returns a human-readable duration estimate without microseconds.
+        '''
+        return _format_duration(self.get_duration())
