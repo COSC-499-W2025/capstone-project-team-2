@@ -32,90 +32,20 @@ resumeRouter = APIRouter()
 """Request / Response Models"""
 
 class GenerateResumeRequest(BaseModel):
-    """Request payload for generating a new resume.
-
-    Attributes:
-        name: The person's name used as the base filename.
-        theme: RenderCV theme to apply. Defaults to 'sb2nov'.
-               Valid: classic, engineeringclassic, engineeringresumes, moderncv, sb2nov.
-        overwrite: If True, replaces an existing resume with the same name.
-    """
     name: str
     theme: Optional[str] = 'sb2nov'
     overwrite: bool = False
 
 class EditItem(BaseModel):
-    """A single edit operation on a resume section item.
-
-    Attributes:
-        section: The section to edit. Valid: experience, education, projects,
-                 skills, summary, contact, theme.
-        item_name: Identifier for the item within the section (e.g., company
-                   name for experience, institution for education).
-        field: The specific field to modify (e.g., 'position', 'area').
-        new_value: The new value to set for the field.
-    """
     section: str
     item_name: str
     field: str
     new_value: str
 
 class EditResumeRequest(BaseModel):
-    """Request payload for editing one or more resume section items.
-
-    Attributes:
-        edits: A list of edit operations to apply.
-    """
     edits: List[EditItem]
 
-class ContactUpdateRequest(BaseModel):
-    """Request payload for updating contact information.
-
-    Attributes:
-        email: Email address to display.
-        phone: Phone number with country code.
-        location: City and state/country.
-        website: Personal website URL.
-        name: Full name to display at the top of the CV.
-    """
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    location: Optional[str] = None
-    website: Optional[str] = None
-    name: Optional[str] = None
-
-class ExperienceRequest(BaseModel):
-    """Request payload for adding a work experience entry.
-
-    Attributes:
-        company: Name of the company (required).
-        position: Job title or role held.
-        start_date: Start date in 'YYYY-MM' format.
-        end_date: End date in 'YYYY-MM' format, or 'present'.
-        location: City, State or City, Country.
-        highlights: List of accomplishments or responsibilities.
-    """
-    company: str
-    position: Optional[str] = None
-    start_date: Optional[str] = None
-    end_date: Optional[str] = None
-    location: Optional[str] = None
-    highlights: Optional[List[str]] = None
-
 class ProjectRequest(BaseModel):
-    """Optional overrides when adding a project entry.
-
-    Any field provided here takes precedence over the value pulled
-    from the database.  All fields are optional.
-
-    Attributes:
-        name: Name of the project.
-        start_date: Start date in 'YYYY-MM' format.
-        end_date: End date in 'YYYY-MM' format.
-        location: City, State or City, Country.
-        summary: Brief description of the project.
-        highlights: List of key features or accomplishments.
-    """
     name: Optional[str] = None
     start_date: Optional[str] = None
     end_date: Optional[str] = None
