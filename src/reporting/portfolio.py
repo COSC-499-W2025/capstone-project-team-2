@@ -49,76 +49,83 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
         display_portfolio_showcase(ps)
         
         # PDF Prompt
-        #print("=" * 50)
-        generate_pdf_input = "Y" #input("Would you like to generate a PDF? (y/n): ").strip().upper()
-        
-        if generate_pdf_input == "Y":
-            name_of_file = (
-                input("Enter the name of the PDF file or press enter to use default name (Portfolio): ").strip()or "Portfolio")
+        print("=" * 50)
+        while True:
+            generate_pdf_input = input("Would you like to generate a PDF? (y/N): ").strip().upper()
             
-            # Collect folder path only for fallback (RenderCV uses its own output directory)
-            folder_path = None
-            try:
-                print("[INFO] Generating portfolio PDF using RenderCV...")
+            if generate_pdf_input in {"Y", "N", ""}:
+                break
+            print("[WARN] Please enter only 'y' or 'n'.")
+        
+        if generate_pdf_input != "Y":
+            return # Early exit if no PDF generation requested
+        
+        name_of_file = (
+            input("Enter the name of the PDF file or press enter to use default name (Portfolio): ").strip()or "Portfolio")
+            
+        # Collect folder path only for fallback (RenderCV uses its own output directory)
+        folder_path = None
+        try:
+            print("[INFO] Generating portfolio PDF using RenderCV...")
 
-                service = PortfolioRenderCVService(name=name_of_file)
-                service.add_portfolio(ps)
-                status, pdf_path = service.render_portfolio_pdf()
+            service = PortfolioRenderCVService(name=name_of_file)
+            service.add_portfolio(ps)
+            status, pdf_path = service.render_portfolio_pdf()
 
-                print(f"[INFO] RenderCV status: {status}")
-                if pdf_path:
-                    print(f"[INFO] Portfolio PDF generated at: {pdf_path}")
-                    save_custom = input("Save PDF to a custom location? (y/n): ").strip().upper()
-                    if save_custom == "Y":
-                        attempts = 0
-                        max_attempts = 3
-                        while attempts < max_attempts:
-                            custom_folder = input("Enter the folder path to save the PDF: ").strip()
-                            if os.path.exists(custom_folder):
-                                custom_path = Path(custom_folder) / pdf_path.name
-                                shutil.copy2(pdf_path, custom_path)
-                                print(f"[INFO] PDF saved to: {custom_path}")
-                                break
-                            else:
-                                print(f"[ERROR] Path not found: {custom_folder}")
-                                attempts += 1
+            print(f"[INFO] RenderCV status: {status}")
+            if pdf_path:
+                print(f"[INFO] Portfolio PDF generated at: {pdf_path}")
+                save_custom = input("Save PDF to a custom location? (y/N): ").strip().upper()
+                if save_custom == "Y":
+                    attempts = 0
+                    max_attempts = 3                        
+                    while attempts < max_attempts:
+                        custom_folder = input("Enter the folder path to save the PDF: ").strip()
+                        if os.path.exists(custom_folder):
+                            custom_path = Path(custom_folder) / pdf_path.name
+                            shutil.copy2(pdf_path, custom_path)
+                            print(f"[INFO] PDF saved to: {custom_path}")
+                            break
                         else:
+                            print(f"[ERROR] Path not found: {custom_folder}")                                
+                            attempts += 1
+                    else:
                             print("[WARN] Maximum attempts reached. PDF remains at default location.")
 
-            except Exception as e:
-                print(f"[WARN] RenderCV export failed, falling back to legacy PDF: {e}")
+        except Exception as e:
+            print(f"[WARN] RenderCV export failed, falling back to legacy PDF: {e}")
                 
-                # Collect folder path for fallback PDF generator
-                if folder_path is None:
-                    attempts = 0
-                    max_attempts = 3
-                    while attempts < max_attempts:
-                        folder_path = input("Enter the folder path where you want to save the PDF: ").strip()
-                        if os.path.exists(folder_path):
-                            break
-                        attempts += 1
-                    else:
-                        print("Maximum attempts reached. Cannot generate fallback PDF.")
-                        return
+            # Collect folder path for fallback PDF generator
+            if folder_path is None:
+                attempts = 0
+                max_attempts = 3
+                while attempts < max_attempts:
+                    folder_path = input("Enter the folder path where you want to save the PDF: ").strip()
+                    if os.path.exists(folder_path):
+                        break
+                    attempts += 1
+                else:
+                    print("Maximum attempts reached. Cannot generate fallback PDF.")
+                    return
                 
-                resume_item = analysis.get("resume_item") or {}
-                tech_stack_parts = []
-                if resume_item.get("languages"):
-                    tech_stack_parts.extend(resume_item.get("languages") or [])
-                if resume_item.get("frameworks"):
-                    tech_stack_parts.extend(resume_item.get("frameworks") or [])
+            resume_item = analysis.get("resume_item") or {}
+            tech_stack_parts = []
+            if resume_item.get("languages"):
+                tech_stack_parts.extend(resume_item.get("languages") or [])
+            if resume_item.get("frameworks"):
+                tech_stack_parts.extend(resume_item.get("frameworks") or [])
 
-                legacy_data = ResumeItem(
-                    project_title=resume_item.get("project_name", ps.title),
-                    one_sentence_summary=resume_item.get("summary", ps.overview),
-                    detailed_summary=ps.overview or resume_item.get("summary", ""),
-                    key_responsibilities=list(ps.technical_highlights or []),
-                    key_skills_used=list(resume_item.get("skills") or []),
-                    tech_stack=", ".join(tech_stack_parts),
-                    impact="",
-                    oop_principles_detected={},
-                )
-                SimpleResumeGenerator(folder_path, data=legacy_data, fileName=name_of_file).display_and_run(portfolio_only=True)
+            legacy_data = ResumeItem(
+                project_title=resume_item.get("project_name", ps.title),
+                one_sentence_summary=resume_item.get("summary", ps.overview),
+                detailed_summary=ps.overview or resume_item.get("summary", ""),
+                key_responsibilities=list(ps.technical_highlights or []),
+                key_skills_used=list(resume_item.get("skills") or []),
+                tech_stack=", ".join(tech_stack_parts),
+                impact="",
+                oop_principles_detected={},
+            )
+            SimpleResumeGenerator(folder_path, data=legacy_data, fileName=name_of_file).display_and_run(portfolio_only=True)
 
         return
     
@@ -152,7 +159,13 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
         print("  (None detected)")
     print()
     
-    generate_pdf_input = input("Would you like to generate a PDF? (y/n): ").strip().upper()
+    while True:
+        generate_pdf_input = input("Would you like to generate a PDF? (y/N): ").strip().upper()
+            
+        if generate_pdf_input in {"Y", "N", ""}:
+            break
+        print("[WARN] Please enter only 'y' or 'n'.")
+        
     if generate_pdf_input == "Y":
         attempts = 0
         max_attempts = 3
