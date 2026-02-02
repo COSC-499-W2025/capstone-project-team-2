@@ -1,4 +1,22 @@
+"""
+FastAPI endpoints for portfolio generation and editing via RenderCV.
 
+Provides a RESTFUL API for creating, reading, updating, and deleting
+portfolio documents backed by RenderCV YAML files. Portfolios are identified
+by a unique ID (name + UUID suffix) returned in the X-Portfolio-ID header
+upon generation.
+
+Portfolios differ from resumes in that they do NOT include education or
+experience sections. They focus on projects, skills, summary, contact,
+and connections.
+
+Endpoints:
+    POST   /portfolio/generate                       - Create a new portfolio and render to PDF
+    GET    /portfolio/{id}                           - Retrieve full portfolio data as JSON
+    POST   /portfolio/{id}/edit                      - Modify a field on an existing section item
+    POST   /portfolio/{id}/add/project/{project_id}  - Add a project entry
+    DELETE /portfolio/{id}                           - Delete the portfolio YAML file entirely
+"""
 
 from typing import Optional,List
 import uuid
@@ -11,12 +29,12 @@ from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
 )
 from src.core.app_context import runtimeAppContext
 
-portfolioRouter = APIRouter()
+portfolioRouter = APIRouter(tags=["Portfolio"])
 
 
 """Request / Response Models"""
 
-class GeneratePorfirioRequest(BaseModel):
+class GeneratePortfolioRequest(BaseModel):
     name: str
     theme: Optional[str]= 'sb2nov'
     overwrite:bool = False
@@ -46,6 +64,17 @@ class ProjectRequest(BaseModel):
 
 """----Helper Methods---"""
 def _load_portfolio(name:str) -> RenderCVDocument:
+    """Load an existing portfolio by name.
+
+    Args:
+        name: The portfolio identifier used as the filename.
+
+    Returns:
+        RenderCVDocument: The loaded portfolio document.
+
+    Raises:
+        HTTPException: 404 if the portfolio file does not exist.
+    """
     doc=RenderCVDocument(doc_type='portfolio')
     try:
         doc.load(name=name)
@@ -56,13 +85,37 @@ def _load_portfolio(name:str) -> RenderCVDocument:
     return doc
 
 def _check_result(result:str):
+    """Validate that an operation result indicates success.
+
+    Args:
+        result: The result string returned by a RenderCVDocument operation.
+
+    Returns:
+        str: The result string if it contains "Successfully".
+
+    Raises:
+        HTTPException: 400 if the result does not indicate success.
+    """
     if "Successfully" not in result:
         raise HTTPException(status_code=400,detail=result)
     return result
 
 """---API Calls/Requests---"""
 @portfolioRouter.post("/portfolio/generate")
-def generate_portfolio(payload: GeneratePorfirioRequest, background_tasks: BackgroundTasks):
+def generate_portfolio(payload: GeneratePortfolioRequest, background_tasks: BackgroundTasks):
+    """Generate a new portfolio PDF.
+
+    Args:
+        payload: Request containing the name, optional theme, and overwrite flag.
+        background_tasks: FastAPI background tasks for cleanup after response.
+
+    Returns:
+        FileResponse: The generated portfolio PDF.
+
+    Raises:
+        HTTPException: 404 if a portfolio with the same name exists and overwrite is False.
+        HTTPException: 500 if rendering fails.
+    """
     doc=RenderCVDocument(doc_type='portfolio')
     portfolio_id=str(uuid.uuid4())[:8]
     full_name=f"{payload.name}_{portfolio_id}"
@@ -87,6 +140,17 @@ def generate_portfolio(payload: GeneratePorfirioRequest, background_tasks: Backg
 
 @portfolioRouter.get("/portfolio/{portfolio_id}")
 def get_portfolio(portfolio_id: str):
+    """Retrieve all sections of an existing portfolio.
+
+    Args:
+        portfolio_id: The portfolio identifier.
+
+    Returns:
+        dict: Portfolio data including contact, theme, summary, projects, skills, and connections.
+
+    Raises:
+        HTTPException: 404 if the portfolio does not exist.
+    """
     doc=_load_portfolio(portfolio_id)
     return {
         "name": portfolio_id,
@@ -100,6 +164,19 @@ def get_portfolio(portfolio_id: str):
 
 @portfolioRouter.post("/portfolio/{portfolio_id}/edit")
 def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
+    """Apply one or more edits to a portfolio's sections.
+
+    Args:
+        portfolio_id: The portfolio identifier.
+        payload: A list of edit items specifying the section, field, and new value.
+
+    Returns:
+        dict: {"results": [str, ...]} with the outcome of each edit.
+
+    Raises:
+        HTTPException: 400 if an unknown section is specified.
+        HTTPException: 404 if the portfolio does not exist.
+    """
     doc=_load_portfolio(portfolio_id)
     modify_map={
         "projects": doc.modify_project,
@@ -131,6 +208,20 @@ def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
 
 @portfolioRouter.post("/portfolio/{portfolio_id}/add/project/{project_id}")
 def add_project(portfolio_id:str,project_id:int,payload: Optional[ProjectRequest]=None):
+    """Add a project from the database to a portfolio.
+
+    Args:
+        portfolio_id: The portfolio identifier.
+        project_id: The database ID of the project to add.
+        payload: Optional overrides for project fields.
+
+    Returns:
+        dict: {"status": str} with the result of the operation.
+
+    Raises:
+        HTTPException: 404 if the portfolio or project does not exist.
+        HTTPException: 500 if adding the project fails.
+    """
     doc=_load_portfolio(portfolio_id)
     project_data=runtimeAppContext.store.fetch_by_id(project_id)
     if project_data is None:
@@ -155,23 +246,23 @@ def add_project(portfolio_id:str,project_id:int,payload: Optional[ProjectRequest
         raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
     return {"status": result}
 
-@portfolioRouter.delete("/portfolio/{id}")
-def delete_portfolio(id: str):
+@portfolioRouter.delete("/portfolio/{portfolio_id}")
+def delete_portfolio(portfolio_id: str):
     """Delete a portfolio YAML file entirely from the system.
 
     Args:
-        id: The portfolio identifier.
+        portfolio_id: The portfolio identifier.
 
     Returns:
-        dict: {"status": "Successfully deleted portfolio '<id>'"} on success.
+        dict: {"status": "Successfully deleted portfolio '<portfolio_id>'"} on success.
 
     Raises:
         HTTPException: 404 if the portfolio does not exist.
         HTTPException: 500 if the file cannot be deleted (e.g., permission error).
     """
-    doc = _load_portfolio(id)
+    doc = _load_portfolio(portfolio_id)
     try:
         doc.yaml_file.unlink()
     except OSError as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete portfolio: {e}")
-    return {"status": f"Successfully deleted portfolio '{id}'"}
+    return {"status": f"Successfully deleted portfolio '{portfolio_id}'"}
