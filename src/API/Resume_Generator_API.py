@@ -29,23 +29,26 @@ from src.core.app_context import runtimeAppContext
 
 resumeRouter = APIRouter()
 
-"""Request / Response Models"""
 
 class GenerateResumeRequest(BaseModel):
+    """Payload for creating a new resume."""
     name: str
     theme: Optional[str] = 'sb2nov'
     overwrite: bool = False
 
 class EditItem(BaseModel):
+    """A single field edit on a resume section item."""
     section: str
     item_name: str
     field: str
     new_value: str
 
 class EditResumeRequest(BaseModel):
+    """Payload containing one or more resume edits."""
     edits: List[EditItem]
 
 class ProjectRequest(BaseModel):
+    """Optional overrides when adding a project from the database."""
     name: Optional[str] = None
     start_date: Optional[str] = None
     end_date: Optional[str] = None
