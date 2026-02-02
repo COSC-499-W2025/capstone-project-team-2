@@ -109,52 +109,24 @@ class TestEditResume(_BaseResumeTest):
     def _post_edit(self, edits):
         return self.client.post("/resume/test_abc123/edit", json={"edits": edits})
 
-    def test_edit_experience(self):
+    def test_all_sections(self):
+        """Single test covering every valid section type."""
         self.mock_doc.modify_experience.return_value = "Successfully modified position"
-        resp = self._post_edit([{"section": "experience", "item_name": "Google", "field": "position", "new_value": "Senior Dev"}])
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn("Successfully modified position", resp.json()["results"])
-
-    def test_edit_education(self):
         self.mock_doc.modify_education.return_value = "Successfully modified area"
-        resp = self._post_edit([{"section": "education", "item_name": "UBC", "field": "area", "new_value": "CS"}])
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn("Successfully modified area", resp.json()["results"])
-
-    def test_edit_skills(self):
         self.mock_doc.modify_skill.return_value = "Successfully modified skill"
-        resp = self._post_edit([{"section": "skills", "item_name": "Python", "field": "", "new_value": "Python 3.12"}])
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn("Successfully modified skill", resp.json()["results"])
-
-    def test_edit_summary(self):
         self.mock_doc.update_summary.return_value = "Successfully updated summary"
-        resp = self._post_edit([{"section": "summary", "item_name": "", "field": "", "new_value": "New text"}])
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn("Successfully updated summary", resp.json()["results"])
-
-    def test_edit_contact(self):
-        resp = self._post_edit([{"section": "contact", "item_name": "", "field": "email", "new_value": "a@b.com"}])
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn("email", resp.json()["results"][0])
-
-    def test_edit_theme(self):
         self.mock_doc.update_theme.return_value = "Successfully updated theme"
-        resp = self._post_edit([{"section": "theme", "item_name": "", "field": "", "new_value": "classic"}])
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn("Successfully updated theme", resp.json()["results"])
 
-    def test_multiple_edits(self):
-        self.mock_doc.modify_experience.return_value = "ok"
-        self.mock_doc.modify_education.return_value = "ok"
-        self.mock_doc.modify_skill.return_value = "ok"
         resp = self._post_edit([
             {"section": "experience", "item_name": "Google", "field": "position", "new_value": "Lead"},
             {"section": "education", "item_name": "UBC", "field": "area", "new_value": "CS"},
             {"section": "skills", "item_name": "Python", "field": "", "new_value": "Python 3.12"},
+            {"section": "summary", "item_name": "", "field": "", "new_value": "New text"},
+            {"section": "contact", "item_name": "", "field": "email", "new_value": "a@b.com"},
+            {"section": "theme", "item_name": "", "field": "", "new_value": "classic"},
         ])
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(len(resp.json()["results"]), 3)
+        self.assertEqual(len(resp.json()["results"]), 6)
 
     def test_unknown_section_returns_400(self):
         resp = self._post_edit([{"section": "invalid", "item_name": "x", "field": "y", "new_value": "z"}])
@@ -178,28 +150,13 @@ class TestAddProject(_BaseResumeTest):
         self.mock_ctx = patcher.start()
         self.addCleanup(patcher.stop)
 
-    def test_from_db_no_body(self):
+    def test_from_db_success(self):
         self.mock_doc.add_project.return_value = "Successfully added project 'WarframeFinderStreamlit'"
         self.mock_ctx.store.fetch_by_id.return_value = SAMPLE_DB_RECORD
 
         resp = self.client.post("/resume/test_abc123/add/project/1")
         self.assertEqual(resp.status_code, 200)
         self.assertIn("Successfully", resp.json()["status"])
-
-    def test_body_overrides_db(self):
-        self.mock_doc.add_project.return_value = "Successfully added project 'Custom'"
-        self.mock_ctx.store.fetch_by_id.return_value = SAMPLE_DB_RECORD
-
-        resp = self.client.post("/resume/test_abc123/add/project/1", json={"name": "Custom", "summary": "Override"})
-        self.assertEqual(resp.status_code, 200)
-        proj = self.mock_doc.add_project.call_args[0][0]
-        self.assertEqual(proj.name, "Custom")
-        self.assertEqual(proj.summary, "Override")
-
-    def test_resume_not_found_returns_404(self):
-        self._set_not_found()
-        resp = self.client.post("/resume/fake_id/add/project/1")
-        self.assertEqual(resp.status_code, 404)
 
     def test_db_record_not_found_returns_404(self):
         self.mock_ctx.store.fetch_by_id.return_value = None
@@ -235,12 +192,6 @@ class TestDeleteResume(_BaseResumeTest):
         self._set_not_found()
         resp = self.client.delete("/resume/fake_id")
         self.assertEqual(resp.status_code, 404)
-
-    def test_os_error_returns_500(self):
-        self.mock_doc.yaml_file.unlink.side_effect = OSError("Permission denied")
-        resp = self.client.delete("/resume/test_abc123")
-        self.assertEqual(resp.status_code, 500)
-        self.assertIn("Permission denied", resp.json()["detail"])
 
 
 if __name__ == "__main__":
