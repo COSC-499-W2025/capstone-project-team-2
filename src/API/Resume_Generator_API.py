@@ -10,7 +10,7 @@ Endpoints:
     POST   /resume/generate          - Create a new resume and render to PDF
     GET    /resume/{id}              - Retrieve full resume data as JSON
     POST   /resume/{id}/edit         - Modify a field on an existing section item
-    POST   /resume/{id}/add/project  - Add a project entry
+    POST   /resume/{id}/add/project/{project_id}  - Add a project entry
     DELETE /resume/{id}              - Delete the resume YAML file entirely
 """
 
@@ -24,6 +24,7 @@ from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
     RenderCVDocument,
     Project,
 )
+from src.core.app_context import runtimeAppContext
 
 
 resumeRouter = APIRouter()
@@ -94,17 +95,20 @@ class ExperienceRequest(BaseModel):
     highlights: Optional[List[str]] = None
 
 class ProjectRequest(BaseModel):
-    """Request payload for adding a project entry.
+    """Optional overrides when adding a project entry.
+
+    Any field provided here takes precedence over the value pulled
+    from the database.  All fields are optional.
 
     Attributes:
-        name: Name of the project (required).
+        name: Name of the project.
         start_date: Start date in 'YYYY-MM' format.
         end_date: End date in 'YYYY-MM' format.
         location: City, State or City, Country.
         summary: Brief description of the project.
         highlights: List of key features or accomplishments.
     """
-    name: str
+    name: Optional[str] = None
     start_date: Optional[str] = None
     end_date: Optional[str] = None
     location: Optional[str] = None
@@ -275,30 +279,49 @@ def edit_resume(id: str, payload: EditResumeRequest):
 
 
 
-@resumeRouter.post("/resume/{id}/add/project")
-def add_project(id: str, payload: ProjectRequest):
-    """Add a new project entry to the resume.
+@resumeRouter.post("/resume/{id}/add/project/{project_id}")
+def add_project(id: str, project_id: int, payload: Optional[ProjectRequest] = None):
+    """Add a project entry to the resume from an analysed project in the database.
+
+    Fetches the project analysis record by its database row ID, extracts the
+    resume_item fields, and adds them as a new project on the resume.
+    An optional ProjectRequest body can be provided to override any of the
+    database values.
 
     Args:
         id: The resume identifier.
-        payload: ProjectRequest with name (required) and optional fields.
+        project_id: The database row ID of the analysed project.
+        payload: Optional ProjectRequest body to override database values.
 
     Returns:
         dict: {"status": "Successfully added project '<name>'"} on success.
 
     Raises:
-        HTTPException: 400 if the project name is empty or a duplicate exists.
-        HTTPException: 404 if the resume does not exist.
+        HTTPException: 400 if the project has no resume_item data.
+        HTTPException: 404 if the resume or project record does not exist.
         HTTPException: 500 if an unexpected error occurs during save.
     """
     doc = _load_resume(id)
+
+    project_data = runtimeAppContext.store.fetch_by_id(project_id)
+    if project_data is None:
+        raise HTTPException(status_code=404, detail=f"Project record '{project_id}' not found in database")
+
+    analysis = project_data if isinstance(project_data, dict) else {}
+    if "analysis" in analysis and isinstance(analysis["analysis"], dict):
+        analysis = analysis["analysis"]
+
+    resume_item = analysis.get("resume_item", {})
+    if not resume_item:
+        raise HTTPException(status_code=400, detail=f"Project record '{project_id}' has no resume_item data")
+
     proj = Project(
-        name=payload.name,
-        start_date=payload.start_date,
-        end_date=payload.end_date,
-        location=payload.location,
-        summary=payload.summary,
-        highlights=payload.highlights,
+        name=payload.name if payload and payload.name else resume_item.get("project_name", ""),
+        start_date=payload.start_date if payload and payload.start_date else "2025-01",
+        end_date=payload.end_date if payload and payload.end_date else "2026-02",
+        location=payload.location if payload and payload.location else "N/A",
+        summary=payload.summary if payload and payload.summary else resume_item.get("summary"),
+        highlights=payload.highlights if payload and payload.highlights else resume_item.get("highlights"),
     )
     try:
         result = _check_result(doc.add_project(proj))
