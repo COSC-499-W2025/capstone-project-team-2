@@ -367,5 +367,3 @@ def delete_resume(id: str):
     except OSError as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete resume: {e}")
     return {"status": f"Successfully deleted resume '{id}'"}
-
-
