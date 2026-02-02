@@ -326,11 +326,7 @@ def add_project(id: str, project_id: int, payload: Optional[ProjectRequest] = No
     if project_data is None:
         raise HTTPException(status_code=404, detail=f"Project record '{project_id}' not found in database")
 
-    analysis = project_data if isinstance(project_data, dict) else {}
-    if "analysis" in analysis and isinstance(analysis["analysis"], dict):
-        analysis = analysis["analysis"]
-
-    resume_item = analysis.get("resume_item", {})
+    resume_item = project_data.get("resume_item", {}) if isinstance(project_data, dict) else {}
     if not resume_item:
         raise HTTPException(status_code=400, detail=f"Project record '{project_id}' has no resume_item data")
 
