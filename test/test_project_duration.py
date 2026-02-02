@@ -73,7 +73,7 @@ class TestDurationEstimator(unittest.TestCase):
         with self.assertRaises(Exception):
             no_files = Project_Duration_Estimator(self.no_file_dic)
 
-    def test_fallback_start_uses_earliest_modified_when_created_missing(self):
+    def test_start_uses_earliest_available_timestamp(self):
         '''
         Tests fallback when created dates are missing: start should use earliest modified date.
         '''
@@ -99,7 +99,7 @@ class TestDurationEstimator(unittest.TestCase):
         self.assertEqual(estimator.end_estimate, latest_mod)
         self.assertEqual(estimator.get_duration(), latest_mod - earliest_mod)
 
-    def test_fallback_end_uses_latest_created_when_modified_missing(self):
+    def test_end_uses_latest_available_timestamp(self):
         '''
         Tests fallback when modified dates are missing: end should use latest created date.
         '''

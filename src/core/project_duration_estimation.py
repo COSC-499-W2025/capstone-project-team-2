@@ -58,18 +58,14 @@ class Project_Duration_Estimator:
         '''
         self.hierarchy = hierarchy  #stores hierarchy for use
         self.__list_dates()
-        if (len(self.created_dates) == 0 and len(self.mod_dates) == 0):  #Ensures that error is raised at relevant time if there are no files to pull dates from
-            raise Exception("No files found. Estimate cannot be made.")
         self.__find_duration()
 
     def __list_dates(self):
         '''
-        Recursive method that traverses dictionary of hierarchy for creation and last modified datetimes
+        Recursive method that traverses dictionary of hierarchy and collects per-file earliest and latest timestamps.
         '''
-        self.created_dates = [] #list for all creation dates of files
-        self.mod_dates = [] #list for all last modified dates of files
-
-        self.__list_dates_recurse(self.hierarchy)   #recursion function helper to this method
+        self.file_ranges = []
+        self.__list_dates_recurse(self.hierarchy)
 
     def __list_dates_recurse(self, node: dict):
         '''
@@ -84,47 +80,29 @@ class Project_Duration_Estimator:
 
     def __add_file_dates(self, file: dict):
         '''
-        Function that takes a file from list_dates_recursive and extracts creation and last modified dates.
+        Extracts earliest and latest timestamps for a single file.
         '''
         created = file.get("created")
         modified = file.get("modified")
-        if created is not None:
-            self.created_dates.append(created)
-        if modified is not None:
-            self.mod_dates.append(modified)
+        
+        timestamps = [t for t in (created, modified) if t is not None]
+        
+        if not timestamps:
+            return  # file has no usable timestamps
+        
+        self.file_ranges.append((min(timestamps), max(timestamps)))
 
     def __find_duration(self):
         '''
-        Takes lists of creation and last modified dates and finds the earliest and latest
-        values to estimate project duration.
+        Finds project duration using per-file earliest and latest timestamps.
         '''
-        if self.created_dates:
-            start_estimate = self.created_dates[0]  #Starter for earliest creation date
-            for date in self.created_dates: #Finds earliest creation date
-                if date < start_estimate:
-                    start_estimate = date
-        else:
-            # Fallback: use earliest modified date when created dates are missing
-            start_estimate = self.mod_dates[0]
-            for date in self.mod_dates:
-                if date < start_estimate:
-                    start_estimate = date
-
-        if self.mod_dates:
-            end_estimate = self.mod_dates[0]    #Starter for latest last modified date
-            for date in self.mod_dates: #Finds latest last modified date
-                if date > end_estimate:
-                    end_estimate = date
-        else:
-            # Fallback: use latest created date when modified dates are missing
-            end_estimate = self.created_dates[0]
-            for date in self.created_dates:
-                if date > end_estimate:
-                    end_estimate = date
-
-        self.start_estimate = start_estimate
-        self.end_estimate = end_estimate
-
+        
+        if not self.file_ranges:
+            raise Exception("No files with valid timestamps. Estimate cannot be made.")
+        
+        self.start_estimate = min(start for start, _ in self.file_ranges)
+        self.end_estimate = max(end for _, end in self.file_ranges)
+        
     def get_duration(self) -> datetime.timedelta:
         '''
         Returns a datetime.timedelta showing the project duration estimate.
