@@ -154,3 +154,24 @@ def add_project(portfolio_id:str,project_id:int,payload: Optional[ProjectRequest
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
     return {"status": result}
+
+@portfolioRouter.delete("/portfolio/{id}")
+def delete_portfolio(id: str):
+    """Delete a portfolio YAML file entirely from the system.
+
+    Args:
+        id: The portfolio identifier.
+
+    Returns:
+        dict: {"status": "Successfully deleted portfolio '<id>'"} on success.
+
+    Raises:
+        HTTPException: 404 if the portfolio does not exist.
+        HTTPException: 500 if the file cannot be deleted (e.g., permission error).
+    """
+    doc = _load_portfolio(id)
+    try:
+        doc.yaml_file.unlink()
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete portfolio: {e}")
+    return {"status": f"Successfully deleted portfolio '{id}'"}
