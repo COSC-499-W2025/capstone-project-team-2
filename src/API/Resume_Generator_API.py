@@ -44,8 +44,8 @@ class GenerateResumeRequest(BaseModel):
     theme: Optional[str] = 'sb2nov'
     overwrite: bool = False
 
-class EditResumeRequest(BaseModel):
-    """Request payload for editing a resume section item.
+class EditItem(BaseModel):
+    """A single edit operation on a resume section item.
 
     Attributes:
         section: The section to edit. Valid: experience, education, projects,
@@ -59,6 +59,14 @@ class EditResumeRequest(BaseModel):
     item_name: str
     field: str
     new_value: str
+
+class EditResumeRequest(BaseModel):
+    """Request payload for editing one or more resume section items.
+
+    Attributes:
+        edits: A list of edit operations to apply.
+    """
+    edits: List[EditItem]
 
 class ContactUpdateRequest(BaseModel):
     """Request payload for updating contact information.
@@ -232,49 +240,55 @@ def get_resume(id: str):
 
 @resumeRouter.post("/resume/{id}/edit")
 def edit_resume(id: str, payload: EditResumeRequest):
-    """Edit a single field on an existing resume section item.
+    """Edit one or more fields on an existing resume.
 
     Supports editing items within experience, education, projects, and skills
     sections by item name and field. Also supports updating the summary,
-    contact fields, and theme directly.
+    contact fields, and theme directly. Multiple edits can be submitted
+    in a single request.
 
     Args:
         id: The resume identifier.
-        payload: EditResumeRequest with section, item_name, field, and new_value.
+        payload: EditResumeRequest with a list of edits to apply.
 
     Returns:
-        dict: {"status": "Successfully modified <field>"} on success.
+        dict: {"results": [...]} with the status of each edit.
 
     Raises:
-        HTTPException: 400 if the section is unknown or the item/field is not found.
+        HTTPException: 400 if any section is unknown or an item/field is not found.
         HTTPException: 404 if the resume does not exist.
     """
     doc = _load_resume(id)
-    section = payload.section.lower()
-    modify_map = {
-        "experience": lambda: doc.modify_experience(payload.item_name, payload.field, payload.new_value),
-        "education": lambda: doc.modify_education(payload.item_name, payload.field, payload.new_value),
-        "projects": lambda: doc.modify_project(payload.item_name, payload.field, payload.new_value),
-        "skills": lambda: doc.modify_skill(payload.item_name, payload.new_value),
-    }
-    if section == "summary":
-        result = doc.update_summary(str(payload.new_value))
+    results = []
 
-    elif section == "contact":
-        doc.update_contact(**{payload.field: payload.new_value})
-        result = f"Successfully updated contact field '{payload.field}'"
+    for edit in payload.edits:
+        section = edit.section.lower()
+        modify_map = {
+            "experience": lambda e=edit: doc.modify_experience(e.item_name, e.field, e.new_value),
+            "education": lambda e=edit: doc.modify_education(e.item_name, e.field, e.new_value),
+            "projects": lambda e=edit: doc.modify_project(e.item_name, e.field, e.new_value),
+            "skills": lambda e=edit: doc.modify_skill(e.item_name, e.new_value),
+        }
+        if section == "summary":
+            result = doc.update_summary(str(edit.new_value))
 
-    elif section == "theme":
-        result = doc.update_theme(str(payload.new_value))
+        elif section == "contact":
+            doc.update_contact(**{edit.field: edit.new_value})
+            result = f"Successfully updated contact field '{edit.field}'"
 
-    elif section in modify_map:
-        result = modify_map[section]()
+        elif section == "theme":
+            result = doc.update_theme(str(edit.new_value))
 
-    else:
-        raise HTTPException(status_code=400,
-                            detail=f"Unknown section '{section}'. Valid: experience, education, projects, skills, summary, contact, theme",
-        )
-    return {"status": result}
+        elif section in modify_map:
+            result = modify_map[section]()
+
+        else:
+            raise HTTPException(status_code=400,
+                                detail=f"Unknown section '{section}'. Valid: experience, education, projects, skills, summary, contact, theme",
+            )
+        results.append(result)
+
+    return {"results": results}
 
 
 
