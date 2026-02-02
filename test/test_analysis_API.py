@@ -13,7 +13,10 @@ test_client = TestClient(app)
 
 def test_analysis_API_performed():
     """
-    Esnures that when passing a zip file to analysis API, that analysis is performed without error
+    Ensures that when passing a zip file to analysis API, analysis completes and returns dedup info.
+
+    Args:
+        None
     """
     runtimeAppContext.currently_uploaded_file = Path(os.getcwd()).absolute().resolve() / "src" / "TEST.zip"
     response = test_client.get("/analyze")
@@ -35,7 +38,9 @@ def test_analysis_API_performed_with_upload_file():
     #Calls analysis using the now uploaded project
     response = test_client.get("/analyze")
     assert response.status_code == 200
-    assert response.json() == "Analysis Finished and Saved"
+    body = response.json()
+    assert body["status"] == "Analysis Finished and Saved"
+    assert "dedup" in body
 
 #Somehow we don't get an error raised here. Sam is handling this issue. Test needed for coverage.
 #def test_API_invalid_project():

@@ -6,338 +6,283 @@ import warnings
 from pathlib import Path
 from unittest.mock import patch, MagicMock, mock_open
 
-from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import RenderCVDocument, Connections, Project
+from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import RenderCVDocument, Connections, Project, Skills
 
 # Suppress third-party deprecation warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="google.genai")
 
 
 class TestPortfolio(unittest.TestCase):
-    """
-    Test suite for the RenderCVDocument class with portfolio document type.
-
-    Tests portfolio generation, loading, saving, and adding connections/projects
-    functionality including AI-generated project additions.
-    """
+    """Test suite for the RenderCVDocument class with portfolio document type."""
 
     def setUp(self):
-        """
-        Set up test fixtures before each test method.
-
-        Creates a temporary directory and changes the working directory to it
-        for isolated test execution.
-
-        Args:
-            self: The test case instance
-
-        Returns:
-            None: Sets up instance attributes test_dir and original_cwd
-        """
+        """Set up test fixtures before each test method."""
         self.test_dir = tempfile.mkdtemp()
         self.original_cwd = os.getcwd()
         os.chdir(self.test_dir)
 
     def tearDown(self):
-        """
-        Clean up test fixtures after each test method.
-
-        Restores the original working directory and removes the temporary
-        test directory to ensure clean state for subsequent tests.
-
-        Args:
-            self: The test case instance
-
-        Returns:
-            None: Cleans up test environment
-        """
+        """Clean up test fixtures after each test method."""
         os.chdir(self.original_cwd)
         shutil.rmtree(self.test_dir, ignore_errors=True)
 
+    def create_loaded_portfolio(self):
+        """Create a portfolio instance with starter file generated and loaded."""
+        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio.cv_files_dir = Path(self.test_dir)
+        portfolio.generate(name="Test User")
+        portfolio.load()
+        return portfolio
+
+    # ============== CORE TESTS ==============
+
     def test_generate_load_and_save(self):
-        """
-        Test portfolio generation, file creation, and loading functionality.
-
-        Verifies that a portfolio can be successfully generated with a given name,
-        the YAML file is created on disk, and the loaded data contains the expected
-        'cv' key structure.
-
-        Args:
-            self: The test case instance
-
-        Returns:
-            None: Asserts pass if portfolio generates, saves, and loads correctly
-        """
+        """Test portfolio generation, file creation, loading, and error handling."""
         portfolio = RenderCVDocument(doc_type='portfolio')
         portfolio.cv_files_dir = Path(self.test_dir)
         portfolio.name = "Test_User"
+
+        # Generate and load
         self.assertEqual(portfolio.generate(name="Test User"), "Success")
         self.assertTrue(portfolio.yaml_file.exists())
         data = portfolio.load()
         self.assertIn('cv', data)
 
-    def test_add_connection_and_project(self):
-        """
-        Test adding social connections and projects to an existing portfolio.
+        # Test malformed YAML file without 'cv' key
+        malformed_file = Path(self.test_dir) / "Malformed_Portfolio_CV.yaml"
+        malformed_file.write_text("design:\n  theme: sb2nov\n")
+        portfolio2 = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio2.yaml_file = malformed_file
+        portfolio2.name = "Malformed"
+        with self.assertRaises(ValueError) as context:
+            portfolio2.load()
+        self.assertIn("missing required 'cv' key", str(context.exception))
 
-        Verifies that new social network connections and projects can be
-        successfully added to a generated portfolio, with appropriate
-        success messages returned for each addition.
+    # ============== CONNECTION TESTS ==============
 
-        Args:
-            self: The test case instance
+    def test_connections_crud(self):
+        """Test add, modify, remove, and get connections."""
+        portfolio = self.create_loaded_portfolio()
 
-        Returns:
-            None: Asserts pass if connections and projects are added successfully
-        """
-        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
-        portfolio.cv_files_dir = Path(self.test_dir)
-        portfolio.name = "Test_User"
-        portfolio.generate(name="Test User")
-        portfolio.load()
+        # Add success
         self.assertEqual(portfolio.add_connection(Connections(network="Twitter", username="test")), "Successfully added: Twitter")
+
+        # Add duplicate rejected
+        self.assertEqual(portfolio.add_connection(Connections(network="LinkedIn", username="newuser")), "Connection 'LinkedIn' already exists")
+
+        # Add empty network rejected
+        self.assertEqual(portfolio.add_connection(Connections(network="", username="testuser")), "Network name cannot be empty")
+        self.assertEqual(portfolio.add_connection(Connections(network="   ", username="testuser")), "Network name cannot be empty")
+
+        # Modify success
+        self.assertEqual(portfolio.modify_connection("LinkedIn", "newusername"), "Successfully updated: LinkedIn")
+        connection = next(c for c in portfolio.current_connections if c['network'] == 'LinkedIn')
+        self.assertEqual(connection['username'], "newusername")
+
+        # Modify not found
+        self.assertEqual(portfolio.modify_connection("NonExistent", "username"), "Connection 'NonExistent' not found")
+
+        # Get connections
+        connections = portfolio.get_connections()
+        self.assertIsInstance(connections, list)
+        self.assertTrue(len(connections) > 0)
+        self.assertTrue(all('network' in c for c in connections))
+
+        # Remove success
+        initial_count = len(portfolio.current_connections)
+        self.assertEqual(portfolio.remove_connection("LinkedIn"), "Successfully deleted: LinkedIn")
+        self.assertEqual(len(portfolio.current_connections), initial_count - 1)
+
+        # Remove not found
+        self.assertEqual(portfolio.remove_connection("NonExistent"), "Connection 'NonExistent' not found")
+
+    # ============== PROJECT TESTS ==============
+
+    def test_projects_crud(self):
+        """Test add, modify, remove, get, count, has, and clear projects."""
+        portfolio = self.create_loaded_portfolio()
+
+        # Add success
         self.assertIn("Successfully added", portfolio.add_project(Project(name="New Project", summary="Test")))
+
+        # Add duplicate rejected
+        self.assertEqual(portfolio.add_project(Project(name="New Project", summary="Different")), "Project 'New Project' already exists")
+
+        # Add empty name rejected
+        self.assertEqual(portfolio.add_project(Project(name="", summary="Test")), "Project name cannot be empty")
+        self.assertEqual(portfolio.add_project(Project(name="   ", summary="Test")), "Project name cannot be empty")
+
+        # Get projects
+        projects = portfolio.get_projects()
+        self.assertIsInstance(projects, list)
+        self.assertTrue(len(projects) > 0)
+
+        # Count and has projects
+        self.assertEqual(portfolio.count_projects(), 2)  # Template + New Project
+        self.assertTrue(portfolio.has_projects())
+
+        # Modify success
+        self.assertEqual(portfolio.modify_project("Project Name", "summary", "Updated summary"), "Successfully modified summary")
+        project = next(p for p in portfolio.current_projects if p['name'] == 'Project Name')
+        self.assertEqual(project['summary'], "Updated summary")
+
+        # Modify not found
+        self.assertEqual(portfolio.modify_project("NonExistent", "summary", "Test"), "Project 'NonExistent' not found")
+
+        # Modify invalid field
+        self.assertIn("Invalid field", portfolio.modify_project("Project Name", "invalid_field", "Test"))
+
+        # Remove success
+        initial_count = len(portfolio.current_projects)
+        self.assertIn("Successfully deleted", portfolio.remove_project("Project Name"))
+        self.assertEqual(len(portfolio.current_projects), initial_count - 1)
+
+        # Remove not found
+        self.assertEqual(portfolio.remove_project("NonExistent"), "Project 'NonExistent' not found")
+
+        # Clear projects
+
+        portfolio.add_project(Project(name="Another Project", summary="Test"))
+        count = len(portfolio.current_projects)
+        result = portfolio.clear_projects()
+        self.assertIn(f"Successfully cleared {count}", result)
+        self.assertEqual(len(portfolio.current_projects), 0)
+        self.assertFalse(portfolio.has_projects())
+
+        # Clear when empty
+        self.assertEqual(portfolio.clear_projects(), "No projects to clear")
 
     @patch('src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume.GenerateProjectResume')
     @patch('src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume.orjson.loads')
     def test_add_project_from_ai(self, mock_orjson, mock_resume):
-        """
-        Test adding a project to the portfolio using AI-generated content.
-
-        Verifies that projects can be added from AI analysis of a project JSON file,
-        with mocked AI resume generation and JSON parsing to simulate the AI workflow.
-
-        Args:
-            self: The test case instance
-            mock_orjson: Mocked orjson.loads function for parsing project JSON
-            mock_resume: Mocked GenerateProjectResume class for AI content generation
-
-        Returns:
-            None: Asserts pass if AI-generated project is successfully added
-        """
-        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
-        portfolio.cv_files_dir = Path(self.test_dir)
-        portfolio.name = "Test_User"
-        portfolio.generate(name="Test User")
-        portfolio.load()
+        """Test adding a project using AI-generated content."""
+        portfolio = self.create_loaded_portfolio()
 
         mock_orjson.return_value = {'project_root': '/fake/path'}
         mock_resume.return_value.generate.return_value = MagicMock(
             project_title="AI Project", one_sentence_summary="Summary", tech_stack="Python", key_responsibilities=["Task"])
 
-        m = mock_open(read_data=b'{}')
-        with patch('builtins.open', m):
+        with patch('builtins.open', mock_open(read_data=b'{}')):
             result = portfolio.add_project_from_ai("project.json")
-
         self.assertIn("AI Project", result)
 
-    def test_update_portfolio_contact(self):
-        """
-        Test updating contact information in the portfolio.
+    # ============== SKILLS TESTS ==============
 
-        Verifies that contact fields (email, phone, location, website, name)
-        can be updated individually or together, and that only non-None fields
-        are modified.
+    def test_skills_crud(self):
+        """Test add, modify, remove, get, count, has, and clear skills."""
+        portfolio = self.create_loaded_portfolio()
 
-        Args:
-            self: The test case instance
+        # Add success
+        self.assertEqual(portfolio.add_skills(Skills(label="Databases", details="PostgreSQL, MongoDB")), "Successfully added skills")
+        self.assertTrue(any(s['label'] == 'Databases' for s in portfolio.current_skills))
 
-        Returns:
-            None: Asserts pass if contact fields are updated correctly
-        """
-        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
-        portfolio.cv_files_dir = Path(self.test_dir)
-        portfolio.name = "Test_User"
-        portfolio.generate(name="Test User")
-        portfolio.load()
+        # Add duplicate rejected
+        self.assertEqual(portfolio.add_skills(Skills(label="Languages", details="Go, Rust")), "Duplicate skill label")
 
-        # Test updating single field
+        # Add empty label rejected
+        self.assertEqual(portfolio.add_skills(Skills(label="", details="Some skills")), "Skill label cannot be empty")
+        self.assertEqual(portfolio.add_skills(Skills(label="   ", details="Some skills")), "Skill label cannot be empty")
+
+        # Get skills
+        skills = portfolio.get_skills()
+        self.assertIsInstance(skills, list)
+        self.assertTrue(len(skills) > 0)
+        self.assertTrue(all('label' in s and 'details' in s for s in skills))
+
+        # Count and has skills
+        self.assertEqual(portfolio.count_skills(), 4)  # Template 3 + Databases
+        self.assertTrue(portfolio.has_skills())
+
+        # Modify success
+        self.assertEqual(portfolio.modify_skill("Languages", "Python, Go, Rust"), "Successfully updated skill 'Languages'")
+        skill = next(s for s in portfolio.current_skills if s['label'] == 'Languages')
+        self.assertEqual(skill['details'], "Python, Go, Rust")
+
+        # Modify not found
+        self.assertEqual(portfolio.modify_skill("NonExistent", "Some details"), "Skill 'NonExistent' not found")
+
+        # Remove success
+        initial_count = len(portfolio.current_skills)
+        self.assertEqual(portfolio.remove_skill("Languages"), "Successfully deleted skill")
+        self.assertEqual(len(portfolio.current_skills), initial_count - 1)
+
+        # Remove not found
+        self.assertEqual(portfolio.remove_skill("NonExistent"), "Skill 'NonExistent' not found")
+
+        # Clear skills
+        count = len(portfolio.current_skills)
+        result = portfolio.clear_skills()
+        self.assertIn(f"Successfully cleared {count}", result)
+        self.assertEqual(len(portfolio.current_skills), 0)
+        self.assertFalse(portfolio.has_skills())
+
+        # Clear when empty
+        self.assertEqual(portfolio.clear_skills(), "No skills to clear")
+
+    # ============== SUMMARY TESTS ==============
+
+    def test_summary_crud(self):
+        """Test update and get summary."""
+        portfolio = self.create_loaded_portfolio()
+
+        # Get default summary
+        summary = portfolio.get_summary()
+        self.assertIn("A brief summary about yourself", summary)
+
+        # Update summary
+        self.assertEqual(portfolio.update_summary("My new summary."), "Summary updated successfully")
+        self.assertEqual(portfolio.get_summary(), "My new summary.")
+
+        # Get summary when empty
+        portfolio.summary = []
+        self.assertEqual(portfolio.get_summary(), "")
+
+    # ============== CONTACT & THEME TESTS ==============
+
+    def test_contact_crud(self):
+        """Test update and get contact information."""
+        portfolio = self.create_loaded_portfolio()
+
+        # Update single field
         result = portfolio.update_contact(email="new@email.com")
-        # update_contact returns self for method chaining
-        self.assertIs(result, portfolio)
+        self.assertIs(result, portfolio)  # Returns self for chaining
         self.assertEqual(portfolio.data['cv']['email'], "new@email.com")
 
-        # Test updating multiple fields
-        result = portfolio.update_contact(
-            phone="+1 555 123 4567",
-            location="New York, NY"
-        )
-        self.assertIs(result, portfolio)
+        # Update multiple fields
+        portfolio.update_contact(phone="+1 555 123 4567", location="New York, NY")
         self.assertEqual(portfolio.data['cv']['phone'], "+1 555 123 4567")
         self.assertEqual(portfolio.data['cv']['location'], "New York, NY")
 
-    def test_update_portfolio_contact_empty_string_ignored(self):
-        """
-        Test that empty strings do not overwrite existing contact information.
-
-        Verifies that passing empty strings or whitespace-only strings to
-        update_contact() does not blank out existing values,
-        preventing accidental data loss.
-
-        Args:
-            self: The test case instance
-
-        Returns:
-            None: Asserts pass if empty strings are properly ignored
-        """
-        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
-        portfolio.cv_files_dir = Path(self.test_dir)
-        portfolio.name = "Test_User"
-        portfolio.generate(name="Test User")
-        portfolio.load()
-
-        # Set initial values
-        portfolio.update_contact(email="original@email.com", phone="+1 111 111 1111")
-        self.assertEqual(portfolio.data['cv']['email'], "original@email.com")
-        self.assertEqual(portfolio.data['cv']['phone'], "+1 111 111 1111")
-
         # Empty string should not overwrite
-        result = portfolio.update_contact(email="", phone="")
-        self.assertIs(result, portfolio)
-        self.assertEqual(portfolio.data['cv']['email'], "original@email.com")
-        self.assertEqual(portfolio.data['cv']['phone'], "+1 111 111 1111")
+        portfolio.update_contact(email="", phone="   ")
+        self.assertEqual(portfolio.data['cv']['email'], "new@email.com")
+        self.assertEqual(portfolio.data['cv']['phone'], "+1 555 123 4567")
 
-        # Whitespace-only string should not overwrite
-        result = portfolio.update_contact(email="   ", phone="\t\n")
-        self.assertIs(result, portfolio)
-        self.assertEqual(portfolio.data['cv']['email'], "original@email.com")
-        self.assertEqual(portfolio.data['cv']['phone'], "+1 111 111 1111")
+        # Get contact info
+        contact = portfolio.get_contact_info()
+        self.assertIsInstance(contact, dict)
+        self.assertIn('name', contact)
+        self.assertIn('email', contact)
+        self.assertIn('phone', contact)
+        self.assertIn('location', contact)
+        self.assertIn('website', contact)
 
-    def test_load_portfolio_missing_cv_key_raises_error(self):
-        """
-        Test that loading a YAML file without 'cv' key raises ValueError.
+    def test_theme_crud(self):
+        """Test update and get theme."""
+        portfolio = self.create_loaded_portfolio()
 
-        Verifies that malformed YAML files missing the required 'cv' key
-        are properly detected and raise a clear error message instead of
-        a cryptic KeyError.
+        # Get default theme
+        self.assertEqual(portfolio.get_theme(), "sb2nov")
 
-        Args:
-            self: The test case instance
+        # Update theme
+        result = portfolio.update_theme("classic")
+        self.assertIn("Successfully updated", result)
+        self.assertEqual(portfolio.get_theme(), "classic")
 
-        Returns:
-            None: Asserts pass if ValueError is raised with correct message
-        """
-        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
-        portfolio.cv_files_dir = Path(self.test_dir)
-
-        # Create a malformed YAML file without 'cv' key
-        malformed_file = Path(self.test_dir) / "Test_User_Portfolio_CV.yaml"
-        malformed_file.write_text("design:\n  theme: sb2nov\n")
-        portfolio.yaml_file = malformed_file
-        portfolio.name = "Test_User"
-
+        # Invalid theme
         with self.assertRaises(ValueError) as context:
-            portfolio.load()
-
-        self.assertIn("missing required 'cv' key", str(context.exception))
-
-    def test_add_duplicate_connection_rejected(self):
-        """
-        Test that adding a duplicate social network connection is rejected.
-
-        Verifies that attempting to add a connection with a network name
-        that already exists returns an appropriate error message.
-
-        Args:
-            self: The test case instance
-
-        Returns:
-            None: Asserts pass if duplicate connection is properly rejected
-        """
-        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
-        portfolio.cv_files_dir = Path(self.test_dir)
-        portfolio.name = "Test_User"
-        portfolio.generate(name="Test User")
-        portfolio.load()
-
-        # LinkedIn already exists in template
-        result = portfolio.add_connection(
-            Connections(network="LinkedIn", username="newuser")
-        )
-        self.assertEqual(result, "Connection 'LinkedIn' already exists")
-
-    def test_add_duplicate_project_rejected(self):
-        """
-        Test that adding a duplicate project is rejected.
-
-        Verifies that attempting to add a project with a name that already
-        exists returns an appropriate error message.
-
-        Args:
-            self: The test case instance
-
-        Returns:
-            None: Asserts pass if duplicate project is properly rejected
-        """
-        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
-        portfolio.cv_files_dir = Path(self.test_dir)
-        portfolio.name = "Test_User"
-        portfolio.generate(name="Test User")
-        portfolio.load()
-
-        # Add a project first
-        portfolio.add_project(Project(name="My Project", summary="Test"))
-
-        # Try to add duplicate
-        result = portfolio.add_project(Project(name="My Project", summary="Different"))
-        self.assertEqual(result, "Project 'My Project' already exists")
-
-    def test_add_connection_empty_network_rejected(self):
-        """
-        Test that adding a connection with empty network name is rejected.
-
-        Verifies that attempting to add a connection with an empty or
-        whitespace-only network name returns an appropriate error message.
-
-        Args:
-            self: The test case instance
-
-        Returns:
-            None: Asserts pass if empty network name is properly rejected
-        """
-        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
-        portfolio.cv_files_dir = Path(self.test_dir)
-        portfolio.name = "Test_User"
-        portfolio.generate(name="Test User")
-        portfolio.load()
-
-        # Empty string network name
-        result = portfolio.add_connection(
-            Connections(network="", username="testuser")
-        )
-        self.assertEqual(result, "Network name cannot be empty")
-
-        # Whitespace-only network name
-        result = portfolio.add_connection(
-            Connections(network="   ", username="testuser")
-        )
-        self.assertEqual(result, "Network name cannot be empty")
-
-    def test_add_project_empty_name_rejected(self):
-        """
-        Test that adding a project with empty name is rejected.
-
-        Verifies that attempting to add a project with an empty or
-        whitespace-only name returns an appropriate error message.
-
-        Args:
-            self: The test case instance
-
-        Returns:
-            None: Asserts pass if empty project name is properly rejected
-        """
-        portfolio = RenderCVDocument(doc_type='portfolio', auto_save=False)
-        portfolio.cv_files_dir = Path(self.test_dir)
-        portfolio.name = "Test_User"
-        portfolio.generate(name="Test User")
-        portfolio.load()
-
-        # Empty string project name
-        result = portfolio.add_project(Project(name="", summary="Test"))
-        self.assertEqual(result, "Project name cannot be empty")
-
-        # Whitespace-only project name
-        result = portfolio.add_project(Project(name="   ", summary="Test"))
-        self.assertEqual(result, "Project name cannot be empty")
+            portfolio.update_theme("invalid_theme")
+        self.assertIn("Invalid theme", str(context.exception))
 
 
 if __name__ == '__main__':

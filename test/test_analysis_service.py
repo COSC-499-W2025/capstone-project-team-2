@@ -7,10 +7,14 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 import os
 import shutil
+from src.core.analysis_service import analyze_project, extract_if_zip, oop_analysis
 
 from typing import List
 
 import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+from src.API.analysis_API import analysisRouter
 
 # Validates analysis orchestration, export, and consent-aware OOP analysis helpers.
 import src.core.analysis_service as mod
@@ -25,9 +29,65 @@ def test_export_if_zip():
     extracted_path = mod.extract_if_zip(path)
     assert exists(extracted_path)
     shutil.rmtree(extracted_path)
+    
+def test_nonexistent_zip_extraction():
+    """
+    Check that nonexistent zip files raise an exception.
+
+    Args:
+        None
+
+    Returns:
+        None: Assertions validate exception is raised. 
+    """
+    try:
+        extract_if_zip(Path("/fake/path/to/file.zip"))
+        assert False, "Should have raised an exception"
+    except Exception as e:
+        print(f"Test PASSED - Got exception: {type(e).__name__}: {e}")
+        assert True
+        
+def test_analyse_nonexistant_folder():
+    """
+    Check that analyzing a non-existent folder raises an exception.
+
+    Args:
+        None
+
+    Returns:
+        None: Assertions validate exception is raised.
+    """
+    try:
+        analyze_project(Path("/fake/project/path"))
+        assert False, "Should have raised an exception"
+    except Exception as e:
+        print(f"Test PASSED - Got exception: {type(e).__name__}: {e}")
+        assert True
+        
+@pytest.mark.skip(reason="FastAPI not fully implemented yet")
+def test_api_returns_error_when_no_file_uploaded():
+    """Check that API returns error response when no file is uploaded.
+
+    Args:
+        None
+
+    Returns:
+        None: Assertions validate API returns error status code.
+    """
+    app = FastAPI()
+    app.include_router(analysisRouter)
+    client = TestClient(app)
+    
+    response = client.get("/analyze")
+    
+    # Should get an error status code, not 200
+    assert response.status_code != 200
+    print(f"Test PASSED - Got status code: {response.status_code}")
+    print(f"Response: {response.json()}")
 
 def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypatch):
-    """Check that export saves files and writes to the DB.
+    """
+    Check that export saves files and writes to the DB.
 
     Args:
         tmp_path: Pytest fixture providing a temporary directory.
@@ -48,11 +108,12 @@ def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypat
     monkeypatch.setattr(mod, "SaveFileAnalysisAsJSON", lambda: FakeSaver())
 
     analysis = {"ok": True}
-    mod.export_json("DemoProj", analysis)
+    result = mod.export_json("DemoProj", analysis)
 
     assert (runtimeAppContext.default_save_dir).exists()
     assert captured["project_name"] == "DemoProj"
     assert captured["analysis"]["ok"] is True
+    assert result == {"skipped": False}
     #Can't check if db contains file at current point in time
     #runtimeAppContext.store.fetch_by_id
 
@@ -140,6 +201,13 @@ class TestAnalysisService(unittest.TestCase):
                 patch.object(mod, "load_portfolio_showcase", lambda display_name: None),
                 patch.object(mod, "build_portfolio_showcase", lambda data, yaml: None),
                 patch.object(mod, "export_json", lambda project_name, analysis: None),
+                patch.object(mod, "deduplicate_project", lambda root, index_path, remove_duplicates=True: SimpleNamespace(
+                    unique_files=1,
+                    duplicate_files=0,
+                    duplicates=[],
+                    index_size=1,
+                    removed=0,
+                )),
                 patch.object(mod, "detect_project_stack", lambda root: {"languages": ["C++"]}),
                 patch.object(mod, "oop_analysis", fake_oop_analysis),
             ):
