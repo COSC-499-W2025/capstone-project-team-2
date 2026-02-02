@@ -21,7 +21,7 @@ def test_export_if_zip():
     """
     Checks that extract_if_zip() extracts and returns the directory extracted to
     """
-    path = Path(os.getcwd()).absolute().resolve() / "src" / "TEST.zip"
+    path = Path(os.getcwd()).absolute().resolve() / "test" / "TestZIPs" / "TESTING.zip"
     extracted_path = mod.extract_if_zip(path)
     assert exists(extracted_path)
     shutil.rmtree(extracted_path)
