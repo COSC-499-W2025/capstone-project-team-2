@@ -85,4 +85,46 @@ def generate_portfolio(payload: GeneratePorfirioRequest, background_tasks: Backg
                         headers={"X-Portfolio-ID": full_name})
 
 
+@portfolioRouter.get("/portfolio/{id}")
+def get_portfolio(id: str):
+    doc=_load_portfolio(id)
+    return {
+        "name": id,
+        "contact": doc.get_contact_info(),
+        "theme": doc.get_theme(),
+        "summary": doc.get_summary(),
+        "projects": doc.get_projects(),
+        "skills": doc.get_skills(),
+        "connections": doc.get_connections(),
+    }
+
+@portfolioRouter.post("/portfolio/{id}/edit")
+def edit_portfolio(id:str,payload: EditProjectRequest):
+    doc=_load_portfolio(id)
+    modify_map={
+        "projects": doc.modify_project,
+    }
+    results=[]
+    result=""
+    for edit in payload.edits:
+        section=edit.section.lower()
+
+        if section=="summary":
+            result= doc.update_summary(str(edit.new_value))
+
+        elif section=="contact":
+            doc.update_contact(**{edit.field : edit.new_value})
+
+        elif section == "theme":
+            result=doc.update_theme(str(edit.new_value))
+
+        elif section == "skills":
+            result=doc.modify_skill(edit.item_name, edit.new_value)
+
+        else:
+            raise HTTPException(status_code=400,
+                                detail=f"Unknown section '{section}'. Valid: projects, skills, summary, contact, theme",
+                                )
+        results.append(result)
+    return {"results": results}
 
