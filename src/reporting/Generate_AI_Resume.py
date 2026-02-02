@@ -53,7 +53,6 @@ class ResumeItem:
     impact: str
     oop_principles_detected: Dict[str, OOPPrinciple]
 
-
 class GenerateProjectResume:
     IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".webp"}
 
