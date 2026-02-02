@@ -10,14 +10,17 @@ as `dedup_index.json`.
 
 from __future__ import annotations
 
+import logging
 import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List
+from filelock import FileLock, Timeout
 
 
 CHUNK_SIZE = 1024 * 1024  # 1 MB
+LOCK_TIMEOUT = 10  # seconds
 
 
 @dataclass
@@ -59,7 +62,8 @@ def _load_index(index_path: Path) -> Dict[str, dict]:
     if index_path.exists():
         try:
             return json.loads(index_path.read_text(encoding="utf-8"))
-        except Exception:
+        except Exception as e:
+            logging.warning("Failed to load dedup index at %s: %s", index_path, e)
             return {}
     return {}
 
@@ -84,47 +88,60 @@ def deduplicate_project(root: Path, index_path: Path, remove_duplicates: bool = 
         index_path: Location of the persistent hash index.
         remove_duplicates: When True, delete duplicate files after recording them.
     """
-    index = _load_index(index_path)
-    duplicates: List[dict] = []
-    unique_files = 0
-    removed = 0
+    lock_path = str(index_path) + ".lock"
+    lock = FileLock(lock_path, timeout=LOCK_TIMEOUT)
 
-    for path in root.rglob("*"):
-        if not path.is_file():
-            continue
-        try:
-            digest = _file_hash(path)
-        except Exception:
-            # Skip unreadable files but continue processing others
-            continue
+    try:
+        with lock:
+            index = _load_index(index_path)
+            duplicates: List[dict] = []
+            unique_files = 0
+            removed = 0
 
-        record = index.get(digest)
-        if record:
-            dup_entry = {
-                "path": str(path),
-                "original": record.get("path"),
-                "project": record.get("project"),
-                "removed": False,
-            }
-            if remove_duplicates:
+            for path in root.rglob("*"):
+                if not path.is_file():
+                    continue
                 try:
-                    path.unlink(missing_ok=True)
-                    dup_entry["removed"] = True
-                    removed += 1
+                    digest = _file_hash(path)
                 except Exception:
-                    # If delete fails, keep entry but mark as not removed
-                    dup_entry["removed"] = False
-            duplicates.append(dup_entry)
-        else:
-            index[digest] = {"path": str(path), "project": root.name}
-            unique_files += 1
+                    # Skip unreadable files but continue processing others
+                    continue
 
-    _save_index(index_path, index)
+                record = index.get(digest)
+                if record:
+                    dup_entry = {
+                        "path": str(path),
+                        "original": record.get("path"),
+                        "project": record.get("project"),
+                        "removed": False,
+                    }
+                    if remove_duplicates:
+                        try:
+                            path.unlink(missing_ok=True)
+                            dup_entry["removed"] = True
+                            removed += 1
+                        except Exception:
+                            # If delete fails, keep entry but mark as not removed
+                            dup_entry["removed"] = False
+                    duplicates.append(dup_entry)
+                else:
+                    index[digest] = {"path": str(path), "project": root.name}
+                    unique_files += 1
 
-    return DedupResult(
-        unique_files=unique_files,
-        duplicate_files=len(duplicates),
-        duplicates=duplicates,
-        index_size=len(index),
-        removed=removed,
-    )
+            _save_index(index_path, index)
+
+            return DedupResult(
+                unique_files=unique_files,
+                duplicate_files=len(duplicates),
+                duplicates=duplicates,
+                index_size=len(index),
+                removed=removed,
+            )
+    except Timeout:
+        logging.warning(
+            "Could not acquire dedup index lock at %s within %ss; skipping deduplication for %s",
+            lock_path,
+            LOCK_TIMEOUT,
+            root,
+        )
+        return DedupResult(unique_files=0, duplicate_files=0, duplicates=[], index_size=0, removed=0)
