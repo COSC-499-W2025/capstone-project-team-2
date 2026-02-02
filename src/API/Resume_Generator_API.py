@@ -1,7 +1,7 @@
 """
 FastAPI endpoints for resume generation and editing via RenderCV.
 
-Provides a RESTful API for creating, reading, updating, and deleting
+Provides a RESTFUL API for creating, reading, updating, and deleting
 resume documents backed by RenderCV YAML files. Resumes are identified
 by a unique ID (name + UUID suffix) returned in the X-Resume-ID header
 upon generation.
@@ -10,12 +10,8 @@ Endpoints:
     POST   /resume/generate          - Create a new resume and render to PDF
     GET    /resume/{id}              - Retrieve full resume data as JSON
     POST   /resume/{id}/edit         - Modify a field on an existing section item
-    POST   /resume/{id}/add/experience - Add a work experience entry
-    POST   /resume/{id}/add/education  - Add an education entry
-    POST   /resume/{id}/add/project    - Add a project entry
-    POST   /resume/{id}/add/skill      - Add a skill category
-    POST   /resume/{id}/remove         - Remove an item from a section
-    DELETE /resume/{id}                - Delete the resume YAML file entirely
+    POST   /resume/{id}/add/project  - Add a project entry
+    DELETE /resume/{id}              - Delete the resume YAML file entirely
 """
 
 from typing import Optional, List, Any
@@ -27,10 +23,6 @@ from pydantic import BaseModel
 from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
     RenderCVDocument,
     Project,
-    Experience,
-    Education,
-    Skills,
-    Connections,
 )
 
 
@@ -101,28 +93,6 @@ class ExperienceRequest(BaseModel):
     location: Optional[str] = None
     highlights: Optional[List[str]] = None
 
-class EducationRequest(BaseModel):
-    """Request payload for adding an education entry.
-
-    Attributes:
-        institution: Name of the university or school (required).
-        area: Field of study or major (required).
-        degree: Degree type (e.g., 'BS', 'MS', 'PhD').
-        start_date: Start date in 'YYYY-MM' format.
-        end_date: End date in 'YYYY-MM' format.
-        location: City, State or City, Country.
-        gpa: Grade point average.
-        highlights: List of achievements or relevant coursework.
-    """
-    institution: str
-    area: str
-    degree: Optional[str] = None
-    start_date: Optional[str] = None
-    end_date: Optional[str] = None
-    location: Optional[str] = None
-    gpa: Optional[str] = None
-    highlights: Optional[List[str]] = None
-
 class ProjectRequest(BaseModel):
     """Request payload for adding a project entry.
 
@@ -141,25 +111,6 @@ class ProjectRequest(BaseModel):
     summary: Optional[str] = None
     highlights: Optional[List[str]] = None
 
-class SkillsRequest(BaseModel):
-    """Request payload for adding a skill category.
-
-    Attributes:
-        label: Category name (e.g., 'Languages', 'Frameworks') (required).
-        details: Comma-separated string of skills (required).
-    """
-    label: str
-    details: str
-
-class RemoveItemRequest(BaseModel):
-    """Request payload for removing an item from a resume section.
-
-    Attributes:
-        section: The section to remove from. Valid: experience, education, projects, skills.
-        item_name: Identifier for the item to remove (e.g., company name, project name).
-    """
-    section: str
-    item_name: str
 
 """-------Helper Methods-------"""
 
@@ -322,74 +273,6 @@ def edit_resume(id: str, payload: EditResumeRequest):
     return {"status": result}
 
 
-@resumeRouter.post("/resume/{id}/add/experience")
-def add_experience(id: str, payload: ExperienceRequest):
-    """Add a new work experience entry to the resume.
-
-    Args:
-        id: The resume identifier.
-        payload: ExperienceRequest with company (required) and optional fields.
-
-    Returns:
-        dict: {"status": "Successfully added experience"} on success.
-
-    Raises:
-        HTTPException: 400 if the company name is empty.
-        HTTPException: 404 if the resume does not exist.
-        HTTPException: 500 if an unexpected error occurs during save.
-    """
-    doc = _load_resume(id)
-    exp = Experience(
-        company=payload.company,
-        position=payload.position,
-        start_date=payload.start_date,
-        end_date=payload.end_date,
-        location=payload.location,
-        highlights=payload.highlights,
-    )
-    try:
-        result = _check_result(doc.add_experience(exp))
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to add experience: {e}")
-    return {"status": result}
-
-
-@resumeRouter.post("/resume/{id}/add/education")
-def add_education(id: str, payload: EducationRequest):
-    """Add a new education entry to the resume.
-
-    Args:
-        id: The resume identifier.
-        payload: EducationRequest with institution and area (required) and optional fields.
-
-    Returns:
-        dict: {"status": "Successfully added education"} on success.
-
-    Raises:
-        HTTPException: 400 if the institution is empty or a duplicate entry exists.
-        HTTPException: 404 if the resume does not exist.
-        HTTPException: 500 if an unexpected error occurs during save.
-    """
-    doc = _load_resume(id)
-    edu = Education(
-        institution=payload.institution,
-        area=payload.area,
-        degree=payload.degree,
-        start_date=payload.start_date,
-        end_date=payload.end_date,
-        location=payload.location,
-        gpa=payload.gpa,
-        highlights=payload.highlights,
-    )
-    try:
-        result = _check_result(doc.add_education(edu))
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to add education: {e}")
-    return {"status": result}
 
 
 @resumeRouter.post("/resume/{id}/add/project")
@@ -448,65 +331,3 @@ def delete_resume(id: str):
     return {"status": f"Successfully deleted resume '{id}'"}
 
 
-@resumeRouter.post("/resume/{id}/add/skill")
-def add_skill(id: str, payload: SkillsRequest):
-    """Add a new skill category to the resume.
-
-    Args:
-        id: The resume identifier.
-        payload: SkillsRequest with label and details (both required).
-
-    Returns:
-        dict: {"status": "Successfully added skills"} on success.
-
-    Raises:
-        HTTPException: 400 if the label is empty or a duplicate exists.
-        HTTPException: 404 if the resume does not exist.
-        HTTPException: 500 if an unexpected error occurs during save.
-    """
-    doc = _load_resume(id)
-    skill = Skills(label=payload.label, details=payload.details)
-    try:
-        result = _check_result(doc.add_skills(skill))
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to add skill: {e}")
-    return {"status": result}
-
-
-@resumeRouter.post("/resume/{id}/remove")
-def remove_item(id: str, payload: RemoveItemRequest):
-    """Remove an item from a resume section by name.
-
-    Supports removing items from experience (by company name), education
-    (by institution), projects (by project name), and skills (by label).
-
-    Args:
-        id: The resume identifier.
-        payload: RemoveItemRequest with section and item_name.
-
-    Returns:
-        dict: {"status": "Successfully deleted: <item_name>"} on success.
-
-    Raises:
-        HTTPException: 400 if the section is unknown or the item is not found.
-        HTTPException: 404 if the resume does not exist.
-    """
-    doc = _load_resume(id)
-    section = payload.section.lower()
-    remove_map = {
-        "experience": lambda: doc.remove_experience(payload.item_name),
-        "education": lambda: doc.remove_education(payload.item_name),
-        "projects": lambda: doc.remove_project(payload.item_name),
-        "skills": lambda: doc.remove_skill(payload.item_name),
-    }
-
-    if section not in remove_map:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Unknown section '{section}'. Valid: experience, education, projects, skills",
-        )
-
-    result = _check_result(remove_map[section]())
-    return {"status": result}
