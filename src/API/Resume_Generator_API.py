@@ -9,6 +9,7 @@ upon generation.
 Endpoints:
     POST   /resume/generate          - Create a new resume and render to PDF
     GET    /resume/{id}              - Retrieve full resume data as JSON
+    POST   /resume/{id}/render       - Re-render an existing resume to PDF
     POST   /resume/{id}/edit         - Modify a field on an existing section item
     POST   /resume/{id}/add/project/{project_id}  - Add a project entry
     DELETE /resume/{id}              - Delete the resume YAML file entirely
@@ -96,24 +97,21 @@ def _check_result(result: str):
 
 
 @resumeRouter.post("/resume/generate")
-def generate_resume(payload: GenerateResumeRequest, background_tasks: BackgroundTasks):
-    """Create a new resume from a starter template and render it to PDF.
+def generate_resume(payload: GenerateResumeRequest):
+    """Create a new resume YAML from a starter template.
 
     Generates a unique resume ID by appending a UUID suffix to the provided name.
-    The YAML file is created, optionally themed, and rendered to PDF via RenderCV.
-    The rendercv_output directory is cleaned up after the PDF response is sent.
+    The YAML file is created and optionally themed. Use POST /resume/{id}/render
+    to produce a PDF.
 
     Args:
         payload: GenerateResumeRequest with name, optional theme, and overwrite flag.
-        background_tasks: FastAPI background tasks for post-response cleanup.
 
     Returns:
-        FileResponse: The rendered PDF file with content-type application/pdf.
-            Includes X-Resume-ID header with the full resume identifier.
+        dict: {"resume_id": "<id>", "status": "created"} on success.
 
     Raises:
         HTTPException: 409 if resume already exists and overwrite is False.
-        HTTPException: 500 if PDF rendering fails.
     """
     doc = RenderCVDocument(doc_type="resume")
     resume_id = str(uuid.uuid4())[:8]
@@ -130,15 +128,7 @@ def generate_resume(payload: GenerateResumeRequest, background_tasks: Background
     if payload.theme and payload.theme != 'sb2nov':
         doc.update_theme(payload.theme)
 
-    status, pdf_path = doc.render()
-    if pdf_path is None:
-        raise HTTPException(status_code=500, detail=status)
-
-    output_dir = pdf_path.parent
-    background_tasks.add_task(shutil.rmtree, output_dir, True)
-
-    return FileResponse(str(pdf_path), media_type='application/pdf', filename=f"resume_{full_name}.pdf",
-                        headers={"X-Resume-ID": full_name})
+    return {"resume_id": full_name, "status": "created"}
 
 
 @resumeRouter.get("/resume/{id}")
@@ -229,6 +219,39 @@ def edit_resume(id: str, payload: EditResumeRequest):
     return {"results": results}
 
 
+@resumeRouter.post("/resume/{id}/render")
+def render_resume(id: str, background_tasks: BackgroundTasks):
+    """Re-render an existing resume to PDF.
+
+    Loads the resume YAML by ID, renders it to PDF via RenderCV, and returns
+    the file. The rendercv_output directory is cleaned up after the response.
+
+    Args:
+        id: The resume identifier (name + UUID suffix from generation).
+        background_tasks: FastAPI background tasks for post-response cleanup.
+
+    Returns:
+        FileResponse: The rendered PDF file with content-type application/pdf.
+            Includes X-Resume-ID header with the resume identifier.
+
+    Raises:
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 500 if PDF rendering fails.
+    """
+    doc = _load_resume(id)
+    status, pdf_path = doc.render()
+    if pdf_path is None:
+        raise HTTPException(status_code=500, detail=status)
+
+    output_dir = pdf_path.parent
+    background_tasks.add_task(shutil.rmtree, output_dir, True)
+
+    return FileResponse(
+        str(pdf_path),
+        media_type="application/pdf",
+        filename=f"resume_{id}.pdf",
+        headers={"X-Resume-ID": id},
+    )
 
 
 @resumeRouter.post("/resume/{id}/add/project/{project_id}")
