@@ -133,8 +133,10 @@ def analyze_project(root: Path, use_ai_analysis=False) -> Dict[str, Any]:
 
     display_name = root.name
     hierarchy = FileMetadataExtractor(root).file_hierarchy()  #Metadata extracted with datetime objects
-    duration = Project_Duration_Estimator(hierarchy).get_duration_human() #Project duration estimate
-
+    try:
+        duration = Project_Duration_Estimator(hierarchy).get_duration_human() #Project duration estimate
+    except Exception:  #If error, gracefully replace estimation
+        duration = "Unknown"
     #For use when ready
     #traverser = ProjectTraversalModule(root)
     #analysis = traverser.build_analysis_with_project()

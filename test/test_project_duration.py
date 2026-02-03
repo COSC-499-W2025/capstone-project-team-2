@@ -64,7 +64,6 @@ class TestDurationEstimator(unittest.TestCase):
         '''
         self.assertEqual(self.Duration_Estimator.get_duration(), self.correct_duration)
 
-    @unittest.skip("Intentional skip: no-files case is covered separately in integration.")
     def test_no_files(self):
         '''
         Negative Test.

@@ -41,7 +41,7 @@ class extractInfo:
             return error
         if (isinstance(zip_file, Path)):
             file_name: str = zip_file.stem
-        elif isinstance(zip_file, UploadFile):
+        else:   #Must be UploadFile if not Path
             file_name: str = zip_file.filename.split(".")[0] #Should return the file name without the extension
         self.extractFiles(zip_file, file_name)  
         temp_path = os.path.join(os.getcwd(), file_name)
@@ -64,7 +64,7 @@ class extractInfo:
 
         if isinstance(zip_file, Path):
             file = str(zip_file)
-        if isinstance(zip_file, UploadFile):
+        else:   #Must be UplaodFile if not Path
             file = zip_file.file
 
 
@@ -88,7 +88,7 @@ class extractInfo:
             file = str(zip_file)
             if not os.path.exists(file):    #Checks filepath
                 return self.PATH_ERROR_TEXT + file
-        if isinstance(zip_file, UploadFile):
+        else:   #Must be UploadFile if not Path
             file = zip_file.file
         if not zipfile.is_zipfile(file):    #checks if zip file is a zip file
             return self.NOT_ZIP_ERROR_TEXT

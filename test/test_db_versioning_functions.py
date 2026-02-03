@@ -19,11 +19,11 @@ class TestVersioningHelper(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.conn = mysql.connector.connect(
-            host=os.getenv("DB_HOST", "localhost"),
-            port=int(os.getenv("DB_PORT", 3308)),
-            database=os.getenv("DB_NAME", "appdb"),
-            user=os.getenv("DB_USER", "appuser"),
-            password=os.getenv("DB_PASSWORD", "apppassword")
+            host="app_database",
+            port=3306,
+            database="appdb",
+            user="appuser",
+            password="apppassword"
         )
         cls.store = HelperFunct(cls.conn)
 
