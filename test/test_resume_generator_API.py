@@ -6,6 +6,7 @@ All external dependencies (RenderCVDocument, runtimeAppContext) are mocked.
 """
 
 import unittest
+import tempfile
 from unittest.mock import patch, MagicMock
 from pathlib import Path
 from fastapi.testclient import TestClient
@@ -98,15 +99,15 @@ class TestResumeFullWorkflow(_BaseResumeTest):
         self.assertEqual(len(resp.json()["results"]), 7)
 
         # 4. Render resume to PDF
-        fake_pdf = Path("/tmp/fake_render_output/resume.pdf")
-        fake_pdf.parent.mkdir(parents=True, exist_ok=True)
-        fake_pdf.write_bytes(b"%PDF-1.4 fake content")
-        self.mock_doc.render.return_value = ("Success", fake_pdf)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            fake_pdf = Path(tmp_dir) / "resume.pdf"
+            fake_pdf.write_bytes(b"%PDF-1.4 fake content")
+            self.mock_doc.render.return_value = ("Success", fake_pdf)
 
-        resp = self.client.post(f"/resume/{resume_id}/render")
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn("X-Resume-ID", resp.headers)
-        self.assertEqual(resp.headers["content-type"], "application/pdf")
+            resp = self.client.post(f"/resume/{resume_id}/render")
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("X-Resume-ID", resp.headers)
+            self.assertEqual(resp.headers["content-type"], "application/pdf")
 
         # 5. Delete resume
         self.mock_doc.yaml_file = MagicMock()
