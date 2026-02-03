@@ -57,33 +57,29 @@ class _BasePortfolioTest(unittest.TestCase):
 class TestGeneratePortfolio(_BasePortfolioTest):
     """Tests for POST /portfolio/generate."""
 
-    @patch("src.API.Portfolio_Generator_API.shutil")
-    def test_success(self, _mock_shutil):
+    def test_success(self):
         self.mock_doc.generate.return_value = "Generated"
-        fake_pdf = Path("/tmp/fake_output/portfolio.pdf")
-        fake_pdf.parent.mkdir(parents=True, exist_ok=True)
-        fake_pdf.write_bytes(b"%PDF-1.4 fake content")
-        self.mock_doc.render.return_value = ("Success", fake_pdf)
 
         response = self.client.post("/portfolio/generate", json={"name": "John"})
         self.assertEqual(response.status_code, 200)
-        self.assertIn("X-Portfolio-ID", response.headers)
-        self.assertEqual(response.headers["content-type"], "application/pdf")
+        body = response.json()
+        self.assertIn("portfolio_id", body)
+        self.assertIn("John_", body["portfolio_id"])
+        self.assertEqual(body["status"], "Portfolio created successfully")
 
-    def test_already_exists_returns_404(self):
+    def test_success_with_theme(self):
+        self.mock_doc.generate.return_value = "Generated"
+
+        response = self.client.post("/portfolio/generate", json={"name": "John", "theme": "classic"})
+        self.assertEqual(response.status_code, 200)
+        self.mock_doc.update_theme.assert_called_once_with("classic")
+
+    def test_already_exists_returns_409(self):
         self.mock_doc.generate.return_value = "Skipping generation"
 
         response = self.client.post("/portfolio/generate", json={"name": "John"})
-        self.assertEqual(response.status_code, 404)
-        self.assertIn("Overwrite=true", response.json()["detail"])
-
-    def test_render_failure_returns_500(self):
-        self.mock_doc.generate.return_value = "Generated"
-        self.mock_doc.render.return_value = ("Render failed", None)
-
-        response = self.client.post("/portfolio/generate", json={"name": "John"})
-        self.assertEqual(response.status_code, 500)
-        self.assertIn("Render failed", response.json()["detail"])
+        self.assertEqual(response.status_code, 409)
+        self.assertIn("overwrite=true", response.json()["detail"])
 
 
 class TestGetPortfolio(_BasePortfolioTest):
@@ -173,6 +169,35 @@ class TestAddProject(_BasePortfolioTest):
         resp = self.client.post("/portfolio/test_abc123/add/project/1")
         self.assertEqual(resp.status_code, 500)
         self.assertIn("disk full", resp.json()["detail"])
+
+
+class TestRenderPortfolio(_BasePortfolioTest):
+    """Tests for POST /portfolio/{id}/render."""
+
+    @patch("src.API.Portfolio_Generator_API.shutil")
+    def test_success(self, _mock_shutil):
+        fake_pdf = Path("/tmp/fake_output/portfolio.pdf")
+        fake_pdf.parent.mkdir(parents=True, exist_ok=True)
+        fake_pdf.write_bytes(b"%PDF-1.4 fake content")
+        self.mock_doc.render.return_value = ("Success", fake_pdf)
+
+        resp = self.client.post("/portfolio/test_abc123/render")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("X-Portfolio-ID", resp.headers)
+        self.assertEqual(resp.headers["content-type"], "application/pdf")
+
+    def test_not_found_returns_404(self):
+        self._set_not_found()
+        resp = self.client.post("/portfolio/fake_id/render")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+    def test_render_failure_returns_500(self):
+        self.mock_doc.render.return_value = ("Render failed", None)
+
+        resp = self.client.post("/portfolio/test_abc123/render")
+        self.assertEqual(resp.status_code, 500)
+        self.assertIn("Render failed", resp.json()["detail"])
 
 
 class TestDeletePortfolio(_BasePortfolioTest):

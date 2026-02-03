@@ -11,10 +11,11 @@ experience sections. They focus on projects, skills, summary, contact,
 and connections.
 
 Endpoints:
-    POST   /portfolio/generate                       - Create a new portfolio and render to PDF
+    POST   /portfolio/generate                       - Create a new portfolio YAML document
     GET    /portfolio/{id}                           - Retrieve full portfolio data as JSON
     POST   /portfolio/{id}/edit                      - Modify a field on an existing section item
     POST   /portfolio/{id}/add/project/{project_id}  - Add a project entry
+    POST   /portfolio/{id}/render                    - Re-render an existing portfolio to PDF
     DELETE /portfolio/{id}                           - Delete the portfolio YAML file entirely
 """
 
@@ -102,40 +103,30 @@ def _check_result(result:str):
 
 """---API Calls/Requests---"""
 @portfolioRouter.post("/portfolio/generate")
-def generate_portfolio(payload: GeneratePortfolioRequest, background_tasks: BackgroundTasks):
-    """Generate a new portfolio PDF.
+def generate_portfolio(payload: GeneratePortfolioRequest):
+    """Create a new portfolio YAML document.
 
     Args:
         payload: Request containing the name, optional theme, and overwrite flag.
-        background_tasks: FastAPI background tasks for cleanup after response.
 
     Returns:
-        FileResponse: The generated portfolio PDF.
+        dict: The portfolio ID and a status message.
 
     Raises:
-        HTTPException: 404 if a portfolio with the same name exists and overwrite is False.
-        HTTPException: 500 if rendering fails.
+        HTTPException: 409 if a portfolio with the same name exists and overwrite is False.
     """
     doc=RenderCVDocument(doc_type='portfolio')
     portfolio_id=str(uuid.uuid4())[:8]
     full_name=f"{payload.name}_{portfolio_id}"
     gen_result=doc.generate(name=full_name,overwrite=payload.overwrite)
     if gen_result=="Skipping generation":
-        raise HTTPException(status_code=404,detail=f" portfolio {full_name}.pdf. Set Overwrite=true to replace it")
+        raise HTTPException(status_code=409,detail=f"Portfolio {full_name} already exists. Set overwrite=true to replace it")
 
     doc.load(name=full_name)
     if payload.theme and payload.theme !='sb2nov':
         doc.update_theme(payload.theme)
 
-
-    status,pdf_path= doc.render()
-    if pdf_path is None:
-        raise HTTPException(status_code=500,detail=status)
-
-    output_dir=pdf_path.parent
-    background_tasks.add_task(shutil.rmtree, output_dir,True)
-    return FileResponse(str(pdf_path), media_type='application/pdf', filename=f"portfolio_{full_name}.pdf",
-                        headers={"X-Portfolio-ID": full_name})
+    return {"portfolio_id": full_name, "status": "Portfolio created successfully"}
 
 
 @portfolioRouter.get("/portfolio/{portfolio_id}")
@@ -245,6 +236,39 @@ def add_project(portfolio_id:str,project_id:int,payload: Optional[ProjectRequest
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
     return {"status": result}
+
+@portfolioRouter.post("/portfolio/{portfolio_id}/render")
+def render_portfolio(portfolio_id: str, background_tasks: BackgroundTasks):
+    """Render an existing portfolio to PDF.
+
+    Use this after making edits to regenerate the PDF without creating
+    a new portfolio.
+
+    Args:
+        portfolio_id: The portfolio identifier.
+        background_tasks: FastAPI background tasks for cleanup after response.
+
+    Returns:
+        FileResponse: The rendered portfolio PDF.
+
+    Raises:
+        HTTPException: 404 if the portfolio does not exist.
+        HTTPException: 500 if rendering fails.
+    """
+    doc = _load_portfolio(portfolio_id)
+    status, pdf_path = doc.render()
+    if pdf_path is None:
+        raise HTTPException(status_code=500, detail=status)
+
+    output_dir = pdf_path.parent
+    background_tasks.add_task(shutil.rmtree, output_dir, True)
+    return FileResponse(
+        str(pdf_path),
+        media_type='application/pdf',
+        filename=f"portfolio_{portfolio_id}.pdf",
+        headers={"X-Portfolio-ID": portfolio_id},
+    )
+
 
 @portfolioRouter.delete("/portfolio/{portfolio_id}")
 def delete_portfolio(portfolio_id: str):
