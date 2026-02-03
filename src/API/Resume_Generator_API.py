@@ -128,7 +128,7 @@ def generate_resume(payload: GenerateResumeRequest):
     if payload.theme and payload.theme != 'sb2nov':
         doc.update_theme(payload.theme)
 
-    return {"resume_id": full_name, "status": "created"}
+    return {"resume_id": full_name, "status": "Resume created successfully"}
 
 
 @resumeRouter.get("/resume/{id}")

@@ -66,7 +66,7 @@ class TestResumeFullWorkflow(_BaseResumeTest):
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         self.assertIn("resume_id", data)
-        self.assertEqual(data["status"], "created")
+        self.assertEqual(data["status"], "Resume created successfully")
         self.assertTrue(data["resume_id"].startswith("John_"))
         resume_id = data["resume_id"]
 
