@@ -5,6 +5,7 @@ Uses FastAPI's TestClient to simulate HTTP calls without running a real server.
 All external dependencies (RenderCVDocument, runtimeAppContext) are mocked.
 """
 
+import tempfile
 import unittest
 from unittest.mock import patch, MagicMock
 from pathlib import Path
@@ -176,15 +177,15 @@ class TestRenderPortfolio(_BasePortfolioTest):
 
     @patch("src.API.Portfolio_Generator_API.shutil")
     def test_success(self, _mock_shutil):
-        fake_pdf = Path("/tmp/fake_output/portfolio.pdf")
-        fake_pdf.parent.mkdir(parents=True, exist_ok=True)
-        fake_pdf.write_bytes(b"%PDF-1.4 fake content")
-        self.mock_doc.render.return_value = ("Success", fake_pdf)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            fake_pdf = Path(tmp_dir) / "portfolio.pdf"
+            fake_pdf.write_bytes(b"%PDF-1.4 fake content")
+            self.mock_doc.render.return_value = ("Success", fake_pdf)
 
-        resp = self.client.post("/portfolio/test_abc123/render")
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn("X-Portfolio-ID", resp.headers)
-        self.assertEqual(resp.headers["content-type"], "application/pdf")
+            resp = self.client.post("/portfolio/test_abc123/render")
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("X-Portfolio-ID", resp.headers)
+            self.assertEqual(resp.headers["content-type"], "application/pdf")
 
     def test_not_found_returns_404(self):
         self._set_not_found()

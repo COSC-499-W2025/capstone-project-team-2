@@ -36,12 +36,14 @@ portfolioRouter = APIRouter(tags=["Portfolio"])
 """Request / Response Models"""
 
 class GeneratePortfolioRequest(BaseModel):
+    """Request payload for creating a new portfolio document."""
     name: str
     theme: Optional[str]= 'sb2nov'
     overwrite:bool = False
 
 
 class editItem(BaseModel):
+    """Single edit operation specifying section, item, field, and new value."""
     section: str
     item_name: str
     field: str
@@ -49,11 +51,13 @@ class editItem(BaseModel):
 
 
 class EditProjectRequest(BaseModel):
+    """Request payload containing a list of edit operations to apply."""
     edits: list[editItem]
 
 
 
 class ProjectRequest(BaseModel):
+    """Optional overrides for project fields when adding a project."""
     name:Optional[str] = None
     start_date:Optional[str] = None
     end_date: Optional[str] = None
