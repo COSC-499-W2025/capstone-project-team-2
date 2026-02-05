@@ -1,0 +1,13 @@
+cv:
+  name: TestPortfolioPlaceholders
+  location: ''
+  email: ''
+  phone: ''
+  website: ''
+  social_networks: []
+  sections:
+    projects: []
+design:
+  theme: sb2nov
+locale:
+  language: english

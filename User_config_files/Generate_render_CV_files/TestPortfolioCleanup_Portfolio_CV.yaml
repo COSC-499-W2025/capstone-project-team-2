@@ -1,0 +1,14 @@
+cv:
+  name: TestPortfolioCleanup
+  social_networks: []
+  sections:
+    projects:
+    - name: Test Portfolio
+      summary: Test overview
+      highlights:
+      - Highlight one
+      - 'Contributors: Tester'
+design:
+  theme: sb2nov
+locale:
+  language: english

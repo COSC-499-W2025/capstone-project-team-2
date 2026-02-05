@@ -1,0 +1,61 @@
+cv:
+  name: g
+  location: City, State
+  email: your.email@example.com
+  phone: +1 234 567 8901
+  website: https://yourwebsite.com
+  social_networks:
+  - network: LinkedIn
+    username: ''
+  - network: GitHub
+    username: ''
+  sections:
+    summary:
+    - A brief summary about yourself and your professional background. Highlight
+      your key strengths, experience, and career objectives.
+    education:
+    - institution: University Name
+      area: Field of Study
+      degree: BS
+      start_date: 2020-09
+      end_date: 2024-05
+      location: City, State
+      highlights:
+      - 'GPA: X.XX/4.00'
+    experience:
+    - company: Company Name
+      position: Position Title
+      start_date: 2023-06
+      end_date: 2023-07
+      location: City, State
+      highlights:
+      - Accomplishment or responsibility 1
+      - Accomplishment or responsibility 2
+    projects:
+    - name: Project Name
+      start_date: 2023-01
+      end_date: 2024-05
+      summary: Brief description of the project
+      highlights:
+      - Key feature or accomplishment 1
+      - Key feature or accomplishment 2
+    - name: capstone-project-team-2
+      summary: Built capstone-project-team-2 with C, Java, and Python; 
+        frameworks Docker, Docker Compose, and Streamlit.
+      highlights:
+      - 7 classes across multiple languages
+      - Average 0.86 methods per class
+      - 'OOP score: 0.2 (low)'
+      - 'OOP Design: The project shows limited use of object-oriented patterns. There
+        are some structs, but encapsulation and polymorphism are minimal.'
+    skills:
+    - label: Languages
+      details: Python, JavaScript, etc.
+    - label: Frameworks
+      details: React, Django, etc.
+    - label: Tools
+      details: Git, Docker, etc.
+design:
+  theme: sb2nov
+locale:
+  language: english

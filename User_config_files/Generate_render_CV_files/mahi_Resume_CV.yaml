@@ -1,0 +1,51 @@
+cv:
+  name: mahi
+  location: City, State
+  email: your.email@example.com
+  phone: +1 234 567 8901
+  website: https://yourwebsite.com
+  social_networks:
+  - network: LinkedIn
+    username: ''
+  - network: GitHub
+    username: ''
+  sections:
+    summary:
+    - A brief summary about yourself and your professional background.
+    education:
+    - institution: University Name
+      area: Field of Study
+      degree: BS
+      start_date: 2020-09
+      end_date: 2024-05
+      location: City, State
+      highlights:
+      - 'GPA: X.XX/4.00'
+    experience:
+    - company: Company Name
+      position: Position Title
+      start_date: 2023-06
+      end_date: 2023-07
+      location: City, State
+      highlights:
+      - Accomplishment 1
+      - Accomplishment 2
+    projects:
+    - name: Project Name
+      start_date: 2023-01
+      end_date: 2024-05
+      summary: Brief description of the project
+      highlights:
+      - Key feature 1
+      - Key feature 2
+    skills:
+    - label: Languages
+      details: Python, JavaScript, etc.
+    - label: Frameworks
+      details: React, Django, etc.
+    - label: Tools
+      details: Git, Docker, etc.
+design:
+  theme: sb2nov
+locale:
+  language: english

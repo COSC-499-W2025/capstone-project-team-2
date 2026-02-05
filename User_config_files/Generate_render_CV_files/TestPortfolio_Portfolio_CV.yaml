@@ -1,0 +1,20 @@
+cv:
+  name: TestPortfolio
+  social_networks: []
+  sections:
+    projects:
+    - name: Test Portfolio
+      summary: Test overview
+      highlights:
+      - Highlight one
+      - 'Contributors: Tester'
+    - name: Demo
+      summary: Demo
+      highlights:
+      - 0 classes across multiple languages
+      - Average 0 methods per class
+      - 'OOP score: 0.5 ()'
+design:
+  theme: sb2nov
+locale:
+  language: english

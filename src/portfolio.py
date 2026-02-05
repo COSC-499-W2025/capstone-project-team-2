@@ -2,11 +2,9 @@ import json
 from pathlib import Path
 
 # Render saved analyses as portfolio-style output, honoring consent settings.
-from src import app_context
 from src.app_context import AppContext
-from src.Generate_AI_Resume import GenerateProjectResume, GenerateLocalResume
-from src.resume_pdf_generator import SimpleResumeGenerator
-import os
+from src.Generate_AI_Resume import GenerateProjectResume
+from src.export_formats import export_resume_item, prompt_export_formats
 from src.oop_aggregator import pretty_print_oop_report
 
 
@@ -120,26 +118,27 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
                 print(f"Code:\n{code[:200]}...\n")
 
     print("============================================\n")
-    generate_pdf_input=input("Would you like to generate a PDF? (y/n): ")
-    if generate_pdf_input.upper()=="Y":
-        attempts = 0
-        max_attempts = 3
-        while attempts < max_attempts:
-            folder_path=str(input("Enter the folder path where you want to save the PDF: "))
-            if os.path.exists(folder_path):
-                break
-            else:
-                attempts += 1
-                if attempts < max_attempts:
-                    print(f"Folder does not exist. Please enter a valid folder path. ({attempts}/{max_attempts} attempts)")
-                else:
-                    print("Maximum attempts reached. Returning to menu.")
-                    return
-        name_of_file=str(input("Enter the name of the PDF file or press enter to use default name (Portfolio): ")) or "Portfolio"
-        SimpleResumeGenerator(folder_path,data=docker,fileName=name_of_file).display_and_run()
 
+    formats = prompt_export_formats("portfolio")
+    if not formats:
+        return
 
+    try:
+        export_dir, saved_files = export_resume_item(
+            docker,
+            ctx,
+            artifact="portfolio",
+            formats=formats,
+            document_title="Portfolio",
+            include_resume_line_pdf=True,
+        )
+    except Exception as e:
+        print(f"[ERROR] Could not export portfolio: {e}")
+        return
 
+    print(f"[SUCCESS] Portfolio exports saved to: {export_dir}")
+    for path in saved_files:
+        print(f"  - {path}")
 
 
 

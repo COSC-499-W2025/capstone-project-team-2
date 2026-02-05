@@ -21,6 +21,7 @@ from src.analysis_service import (
 )
 from src.app_context import AppContext
 from src.portfolio import display_portfolio_and_generate_pdf
+from src.export_formats import export_resume_line, prompt_export_formats
 from src.saved_projects import (
     delete_file_from_disk,
     delete_from_database_by_id,
@@ -33,8 +34,6 @@ from src.menu_insights import project_insights_menu
 from src.user_startup_config import ConfigLoader
 from src.Configuration import configuration_for_users
 from src.Generate_AI_Resume import GenerateProjectResume, GenerateLocalResume
-from src.resume_pdf_generator import SimpleResumeGenerator
-import os
 
 
 def settings_menu(ctx: AppContext) -> None:
@@ -629,28 +628,21 @@ def local_resume_menu(ctx: AppContext) -> None:
 
     print("\n" + "=" * 50)
 
-    # Offer PDF generation
-    generate_pdf = input("\nWould you like to generate a PDF resume? (y/n): ").strip().lower()
-    if generate_pdf == "y":
-        attempts = 0
-        max_attempts = 3
-        while attempts < max_attempts:
-            folder_path = input("Enter the folder path to save the PDF: ").strip()
-            if os.path.exists(folder_path):
-                break
-            else:
-                attempts += 1
-                if attempts < max_attempts:
-                    print(f"Folder does not exist. ({attempts}/{max_attempts} attempts)")
-                else:
-                    print("Maximum attempts reached. Returning to menu.")
-                    return
-
-        file_name = input("Enter PDF filename (or press Enter for 'LocalResume'): ").strip() or "LocalResume"
-
+    formats = prompt_export_formats("resume")
+    if formats:
         try:
-            SimpleResumeGenerator(folder_path, data=resume_item, fileName=file_name).display_resume_line()
+            export_dir, saved_files = export_resume_line(
+                resume_item,
+                ctx,
+                artifact="resume",
+                formats=formats,
+                document_title="Resume Line",
+            )
         except Exception as e:
-            print(f"[ERROR] Could not generate PDF: {e}")
+            print(f"[ERROR] Could not export resume: {e}")
+        else:
+            print(f"[SUCCESS] Resume exports saved to: {export_dir}")
+            for path in saved_files:
+                print(f"  - {path}")
 
     input("\nPress Enter to return to main menu...")
