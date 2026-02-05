@@ -1557,48 +1557,155 @@ missing from the system so that I can relax when the midterm break comes around.
 
 ## 🔗 Connection to Previous Week
 
-Following Week 18's bug fixes discovered during peer testing (RenderCV PDF creation and consent display issues), this week focused on
+Following Week 18's bug fixes discovered during peer testing (RenderCV PDF creation and consent display issues), 
+this week focused on converting the Portfolio and Resume generation modules from CLI-based systems into FastAPI-based 
+REST APIs ([PR #374](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/374), [PR #375](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/375)), 
+transitioning the document generation functionality 
+to support the web-based frontend planned for Milestone 3.
 
 ---
 
 ## 🚀 Work Completed
 
 ### Coding Tasks
--
+- Converted Portfolio generation module into a FastAPI-based REST API with 6 endpoints: `POST /portfolio/generate`, `GET /portfolio/{id}`, `POST /portfolio/{id}/render`, `POST /portfolio/{id}/edit`, `POST /portfolio/{id}/add/project/{project_id}`, and `DELETE /portfolio/{id}` ([PR #374](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/374))
+- Converted Resume generation module into a FastAPI-based REST API with 6 endpoints: `POST /resume/generate`, `GET /resume/{id}`, `POST /resume/{id}/render`, `POST /resume/{id}/edit`, `POST /resume/{id}/add/project/{project_id}`, and `DELETE /resume/{id}` ([PR #375](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/375))
+- Added Pydantic validation models (`GeneratePortfolioRequest`, `GenerateResumeRequest`, `EditProjectRequest`, `ProjectRequest`, `editItem`) for request payload validation
+- Separated portfolio/resume creation from PDF rendering — creation now returns JSON metadata, allowing users to edit before final rendering
+- Implemented UUID-backed document identification (8-character suffix) for resume and portfolio tracking
+- Added background task cleanup for temporary PDF directories
 
 ### Testing/Debugging Tasks
--
+- Created 18 comprehensive tests for Portfolio API (`test_portfolio_generator_API.py`) across 6 test classes covering success paths, error handling (404, 409, 500), database integration, render failure handling, and OS-level deletion errors
+- Created 6 focused tests for Resume API (`test_resume_generator_API.py`) covering resume generation with UUID tracking, data retrieval and JSON formatting, PDF rendering verification, field modification with batch operations, database project integration, and file deletion validation
+- All tests passing in both local pytest and Docker environments
 
 ### Reviewing/Collaboration Tasks
--
+- Reviewed [User prompts added for Portfolio view PR #376](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/376) — fixed a bug where portfolio view forced users through PDF generation prompts by replacing hardcoded logic with actual user input validation; confirmed all tests pass locally and in Docker
 
 ---
 
 ## 📌 Associated Tasks from Project Board
--
-
+- [Convert Resume generation into fastAPI format](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/296)
+- [Convert Portfolio Generation into fastAPI Format ](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/295)
 ---
 
 ## 📈 Progress Update
 
-| Task/Issue | Status |
-|------------|--------|
-| **** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| Task/Issue                        | Status                                                           |
+|-----------------------------------|------------------------------------------------------------------|
+| Portfolio Generation into fastAPI | ![Complete](https://img.shields.io/badge/Status-Complete-green)  |
+| Resume Generation into fastAPI    | ![Complete](https://img.shields.io/badge/Status-Complete-green)  |
 
 ---
 
 ## ⚠️ Issues/Blockers
-
--
+- There have been no Issues or blockers this week 
 
 ---
 
 ## 🎯 Next Week's Goals
--
+- My goal next week is keep working on issues that need to be dealt with before milestone 2 submission
 
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 19)
 
+**Week 19** was focused on a significant architectural shift — 
+converting the Portfolio and Resume generation modules from 
+CLI-based systems into **[FastAPI](https://fastapi.tiangolo.com/)**-based REST APIs. This was a necessary step to transition away from the terminal-based interface and prepare our document generation functionality for the web-based frontend planned for Milestone 3.
+
+The first major task was converting the Portfolio generation module into a REST API ([PR #374](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/374)). 
+I created 6 endpoints to handle the full lifecycle of a portfolio document: **creation**, **retrieval**, **editing**, **rendering to PDF**, **adding projects from the database**, and **deletion**. 
+One key design decision was separating document creation from PDF rendering, 
+which allows users to make edits to their portfolio before committing to the final PDF output.
+
+To ensure each document could be uniquely identified, I implemented **UUID-backed** 
+id system,achieved through appending the uniquely generated 8-character UUID suffix to the 
+user provided name during the creation of the YAML file for both **Resume** and **Portfolio**.
+which you can see down below in the code snippet 
+```python
+@portfolioRouter.post("/portfolio/generate")
+def generate_portfolio(payload: GeneratePortfolioRequest):
+    doc = RenderCVDocument(doc_type='portfolio')
+    portfolio_id = str(uuid.uuid4())[:8]
+    full_name = f"{payload.name}_{portfolio_id}"
+```
+
+For request validation, I leveraged **Pydantic** models to define clear payload schemas for each endpoint, which was a new learning experience for me:
+
+```python
+class GeneratePortfolioRequest(BaseModel):
+    """Request payload for creating a new portfolio document."""
+    name: str
+    theme: Optional[str] = 'sb2nov'
+    overwrite: bool = False
+
+class EditProjectRequest(BaseModel):
+    """Request payload containing a list of edit operations to apply."""
+    edits: list[editItem]
+
+class ProjectRequest(BaseModel):
+    """Optional overrides for project fields when adding a project."""
+    name: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    location: Optional[str] = None
+    summary: Optional[str] = None
+    highlights: Optional[list[str]] = None
+```
+
+Another interesting pattern I implemented was using FastAPI's `BackgroundTasks` to clean up temporary PDF directories after the file response is sent back to the client, preventing premature file deletion:
+
+```python
+@portfolioRouter.post("/portfolio/{portfolio_id}/render")
+def render_portfolio(portfolio_id: str, background_tasks: BackgroundTasks):
+    doc = _load_portfolio(portfolio_id)
+    status, pdf_path = doc.render()
+
+    output_dir = pdf_path.parent
+    background_tasks.add_task(shutil.rmtree, output_dir, True)
+    return FileResponse(str(pdf_path), media_type='application/pdf')
+```
+
+The second major task was converting the Resume generation module into a REST API ([PR #375](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/375)),
+following a similar architectural structure used in the Portfolio API.
+which included the same 6 endpoint structure with resume-specific functionality, additionally  both created API system support batch
+field modifications through their respective edit endpoints, allowing multiple fields to be updated in a single request. 
+An example of how batch editing is done can be seen below:
+
+```python
+resp = self._post_edit([
+    {"section": "skills", "item_name": "Python", "field": "", "new_value": "Python 3.12"},
+    {"section": "summary", "item_name": "", "field": "", "new_value": "New text"},
+    {"section": "contact", "item_name": "", "field": "email", "new_value": "a@b.com"},
+    {"section": "theme", "item_name": "", "field": "", "new_value": "classic"},
+])
+```
+
+Each edit operation in the list specifies a `section` to target, an optional `item_name` for list-based sections (like skills), a `field` for nested updates (like contact info), and the `new_value` to apply. This design allows the client to send one request that updates skills, summary, contact info, and theme all at once, rather than making four separate API calls.
+
+```python
+@resumeRouter.post("/resume/{id}/render")
+def render_resume(id: str, background_tasks: BackgroundTasks):
+    doc = _load_resume(id)
+    status, pdf_path = doc.render()
+
+    output_dir = pdf_path.parent
+    background_tasks.add_task(shutil.rmtree, output_dir, True)
+
+    return FileResponse(
+        str(pdf_path),
+        media_type="application/pdf",
+        filename=f"resume_{id}.pdf",
+        headers={"X-Resume-ID": id},
+    )
+```
+
+For testing, I created comprehensive test suites for both APIs — 18 tests for the Portfolio API across 6 test classes and 6 focused tests for the Resume API — covering success paths, error handling (404, 409, 500), database integration, render failure handling, and OS-level deletion errors. All tests pass in both local pytest and Docker environments.
+
+I also reviewed [PR #376](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/376) where a teammate fixed a bug in the portfolio view that forced users through PDF generation prompts regardless of their intent. The fix replaced hardcoded logic with actual user input validation, which was a clean and effective solution.
+
+Overall, this week was a productive one where I learned a lot about building REST APIs with FastAPI, particularly around Pydantic validation, background task management, and structuring endpoints for CRUD operations. The transition from CLI to API architecture sets a solid foundation for the frontend integration work ahead.
 
 ---
