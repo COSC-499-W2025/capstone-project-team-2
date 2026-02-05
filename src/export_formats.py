@@ -11,11 +11,27 @@ from src.app_context import AppContext
 EXPORT_FORMATS = ("pdf", "html", "md")
 
 def _sanitize_name(value: str) -> str:
+    """Normalize a string for safe filesystem paths.
+
+    Args:
+        value: Raw name to normalize.
+
+    Returns:
+        Sanitized name with only safe characters.
+    """
     cleaned = re.sub(r"[^A-Za-z0-9._-]+", "_", (value or "").strip())
     cleaned = cleaned.strip("._-")
     return cleaned or "project"
 
 def _normalize_formats(raw: str) -> List[str]:
+    """Normalize a user-supplied format string into ordered formats.
+
+    Args:
+        raw: Raw input string (comma/space separated).
+
+    Returns:
+        Ordered list of valid formats or an empty list if invalid.
+    """
     if not raw:
         return []
 
@@ -45,6 +61,14 @@ def _normalize_formats(raw: str) -> List[str]:
     return ordered
 
 def prompt_export_formats(label: str) -> List[str]:
+    """Prompt the user to select one or more export formats.
+
+    Args:
+        label: Label describing the export target (resume/portfolio).
+
+    Returns:
+        List of selected formats, or an empty list if the user skips.
+    """
     prompt = (
         f"Select {label} export formats (pdf, html, md). "
         "Use commas to pick multiple, or press Enter for PDF. "
@@ -65,13 +89,40 @@ def prompt_export_formats(label: str) -> List[str]:
 
 
 def _export_root(ctx: AppContext) -> Path:
+    """Return the root directory for exports.
+
+    Args:
+        ctx: Application context with configured paths.
+
+    Returns:
+        Path to the export root directory.
+    """
     return ctx.legacy_save_dir / "exports"
 
 def _export_dir(ctx: AppContext, project_title: str, artifact: str) -> Path:
+    """Build the export directory for a project and artifact type.
+
+    Args:
+        ctx: Application context with configured paths.
+        project_title: Project title used to namespace exports.
+        artifact: Artifact name (e.g., resume, portfolio).
+
+    Returns:
+        Path to the export directory.
+    """
     project_dir = _export_root(ctx) / _sanitize_name(project_title)
     return project_dir / _sanitize_name(artifact)
 
 def _render_markdown(item: ResumeItem, title: str) -> str:
+    """Render a full resume/portfolio as Markdown.
+
+    Args:
+        item: Resume data to render.
+        title: Document title.
+
+    Returns:
+        Markdown document as a string.
+    """
     lines: List[str] = []
     lines.append(f"# {title}")
     lines.append("")
@@ -125,6 +176,15 @@ def _render_markdown(item: ResumeItem, title: str) -> str:
 
 
 def _render_html(item: ResumeItem, title: str) -> str:
+    """Render a full resume/portfolio as HTML.
+
+    Args:
+        item: Resume data to render.
+        title: Document title.
+
+    Returns:
+        HTML document as a string.
+    """
     def esc(value: str) -> str:
         return html.escape(value or "")
 
@@ -200,6 +260,14 @@ def _render_html(item: ResumeItem, title: str) -> str:
 
 
 def _resume_line_text(item: ResumeItem) -> str:
+    """Build the single-line resume string used for resume-line exports.
+
+    Args:
+        item: Resume data to render.
+
+    Returns:
+        Single-line resume text.
+    """
     project = item.project_title or "Project"
     summary = item.one_sentence_summary or ""
     tech_stack = item.tech_stack or ""
@@ -208,6 +276,15 @@ def _resume_line_text(item: ResumeItem) -> str:
 
 
 def _render_resume_line_markdown(item: ResumeItem, title: str) -> str:
+    """Render a resume line as Markdown.
+
+    Args:
+        item: Resume data to render.
+        title: Document title.
+
+    Returns:
+        Markdown document as a string.
+    """
     lines: List[str] = []
     lines.append(f"# {title}")
     lines.append("")
@@ -217,6 +294,15 @@ def _render_resume_line_markdown(item: ResumeItem, title: str) -> str:
 
 
 def _render_resume_line_html(item: ResumeItem, title: str) -> str:
+    """Render a resume line as HTML.
+
+    Args:
+        item: Resume data to render.
+        title: Document title.
+
+    Returns:
+        HTML document as a string.
+    """
     def esc(value: str) -> str:
         return html.escape(value or "")
 
@@ -242,6 +328,18 @@ def export_resume_line(
     formats: Iterable[str],
     document_title: str,
 ) -> Tuple[Path, List[Path]]:
+    """Export a resume line in the selected formats.
+
+    Args:
+        item: Resume data to export.
+        ctx: Application context with configured paths.
+        artifact: Base filename for the export.
+        formats: Iterable of selected formats.
+        document_title: Title to embed in rendered files.
+
+    Returns:
+        Tuple of export directory and list of saved file paths.
+    """
     export_dir = _export_dir(ctx, item.project_title, artifact)
     export_dir.mkdir(parents=True, exist_ok=True)
 
@@ -279,6 +377,19 @@ def export_resume_item(
     document_title: str,
     include_resume_line_pdf: bool = False,
 ) -> Tuple[Path, List[Path]]:
+    """Export a full resume/portfolio in the selected formats.
+
+    Args:
+        item: Resume data to export.
+        ctx: Application context with configured paths.
+        artifact: Base filename for the export.
+        formats: Iterable of selected formats.
+        document_title: Title to embed in rendered files.
+        include_resume_line_pdf: Whether to also create the resume-line PDF.
+
+    Returns:
+        Tuple of export directory and list of saved file paths.
+    """
     export_dir = _export_dir(ctx, item.project_title, artifact)
     export_dir.mkdir(parents=True, exist_ok=True)
 

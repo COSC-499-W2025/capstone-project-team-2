@@ -119,6 +119,96 @@ def test_main_menu_routes_to_local_resume_menu(monkeypatch):
     mod.main_menu(SimpleNamespace())
     assert called.get("hit") is True
 
+def test_local_resume_menu_exports_selected_formats(monkeypatch, tmp_path):
+    """Local resume flow should export selected formats via export_resume_line."""
+    analysis_path = tmp_path / "my_project.json"
+    analysis_path.write_text("{}", encoding="utf-8")
+
+    monkeypatch.setattr(mod, "list_saved_projects", lambda folder: [analysis_path])
+
+    class FakeLocalResume:
+        def __init__(self, data, project_name):
+            self.data = data
+            self.project_name = project_name
+
+        def generate(self):
+            return SimpleNamespace(
+                project_title="Demo Project",
+                one_sentence_summary="Built a demo.",
+                tech_stack="Python",
+                key_responsibilities=["Did the thing"],
+                key_skills_used=["Python"],
+                impact="Improved velocity.",
+                oop_principles_detected={},
+            )
+
+    monkeypatch.setattr(mod, "GenerateLocalResume", FakeLocalResume)
+    monkeypatch.setattr(mod, "prompt_export_formats", lambda label: ["html", "md"])
+
+    called = {}
+
+    def fake_export(item, ctx, artifact, formats, document_title):
+        called["artifact"] = artifact
+        called["formats"] = formats
+        called["title"] = document_title
+        return tmp_path, [tmp_path / "resume.html", tmp_path / "resume.md"]
+
+    monkeypatch.setattr(mod, "export_resume_line", fake_export)
+    monkeypatch.setattr("builtins.input", _inputs(["1", ""]))
+
+    ctx = SimpleNamespace(default_save_dir=tmp_path, legacy_save_dir=tmp_path)
+    mod.local_resume_menu(ctx)
+
+    assert called["artifact"] == "resume"
+    assert called["formats"] == ["html", "md"]
+    assert called["title"] == "Resume Line"
+
+def test_portfolio_export_prompts_and_exports_formats(monkeypatch, tmp_path):
+    """Portfolio flow should prompt for formats and export the selection."""
+    import json
+    import src.portfolio as portfolio_mod
+
+    analysis_path = tmp_path / "analysis.json"
+    analysis_path.write_text(json.dumps({"project_root": str(tmp_path / "project")}), encoding="utf-8")
+
+    called = {"root": None, "formats": None, "include_resume_line": None}
+
+    class FakeGPR:
+        def __init__(self, root):
+            called["root"] = root
+
+        def generate(self, saveToJson=False):
+            return SimpleNamespace(
+                project_title="Demo Project",
+                one_sentence_summary="Built a demo.",
+                key_skills_used=["Python"],
+                tech_stack="Python",
+                oop_principles_detected={
+                    "abstraction": SimpleNamespace(
+                        present=True,
+                        description="Uses classes",
+                        code_snippets=[],
+                    )
+                },
+            )
+
+    monkeypatch.setattr(portfolio_mod, "GenerateProjectResume", FakeGPR)
+    monkeypatch.setattr(portfolio_mod, "prompt_export_formats", lambda label: ["html"])
+
+    def fake_export(item, ctx, artifact, formats, document_title, include_resume_line_pdf=False):
+        called["formats"] = formats
+        called["include_resume_line"] = include_resume_line_pdf
+        return tmp_path, [tmp_path / "portfolio.html"]
+
+    monkeypatch.setattr(portfolio_mod, "export_resume_item", fake_export)
+
+    ctx = SimpleNamespace(external_consent=True, legacy_save_dir=tmp_path)
+    portfolio_mod.display_portfolio_and_generate_pdf(analysis_path, ctx)
+
+    assert called["root"] == str(tmp_path / "project")
+    assert called["formats"] == ["html"]
+    assert called["include_resume_line"] is True
+    
 def test_ai_resume_line_menu_no_external_consent(monkeypatch, tmp_path):
     """
     If 'consented.external' is False in UserConfigs.json,
