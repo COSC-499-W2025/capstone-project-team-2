@@ -30,11 +30,9 @@ from src.saved_projects import (
     show_saved_summary,
 )
 from src.menu_insights import project_insights_menu
-
 from src.user_startup_config import ConfigLoader
 from src.Configuration import configuration_for_users
 from src.Generate_AI_Resume import GenerateProjectResume, GenerateLocalResume
-
 
 def settings_menu(ctx: AppContext) -> None:
     """
@@ -68,7 +66,6 @@ def settings_menu(ctx: AppContext) -> None:
             return
         else:
             print("Please choose a valid option (0-2).")
-
 
 def toggle_external_services(ctx: AppContext) -> None:
     """
@@ -129,7 +126,6 @@ def toggle_external_services(ctx: AppContext) -> None:
     else:
         print("\n[INFO] Invalid option. No changes made.")
 
-
 def analyze_project_menu(ctx: AppContext) -> None:
     """
     Ask user if their project is in a directory or zip file and analyze it.
@@ -187,7 +183,6 @@ def analyze_project_menu(ctx: AppContext) -> None:
         except Exception as e:
             print(f"[ERROR] {e}")
 
-
 def saved_projects_menu(ctx: AppContext) -> None:
     """
     Display all saved projects from the configured directory and legacy location.
@@ -236,7 +231,6 @@ def saved_projects_menu(ctx: AppContext) -> None:
             print(f"[ERROR] {e}")
             input("Press Enter to return to main menu...")
             return
-
 
 def delete_analysis_menu(ctx: AppContext) -> None:
     """
@@ -352,7 +346,6 @@ def delete_analysis_menu(ctx: AppContext) -> None:
             input("Press Enter to return to main menu...")
             return
 
-
 def get_portfolio_menu(ctx: AppContext) -> None:
     """
     Let the user select a saved project and generate a portfolio-style summary.
@@ -401,7 +394,6 @@ def get_portfolio_menu(ctx: AppContext) -> None:
             print(f"[ERROR] {e}")
             input("Press Enter to return to main menu...")
             return
-
 
 def main_menu(ctx: AppContext) -> int:
     """
@@ -530,7 +522,6 @@ def ai_resume_line_menu(ctx: AppContext) -> None:
     print("Resume line:")
     print(f"  • {ai_item.one_sentence_summary}")
     print("========================================\n")
-
 
 def local_resume_menu(ctx: AppContext) -> None:
     """

@@ -443,7 +443,6 @@ def test_insight_helper_filter_and_score_smoke():
     score_stale, _ = insight_helpers.compute_composite_score(stale)
     assert score_recent > score_stale
 
-
 def test_settings_menu_routes_to_user_config(monkeypatch):
     """Option 1 in settings menu should launch user configuration CLI."""
     called = {}
@@ -460,7 +459,6 @@ def test_settings_menu_routes_to_user_config(monkeypatch):
 
     assert called.get("hit") is True
 
-
 def test_settings_menu_routes_to_toggle_external(monkeypatch):
     """Option 2 in settings menu should call toggle_external_services."""
     called = {}
@@ -475,7 +473,6 @@ def test_settings_menu_routes_to_toggle_external(monkeypatch):
     mod.settings_menu(ctx)
 
     assert called.get("hit") is True
-
 
 def test_toggle_external_services_disables(monkeypatch, tmp_path):
     """Toggle should disable external services when selecting option 1."""
@@ -495,7 +492,6 @@ def test_toggle_external_services_disables(monkeypatch, tmp_path):
 
     assert ctx.external_consent is False
 
-
 def test_toggle_external_services_enables(monkeypatch, tmp_path):
     """Toggle should enable external services when selecting option 1."""
     monkeypatch.setattr("builtins.input", _inputs(["1"]))
@@ -514,7 +510,6 @@ def test_toggle_external_services_enables(monkeypatch, tmp_path):
 
     assert ctx.external_consent is True
 
-
 def test_toggle_external_services_back_no_change(monkeypatch):
     """Selecting 0 (back) should not change external_consent."""
     monkeypatch.setattr("builtins.input", _inputs(["0"]))
@@ -523,7 +518,6 @@ def test_toggle_external_services_back_no_change(monkeypatch):
     mod.toggle_external_services(ctx)
 
     assert ctx.external_consent is True
-
 
 def test_main_menu_routes_to_settings_menu(monkeypatch):
     """Option 1 in main menu should dispatch to settings_menu."""

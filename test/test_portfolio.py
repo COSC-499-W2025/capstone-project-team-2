@@ -6,7 +6,6 @@ import pytest
 # Exercises portfolio display paths for consent on/off.
 import src.portfolio as mod
 
-
 def test_display_portfolio_external_disabled_uses_saved_oop(monkeypatch, tmp_path, capsys):
     ctx = SimpleNamespace(legacy_save_dir=tmp_path / "User_config_files", external_consent=False)
     ctx.legacy_save_dir.mkdir(parents=True)
@@ -36,7 +35,6 @@ def test_display_portfolio_external_disabled_uses_saved_oop(monkeypatch, tmp_pat
 
     assert "PROJECT: analysis.json" in out
     assert called["metrics"]["score"]["oop_score"] == 0.8
-
 
 def test_display_portfolio_external_enabled_calls_generator(monkeypatch, tmp_path, capsys):
     ctx = SimpleNamespace(legacy_save_dir=tmp_path / "User_config_files", external_consent=True)
@@ -68,7 +66,6 @@ def test_display_portfolio_external_enabled_calls_generator(monkeypatch, tmp_pat
 
     assert "PROJECT: DemoProj" in out
     assert "One-Sentence Summary: Summary" in out
-
 
 def test_display_portfolio_exports_selected_formats(monkeypatch, tmp_path):
     ctx = SimpleNamespace(legacy_save_dir=tmp_path / "User_config_files", external_consent=True)

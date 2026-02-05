@@ -87,7 +87,6 @@ def prompt_export_formats(label: str) -> List[str]:
 
         print("Invalid selection. Examples: pdf, html, md, pdf,md.")
 
-
 def _export_root(ctx: AppContext) -> Path:
     """Return the root directory for exports.
 
@@ -174,7 +173,6 @@ def _render_markdown(item: ResumeItem, title: str) -> str:
     lines.append("")
     return "\n".join(lines)
 
-
 def _render_html(item: ResumeItem, title: str) -> str:
     """Render a full resume/portfolio as HTML.
 
@@ -258,7 +256,6 @@ def _render_html(item: ResumeItem, title: str) -> str:
 </html>
 """
 
-
 def _resume_line_text(item: ResumeItem) -> str:
     """Build the single-line resume string used for resume-line exports.
 
@@ -273,7 +270,6 @@ def _resume_line_text(item: ResumeItem) -> str:
     tech_stack = item.tech_stack or ""
     impact = item.impact or ""
     return f"{project} - {summary}.{tech_stack} {impact}".strip()
-
 
 def _render_resume_line_markdown(item: ResumeItem, title: str) -> str:
     """Render a resume line as Markdown.
@@ -291,7 +287,6 @@ def _render_resume_line_markdown(item: ResumeItem, title: str) -> str:
     lines.append(_resume_line_text(item))
     lines.append("")
     return "\n".join(lines)
-
 
 def _render_resume_line_html(item: ResumeItem, title: str) -> str:
     """Render a resume line as HTML.
@@ -319,7 +314,6 @@ def _render_resume_line_html(item: ResumeItem, title: str) -> str:
   </body>
 </html>
 """
-
 
 def export_resume_line(
     item: ResumeItem,
@@ -367,7 +361,6 @@ def export_resume_line(
         saved.append(md_path)
 
     return export_dir, saved
-
 
 def export_resume_item(
     item: ResumeItem,

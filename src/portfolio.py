@@ -7,7 +7,6 @@ from src.Generate_AI_Resume import GenerateProjectResume
 from src.export_formats import export_resume_item, prompt_export_formats
 from src.oop_aggregator import pretty_print_oop_report
 
-
 def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
     """
     Read a saved project JSON file and print a formatted portfolio summary.
