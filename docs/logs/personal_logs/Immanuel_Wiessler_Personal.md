@@ -5,6 +5,7 @@
 ## Quick Navigation
 
 ### Term 2
+- [Week 19 (02/02/2026 – 02/08/2026)](#-personal-log--week-19-02022026--02082026)
 - [Week 18 (01/26/2026 – 02/01/2026)](#-personal-log--week-18-01262026--02012026)
 - [Week 17 (01/19/2026 – 01/25/2026)](#-personal-log--week-17-01192026--01252026)
 - [Week 16 (01/12/2026 – 01/18/2026)](#-personal-log--week-16-01122026--01182026)
@@ -702,7 +703,7 @@ The model output needed cleaning to extract valid JSON:
 ```python
 def _clean_model_output(self, text: str) -> str:
 
-        """
+"""
  Cleans the output of the model by removing any code block fences and
  returning any JSON found in the output.
 
@@ -712,8 +713,8 @@ def _clean_model_output(self, text: str) -> str:
  Returns:
  str: The cleaned output of the model
  """
-        if not text:
-            return text
+ if not text:
+  return text
  cleaned = text.strip()
  fence_pattern = re.compile(r"```(?:json|python)?\s*([\s\S]*?)```", re.IGNORECASE)
  match = fence_pattern.search(cleaned)
@@ -1538,9 +1539,66 @@ The second bug was the consent display issue, which was that when typing
 traversing enough directory levels to reach the project root from `src/config/user_consent.py` to fix this, I just needed to adjust the path to go up  3 levels, and through manual testing, I confirmed this fix solved the issue.
 
 Overall, this week was interesting because it reinforced the importance
-of peer-testing, where the issues that were raised in my eyes would have actually 
+of peer-testing, where the issues that were raised in my eyes would have actually
 impacted the end users, and having fresh eyes on the system helped identify quickly,
-As we advance, I want to keep working on the milestone requirements that are still 
+As we advance, I want to keep working on the milestone requirements that are still
 missing from the system so that I can relax when the midterm break comes around.
+
+---
+
+
+
+# 📝 Personal Log – Week 19 (02/02/2026 – 02/08/2026)
+
+## 📊 Peer Evaluation
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/)
+
+---
+
+## 🔗 Connection to Previous Week
+
+Following Week 18's bug fixes discovered during peer testing (RenderCV PDF creation and consent display issues), this week focused on
+
+---
+
+## 🚀 Work Completed
+
+### Coding Tasks
+-
+
+### Testing/Debugging Tasks
+-
+
+### Reviewing/Collaboration Tasks
+-
+
+---
+
+## 📌 Associated Tasks from Project Board
+-
+
+---
+
+## 📈 Progress Update
+
+| Task/Issue | Status |
+|------------|--------|
+| **** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+
+---
+
+## ⚠️ Issues/Blockers
+
+-
+
+---
+
+## 🎯 Next Week's Goals
+-
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 19)
+
 
 ---
