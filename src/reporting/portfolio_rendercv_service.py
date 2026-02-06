@@ -9,9 +9,7 @@ Portfolio narrative logic lives in portfolio_service and RenderCV schema logic l
 """
 
 from pathlib import Path
-import subprocess
-import sys
-from typing import List, Optional, Tuple, Any
+from typing import List, Optional, Tuple, Any, Dict, Iterable
 
 from src.reporting.portfolio_service import PortfolioShowcase
 from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import RenderCVDocument, Project
@@ -183,35 +181,18 @@ class PortfolioRenderCVService:
         Returns:
             Tuple[str, Path | None]: Render status and PDF path.
         """
-        try:
-            result = self.cv.render()
-        except FileNotFoundError as e:
-            if "rendercv" not in str(e):
-                raise
-            yaml_file = self.cv.yaml_file
-            cmd = [sys.executable, "-m", "rendercv", "render", str(yaml_file)]
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                errors="replace"
-            )
-            if result.returncode != 0:
-                details = (result.stderr or "").strip()
-                if not details and result.stdout:
-                    details = result.stdout.strip()
-                return f"render failed (code {result.returncode}): {details}", None
-            output_dir = yaml_file.resolve().parent / "rendercv_output"
-            source_filename = f"{self.cv.name}_CV.pdf"
-            source_pdf = output_dir / source_filename
-            if source_pdf.exists():
-                # Rename PDF to include document type
-                doc_type_label = "Resume" if self.cv.doc_type == 'resume' else "Portfolio"
-                renamed_pdf = output_dir / f"{self.cv.name}_{doc_type_label}.pdf"
-                source_pdf.rename(renamed_pdf)
-                return "successfully rendered", renamed_pdf
-            return f"render failed - PDF not found at {source_pdf}", None
+        status, outputs = self.render_portfolio_outputs(["pdf"])
+        pdf_paths = outputs.get("pdf", [])
+        return status, pdf_paths[0] if pdf_paths else None
 
-        # render() returns (status, pdf_path) tuple directly
-        return result
+    def render_portfolio_outputs(self, formats: Iterable[str]) -> Tuple[str, Dict[str, List[Path]]]:
+        """
+        Render portfolio projects to multiple formats using RenderCV.
+
+        Args:
+            formats: Iterable of output formats (pdf, html, markdown)
+
+        Returns:
+            Tuple[str, Dict[str, List[Path]]]: Render status and output mapping.
+        """
+        return self.cv.render_outputs(formats=formats)
