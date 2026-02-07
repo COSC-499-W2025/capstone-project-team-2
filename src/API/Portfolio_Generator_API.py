@@ -85,7 +85,7 @@ def _load_portfolio(name:str) -> RenderCVDocument:
         doc.load(name=name)
 
     except FileNotFoundError:
-        raise HTTPException(status_code=404,detail=f"Portfolio '{name} not found'")
+        raise HTTPException(status_code=404,detail=f"Portfolio '{name}' not found'")
 
     return doc
 
