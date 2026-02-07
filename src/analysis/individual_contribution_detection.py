@@ -3,6 +3,7 @@ import sys
 from typing import Dict, List, Optional, Tuple, Iterable
 from collections import OrderedDict
 from git import Repo, InvalidGitRepositoryError
+import logging
 
 # Add parent to path for imports
 sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -117,7 +118,8 @@ def files_to_owner_map(root: Path, extractor: FileMetadataExtractor) -> Dict[str
             continue
         try:
             owner = extractor.get_author(p)
-        except Exception:
+        except Exception as e:
+            logging.warning("Failed to determine author for file %s: %s", p,e)
             owner = None
         rel = p.relative_to(root).as_posix()
         mapping[rel] = owner if owner and owner not in ("Unknown", "Author Unknown", "") else None
@@ -310,8 +312,11 @@ def detect_individual_contributions_git(project_root: Path, *, repo: Optional[Re
     
     try:
         repo = repo or Repo(project_root)
-    except (InvalidGitRepositoryError, Exception):
-        raise ValueError("Path is not a git repository")
+    except InvalidGitRepositoryError as e:
+        raise ValueError("Path is not a git repository") from e
+    except Exception as e:
+        raise RuntimeError(f"Failed to open git repository at {project_root}: {e}") from e
+
 
     # Load contributor names from CONTRIBUTORS/AUTHORS/README files
     contribs = contributor_names_from_files(project_root)
@@ -333,18 +338,20 @@ def detect_individual_contributions_git(project_root: Path, *, repo: Optional[Re
     # Get tracked files from git
     try:
         tracked = set(repo.git.ls_files().splitlines())
-    except Exception:
-        tracked = set(
-            p.relative_to(project_root).as_posix()
-            for p in project_root.rglob("*")
-            if p.is_file() and ".git" not in p.parts
-        )
+    except Exception as e:
+        raise RuntimeError(f"Failed to list tracked files for repo at {project_root}: {e}") from e
+        # tracked = set(
+        #     p.relative_to(project_root).as_posix()
+        #     for p in project_root.rglob("*")
+        #     if p.is_file() and ".git" not in p.parts
+        # )
 
     # Attribute each tracked file to a contributor
     for rel in tracked:
         try:
             commits = list(repo.iter_commits(paths=str(rel), max_count=1))
-        except Exception:
+        except Exception as e:
+            logging.warning("Failed to retrieve commits for file '%s' in repo '%s': %s", rel, project_root, e)
             commits = []
         
         if not commits:
@@ -428,9 +435,16 @@ def detect_individual_contributions(project_path: str | Path, *, extractor: Opti
             with Repo(root) as repo:
                 contributors = detect_individual_contributions_git(root, repo=repo)
                 return {"is_collaborative": True, "mode": "git", "contributors": contributors}
-        except Exception:
-            # Fallback to local mode if Git operations fail
-            pass
+        except InvalidGitRepositoryError as e:
+            # project_type_detection said "git" but repo isn't actually valid
+            logging.warning("Project marked git but Repo() failed for %s; falling back to local: %s", root, e)
+
+        except RuntimeError:
+            #  API failures that have already been raised (tracked failure, repo failure)
+            raise
+
+        except Exception as e:
+            raise RuntimeError(f"Git contribution detection failed for {root}: {e}") from e
 
     # local mode (or fallback)
     contributors = detect_individual_contributions_local(root, extractor=extractor)
