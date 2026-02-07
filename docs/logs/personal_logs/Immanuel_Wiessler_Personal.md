@@ -1582,7 +1582,7 @@ to support the web-based frontend planned for Milestone 3.
 
 ### Reviewing/Collaboration Tasks
 - Reviewed [User prompts added for Portfolio view PR #376](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/376) — fixed a bug where portfolio view forced users through PDF generation prompts by replacing hardcoded logic with actual user input validation; confirmed all tests pass locally and in Docker
-
+- Reviewed [Database updates](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/388)
 ---
 
 ## 📌 Associated Tasks from Project Board
