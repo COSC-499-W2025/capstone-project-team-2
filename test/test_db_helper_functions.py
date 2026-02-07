@@ -82,7 +82,7 @@ class TestHelperFunct(unittest.TestCase):
         cursor.close()
 
     # -------------------- Insert & Fetch --------------------
-    def test_insert_json_dict_and_fetch_by_id(self):
+    def test_insert_json_dict_and_fetch_by_name(self):
         """
         Verify that inserting JSON content as a dictionary and fetching it
         by row ID returns the correct structured data and matching binary blob.
@@ -94,15 +94,15 @@ class TestHelperFunct(unittest.TestCase):
             None: Assertions are used to validate expected behavior.
         """
         data = {"name": "alpha", "value": 123}
-        row_id = self.store.insert_json("alpha.json", data)
-        pulled = self.store.fetch_by_id(row_id)
+        project_name = self.store.insert_json("alpha.json", data)
+        pulled = self.store.fetch_by_name(project_name)
         self.assertEqual(pulled, data)
 
         # Blob should match serialized dict
-        pulled_bytes = self.store.fetch_file_blob_by_id(row_id)
+        pulled_bytes = self.store.fetch_file_blob_by_name(project_name)
         self.assertEqual(pulled_bytes, json.dumps(data).encode("utf-8"))
 
-    def test_insert_json_bytes_and_fetch_by_id(self):
+    def test_insert_json_bytes_and_fetch_by_name(self):
         """
         Verify that inserting raw JSON bytes results in synchronized content
         and file blob storage that can be correctly retrieved.
@@ -115,14 +115,14 @@ class TestHelperFunct(unittest.TestCase):
         """
         data = {"project": "demo", "ok": True}
         raw_bytes = json.dumps(data).encode("utf-8")
-        row_id = self.store.insert_json("demo.json", data, raw_bytes=raw_bytes)
+        project_name = self.store.insert_json("demo.json", data, raw_bytes=raw_bytes)
 
         # Fetch content
-        pulled_dict = self.store.fetch_by_id(row_id)
+        pulled_dict = self.store.fetch_by_name(project_name)
         self.assertEqual(pulled_dict, data)
 
         # Fetch blob
-        pulled_bytes = self.store.fetch_file_blob_by_id(row_id)
+        pulled_bytes = self.store.fetch_file_blob_by_name(project_name)
         self.assertEqual(pulled_bytes, raw_bytes)
 
     def test_fetch_all(self):
@@ -155,14 +155,14 @@ class TestHelperFunct(unittest.TestCase):
         Returns:
             None: Assertions are used to validate expected behavior.
         """
-        row_id = self.store.insert_json("up.json", {"before": True})
-        updated = self.store.update(row_id, {"after": True})
+        project_name = self.store.insert_json("up.json", {"before": True})
+        updated = self.store.update(project_name, {"after": True})
         self.assertTrue(updated)
 
         # Check content and blob
-        pulled = self.store.fetch_by_id(row_id)
+        pulled = self.store.fetch_by_name(project_name)
         self.assertEqual(pulled, {"after": True})
-        pulled_blob = self.store.fetch_file_blob_by_id(row_id)
+        pulled_blob = self.store.fetch_file_blob_by_name(project_name)
         self.assertEqual(pulled_blob, json.dumps({"after": True}).encode("utf-8"))
 
     def test_update_with_bytes(self):
@@ -176,15 +176,15 @@ class TestHelperFunct(unittest.TestCase):
         Returns:
             None: Assertions are used to validate expected behavior.
         """
-        row_id = self.store.insert_json("up.json", {"before": True})
+        project_name = self.store.insert_json("up.json", {"before": True})
         new_data = {"updated": 42}
         new_bytes = json.dumps(new_data).encode("utf-8")
-        updated = self.store.update(row_id, new_bytes)
+        updated = self.store.update(project_name, new_bytes)
         self.assertTrue(updated)
 
-        pulled = self.store.fetch_by_id(row_id)
+        pulled = self.store.fetch_by_name(project_name)
         self.assertEqual(pulled, new_data)
-        pulled_blob = self.store.fetch_file_blob_by_id(row_id)
+        pulled_blob = self.store.fetch_file_blob_by_name(project_name)
         self.assertEqual(pulled_blob, new_bytes)
 
     # -------------------- Delete --------------------
@@ -199,11 +199,11 @@ class TestHelperFunct(unittest.TestCase):
         Returns:
             None: Assertions are used to validate expected behavior.
         """
-        row_id = self.store.insert_json("delete.json", {"exists": True})
-        deleted = self.store.delete(row_id)
+        project_name = self.store.insert_json("delete.json", {"exists": True})
+        deleted = self.store.delete(project_name)
         self.assertTrue(deleted)
-        self.assertIsNone(self.store.fetch_by_id(row_id))
-        self.assertIsNone(self.store.fetch_file_blob_by_id(row_id))
+        self.assertIsNone(self.store.fetch_by_name(project_name))
+        self.assertIsNone(self.store.fetch_file_blob_by_name(project_name))
 
 
 if __name__== "__main__":

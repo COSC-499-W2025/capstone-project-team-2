@@ -45,33 +45,32 @@ class HelperFunct:
         cursor = self.conn.cursor()
         try:
             cursor.execute(
-            "INSERT INTO project_data (Pname, content, file_blob) VALUES (%s, %s, %s)",
-            (filename, json.dumps(data), raw_bytes)
+                "INSERT INTO project_data (Pname, content, file_blob) VALUES (%s, %s, %s)",
+                (filename, json.dumps(data), raw_bytes)
             )
 
             project_name = filename
 
             cursor.execute(
                 "INSERT INTO project_versions (project_name, version_number, content, file_blob) "
-                "VALUES (%s, 1, %s, %s)",
-                (project_name, filename, json.dumps(data), raw_bytes)
+                "VALUES (%s, %s, %s, %s)",  # 4 placeholders
+                (project_name, 1, json.dumps(data), raw_bytes)  # 4 values - FIXED!
             )
             self.conn.commit()
-            
+        
             return project_name
         finally:
             cursor.close()
 
-
             # fetch
 
-            # returns the contents of the json file by ID
-    def fetch_by_id(self, row_id: int):
+            # returns the contents of the json file by name
+    def fetch_by_name(self, project_name: str):
         """
-        Retrieve JSON content from the database using a row ID.
+        Retrieve JSON content from the database using a project_name.
 
         Args:
-            row_id: The unique database ID of the record to retrieve.
+           project_name: The unique project_name of the record to retrieve.
 
         Returns:
             dict | None: The parsed JSON content as a dictionary if found,
@@ -79,7 +78,7 @@ class HelperFunct:
         """
         cursor = self.conn.cursor()
         try:
-            cursor.execute("SELECT content FROM project_data WHERE Pname = %s", (row_id,))
+            cursor.execute("SELECT content FROM project_data WHERE Pname = %s", (project_name,))
             row = cursor.fetchone()
             return json.loads(row[0]) if row else None
         finally:
@@ -125,66 +124,58 @@ class HelperFunct:
         finally:
             cursor.close()
 
-        # Update, update all content and json file info
-    def update(self, row_id: int, input: Union[dict, bytes], filename: str = None) -> bool:
-        """
-        Update an existing database record so that the JSON content and
-        binary file blob remain synchronized.
+    def update(self, project_name: str, input: Union[dict, bytes]) -> bool:
+            """
+            Update an existing project with new content. The old version is 
+            automatically saved to the versions table.
 
-        Args:
-            row_id: The unique database ID of the record to update.
-            input: Either a dictionary containing JSON data or raw JSON bytes.
-            filename: Optional new filename to associate with the record.
+            Args:
+                project_name: The project name to update.
+                input: Either a dictionary containing JSON data or raw JSON bytes.
 
-        Returns:
-            bool: True if the record was successfully updated, False otherwise.
-        """
-        if isinstance(input, dict):
-            content = input
-            blob = json.dumps(input).encode("utf-8")
-        elif isinstance(input, bytes):
-            blob = input
-            content = json.loads(input.decode("utf-8"))
-        else:
-            raise ValueError("new_input must be a dict or bytes")
+            Returns:
+                bool: True if the record was successfully updated, False otherwise.
+            """
+            # Parse input
+            if isinstance(input, dict):
+                content = input
+                blob = json.dumps(input).encode("utf-8")
+            elif isinstance(input, bytes):
+                blob = input
+                content = json.loads(input.decode("utf-8"))
+            else:
+                raise ValueError("input must be a dict or bytes")
 
-        cursor = self.conn.cursor()
+            cursor = self.conn.cursor()
+            try:
+                # Get current version
+                cursor.execute(
+                    "SELECT current_version FROM project_data WHERE Pname=%s FOR UPDATE", 
+                    (project_name,)
+                )
+                row = cursor.fetchone()
+                if not row:
+                    return False
+        
+                new_version = row[0] + 1
 
-        try:
-            # Get current version
-            cursor.execute(
-                "SELECT current_version, filename FROM project_data WHERE id=%s FOR UPDATE", (row_id,)
-            )
-            row = cursor.fetchone()
-            if not row:
-                return False
-            current_version, old_filename = row
-            new_version = current_version + 1
+                # Update project_data
+                cursor.execute(
+                    "UPDATE project_data SET content=%s, file_blob=%s, current_version=%s WHERE Pname=%s",
+                    (json.dumps(content), blob, new_version, project_name)
+                    )
 
-            # Update project_data with new content
-            sql = "UPDATE project_data SET content=%s, file_blob=%s, current_version=%s"
-            params = [json.dumps(content), blob, new_version]
+                # Save new version
+                cursor.execute(
+                    "INSERT INTO project_versions (project_name, version_number, content, file_blob) "
+                    "VALUES (%s, %s, %s, %s)",
+                    (project_name, new_version, json.dumps(content), blob)
+                    )
 
-            if filename is not None:
-                sql += ", filename=%s"
-                params.append(filename)
-
-            sql += " WHERE id=%s"
-            params.append(row_id)
-
-            cursor.execute(sql, tuple(params))
-
-            # Insert new version into project_versions
-            cursor.execute(
-                "INSERT INTO project_versions (project_id, version_number, filename, content, file_blob) "
-                "VALUES (%s, %s, %s, %s, %s)",
-                (row_id, new_version, filename or old_filename, json.dumps(content), blob)
-            )
-
-            self.conn.commit()
-            return True
-        finally:
-            cursor.close()
+                self.conn.commit()
+                return True
+            finally:
+                cursor.close()
 
         
     def count_file_references(self, filename: str) -> int:
