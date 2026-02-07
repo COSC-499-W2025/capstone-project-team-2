@@ -206,5 +206,102 @@ class TestHelperFunct(unittest.TestCase):
         self.assertIsNone(self.store.fetch_file_blob_by_name(project_name))
 
 
+    # Project exists 
+
+    def test_project_exists(self):
+        """
+        Verify that project_exists correctly identifies whether a project
+        is present in the database.
+
+        Args:
+            None: This test does not take any parameters.
+
+        Returns:
+            None: Assertions are used to validate expected behavior.
+        """
+        self.assertFalse(self.store.project_exists("nonexist.json"))
+    
+        # Insert a project
+        project_name = self.store.insert_json("exist.json", {"data": 1})
+        self.assertTrue(self.store.project_exists(project_name))
+    
+        self.store.delete(project_name)
+        self.assertFalse(self.store.project_exists(project_name))
+
+    def test_list_all_projects(self):
+        """
+        Verify that list_all_projects returns all project names in the database,
+        ordered by most recently updated first.
+
+        Args:
+            None: This test does not take any parameters.
+
+        Returns:
+            None: Assertions are used to validate expected behavior.
+        """
+        projects = self.store.list_all_projects()
+        self.assertEqual(projects, [])
+    
+        # Insert multiple projects
+        self.store.insert_json("project1.json", {"data": 1})
+        self.store.insert_json("project2.json", {"data": 2})
+        self.store.insert_json("project3.json", {"data": 3})
+    
+        # return
+        projects = self.store.list_all_projects()
+        self.assertEqual(len(projects), 3)
+        self.assertIn("project1.json", projects)
+        self.assertIn("project2.json", projects)
+        self.assertIn("project3.json", projects)
+        
+        self.store.update("project1.json", {"data": 100})
+        projects = self.store.list_all_projects()
+        self.assertEqual(projects[0], "project1.json")
+
+    def test_delete_old_versions(self):
+        """
+        Verify that delete_old_versions keeps only the most recent N versions
+        and removes older versions from the database.
+
+        Args:
+            None: This test does not take any parameters.
+
+        Returns:
+            None: Assertions are used to validate expected behavior.
+        """
+        # Create a project with multiple versions
+        project_name = self.store.insert_json("versioned.json", {"version": 1})
+        self.store.update(project_name, {"version": 2})
+        self.store.update(project_name, {"version": 3})
+        self.store.update(project_name, {"version": 4})
+        self.store.update(project_name, {"version": 5})
+        self.store.update(project_name, {"version": 6})
+        self.store.update(project_name, {"version": 7})
+        versions = self.store.get_version_list(project_name)
+        self.assertEqual(len(versions), 7)
+    
+        # Keep only last 3 versions
+        deleted_count = self.store.delete_old_versions(project_name, keep_last_n=3)
+        self.assertEqual(deleted_count, 4)
+        versions = self.store.get_version_list(project_name)
+        self.assertEqual(len(versions), 3)
+    
+        version_numbers = [v['version_number'] for v in versions]
+        self.assertEqual(sorted(version_numbers), [5, 6, 7])
+    
+        # retrieve versions
+        v5 = self.store.retrieve_selected_version(project_name, 5)
+        v7 = self.store.retrieve_selected_version(project_name, 7)
+        self.assertIsNotNone(v5)
+        self.assertIsNotNone(v7)
+        self.assertEqual(v5['content'], {"version": 5})
+        self.assertEqual(v7['content'], {"version": 7})
+    
+        # Old versions removed
+        v1 = self.store.retrieve_selected_version(project_name, 1)
+        v2 = self.store.retrieve_selected_version(project_name, 2)
+        self.assertIsNone(v1)
+        self.assertIsNone(v2)
+
 if __name__== "__main__":
     unittest.main()

@@ -353,3 +353,66 @@ class HelperFunct:
             return cursor.fetchall()
         finally:
             cursor.close()
+    
+    def project_exists(self, project_name: str) -> bool:
+        """
+        Check if a project exists in the database.
+    
+        Args:
+            project_name: The project name to check.
+    
+        Returns:
+            bool: True if the project exists, False otherwise.
+        """
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("SELECT 1 FROM project_data WHERE Pname = %s", (project_name,))
+            return cursor.fetchone() is not None
+        finally:
+            cursor.close()
+        
+    def list_all_projects(self) -> List[str]:
+        """
+        Get a list of all project names in the database.
+    
+        Returns:
+            list: A list of all project names.
+        """
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("SELECT Pname FROM project_data ORDER BY updated_at DESC")
+            return [row[0] for row in cursor.fetchall()]
+        finally:
+            cursor.close()
+
+    def delete_old_versions(self, project_name: str, keep_last_n: int = 5) -> int:
+        """
+        Delete old versions, keeping only the most recent N versions.
+    
+        Args:
+            project_name: The project name.
+            keep_last_n: Number of recent versions to keep (default: 5).
+    
+        Returns:
+            int: Number of versions deleted.
+        """
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("""
+                DELETE FROM project_versions
+                WHERE project_name = %s
+                AND version_number NOT IN (
+                    SELECT version_number FROM (
+                        SELECT version_number
+                        FROM project_versions
+                        WHERE project_name = %s
+                        ORDER BY version_number DESC
+                        LIMIT %s
+                    ) as keep_versions
+                )
+            """, (project_name, project_name, keep_last_n))
+        
+            self.conn.commit()
+            return cursor.rowcount
+        finally:
+            cursor.close()
