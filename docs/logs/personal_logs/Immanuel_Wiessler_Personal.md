@@ -1708,6 +1708,8 @@ For testing, I created comprehensive test suites for both APIs — 18 tests for 
 
 I also reviewed [PR #376](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/376) where a teammate fixed a bug in the portfolio view that forced users through PDF generation prompts regardless of their intent. The fix replaced hardcoded logic with actual user input validation, which was a clean and effective solution.
 
+Additionally, I reviewed [PR #388](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/388) (Database updates) where I suggested a change to fix an issue with local pytest not working. I confirmed through Docker that the tests pass with no issues after the fix.
+
 Overall, this week was a productive one where I learned a lot about building REST APIs with FastAPI, particularly around Pydantic validation, background task management, and structuring endpoints for CRUD operations. The transition from CLI to API architecture sets a solid foundation for the frontend integration work ahead.
 
 ---
