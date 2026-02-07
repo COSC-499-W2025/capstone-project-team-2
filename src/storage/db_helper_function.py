@@ -45,20 +45,20 @@ class HelperFunct:
         cursor = self.conn.cursor()
         try:
             cursor.execute(
-            "INSERT INTO project_data (filename, content, file_blob) VALUES (%s, %s, %s)",
+            "INSERT INTO project_data (Pname, content, file_blob) VALUES (%s, %s, %s)",
             (filename, json.dumps(data), raw_bytes)
             )
 
-            project_id = cursor.lastrowid   
+            project_name = filename
 
             cursor.execute(
-                "INSERT INTO project_versions (project_id, version_number, filename, content, file_blob) "
-                "VALUES (%s, 1, %s, %s, %s)",
-                (project_id, filename, json.dumps(data), raw_bytes)
+                "INSERT INTO project_versions (project_name, version_number, content, file_blob) "
+                "VALUES (%s, 1, %s, %s)",
+                (project_name, filename, json.dumps(data), raw_bytes)
             )
             self.conn.commit()
             
-            return project_id
+            return project_name
         finally:
             cursor.close()
 
@@ -79,19 +79,19 @@ class HelperFunct:
         """
         cursor = self.conn.cursor()
         try:
-            cursor.execute("SELECT content FROM project_data WHERE id = %s", (row_id,))
+            cursor.execute("SELECT content FROM project_data WHERE Pname = %s", (row_id,))
             row = cursor.fetchone()
             return json.loads(row[0]) if row else None
         finally:
             cursor.close()
 
-            # returns the blob file by ID
-    def fetch_file_blob_by_id(self, row_id: int) -> bytes:
+            # returns the blob file by name
+    def fetch_file_blob_by_name(self, project_name: str) -> bytes:
         """
-        Retrieve the raw binary file blob from the database using a row ID.
+        Retrieve the raw binary file blob from the database using a project name.
 
         Args:
-            row_id: The unique database ID of the record to retrieve.
+            project_name: The unique project name of the record to retrieve.
 
         Returns:
             bytes | None: The raw file blob if found, or None if the record
@@ -99,7 +99,7 @@ class HelperFunct:
         """
         cursor = self.conn.cursor()
         try:
-            cursor.execute("SELECT file_blob FROM project_data WHERE id = %s", (row_id,))
+            cursor.execute("SELECT file_blob FROM project_data WHERE Pname = %s", (project_name,))
             row = cursor.fetchone()
             return row[0] if row else None
         finally:
@@ -186,8 +186,6 @@ class HelperFunct:
         finally:
             cursor.close()
 
-
-        # Delete
         
     def count_file_references(self, filename: str) -> int:
         """
@@ -202,7 +200,7 @@ class HelperFunct:
         cursor = self.conn.cursor()
         try:
             cursor.execute(
-                "SELECT COUNT(*) FROM project_data WHERE filename = %s",
+                "SELECT COUNT(*) FROM project_data WHERE Pname = %s",
                 (filename,),
             )
             row = cursor.fetchone()
@@ -210,6 +208,7 @@ class HelperFunct:
         finally:
             cursor.close()
             
+        # Delete
     def delete(self, row_id: int) -> bool:
         """
         Delete a database record by its row ID.
@@ -222,13 +221,13 @@ class HelperFunct:
         """
         cursor = self.conn.cursor()
         try:
-            cursor.execute("DELETE FROM project_data WHERE id = %s", (row_id,))
+            cursor.execute("DELETE FROM project_data WHERE Pname = %s", (row_id,))
             self.conn.commit()
             return cursor.rowcount > 0
         finally:
             cursor.close()
 
-    def get_version_list(self, project_id: int) -> List[Dict]:
+    def get_version_list(self, project_name: str) -> List[Dict]:
         """
         Get a simple list of all versions for display to the user.
         Perfect for showing a selection menu.
@@ -256,17 +255,16 @@ class HelperFunct:
             cursor.execute("""
                 SELECT 
                     pv.version_number,
-                    pv.filename,
                     pv.created_at,
                     CASE 
                         WHEN pv.version_number = pd.current_version THEN TRUE
                         ELSE FALSE
                     END as is_current
                 FROM project_versions pv
-                JOIN project_data pd ON pv.project_id = pd.id
-                WHERE pv.project_id = %s
+                JOIN project_data pd ON pv.project_name = pd.Pname
+                WHERE pv.project_name = %s
                 ORDER BY pv.version_number DESC
-            """, (project_id,))
+            """, (project_name,))
             
             versions = cursor.fetchall()
             
@@ -278,7 +276,7 @@ class HelperFunct:
         finally:
             cursor.close()
 
-    def retrieve_selected_version(self, project_id: int, version_number: int) -> Dict | None:
+    def retrieve_selected_version(self, project_name: str, version_number: int) -> Dict | None:
         """
         Retrieve the full data for a user-selected version.
         Returns everything needed to display or work with that version.
@@ -308,13 +306,12 @@ class HelperFunct:
             cursor.execute("""
                 SELECT 
                     version_number,
-                    filename,
                     content,
                     file_blob,
                     created_at
                 FROM project_versions
-                WHERE project_id = %s AND version_number = %s
-            """, (project_id, version_number))
+                WHERE project_name = %s AND version_number = %s
+            """, (project_name, version_number))
             
             version = cursor.fetchone()
             
@@ -352,15 +349,14 @@ class HelperFunct:
         try:
             cursor.execute("""
                 SELECT 
-                    pd.id as project_id,
-                    pd.filename,
+                    pd.Pname as project_name,
                     pd.current_version,
                     pd.uploaded_at,
                     pd.updated_at,
                     COUNT(pv.id) as total_versions
                 FROM project_data pd
-                LEFT JOIN project_versions pv ON pd.id = pv.project_id
-                GROUP BY pd.id
+                LEFT JOIN project_versions pv ON pd.Pname = pv.project_name
+                GROUP BY pd.Pname
                 ORDER BY pd.updated_at DESC
             """)
             
