@@ -9,8 +9,7 @@ CREATE TABLE IF NOT EXISTS project_data (
     file_blob LONGBLOB,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     current_version INT DEFAULT 1,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_filename (filename)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 -- project versions table -- 
@@ -22,11 +21,11 @@ CREATE TABLE IF NOT EXISTS project_versions (
     file_blob LONGBLOB,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_project_versions (project_filename, version_number),
+    INDEX idx_project_versions (project_name, version_number),
     INDEX idx_created_at (created_at),
 
-    FOREIGN KEY (project_filename) REFERENCES project_data(filename) 
+    FOREIGN KEY (project_name) REFERENCES project_data(Pname) 
         ON DELETE CASCADE 
         ON UPDATE CASCADE,
-    UNIQUE KEY unique_project_version (project_filename, version_number)
+    UNIQUE KEY unique_project_version (project_name, version_number)
 ) ENGINE=InnoDB;
