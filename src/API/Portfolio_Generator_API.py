@@ -117,6 +117,7 @@ def generate_portfolio(payload: GeneratePortfolioRequest):
         dict: The portfolio ID and a status message.
 
     Raises:
+        HTTPException: 400 if the theme is invalid.
         HTTPException: 409 if a portfolio with the same name exists and overwrite is False.
     """
     doc=RenderCVDocument(doc_type='portfolio')
@@ -128,7 +129,10 @@ def generate_portfolio(payload: GeneratePortfolioRequest):
 
     doc.load(name=full_name)
     if payload.theme and payload.theme !='sb2nov':
-        doc.update_theme(payload.theme)
+        try:
+            doc.update_theme(payload.theme)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
 
     return {"portfolio_id": full_name, "status": "Portfolio created successfully"}
 
@@ -173,11 +177,7 @@ def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
         HTTPException: 404 if the portfolio does not exist.
     """
     doc=_load_portfolio(portfolio_id)
-    modify_map={
-        "projects": doc.modify_project,
-    }
     results=[]
-    result=""
     for edit in payload.edits:
         section=edit.section.lower()
 
@@ -186,12 +186,19 @@ def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
 
         elif section=="contact":
             doc.update_contact(**{edit.field : edit.new_value})
+            result = f"Successfully updated contact field '{edit.field}'"
 
         elif section == "theme":
-            result=doc.update_theme(str(edit.new_value))
+            try:
+                result=doc.update_theme(str(edit.new_value))
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=str(e))
 
         elif section == "skills":
             result=doc.modify_skill(edit.item_name, edit.new_value)
+
+        elif section == "projects":
+            result=doc.modify_project(edit.item_name, edit.field, edit.new_value)
 
         else:
             raise HTTPException(status_code=400,
