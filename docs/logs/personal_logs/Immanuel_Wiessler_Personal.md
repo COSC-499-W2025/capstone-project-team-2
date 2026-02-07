@@ -1551,7 +1551,7 @@ missing from the system so that I can relax when the midterm break comes around.
 # 📝 Personal Log – Week 19 (02/02/2026 – 02/08/2026)
 
 ## 📊 Peer Evaluation
-![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/)
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/02_06_2026.png)
 
 ---
 
