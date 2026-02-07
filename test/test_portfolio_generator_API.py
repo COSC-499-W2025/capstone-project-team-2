@@ -82,6 +82,15 @@ class TestGeneratePortfolio(_BasePortfolioTest):
         self.assertEqual(response.status_code, 409)
         self.assertIn("overwrite=true", response.json()["detail"])
 
+    def test_invalid_theme_returns_400(self):
+        """Test that invalid theme on generate returns 400, not 500."""
+        self.mock_doc.generate.return_value = "Generated"
+        self.mock_doc.update_theme.side_effect = ValueError("Invalid theme 'bad'. Available: classic, sb2nov")
+
+        response = self.client.post("/portfolio/generate", json={"name": "John", "theme": "bad"})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Invalid theme", response.json()["detail"])
+
 
 class TestGetPortfolio(_BasePortfolioTest):
     """Tests for GET /portfolio/{id}."""
@@ -120,6 +129,27 @@ class TestEditPortfolio(_BasePortfolioTest):
         ])
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(resp.json()["results"]), 4)
+
+    def test_edit_project_success(self):
+        """Test editing a project field via the edit endpoint."""
+        self.mock_doc.modify_project.return_value = "Successfully modified project field"
+
+        resp = self._post_edit([
+            {"section": "projects", "item_name": "MyProject", "field": "summary", "new_value": "Updated summary"}
+        ])
+        self.assertEqual(resp.status_code, 200)
+        self.mock_doc.modify_project.assert_called_once_with("MyProject", "summary", "Updated summary")
+        self.assertIn("Successfully", resp.json()["results"][0])
+
+    def test_invalid_theme_returns_400(self):
+        """Test that invalid theme in edit returns 400, not 500."""
+        self.mock_doc.update_theme.side_effect = ValueError("Invalid theme 'bad'. Available: classic, sb2nov")
+
+        resp = self._post_edit([
+            {"section": "theme", "item_name": "", "field": "", "new_value": "bad"}
+        ])
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Invalid theme", resp.json()["detail"])
 
     def test_unknown_section_returns_400(self):
         resp = self._post_edit([{"section": "invalid", "item_name": "x", "field": "y", "new_value": "z"}])
