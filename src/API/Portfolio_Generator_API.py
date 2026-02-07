@@ -165,6 +165,9 @@ def get_portfolio(portfolio_id: str):
 def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
     """Apply one or more edits to a portfolio's sections.
 
+    Supports batch editing multiple fields across different sections in a single
+    API call. Each edit in the list is applied sequentially.
+
     Args:
         portfolio_id: The portfolio identifier.
         payload: A list of edit items specifying the section, field, and new value.
@@ -173,8 +176,38 @@ def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
         dict: {"results": [str, ...]} with the outcome of each edit.
 
     Raises:
-        HTTPException: 400 if an unknown section is specified.
+        HTTPException: 400 if an unknown section is specified or theme is invalid.
         HTTPException: 404 if the portfolio does not exist.
+
+    Example - Single edit:
+        ```json
+        {
+            "edits": [
+                {"section": "summary", "item_name": "", "field": "", "new_value": "Software engineer with 5 years experience"}
+            ]
+        }
+        ```
+
+    Example - Multiple edits in one call:
+        ```json
+        {
+            "edits": [
+                {"section": "contact", "item_name": "", "field": "email", "new_value": "new@example.com"},
+                {"section": "contact", "item_name": "", "field": "phone", "new_value": "555-1234"},
+                {"section": "summary", "item_name": "", "field": "", "new_value": "Updated summary text"},
+                {"section": "skills", "item_name": "Python", "field": "", "new_value": "Python 3.12"},
+                {"section": "projects", "item_name": "MyProject", "field": "summary", "new_value": "New project description"},
+                {"section": "theme", "item_name": "", "field": "", "new_value": "classic"}
+            ]
+        }
+        ```
+
+    Section-specific notes:
+        - summary: Only `new_value` is used; `item_name` and `field` are ignored.
+        - contact: Use `field` to specify which contact field to update (e.g., email, phone).
+        - theme: Only `new_value` is used; valid themes are 'sb2nov', 'classic', 'moderncv', 'engineeringresumes'.
+        - skills: Use `item_name` to identify the skill to rename; `new_value` is the new skill name.
+        - projects: Use `item_name` for the project name, `field` for the attribute to change.
     """
     doc=_load_portfolio(portfolio_id)
     results=[]
