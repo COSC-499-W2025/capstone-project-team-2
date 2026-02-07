@@ -1582,8 +1582,8 @@ to support the web-based frontend planned for Milestone 3.
 
 ### Reviewing/Collaboration Tasks
 - Reviewed [User prompts added for Portfolio view PR #376](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/376)
-  - — confirmed all tests pass locally and in Docker and did manually tested as well to ensure that the fix was correctly done
-- Reviewed [Database updates](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/388)
+  - confirmed all tests pass locally and in Docker and did manually tested as well to ensure that the fix was correctly done
+- Reviewed [Database updates #388](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/388)
   - Suggested a change to fix the problem with local pytesting not working and confirmed that through docker that the test pass with no issue
 ---
 
