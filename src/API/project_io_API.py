@@ -1,6 +1,7 @@
 from pathlib import Path
 from fastapi import APIRouter, UploadFile
 import zipfile
+import copy
 
 from src.storage import saved_projects
 from src.storage.saved_projects import list_saved_projects
@@ -25,7 +26,7 @@ async def upload_project(upload_file: UploadFile) -> str:
     """
     if not zipfile.is_zipfile(upload_file.file):
         return "Error, file is not a zip file!"
-    runtimeAppContext.currently_uploaded_file = upload_file
+    runtimeAppContext.currently_uploaded_file = copy.deepcopy(upload_file)
     return "Upload Success"
 
 def upload_project_path_CLI(upload_file: Path) -> str:

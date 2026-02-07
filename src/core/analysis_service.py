@@ -1,8 +1,8 @@
 import copy
 import datetime
-from pathlib import Path
-from typing import Any, Dict, Optional
 import logging
+from pathlib import Path
+from typing import Any, Dict
 
 from fastapi import UploadFile
 
@@ -16,16 +16,17 @@ from src.reporting.project_insights import record_project_insight
 from src.analyzers.multilang_orchestrator import MultiLangOrchestrator
 from src.reporting.resume_item_generator import generate_resume_item
 from src.storage.file_data_saving import SaveFileAnalysisAsJSON
+from src.storage.dedup_index import deduplicate_project
 from src.core.ai_data_scrubbing import ai_data_scrubber
 from src.core.AI_analysis_code import codeAnalysisAI
-from src.utils.utility_methods import *
+from src.utils.utility_methods import convert_datetime_to_string
 from src.core.document_analysis import DocumentAnalyzer
 from src.core.project_stack_detection import detect_project_stack
 from src.reporting.portfolio_service import (
     load_portfolio_showcase,
     build_portfolio_showcase,
-    display_portfolio_showcase,
 )
+from src.analysis.file_traverser import ProjectTraversalModule
 
 def extract_if_zip(zip_path: Path | UploadFile) -> Path:
     """
@@ -88,7 +89,7 @@ def oop_analysis(root: Path, languages_found) -> Dict[str, Any] | None:
 
     return None
 
-def export_json(project_name: str, analysis: Dict[str, Any]) -> str | None:
+def export_json(project_name: str, analysis: Dict[str, Any]) -> Dict[str, Any]:
     """
     Persist analyzed project to disk and database.
 
@@ -97,28 +98,28 @@ def export_json(project_name: str, analysis: Dict[str, Any]) -> str | None:
         analysis (Dict[str, Any]): Serializable analysis payload.
 
     Returns:
-        Error string or none (Errors not passed yet). Writes to filesystem/DB.
+        Dict[str, Any]: Metadata about the export (currently `{"skipped": False}`).
     """
 
     out_dir = Path(runtimeAppContext.default_save_dir).resolve()
-    out_dir.mkdir(parents=True, exist_ok=True)  #Makes directory where we will save json file
+    out_dir.mkdir(parents=True, exist_ok=True)
 
     filename = project_name + ".json"
-
-    #Shouldn't need to be converted here, could be earlier
+    # Copy to avoid mutating the caller's analysis dict before persistence.
     analysis_copy = copy.deepcopy(analysis)
 
     saver = SaveFileAnalysisAsJSON()
     saver.saveAnalysis(project_name, analysis_copy, str(out_dir))
-    file_path = out_dir / filename
 
     try:
-        record_id = runtimeAppContext.store.insert_json(filename, analysis_copy)
+        runtimeAppContext.store.insert_json(filename, analysis_copy)
     except Exception as e:
         logging.warning(f"Could not save to database: {e}")
 
+    return {"skipped": False}
 
-def analyze_project(root: Path, use_ai_analysis=False) -> None:
+
+def analyze_project(root: Path, use_ai_analysis=False) -> Dict[str, Any]:
     """
     Analyze a project folder and persist results.
 
@@ -131,8 +132,15 @@ def analyze_project(root: Path, use_ai_analysis=False) -> None:
     """
 
     display_name = root.name
-    hierarchy = FileMetadataExtractor(root).file_hierarchy()  #Metadata extracted and datetime objects converted to strings
-    duration = str(Project_Duration_Estimator(hierarchy).get_duration()) #Project duration estimate
+    hierarchy = FileMetadataExtractor(root).file_hierarchy()  #Metadata extracted with datetime objects
+    try:
+        duration = Project_Duration_Estimator(hierarchy).get_duration_human() #Project duration estimate
+    except Exception:  #If error, gracefully replace estimation
+        duration = "Unknown"
+    #For use when ready
+    #traverser = ProjectTraversalModule(root)
+    #analysis = traverser.build_analysis_with_project()
+
     resume = generate_resume_item(root, project_name=display_name)
 
     doc_analysis = DocumentAnalyzer(root).analyze()
@@ -219,4 +227,18 @@ def analyze_project(root: Path, use_ai_analysis=False) -> None:
     #    ps = analysis["portfolio_showcase"]
     #    display_portfolio_showcase(ps)
     #    return
+    dedup_result = deduplicate_project(
+        root,
+        Path(runtimeAppContext.default_save_dir) / "dedup_index.json",
+        remove_duplicates=True,
+    )
+    analysis["dedup"] = {
+        "unique_files": dedup_result.unique_files,
+        "duplicate_files": dedup_result.duplicate_files,
+        "duplicates": dedup_result.duplicates,
+        "index_size": dedup_result.index_size,
+        "removed": dedup_result.removed,
+    }
+
     export_json(display_name, convert_datetime_to_string(analysis))
+    return {"dedup": analysis["dedup"]}

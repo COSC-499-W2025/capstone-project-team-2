@@ -13,7 +13,7 @@ analysisRouter = APIRouter(
 )
 
 @analysisRouter.get("/")
-def perform_analysis_API(use_ai: bool = False) -> str:
+def perform_analysis_API(use_ai: bool = False) -> dict:
     """
     API call for performing analysis on a project folder. Extracts from a zip file if provided Path is a zip file. Analysis is saved.
 
@@ -24,7 +24,7 @@ def perform_analysis_API(use_ai: bool = False) -> str:
         use_ai (bool): determines whether analysis uses ai
 
     Returns:
-        str: string stating finished state or error code (Not all errors implemented yet)
+        dict: status message and dedup summary on success; str error on failure under status.
     """
     
     folder_path = runtimeAppContext.currently_uploaded_file
@@ -32,10 +32,19 @@ def perform_analysis_API(use_ai: bool = False) -> str:
     try:
         if isinstance(folder_path, Path):
             if (folder_path.suffix.lower() == ".zip"):
-                folder_path = extract_if_zip(folder_path)
-        elif isinstance(folder_path, UploadFile):
-            folder_path = extract_if_zip(folder_path)
-        analyze_project(folder_path, use_ai_analysis=use_ai)
-        return "Analysis Finished and Saved"
+                folder = extract_if_zip(folder_path)
+            else:
+                folder = folder_path
+        else:   #Can only be an UploadFile at this point
+            folder = extract_if_zip(folder_path)
+        analyze_project(folder, use_ai_analysis=use_ai)
+        result = analyze_project(folder, use_ai_analysis=use_ai) or {}
+        return {
+            "status": "Analysis Finished and Saved",
+            "dedup": result.get("dedup"),
+        }
     except Exception as e:
-        return str(e)
+        return {
+            "status": str(e),
+            "dedup": None
+        }
