@@ -116,30 +116,22 @@ class TestEditPortfolio(_BasePortfolioTest):
         return self.client.post("/portfolio/test_abc123/edit", json={"edits": edits})
 
     def test_all_sections(self):
-        """Single test covering every valid section type."""
+        """Single test covering every valid section type including projects."""
         self.mock_doc.modify_skill.return_value = "Successfully modified skill"
         self.mock_doc.update_summary.return_value = "Successfully updated summary"
         self.mock_doc.update_theme.return_value = "Successfully updated theme"
+        self.mock_doc.modify_project.return_value = "Successfully modified project field"
 
         resp = self._post_edit([
             {"section": "skills", "item_name": "Python", "field": "", "new_value": "Python 3.12"},
             {"section": "summary", "item_name": "", "field": "", "new_value": "New text"},
             {"section": "contact", "item_name": "", "field": "email", "new_value": "a@b.com"},
             {"section": "theme", "item_name": "", "field": "", "new_value": "classic"},
+            {"section": "projects", "item_name": "MyProject", "field": "summary", "new_value": "Updated summary"},
         ])
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(len(resp.json()["results"]), 4)
-
-    def test_edit_project_success(self):
-        """Test editing a project field via the edit endpoint."""
-        self.mock_doc.modify_project.return_value = "Successfully modified project field"
-
-        resp = self._post_edit([
-            {"section": "projects", "item_name": "MyProject", "field": "summary", "new_value": "Updated summary"}
-        ])
-        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.json()["results"]), 5)
         self.mock_doc.modify_project.assert_called_once_with("MyProject", "summary", "Updated summary")
-        self.assertIn("Successfully", resp.json()["results"][0])
 
     def test_invalid_theme_returns_400(self):
         """Test that invalid theme in edit returns 400, not 500."""
@@ -181,13 +173,15 @@ class TestAddProject(_BasePortfolioTest):
         self.assertEqual(resp.status_code, 200)
         self.assertIn("Successfully", resp.json()["status"])
 
-    def test_db_record_not_found_returns_404(self):
+    def test_missing_data_returns_404(self):
+        """Test 404 for missing DB record and missing resume_item."""
+        # DB record not found
         self.mock_ctx.store.fetch_by_id.return_value = None
         resp = self.client.post("/portfolio/test_abc123/add/project/999")
         self.assertEqual(resp.status_code, 404)
         self.assertIn("not found in database", resp.json()["detail"])
 
-    def test_no_resume_item_returns_404(self):
+        # Record exists but no resume_item
         self.mock_ctx.store.fetch_by_id.return_value = {"hierarchy": {}, "project_root": "C:\\some\\path"}
         resp = self.client.post("/portfolio/test_abc123/add/project/1")
         self.assertEqual(resp.status_code, 404)
@@ -217,15 +211,17 @@ class TestRenderPortfolio(_BasePortfolioTest):
             self.assertIn("X-Portfolio-ID", resp.headers)
             self.assertEqual(resp.headers["content-type"], "application/pdf")
 
-    def test_not_found_returns_404(self):
+    def test_error_cases(self):
+        """Test 404 for missing portfolio and 500 for render failure."""
+        # Portfolio not found
         self._set_not_found()
         resp = self.client.post("/portfolio/fake_id/render")
         self.assertEqual(resp.status_code, 404)
         self.assertIn("not found", resp.json()["detail"])
 
-    def test_render_failure_returns_500(self):
+        # Render failure
+        self.mock_doc.load.side_effect = None  # Reset to allow load
         self.mock_doc.render.return_value = ("Render failed", None)
-
         resp = self.client.post("/portfolio/test_abc123/render")
         self.assertEqual(resp.status_code, 500)
         self.assertIn("Render failed", resp.json()["detail"])
@@ -240,13 +236,16 @@ class TestDeletePortfolio(_BasePortfolioTest):
         self.assertEqual(resp.status_code, 200)
         self.assertIn("test_abc123", resp.json()["status"])
 
-    def test_not_found_returns_404(self):
+    def test_error_cases(self):
+        """Test 404 for missing portfolio and 500 for OS error."""
+        # Portfolio not found
         self._set_not_found()
         resp = self.client.delete("/portfolio/fake_id")
         self.assertEqual(resp.status_code, 404)
         self.assertIn("not found", resp.json()["detail"])
 
-    def test_os_error_returns_500(self):
+        # OS error during deletion
+        self.mock_doc.load.side_effect = None  # Reset to allow load
         self.mock_doc.yaml_file.unlink.side_effect = OSError("Permission denied")
         resp = self.client.delete("/portfolio/test_abc123")
         self.assertEqual(resp.status_code, 500)
