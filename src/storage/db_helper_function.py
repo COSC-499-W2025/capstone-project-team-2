@@ -209,19 +209,19 @@ class HelperFunct:
             cursor.close()
             
         # Delete
-    def delete(self, row_id: int) -> bool:
+    def delete(self, project_name: str) -> bool:
         """
-        Delete a database record by its row ID.
+        Delete a database record by its project name.
 
         Args:
-            row_id: The unique database ID of the record to delete.
+            project_name: The unique project name of the record to delete.
 
         Returns:
             bool: True if the record was successfully deleted, False otherwise.
         """
         cursor = self.conn.cursor()
         try:
-            cursor.execute("DELETE FROM project_data WHERE Pname = %s", (row_id,))
+            cursor.execute("DELETE FROM project_data WHERE Pname = %s", (project_name,))
             self.conn.commit()
             return cursor.rowcount > 0
         finally:
@@ -233,8 +233,7 @@ class HelperFunct:
         Perfect for showing a selection menu.
 
         Args:
-            project_id: The unique database ID of the project.
-
+            project_name: The unique prject name
         Returns:
             list: A list of dictionaries containing:
                 - version_number: The version number
@@ -333,8 +332,8 @@ class HelperFunct:
 
         Returns:
             list: A list of dictionaries containing:
-                - project_id: The project ID
-                - filename: Current filename
+                - project_name: The project name 
+                - current_version: Current version number 
                 - current_version: Current version number
                 - total_versions: Total number of saved versions
                 - uploaded_at: When project was first created
