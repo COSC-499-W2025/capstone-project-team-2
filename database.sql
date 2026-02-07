@@ -4,8 +4,7 @@ USE appdb;
 
 -- primary project--
 CREATE TABLE IF NOT EXISTS project_data (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    filename VARCHAR(255) NOT NULL,
+    Pname VARCHAR(255) NOT NULL PRIMARY KEY,
     content JSON NOT NULL,
     file_blob LONGBLOB,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -17,16 +16,17 @@ CREATE TABLE IF NOT EXISTS project_data (
 -- project versions table -- 
 CREATE TABLE IF NOT EXISTS project_versions (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    project_id INT NOT NULL,
+    project_name VARCHAR(255) NOT NULL,
     version_number INT NOT NULL,
-    filename VARCHAR(255) NOT NULL,
     content JSON NOT NULL,
     file_blob LONGBLOB,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_project_versions (project_id, version_number),
+    INDEX idx_project_versions (project_filename, version_number),
     INDEX idx_created_at (created_at),
 
-    FOREIGN KEY (project_id) REFERENCES project_data(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_project_version (project_id, version_number)
+    FOREIGN KEY (project_filename) REFERENCES project_data(filename) 
+        ON DELETE CASCADE 
+        ON UPDATE CASCADE,
+    UNIQUE KEY unique_project_version (project_filename, version_number)
 ) ENGINE=InnoDB;
