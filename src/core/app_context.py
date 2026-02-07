@@ -93,4 +93,5 @@ def create_app_context(external_consent_value=False, data_consent_value=False) -
         currently_uploaded_file=None
     )
 
+#global variable so we don't need to pass the app context through the API for calls
 runtimeAppContext = create_app_context()

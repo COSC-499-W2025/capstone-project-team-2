@@ -1,10 +1,6 @@
 import time
-import orjson
-from src.config.Configuration import configuration_for_users
 from src.config.user_startup_config import ConfigLoader
-import pathlib as pa
-import os
-
+from src.API.consent_API import update_config_file
 
 class ConfigurationForUsersUI:
     def __init__(self, Configuration_json):
@@ -143,7 +139,6 @@ class ConfigurationForUsersUI:
         :return:
             bool: True if modification was successful, False otherwise
         """
-        json_functions = configuration_for_users(self.Configuration_json)
         current_entry = self.Configuration_json.get(chosen_setting)
         new_update = self.confirm_modification(chosen_setting, current_entry)
 
@@ -159,7 +154,7 @@ class ConfigurationForUsersUI:
         # Update and save only if value changed
         self.Configuration_json[chosen_setting] = new_update
         print(f"{chosen_setting} is now set from {current_entry} to {new_update}")
-        json_functions.save_config()
+        update_config_file(self.Configuration_json)
         time.sleep(1.5)
         return True
 

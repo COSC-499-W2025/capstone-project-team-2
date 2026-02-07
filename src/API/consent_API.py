@@ -58,3 +58,18 @@ def update_privacy_consent(payload: PrivacyConsentRequest) -> dict:
         "data_consent": payload.data_consent,
         "external_consent": payload.external_consent,
     }
+
+@consentRouter.post("/config/update")
+def update_config_file(config: dict):
+    config_saver = configuration_for_users(config)
+    config_saver.save_config()
+
+@consentRouter.get("/config/get")
+def get_config_dict() -> dict:
+    try:
+        return ConfigLoader().load()
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=e
+        )

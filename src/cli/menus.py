@@ -18,7 +18,7 @@ from src.core.analysis_service import (
     analyze_project,
     extract_if_zip,
 )
-from src.core.app_context import AppContext
+from src.core.app_context import runtimeAppContext
 from src.reporting.portfolio import display_portfolio_and_generate_pdf
 from src.storage.saved_projects import (
     delete_file_from_disk,
@@ -32,19 +32,18 @@ from src.cli.menu_insights import project_insights_menu
 from src.reporting.project_insights import (
     list_project_insights,
     update_thumbnail_in_insights,
-    record_project_insight,
     remove_thumbnail_from_insights,
 )
 
 from src.config.user_startup_config import ConfigLoader
-from src.config.Configuration import configuration_for_users
 from src.reporting.Generate_AI_Resume import GenerateProjectResume, GenerateLocalResume
 from src.reporting.resume_pdf_generator import SimpleResumeGenerator
 from src.cli.document_generator_menu import document_generator_menu
+from src.API.consent_API import *
 import os
 
 
-def settings_menu(ctx: AppContext) -> None:
+def settings_menu() -> None:
     """
     Display the settings menu with options for user configuration and external services.
 
@@ -53,8 +52,7 @@ def settings_menu(ctx: AppContext) -> None:
     2. Toggle external services (Google Gemini AI) on or off mid-session
 
     Args:
-        ctx (AppContext): Shared application context containing database connection,
-            storage paths, and the current external_consent setting.
+        None
 
     Returns:
         None: Returns when user selects option 0 to go back to main menu.
@@ -72,7 +70,7 @@ def settings_menu(ctx: AppContext) -> None:
             cfg = ConfigLoader().load()
             ConfigurationForUsersUI(cfg).run_configuration_cli()
         elif choice == "2":
-            toggle_external_services(ctx)
+            toggle_external_services()
         elif choice == "3":
             thumbnail_management_menu(ctx)
         elif choice == "0":
@@ -81,7 +79,7 @@ def settings_menu(ctx: AppContext) -> None:
             print("Please choose a valid option (0-3).")
 
 
-def toggle_external_services(ctx: AppContext) -> None:
+def toggle_external_services() -> None:
     """
     Toggle external services on or off during the current session.
 
@@ -95,8 +93,7 @@ def toggle_external_services(ctx: AppContext) -> None:
     - Local Resume Generator (option 7) remains available
 
     Args:
-        ctx (AppContext): Shared application context. The external_consent
-            attribute will be modified in-place when toggled.
+        None
 
     Returns:
         None: Returns when user selects option 0 or after toggling.
@@ -105,13 +102,13 @@ def toggle_external_services(ctx: AppContext) -> None:
         - Modifies ctx.external_consent in-place
         - Saves updated consent to User_config_files/UserConfigs.json
     """
-    current_status = "ENABLED" if ctx.external_consent else "DISABLED"
+    current_status = "ENABLED" if runtimeAppContext.external_consent else "DISABLED"
     print(f"\n=== External Services Toggle ===")
     print(f"Current status: {current_status}")
     print("\nExternal services include:")
     print("  - Google Gemini AI (resume generation)")
 
-    if ctx.external_consent:
+    if runtimeAppContext.external_consent:
         print("\n1) Disable External Services")
     else:
         print("\n1) Enable External Services")
@@ -120,17 +117,13 @@ def toggle_external_services(ctx: AppContext) -> None:
     choice = input("\nSelect an option: ").strip()
 
     if choice == "1":
-        ctx.external_consent = not ctx.external_consent
-        new_status = "ENABLED" if ctx.external_consent else "DISABLED"
+        runtimeAppContext.external_consent = not runtimeAppContext.external_consent
+        new_status = "ENABLED" if runtimeAppContext.external_consent else "DISABLED"
 
         # Save to config file
         try:
-            cfg = ConfigLoader().load()
-            configure_json = configuration_for_users(cfg)
-            # Preserve data consent, update external consent
-            data_consent = True  # Data consent must be true if app is running
-            configure_json.save_with_consent(ctx.external_consent, data_consent)
-            configure_json.save_config()
+            consent_object = PrivacyConsentRequest(data_consent=runtimeAppContext.data_consent, external_consent=runtimeAppContext.external_consent)
+            update_privacy_consent(consent_object)
             print(f"\n[SUCCESS] External services are now {new_status}")
         except Exception as e:
             print(f"\n[WARNING] Setting changed for this session but failed to save: {e}")
@@ -525,7 +518,7 @@ def get_portfolio_menu(ctx: AppContext) -> None:
             return
 
 
-def main_menu(ctx: AppContext) -> int:
+def main_menu() -> int:
     """
     Top-level navigation loop for the CLI.
 

@@ -9,7 +9,7 @@ class configuration_for_users:
     and save locally
 
     """
-    def __init__(self,jsonfile,loc_to_save='User_config_files'):
+    def __init__(self,jsonfile):
         """
         Initializes the Configuration class instance
 
@@ -31,6 +31,7 @@ class configuration_for_users:
     def save_with_consent(self, external_consent:bool=False,data_consent:bool=False):
         """
         Adds a new entry to the json file with consent preferences
+        Does not save the JSON file
 
        :param external_consent: (bool) Whether user consents to external data sharing (default: False)
        :param data_consent: (bool) Whether user consents to data collection (default: False)
@@ -54,7 +55,6 @@ class configuration_for_users:
 
 
         with open(self.loc_to_save, "wb") as f: #Reading the json_file
-            print("HIT")
             f.write(orjson.dumps(self.jsonfile,option=orjson.OPT_INDENT_2)) #dumping the data it to be saved using the orjson library
 
         return os.path.exists(self.loc_to_save)
