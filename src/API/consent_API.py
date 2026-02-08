@@ -61,11 +61,45 @@ def update_privacy_consent(payload: PrivacyConsentRequest) -> dict:
 
 @consentRouter.post("/config/update")
 def update_config_file(config: dict):
-    config_saver = configuration_for_users(config)
-    config_saver.save_config()
+    """
+    Savses a dictionary as the configuration file 
+
+    API call is /config/update
+
+    Args:
+        dict: dictionary of the config file to save
+
+    Returns:
+        None
+
+    Raises:
+        Raises an HTTP exception of status 500 when config fails to save in any capacity
+    """
+    try:
+        config_saver = configuration_for_users(config)
+        config_saver.save_config()
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=e
+        )
 
 @consentRouter.get("/config/get")
 def get_config_dict() -> dict:
+    """
+    Gets a dictionary of the user conifguration file
+
+    API call is /config/get
+
+    Args:
+        None
+
+    Returns:
+        dict: dictionary of the config file
+
+    Raises:
+        Raises an HTTP exception of status 500 when config fails to load in any capacity
+    """
     try:
         return ConfigLoader().load()
     except Exception as e:

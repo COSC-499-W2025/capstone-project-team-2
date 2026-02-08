@@ -67,12 +67,12 @@ def settings_menu() -> None:
         choice = input("Select an option: ").strip()
 
         if choice == "1":
-            cfg = ConfigLoader().load()
+            cfg = get_config_dict()
             ConfigurationForUsersUI(cfg).run_configuration_cli()
         elif choice == "2":
             toggle_external_services()
         elif choice == "3":
-            thumbnail_management_menu(ctx)
+            thumbnail_management_menu()
         elif choice == "0":
             return
         else:
@@ -212,7 +212,7 @@ def prompt_thumbnail_upload(project_id: str, project_name: str, ctx: AppContext)
     print("[INFO] Maximum attempts reached. You can add a thumbnail later in Settings.")
     return False
 
-def analyze_project_menu(ctx: AppContext) -> None:
+def analyze_project_menu() -> None:
     """
     Ask user if their project is in a directory or zip file and analyze it.
     
@@ -221,7 +221,7 @@ def analyze_project_menu(ctx: AppContext) -> None:
     encapsulation, and other object-oriented design patterns across all supported languages.
 
     Args:
-        ctx (AppContext): Shared DB/store context.
+        None
 
     Returns:
         None
@@ -237,7 +237,7 @@ def analyze_project_menu(ctx: AppContext) -> None:
         choice = input("Select an option: ").strip()
 
         use_ai = False
-        if ctx.external_consent == True:
+        if runtimeAppContext.external_consent == True:
             use_ai = input("Add AI analysis? (y/n): ").strip().lower() == 'y'
 
         try:
@@ -542,9 +542,9 @@ def main_menu() -> int:
 
         try:
             if choice == "1":
-                settings_menu(ctx)
+                settings_menu()
             elif choice == "2":
-                analyze_project_menu(ctx)
+                analyze_project_menu()
             elif choice == "3":
                 saved_projects_menu(ctx)
             elif choice == "4":
@@ -763,20 +763,20 @@ def local_resume_menu(ctx: AppContext) -> None:
 
     input("\nPress Enter to return to main menu...")
     
-def thumbnail_management_menu(ctx) -> None:
+def thumbnail_management_menu() -> None:
     """
     Interactive menu for managing project thumbnails.
     
     Args:
-        ctx: Application context with storage paths
+        None
     """
-    storage_path = Path(ctx.legacy_save_dir) / "project_insights.json"
-    thumbnail_dir = Path(ctx.legacy_save_dir) / "thumbnails"
+    storage_path = Path(runtimeAppContext.legacy_save_dir) / "project_insights.json"
+    thumbnail_dir = Path(runtimeAppContext.legacy_save_dir) / "thumbnails"
     thumbnail_manager = ThumbnailManager(storage_dir=thumbnail_dir)
     
     if not storage_path.exists():
         print("[INFO] Initializing project insights from saved analyses...")
-        _initialize_insights_from_saved_files(ctx, storage_path)
+        _initialize_insights_from_saved_files(runtimeAppContext, storage_path)
     
     while True:
         print("\n=== Thumbnail Management ===")
