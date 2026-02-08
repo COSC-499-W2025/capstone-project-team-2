@@ -1,7 +1,50 @@
 ## Term 2 Links
+- [Weeks 4–5 (26/01/2026 – 08/02/2026)](#week-2026-01-26)
 - [Week 3 (19/01/2026 – 25/01/2026)](#week-2026-01-19)
 - [Week 2 (12/01/2026 – 18/01/2026)](#week-2026-01-12)
 - [Week 1 (05/01/2026 – 11/01/2026)](#week-2026-01-05)
+
+# Sprint Log: Weeks 4–5 (26/01/2026 – 08/02/2026) <a id="week-2026-01-26"></a>
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/08-02-2026_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Summary
+### Coding tasks
+- **PR #358 – Add deduplication across uploads with API output and tests:** Implemented cross-upload duplicate filtering using file hashes, retained a single copy of identical files, surfaced dedup summaries in `/analyze` responses, and updated docs and tests.
+- **PR #391 – Add user-controlled representation prefs (API & CLI) for project insights:** Added preference storage (order, showcase, chronology fixes, highlight skills), new FastAPI endpoints to read/update preferences, a CLI “Representation Preferences” menu with validation, and applied prefs in Project Insights.
+
+### Testing or debugging tasks
+- Ran targeted pytest suites for analysis/dedup and the new representation endpoints:
+  - `pytest test/test_analysis_API.py`
+  - `pytest test/test_analysis_service.py`
+  - `pytest test/test_dedup_index.py`
+  - `pytest test/test_representation_API.py`
+
+### Reviewing or collaboration tasks
+- Reviewed PR #379 (ssmith86): surfaced important errors to the API.
+- Reviewed PR #376 (mahigangal): added user prompts for portfolio view.
+- Reviewed PR #374 (ThunderIW): converted portfolio generation to FastAPI format.
+- Reviewed PR #355 (mahigangal): fixed project duration.
+- Reviewed PR #353 (Weebtrain): test coverage review.
+- Reviewed PR #352 (Graves067): database-analysis versioning.
+
+### Connection to last week
+- Continued Milestone 2 delivery by extending human in the loop controls (representation prefs) and building on earlier deduplication work to improve robustness of analysis outputs.
+
+### Plan / goals for next period
+- Document the new representation endpoints/CLI and add stricter validation (project name and ISO timestamp checks).
+- Add an integration test that exercises prefs and then ordered insights via the main app.
+- Coordinate with traversal work once the file_traverser ends are ready.
+
+### Issues / blockers
+- None noted this period.
+
+## ====================================================
 
 # Sprint Log: Week 3 (19/01/2026 – 25/01/2026) <a id="week-2026-01-19"></a>
 
