@@ -91,9 +91,9 @@ def _check_result(result: str):
         str: The result string if it indicates success.
 
     Raises:
-        HTTPException: 400 if the result does not contain 'Successfully'.
+        HTTPException: 400 if the result does not contain 'successfully'.
     """
-    if "Successfully" not in result:
+    if "successfully" not in result.lower():
         raise HTTPException(status_code=400, detail=result)
     return result
 
