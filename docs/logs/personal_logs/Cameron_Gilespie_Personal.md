@@ -34,6 +34,7 @@
   * [Project file traverser for sorting files into analyzers#356](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/356)
   * [342 review of test coverage#353](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/353)
   * [Print statements converted to error raising for API add on in analysis_service.py#348](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/348)
+  * [296 convert resume generation into fastapi format#375](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/375)
 
 
 
