@@ -13,6 +13,8 @@ from pathlib import Path
 import json
 
 # Menu flows for the CLI, delegating to analysis, saved-project, and portfolio helpers.
+from src.API.analysis_API import perform_analysis_API
+from src.API.project_io_API import return_all_saved_projects
 from src.cli.CLI_Interface_for_user_config import ConfigurationForUsersUI
 from src.core.analysis_service import (
     analyze_project,
@@ -133,7 +135,7 @@ def toggle_external_services() -> None:
     else:
         print("\n[INFO] Invalid option. No changes made.")
         
-def prompt_thumbnail_upload(project_id: str, project_name: str, ctx: AppContext) -> bool:
+def prompt_thumbnail_upload(project_id: str, project_name: str) -> bool:
     """
     Prompt the user to upload a thumbnail for a project after analysis.
 
@@ -153,7 +155,7 @@ def prompt_thumbnail_upload(project_id: str, project_name: str, ctx: AppContext)
         return False
     
     # Initialize thumbnail manager
-    thumbnail_dir = Path(ctx.legacy_save_dir) / "thumbnails"
+    thumbnail_dir = Path(runtimeAppContext.legacy_save_dir) / "thumbnails"
     thumbnail_manager = ThumbnailManager(storage_dir=thumbnail_dir)
     
     max_attempts = 3
@@ -198,7 +200,7 @@ def prompt_thumbnail_upload(project_id: str, project_name: str, ctx: AppContext)
             print(f"          Saved to: {thumb_path}")
             
             # Update project_insights.json with thumbnail info
-            storage_path = Path(ctx.legacy_save_dir) / "project_insights.json"
+            storage_path = Path(runtimeAppContext.legacy_save_dir) / "project_insights.json"
             update_thumbnail_in_insights(project_id, thumb_path, storage_path)
             
             return True
@@ -244,38 +246,29 @@ def analyze_project_menu() -> None:
             project_name = None
             if choice == "1":
                 dir_path = input_path("Enter path to project directory: ")
-                if dir_path:
-                    analyze_project(dir_path, use_ai_analysis=use_ai)
+                runtimeAppContext.currently_uploaded_file = dir_path
+                status = perform_analysis_API(use_ai=use_ai)
             elif choice == "2":
                 zip_path = input_path("Enter path to ZIP: ")
                 if not zip_path:
                     print("[ERROR] ZIP path required.")
                     continue
-                extracted = extract_if_zip(zip_path)
-                if not extracted:
-                    print(
-                        "[ERROR] Could not extract ZIP. Please check the file and "
-                        "try again."
-                    )
-                    return None
-                project_name = zip_path.stem
-                
-                analyze_project(
-                    extracted,
-                    use_ai_analysis=use_ai
-                )
+                runtimeAppContext.currently_uploaded_file = zip_path
+                status = perform_analysis_API(use_ai=use_ai)
             elif choice == "0":
                 return None
             else:
                 print("Please choose a valid option (0–2).")
                 continue
                 
-            print("Analysis successful, saved to saved projects.")
+            if (status):
+                print(status["status"])
+            
 
             # After successful analysis, prompt for thumbnail upload
             if project_name:
                 # Get the UUID from the newly created insight
-                storage_path = Path(ctx.legacy_save_dir) / "project_insights.json"
+                storage_path = Path(runtimeAppContext.legacy_save_dir) / "project_insights.json"
                 insights = list_project_insights(storage_path=storage_path)
                 
                 # Find the most recent insight matching this project name
@@ -288,8 +281,7 @@ def analyze_project_menu() -> None:
                 if matching_insight:
                     prompt_thumbnail_upload(
                         project_id=matching_insight.id,
-                        project_name=project_name,
-                        ctx=ctx
+                        project_name=project_name
                     )
                 else:
                     # Fallback if insight not found (shouldn't happen normally)
@@ -303,7 +295,7 @@ def analyze_project_menu() -> None:
             print(f"[ERROR] {e}")
 
 
-def saved_projects_menu(ctx: AppContext) -> None:
+def saved_projects_menu() -> None:
     """
     Display all saved projects from the configured directory and legacy location.
 
@@ -317,8 +309,7 @@ def saved_projects_menu(ctx: AppContext) -> None:
         print("\n=== Saved Project Menu ===")
 
         try:
-            folder = Path(ctx.default_save_dir).resolve()
-            items = list_saved_projects(folder)
+            items = return_all_saved_projects()
 
             if not items:
                 print("[INFO] No saved projects")
@@ -353,7 +344,7 @@ def saved_projects_menu(ctx: AppContext) -> None:
             return
 
 
-def delete_analysis_menu(ctx: AppContext) -> None:
+def delete_analysis_menu() -> None:
     """
     Menu for deleting saved project analyses from disk and the database.
 
@@ -367,8 +358,7 @@ def delete_analysis_menu(ctx: AppContext) -> None:
         print("\n=== Delete Analysis Menu ===")
 
         try:
-            folder = Path(ctx.default_save_dir).resolve()
-            projects = list_saved_projects(folder)
+            projects = return_all_saved_projects()
 
             if not projects:
                 print("[INFO] No saved projects.")
@@ -406,57 +396,7 @@ def delete_analysis_menu(ctx: AppContext) -> None:
                 print("[INFO] Deletion cancelled.")
                 continue
 
-            try:
-                db_rows = get_saved_projects_from_db(ctx)
-            except Exception as e:
-                print(f"[WARNING] Could not query database: {e}")
-                db_rows = []
-
-            matching_rows = [row for row in db_rows if row[1] == filename]
-
-            if not matching_rows:
-                print(f"[INFO] No database records reference '{filename}'.")
-            else:
-                deleted_any = False
-                for row in matching_rows:
-                    row_id = row[0]
-                    try:
-                        if delete_from_database_by_id(row_id, ctx):
-                            print(
-                                f"[SUCCESS] Deleted DB record id={row_id} "
-                                f"for '{filename}'."
-                            )
-                            deleted_any = True
-                        else:
-                            print(
-                                f"[WARNING] Could not delete DB record id={row_id}."
-                            )
-                    except Exception as e:
-                        print(
-                            f"[WARNING] Error deleting DB record id={row_id}: {e}"
-                        )
-
-                if not deleted_any:
-                    print("[INFO] No DB records were deleted.")
-
-            try:
-                file_deleted = delete_file_from_disk(filename, ctx)
-            except Exception as e:
-                print(
-                    f"[WARNING] Unexpected error while attempting to delete "
-                    f"file '{filename}': {e}"
-                )
-                file_deleted = False
-
-            if file_deleted:
-                print(
-                    f"[SUCCESS] Deleted '{filename}' from filesystem!"
-                )
-            else:
-                if file_path.exists():
-                    print(f"[INFO] File remains on disk at: {file_path}")
-                else:
-                    print(f"[INFO] File not found on disk.")
+            #delete
 
             another = input("\nDelete another analysis? (y/n): ").strip().lower()
             if not another.startswith("y"):
@@ -466,57 +406,6 @@ def delete_analysis_menu(ctx: AppContext) -> None:
             print(f"[ERROR] {e}")
             input("Press Enter to return to main menu...")
             return
-
-
-def get_portfolio_menu(ctx: AppContext) -> None:
-    """
-    Let the user select a saved project and generate a portfolio-style summary.
-
-    Args:
-        ctx (AppContext): Shared DB/store context.
-
-    Returns:
-        None
-    """
-    while True:
-        print("\n=== Portfolio Generator ===")
-
-        try:
-            folder = Path(ctx.default_save_dir).resolve()
-            items = list_saved_projects(folder)
-
-            if not items:
-                print("[INFO] No saved projects")
-                input("Press Enter to return to main menu...")
-                return
-
-            print(f"\nSaved analyses:\n")
-            for i, p in enumerate(items, start=1):
-                print(f"{i}) {p.name}")
-
-            sel = input(
-                "\nChoose a file to view (or press 0 to exit to main menu): "
-            ).strip()
-            if not sel or sel == "0":
-                return
-
-            try:
-                idx = int(sel) - 1
-                if idx < 0 or idx >= len(items):
-                    print("Invalid selection.")
-                    continue
-
-                display_portfolio_and_generate_pdf(items[idx], ctx)
-                input("Press Enter to continue...")
-            except ValueError:
-                print("Please enter a number.")
-                continue
-
-        except Exception as e:
-            print(f"[ERROR] {e}")
-            input("Press Enter to return to main menu...")
-            return
-
 
 def main_menu() -> int:
     """
@@ -546,13 +435,13 @@ def main_menu() -> int:
             elif choice == "2":
                 analyze_project_menu()
             elif choice == "3":
-                saved_projects_menu(ctx)
+                saved_projects_menu()
             elif choice == "4":
-                delete_analysis_menu(ctx)
+                delete_analysis_menu()
             elif choice == "5":
                 document_generator_menu()
             elif choice == "6":
-                project_insights_menu(ctx)
+                project_insights_menu()
             elif choice == "0":
                 print("Goodbye!")
                 return 0
@@ -562,206 +451,6 @@ def main_menu() -> int:
             print("\n[Interrupted] Returning to menu.")
         except Exception as e:
             print(f"[ERROR] {e}")
-
-def ai_resume_line_menu(ctx: AppContext) -> None:
-    """
-    Let the user pick a saved project and show ONLY the Gemini résumé line
-    (plus a bit of context), without the full portfolio PDF flow.
-    """
-
-    # Check external consent
-    config_path = ctx.legacy_save_dir / "UserConfigs.json"
-    try:
-        config_data = json.loads(config_path.read_text(encoding="utf-8"))
-        has_external = config_data.get("consented", {}).get("external", False)
-    except Exception as e:
-        print(f"[WARN] Could not read user config, assuming no external consent: {e}")
-        has_external = False
-
-    if not has_external:
-        print(
-            "\n[AI RESUME] External services are disabled in your consent settings.\n"
-            "Enable external services in your consent flow if you want to use Gemini.\n"
-        )
-        return
-
-    # Let the user choose which analysis to base the résumé on
-    folder = Path(ctx.default_save_dir).resolve()
-    items = list_saved_projects(folder)
-
-    if not items:
-        print("[INFO] No saved projects.")
-        input("Press Enter to return to main menu...")
-        return
-
-    print("\nSaved analyses:\n")
-    for i, p in enumerate(items, start=1):
-        print(f"{i}) {p.name}")
-
-    sel = input(
-        "\nChoose a file to generate an AI resume line from (or 0 to cancel): "
-    ).strip()
-    if not sel or sel == "0":
-        return
-
-    try:
-        idx = int(sel) - 1
-        if idx < 0 or idx >= len(items):
-            print("[ERROR] Invalid selection.")
-            return
-    except ValueError:
-        print("[ERROR] Please enter a number.")
-        return
-
-    chosen_path = items[idx]
-    try:
-        data = json.loads(chosen_path.read_text(encoding="utf-8"))
-    except Exception as e:
-        print(f"[ERROR] Could not read {chosen_path.name}: {e}")
-        return
-
-    project_root = data.get("project_root")
-    if not project_root:
-        print("[ERROR] Saved analysis does not contain 'project_root'.")
-        return
-
-    # Run Gemini on the project folder
-    try:
-        ai_item = GenerateProjectResume(project_root).generate(saveToJson=False)
-    except Exception as e:
-        print(f"[ERROR] Could not generate AI resume line: {e}")
-        return
-
-    # Print a tight résumé-style line + minimal context
-    print("\n========================================")
-    print(f"Project: {ai_item.project_title or Path(project_root).name}")
-    print("----------------------------------------")
-    print("Resume line:")
-    print(f"  • {ai_item.one_sentence_summary}")
-    print("========================================\n")
-
-
-def local_resume_menu(ctx: AppContext) -> None:
-    """
-    Generate a resume from local OOP analysis without external AI services.
-    Uses the GenerateLocalResume class to build resume content from saved analysis data.
-
-    Args:
-        ctx (AppContext): Shared DB/store context.
-
-    Returns:
-        None
-    """
-    folder = Path(ctx.default_save_dir).resolve()
-    items = list_saved_projects(folder)
-
-    if not items:
-        print("[INFO] No saved projects.")
-        input("Press Enter to return to main menu...")
-        return
-
-    print("\n=== Local Resume Generator (No External AI) ===")
-    print("\nSaved analyses:\n")
-    for i, p in enumerate(items, start=1):
-        print(f"{i}) {p.name}")
-
-    sel = input(
-        "\nChoose a project to generate a resume from (or 0 to cancel): "
-    ).strip()
-    if not sel or sel == "0":
-        return
-
-    try:
-        idx = int(sel) - 1
-        if idx < 0 or idx >= len(items):
-            print("[ERROR] Invalid selection.")
-            return
-    except ValueError:
-        print("[ERROR] Please enter a number.")
-        return
-
-    chosen_path = items[idx]
-    try:
-        data = json.loads(chosen_path.read_text(encoding="utf-8"))
-    except Exception as e:
-        print(f"[ERROR] Could not read {chosen_path.name}: {e}")
-        return
-
-    # Check if OOP analysis exists - warn but continue with basic resume
-    if "oop_analysis" not in data:
-        print("[INFO] No OOP analysis data found. Generating basic resume.")
-        print("[TIP] Re-analyze the project with external AI disabled for full OOP analysis.\n")
-
-    # Generate resume from local analysis
-    project_name = chosen_path.stem
-    try:
-        resume_item = GenerateLocalResume(data, project_name).generate()
-    except Exception as e:
-        print(f"[ERROR] Could not generate local resume: {e}")
-        return
-
-    # Display the resume
-    print("\n" + "=" * 60)
-    print(f"  LOCAL RESUME: {resume_item.project_title}")
-    print("=" * 60)
-
-    print("\n" + "-" * 60)
-    print("  ONE-LINE RESUME SUMMARY")
-    print("-" * 60)
-    print(f"\n  {resume_item.one_sentence_summary}\n")
-    print("-" * 60)
-    print(f"\nTech Stack: {resume_item.tech_stack}")
-
-    print("\nKey Responsibilities:")
-    if resume_item.key_responsibilities:
-        for resp in resume_item.key_responsibilities:
-            print(f"  • {resp}")
-    else:
-        print("  • No specific responsibilities detected")
-
-    print("\nSkills:")
-    if resume_item.key_skills_used:
-        print(f"  {', '.join(resume_item.key_skills_used)}")
-    else:
-        print("  No skills detected")
-
-    print("\nImpact:")
-    print(f"  {resume_item.impact}")
-
-    # Only show OOP principles if OOP analysis exists
-    if "oop_analysis" in data and resume_item.oop_principles_detected:
-        print("\nOOP Principles Detected:")
-        for name, principle in resume_item.oop_principles_detected.items():
-            status = "✓" if principle.present else "✗"
-            print(f"  {status} {name.capitalize()}: {principle.description or 'Not detected'}")
-
-    print("\n" + "=" * 50)
-
-    # Offer PDF generation
-    generate_pdf = input("\nWould you like to generate a PDF resume? (y/n): ").strip().lower()
-    if generate_pdf == "y":
-        attempts = 0
-        max_attempts = 3
-        while attempts < max_attempts:
-            folder_path = input("Enter the folder path to save the PDF: ").strip()
-            if os.path.exists(folder_path):
-                break
-            else:
-                attempts += 1
-                if attempts < max_attempts:
-                    print(f"Folder does not exist. ({attempts}/{max_attempts} attempts)")
-                else:
-                    print("Maximum attempts reached. Returning to menu.")
-                    return
-
-        file_name = input("Enter PDF filename (or press Enter for 'LocalResume'): ").strip() or "LocalResume"
-
-        try:
-            SimpleResumeGenerator(folder_path, data=resume_item, fileName=file_name).display_resume_line()
-        except Exception as e:
-            print(f"[ERROR] Could not generate PDF: {e}")
-
-    input("\nPress Enter to return to main menu...")
     
 def thumbnail_management_menu() -> None:
     """
@@ -776,7 +465,7 @@ def thumbnail_management_menu() -> None:
     
     if not storage_path.exists():
         print("[INFO] Initializing project insights from saved analyses...")
-        _initialize_insights_from_saved_files(runtimeAppContext, storage_path)
+        _initialize_insights_from_saved_files(storage_path)
     
     while True:
         print("\n=== Thumbnail Management ===")
@@ -877,14 +566,14 @@ def _remove_thumbnail_workflow(
     
     input("\nPress Enter to continue...")
     
-def _initialize_insights_from_saved_files(ctx: AppContext, storage_path: Path) -> None:
+def _initialize_insights_from_saved_files(storage_path: Path) -> None:
     """
     Create project_insights.json from individual saved analysis files.
     This is called when project_insights.json doesn't exist but we have saved analyses.
     """
     from src.reporting.project_insights import record_project_insight
     
-    folder = Path(ctx.default_save_dir).resolve()
+    folder = Path(runtimeAppContext.default_save_dir).resolve()
     saved_files = list_saved_projects(folder)
     
     if not saved_files:

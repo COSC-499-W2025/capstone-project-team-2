@@ -5,7 +5,7 @@ from typing import Any
 # Utilities for reading, listing, and cleaning up saved analysis artifacts.
 from src.core.app_context import AppContext
 from src.aggregation.oop_aggregator import pretty_print_oop_report
-
+from src.core.app_context import runtimeAppContext
 
 def list_saved_projects(folder: Path) -> list[Path]:
     """
@@ -253,17 +253,17 @@ def show_saved_summary(path: Path) -> None:
         pretty_print_oop_report(oop_analysis)
 
 
-def get_saved_projects_from_db(ctx: AppContext) -> list[tuple]:
+def get_saved_projects_from_db() -> list[tuple]:
     """
     Fetch all saved projects from the database.
 
     Args:
-        ctx (AppContext): Shared DB context.
+        None
 
     Returns:
         list[tuple]: (id, filename, uploaded_at) rows.
     """
-    cursor = ctx.conn.cursor()
+    cursor = runtimeAppContext.conn.cursor()
     try:
         cursor.execute(
             # We only need identifiers and metadata for deletion checks.
@@ -275,33 +275,31 @@ def get_saved_projects_from_db(ctx: AppContext) -> list[tuple]:
         cursor.close()
 
 
-def delete_from_database_by_id(record_id: int, ctx: AppContext) -> bool:
+def delete_from_database_by_id(record_id: int) -> bool:
     """
     Delete a database record by ID.
 
     Args:
         record_id (int): Primary key to remove.
-        ctx (AppContext): Shared DB context.
 
     Returns:
         bool: True if a record was deleted.
     """
-    return ctx.store.delete(record_id)
+    return runtimeAppContext.store.delete(record_id)
 
-
-def delete_file_from_disk(filename: str, ctx: AppContext) -> bool:
+#TODO remove prints
+def delete_file_from_disk(filename: str) -> bool:
     """
     Delete a file only if no remaining DB records reference it.
 
     Args:
         filename (str): Target filename.
-        ctx (AppContext): Shared DB/store context.
 
     Returns:
         bool: True if the file was removed.
     """
     try:
-        base_dir = Path(ctx.default_save_dir).expanduser().resolve()
+        base_dir = Path(runtimeAppContext.default_save_dir).expanduser().resolve()
         file_path = base_dir / filename
 
         if not file_path.exists():
@@ -312,7 +310,7 @@ def delete_file_from_disk(filename: str, ctx: AppContext) -> bool:
                 return False
 
         try:
-            refs = ctx.store.count_file_references(filename)
+            refs = runtimeAppContext.store.count_file_references(filename)
         except Exception as e:
             print(f"[WARNING] Could not check DB references for '{filename}': {e}")
             return False
