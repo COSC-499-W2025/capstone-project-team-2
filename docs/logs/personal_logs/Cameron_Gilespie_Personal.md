@@ -1,4 +1,54 @@
-## Dates of Sprint: (1/18/2025 – 1/26/2025)
+## Dates of Sprint: (1/27/2026 – 2/8/2026)
+
+### Peer Eval Screenshot:
+
+<img width="1092" height="626" alt="image" src= "https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Cameron-Personal-Logs/docs/logs/peer_eval_screenshots/PL_Cameron_01-08-26.png" />
+
+
+### Features Worked on this sprint (Provide sufficient detail)
+  * #1: Database Refactoring
+  * #2: Additional Database Functionality
+
+
+### Tasks for Prior Week
+  * Database Versioning
+
+
+
+## Associated Tasks from Project Board:
+
+| Description        | Status   |
+| ------------------ | -------- |
+| [Database Versioning]  | [Complete] |
+| [Database Refactoring]  | [Complete] |
+| [New Databse Helper Functions]  | [Complete] |
+
+## Published PRs (Excluding PL/TLs)
+ * [Database-analysis versioning#352](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/352)
+ * [Database updates#388](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/388)
+
+
+## Reviewed PRs
+  * [Add deduplication across uploads with API output and tests#358](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/358)
+  * [295 convert portfolio generation into fastapi format#374](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/374)
+  * [Project file traverser for sorting files into analyzers#356](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/356)
+  * [342 review of test coverage#353](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/353)
+  * [Print statements converted to error raising for API add on in analysis_service.py#348](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/348)
+
+
+
+
+---
+## Next week goals
+- N/A until team meeting
+
+### Extra Details:
+
+<details>
+So the last two weeks I have set out to augment our current database into something more usable for the project going forward. Up until this point it was hastily built after a period of suddenly changing requirements which landed us with a usable database that didnt entirely align with what we want now. Originally Last week I created a storage system to keep track of versions of project generations and allow the user to pull prior versions should they desire, The issue with this is that the original DB utilized an incrimenting ID that the team struggled to track and pull this week I changed it over to utilizing the project names assuming they dont change. Furthermore, this week I added serveral helper functions that should help us keep track of the database health but also allow us to possibly manage how many saved versions we keep per project which is functionality I feel should have been included in the prior weeks work. However, going forward from here I am conifdent enough to say I doubt there will need to be any more refactoring to the DB especially since I believe I solved the double saving problem as well as alteration of Primary keys and the database schema as a whole going forward.
+</details>
+
+## Dates of Sprint: (1/18/2026 – 1/26/2026)
 
 ### Peer Eval Screenshot:
 
@@ -33,7 +83,7 @@ this week i set out to complete the final piece of c code analyzer logic, which 
 
 </details>
 
-## Dates of Sprint: (1/11/2025 – 1/18/2025)
+## Dates of Sprint: (1/11/2026 – 1/18/2026)
 
 ### Peer Eval Screenshot:
 
@@ -69,7 +119,7 @@ this week i set out to complete the final piece of c code analyzer logic, which 
 </details>
 
 
-## Dates of Sprint: (1/4/2025 – 1/11/2025)
+## Dates of Sprint: (1/4/2026 – 1/11/2026)
 
 ### Peer Eval Screenshot:
 
