@@ -30,6 +30,8 @@ from src.core.app_context import runtimeAppContext
 
 resumeRouter = APIRouter()
 
+ALLOWED_CONTACT_FIELDS = {"email", "phone", "location", "website", "name"}
+
 
 class GenerateResumeRequest(BaseModel):
     """Payload for creating a new resume."""
@@ -42,7 +44,7 @@ class EditItem(BaseModel):
     section: str
     item_name: str
     field: str
-    new_value: str
+    new_value: Any
 
 class EditResumeRequest(BaseModel):
     """Payload containing one or more resume edits."""
@@ -228,25 +230,28 @@ def edit_resume(id: str, payload: EditResumeRequest):
         section = edit.section.lower()
 
         if section == "summary":
-            result = doc.update_summary(str(edit.new_value))
+            result = _check_result(doc.update_summary(str(edit.new_value)))
 
         elif section == "contact":
-            # ** unpacks the dict into a keyword argument so the dynamic
-            # field name (e.g. "email") is passed as update_contact(email=new_value)
+            if edit.field not in ALLOWED_CONTACT_FIELDS:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Unknown contact field '{edit.field}'. Valid fields: {', '.join(sorted(ALLOWED_CONTACT_FIELDS))}"
+                )
             doc.update_contact(**{edit.field: edit.new_value})
             result = f"Successfully updated contact field '{edit.field}'"
 
         elif section == "theme":
             try:
-                result = doc.update_theme(str(edit.new_value))
+                result = _check_result(doc.update_theme(str(edit.new_value)))
             except ValueError as e:
                 raise HTTPException(status_code=400, detail=str(e))
 
         elif section == "skills":
-            result = doc.modify_skill(edit.item_name, edit.new_value)
+            result = _check_result(doc.modify_skill(edit.item_name, edit.new_value))
 
         elif section in modify_map:
-            result = modify_map[section](edit.item_name, edit.field, edit.new_value)
+            result = _check_result(modify_map[section](edit.item_name, edit.field, edit.new_value))
 
         else:
             raise HTTPException(status_code=400,
@@ -326,17 +331,17 @@ def add_project(id: str, project_id: int, payload: Optional[ProjectRequest] = No
 
     proj = Project(
         name=payload.name if payload and payload.name else resume_item.get("project_name", ""),
-        start_date=payload.start_date if payload and payload.start_date else "2025-01",
-        end_date=payload.end_date if payload and payload.end_date else "2026-02",
-        location=payload.location if payload and payload.location else "City, Country",
+        start_date=payload.start_date if payload and payload.start_date else resume_item.get("start_date", "2025-01"),
+        end_date=payload.end_date if payload and payload.end_date else resume_item.get("end_date", "2026-02"),
+        location=payload.location if payload and payload.location else resume_item.get("location", "City, Country"),
         summary=payload.summary if payload and payload.summary else resume_item.get("summary"),
         highlights=payload.highlights if payload and payload.highlights else resume_item.get("highlights"),
     )
     try:
         result = _check_result(doc.add_project(proj))
-    except HTTPException:
-        raise
     except Exception as e:
+        if isinstance(e, HTTPException):
+            raise
         raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
     return {"status": result}
 
