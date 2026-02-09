@@ -8,30 +8,40 @@ from src.storage.dedup_index import _file_hash, deduplicate_project
 
 def test_deduplicate_project_identifies_duplicates(tmp_path):
     """
-    Detect duplicate content without deleting files.
+    Detect duplicate content across different projects without deleting files.
     Args:
         tmp_path (Path): Pytest-provided temp directory.
     Returns:
         None
     """
-    proj = tmp_path / "proj"
-    proj.mkdir()
-
-    f1 = proj / "a.txt"
-    f2 = proj / "b.txt"
+    # First project establishes the original file
+    proj1 = tmp_path / "proj1"
+    proj1.mkdir()
+    f1 = proj1 / "a.txt"
     f1.write_text("hello")
+
+    # Second project has a duplicate of the same content
+    proj2 = tmp_path / "proj2"
+    proj2.mkdir()
+    f2 = proj2 / "b.txt"
     f2.write_text("hello")  # duplicate content
 
     index_path = tmp_path / "dedup_index.json"
 
-    result = deduplicate_project(proj, index_path)
+    # Index the first project
+    result1 = deduplicate_project(proj1, index_path)
+    assert result1.unique_files == 1
+    assert result1.duplicate_files == 0
 
-    assert result.unique_files == 1
-    assert result.duplicate_files == 1
-    assert len(result.duplicates) == 1
-    dup_paths = {Path(result.duplicates[0]["path"]).name, Path(result.duplicates[0]["original"]).name}
-    assert dup_paths == {"a.txt", "b.txt"}
-    assert result.removed == 0
+    # Index the second project - should detect duplicate across projects
+    result2 = deduplicate_project(proj2, index_path)
+
+    assert result2.unique_files == 0
+    assert result2.duplicate_files == 1
+    assert len(result2.duplicates) == 1
+    assert Path(result2.duplicates[0]["path"]).name == "b.txt"
+    assert Path(result2.duplicates[0]["original"]).name == "a.txt"
+    assert result2.removed == 0
 
 
 def test_file_hash_is_stable(tmp_path):
@@ -53,29 +63,37 @@ def test_file_hash_is_stable(tmp_path):
 
 def test_deduplicate_project_can_remove_duplicates(tmp_path):
     """
-    Delete duplicate files when removal flag is set.
+    Delete duplicate files when removal flag is set (across different projects).
     Args:
         tmp_path (Path): Pytest-provided temp directory.
     Returns:
         None
     """
-    proj = tmp_path / "proj"
-    proj.mkdir()
-
-    f1 = proj / "a.txt"
-    f2 = proj / "b.txt"
+    # First project establishes the original file
+    proj1 = tmp_path / "proj1"
+    proj1.mkdir()
+    f1 = proj1 / "a.txt"
     f1.write_text("same")
+
+    # Second project has a duplicate
+    proj2 = tmp_path / "proj2"
+    proj2.mkdir()
+    f2 = proj2 / "b.txt"
     f2.write_text("same")
 
     index_path = tmp_path / "dedup_index.json"
 
-    result = deduplicate_project(proj, index_path, remove_duplicates=True)
+    # Index the first project
+    deduplicate_project(proj1, index_path)
+
+    # Index the second project with removal enabled
+    result = deduplicate_project(proj2, index_path, remove_duplicates=True)
 
     assert result.duplicate_files == 1
     assert result.removed == 1
-    # Exactly one of the two files should remain after removal.
-    remaining = sum(p.exists() for p in (f1, f2))
-    assert remaining == 1
+    # Original file should remain, duplicate should be removed
+    assert f1.exists()
+    assert not f2.exists()
 
 
 def test_corrupted_index_logs_warning(tmp_path, caplog):
