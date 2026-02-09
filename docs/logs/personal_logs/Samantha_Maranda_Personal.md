@@ -616,3 +616,76 @@
 * Finished a test for the analysis API now that I understood certain issues around using that API call
 * Learned that API responses are a bit unpredictable and writing tests can be complicated when you don't know the exact output
 * Next week I want to ensure we have propper test coverage on top of my code contributions for the week. Will work on more API, starting to expand into neccessary calls that are not required by the milestone 2 requirements but are needed for our program to function only through API interface to the front end. This will require deconstructing a lot of our CLI and understanding input and output of any system that is currently interacting with the front end to build the interface. I also want to start building error handling in places I have skipped over after removing print functions that displayed such errors, instead raising those errors to API methods, catching them and outputting the errors as strings. Some error handling will also involve making sure a system doesn't break when one part stops functioning, allowing semi-functional systems to still return valid output in the event of catastrophic failure.
+
+---------------------------
+
+## Sunday (25/01/2026 - 08/02/2026)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/08-02-2026_PeerEval_SamM.jpg)
+
+### Features Worked on this Week
+  * #1: Convert CLI function calls to API methods
+  * #2: Review of test coverage
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description        | Feature   | Assigned To | Status   |
+| ------- | ------------------ | --------- | ----------- | -------- |
+| #385   | Convert CLI function calls to API methods | Convert CLI function calls to API methods | Samantha Maranda  | In Progress |
+| #342   | Reviewing test coverage and fixing bad tests | Review of test coverage | Samantha Maranda  | Complete |
+
+### Progress Update (since 25/01/2026) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Convert CLI functions into API methods
+        </td>
+        <!-- Status -->
+        <td>In Progress
+        </td>
+    </tr>
+     <tr>
+        <!-- Task/Issue # -->
+        <td>Refactor analysis backend to remove CLI I/O
+        </td>
+        <!-- Status -->
+        <td>
+        </td>Handed off to Sam Smith this cycle
+    </tr>
+ <tr>
+        <!-- Task/Issue # -->
+        <td>FastAPI for returning saved projects
+        </td>
+        <!-- Status -->
+        <td>Future Changes Needed
+        </td>
+    </tr>
+ <tr>
+        <!-- Task/Issue # -->
+        <td>FastAPI for returning project by id
+        </td>
+        <!-- Status -->
+        <td>In Progress
+        </td>
+    </tr>
+ <tr>
+        <!-- Task/Issue # -->
+        <td>Review of test coverage
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+* Was challenged by preexisting bugs related to the changes I wanted to make this cycle. Many of my APIs were difficult to work with and prior tests had difficulty adjusting due to poor test building due to these bugs and some couldn't be completed until those issues are fixed.
+* Next week I plan on continuing building API for project insights and possibly attempting to fix these issues if they aren't delegated to those who know that code better.
