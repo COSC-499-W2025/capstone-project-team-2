@@ -17,7 +17,7 @@ class ConfigLoader:
 
         self.config_dir = project_root / "User_config_files"
         self.user_config_path = self.config_dir / "UserConfigs.json"
-        self.default_config_path = self.config_dir / "default_user_configuration.json"
+        self.default_config_path = project_root / "Templates" / "default_user_configuration.json"
         
     def _load_file(self, path: Path) -> Dict[str, Any]:
         """
