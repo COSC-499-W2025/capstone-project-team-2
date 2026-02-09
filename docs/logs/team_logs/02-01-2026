@@ -20,32 +20,31 @@
 - Add multiple export formats
 
 ## Associated Tasks from Kanban Board:
-- [344: https://github.com/COSC-499-W2025/capstone-project-team-2/pull/344)
-- [345: https://github.com/COSC-499-W2025/capstone-project-team-2/pull/345)
-- [348: https://github.com/COSC-499-W2025/capstone-project-team-2/pull/348)
-- [349: https://github.com/COSC-499-W2025/capstone-project-team-2/pull/349)
-- [352: https://github.com/COSC-499-W2025/capstone-project-team-2/pull/352)
-- [353: https://github.com/COSC-499-W2025/capstone-project-team-2/pull/353)
-- [355:https://github.com/COSC-499-W2025/capstone-project-team-2/pull/355)
-- [356:https://github.com/COSC-499-W2025/capstone-project-team-2/pull/356)
-- [358: https://github.com/COSC-499-W2025/capstone-project-team-2/pull/358)
-- [374: https://github.com/COSC-499-W2025/capstone-project-team-2/pull/374)
-- [#375: https://github.com/COSC-499-W2025/capstone-project-team-2/pull/375)
-- [#379: https://github.com/COSC-499-W2025/capstone-project-team-2/pull/379)
-- [#388: https://github.com/COSC-499-W2025/capstone-project-team-2/pull/388)
-- [#382: https://github.com/COSC-499-W2025/capstone-project-team-2/pull/382)
-- [#384: https://github.com/COSC-499-W2025/capstone-project-team-2/pull/384)
-- [#391: https://github.com/COSC-499-W2025/capstone-project-team-2/pull/391)
-- [#394: https://github.com/COSC-499-W2025/capstone-project-team-2/pull/394)
+- [#344](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/344)
+- [#345](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/345)
+- [#348](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/348)
+- [#349](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/349)
+- [#352](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/352)
+- [#353](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/353)
+- [#355](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/355)
+- [#356](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/356)
+- [#358](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/358)
+- [#374](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/374)
+- [#375](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/375)
+- [#379](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/379)
+- [#388](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/388)
+- [#382](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/382)
+- [#384](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/384)
+- [#391](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/391)
+- [#394](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/394)
 
 ### Screenshot from Kanban board
-![alt text](../team_logs/screenshots/kanban_board/02-08_kanban.png)
+<img src="https://github.com/COSC-499-W2025/capstone-project-team-2/blob/team_logs/docs/logs/team_logs/01-10-2026.md" width="900" />
 ---
 
-## Burn-up Chart (Velocity):
-![alt text](../team_logs/screenshots/Burn_up_charts/02-08_burnup.png)
+## Burn-up Chart (Velocity)
+![Burn-up chart](https://github.com/COSC-499-W2025/capstone-project-team-2/blob/team_logs/docs/logs/team_logs/screenshots/Burn_up_charts/02-08_burnup.png?raw=1)
 ---
-
 ## Team Members  
 
 | Name              | Role/Title          | GitHub Username                                          | Responsibilities |
@@ -64,12 +63,12 @@
 | [#344](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/344) | Update Generate_AI_RenderCV_Portfolio_and_Resume.py + adding some new helper functions | Immanuel Wiessler |
 | [#345](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/345) | Fixed constent_md not showing up | Immanuel Wiessler|
 | [#348](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/348) | Converted print errors to error raising for api | Sam Smith |
-| [#349]https://github.com/COSC-499-W2025/capstone-project-team-2/pull/349) |Skills endpoint error handling| Mahi Gangal |
+| [#349](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/349) |Skills endpoint error handling| Mahi Gangal |
 | [#352](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/352) |Database rebuild|Cameron Gillespie|
 | [#353](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/353) |Test Coverage Review |Samantha Maranda|
 | [#355](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/355) |Fixed Project duration |Mahi Gangal|
 | [#356](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/356) |Project file traverser/sorter| Samantha Maranda|
-|[#358]( [358: https://github.com/COSC-499-W2025/capstone-project-team-2/pull/358)|Deduplication across uploads with API output and tests| Puneet Maan|
+|[#358](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/358)|Deduplication across uploads with API output and tests| Puneet Maan|
 |[#374](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/374)|Convert portfolio generation to fastapi| Immanuel Wiessler|
 |[#375](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/375)|Convert resume generation to fastapi| Immanuel Wiessler|
 |[#388](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/388)|Database update|Cameron Gillespie|
@@ -84,8 +83,8 @@
 
 | Task ID | Description        | Assigned To |
 | ------- | ------------------ | ----------- |
-|      |  |   |     
-|      |  |   |
+|[#292](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/292) | FastAPI implementation for getting projects and project by id | Samantha Maranda |     
+|[#385](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/385) | CLI conversion to API | Samantha Maranda |
 
 ---
 
