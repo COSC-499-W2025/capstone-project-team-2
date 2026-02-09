@@ -97,7 +97,6 @@ def delete_project(project_name: str, save_path: str) -> dict:
         out_dict["dbstatus"] = f"[WARNING] Could not query database: {e}"
         db_rows = []
     matching_rows = [row for row in db_rows if row[1] == project_name]
-    print(db_rows)
     if matching_rows:
         deleted_any = False
         for row in matching_rows:
