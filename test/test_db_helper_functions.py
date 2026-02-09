@@ -94,7 +94,7 @@ class TestHelperFunct(unittest.TestCase):
             None: Assertions are used to validate expected behavior.
         """
         data = {"name": "alpha", "value": 123}
-        project_name = self.store.insert_json("alpha.json", data)
+        project_name, _ = self.store.insert_json("alpha.json", data)
         pulled = self.store.fetch_by_name(project_name)
         self.assertEqual(pulled, data)
 
@@ -115,7 +115,7 @@ class TestHelperFunct(unittest.TestCase):
         """
         data = {"project": "demo", "ok": True}
         raw_bytes = json.dumps(data).encode("utf-8")
-        project_name = self.store.insert_json("demo.json", data, raw_bytes=raw_bytes)
+        project_name, _ = self.store.insert_json("demo.json", data, raw_bytes=raw_bytes)
 
         # Fetch content
         pulled_dict = self.store.fetch_by_name(project_name)
@@ -155,7 +155,7 @@ class TestHelperFunct(unittest.TestCase):
         Returns:
             None: Assertions are used to validate expected behavior.
         """
-        project_name = self.store.insert_json("up.json", {"before": True})
+        project_name, _ = self.store.insert_json("up.json", {"before": True})
         updated = self.store.update(project_name, {"after": True})
         self.assertTrue(updated)
 
@@ -176,7 +176,7 @@ class TestHelperFunct(unittest.TestCase):
         Returns:
             None: Assertions are used to validate expected behavior.
         """
-        project_name = self.store.insert_json("up.json", {"before": True})
+        project_name, _ = self.store.insert_json("up.json", {"before": True})
         new_data = {"updated": 42}
         new_bytes = json.dumps(new_data).encode("utf-8")
         updated = self.store.update(project_name, new_bytes)
@@ -199,7 +199,7 @@ class TestHelperFunct(unittest.TestCase):
         Returns:
             None: Assertions are used to validate expected behavior.
         """
-        project_name = self.store.insert_json("delete.json", {"exists": True})
+        project_name, _ = self.store.insert_json("delete.json", {"exists": True})
         deleted = self.store.delete(project_name)
         self.assertTrue(deleted)
         self.assertIsNone(self.store.fetch_by_name(project_name))
@@ -222,7 +222,7 @@ class TestHelperFunct(unittest.TestCase):
         self.assertFalse(self.store.project_exists("nonexist.json"))
     
         # Insert a project
-        project_name = self.store.insert_json("exist.json", {"data": 1})
+        project_name, _ = self.store.insert_json("exist.json", {"data": 1})
         self.assertTrue(self.store.project_exists(project_name))
     
         self.store.delete(project_name)
@@ -270,7 +270,7 @@ class TestHelperFunct(unittest.TestCase):
             None: Assertions are used to validate expected behavior.
         """
         # Create a project with multiple versions
-        project_name = self.store.insert_json("versioned.json", {"version": 1})
+        project_name, _ = self.store.insert_json("versioned.json", {"version": 1})
         self.store.update(project_name, {"version": 2})
         self.store.update(project_name, {"version": 3})
         self.store.update(project_name, {"version": 4})
