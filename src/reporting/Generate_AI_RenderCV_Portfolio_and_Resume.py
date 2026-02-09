@@ -240,7 +240,7 @@ class RenderCVDocument:
                     'sections': {}
                 },
                 'design': {'theme': self.chosen_theme},
-                'locale': {'language': 'en'}
+                'locale': {'language': 'english'}
             }
             if self.doc_type == 'resume':
                 base_template['cv']['sections'] = {
