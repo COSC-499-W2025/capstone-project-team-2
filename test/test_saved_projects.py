@@ -1,6 +1,7 @@
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock
+import shutil
 
 import pytest
 
@@ -18,6 +19,7 @@ def test_list_saved_projects_filters_config_and_dedupes(tmp_path):
         None: Assertions validate filtering and deduplication.
     """
     new_dir = tmp_path / "project_insights"
+    shutil.rmtree(new_dir)
     new_dir.mkdir()
     legacy_file = tmp_path / "legacy.json"
     new_file = new_dir / "new.json"
@@ -133,6 +135,7 @@ def test_delete_file_from_disk_respects_references(monkeypatch, tmp_path):
         default_save_dir=tmp_path / "project_insights",
         store=SimpleNamespace(count_file_references=MagicMock(return_value=1)),
     )
+    shutil.rmtree(ctx.default_save_dir)
     ctx.default_save_dir.mkdir()
     file_path = ctx.default_save_dir / "kept.json"
     file_path.write_text("{}")
@@ -157,6 +160,7 @@ def test_delete_file_from_disk_deletes_when_no_references(monkeypatch, tmp_path)
         default_save_dir=tmp_path / "project_insights",
         store=SimpleNamespace(count_file_references=MagicMock(return_value=0)),
     )
+    shutil.rmtree(ctx.default_save_dir)
     ctx.default_save_dir.mkdir()
     file_path = ctx.default_save_dir / "remove.json"
     file_path.write_text("{}")

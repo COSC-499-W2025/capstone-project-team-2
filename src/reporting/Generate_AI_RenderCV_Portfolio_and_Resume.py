@@ -1,9 +1,10 @@
 import subprocess
 import shutil
+import sys
 from functools import wraps
 from pathlib import Path
 from dataclasses import dataclass, asdict
-from typing import Optional, List, Literal
+from typing import Optional, List, Literal, Iterable, Dict
 import ruamel.yaml
 import orjson
 from src.reporting.Generate_AI_Resume import GenerateProjectResume
@@ -156,6 +157,7 @@ class RenderCVDocument:
     Unified builder class for creating and managing RenderCV YAML files.
     Supports both resume and portfolio document types with a single interface.
     """
+    SUPPORTED_FORMATS = {"pdf", "html", "markdown"}
     THEMES = {
         'classic': 'Classic CV theme',
         'engineeringclassic': 'Engineering-focused CV theme',
@@ -277,13 +279,21 @@ class RenderCVDocument:
                 }
             else:
                 base_template['cv']['sections'] = {
+                    'summary': [
+                        'A brief summary about yourself and your professional background.'
+                    ],
                     'projects': [{
                         'name': 'Project Name',
                         'start_date': '2023-01',
                         'end_date': '2024-05',
                         'summary': 'Brief description of the project',
                         'highlights': ['Key feature 1', 'Key feature 2']
-                    }]
+                    }],
+                    'skills': [
+                        {'label': 'Languages', 'details': 'Python, JavaScript, etc.'},
+                        {'label': 'Technologies', 'details': 'React, Docker, AWS, etc.'},
+                        {'label': 'Tools', 'details': 'Git, VS Code, etc.'}
+                    ]
                 }
             return base_template
 
@@ -348,16 +358,19 @@ class RenderCVDocument:
         if self.data.get('cv') is None:
             raise ValueError("Invalid YAML structure: missing required 'cv' key")
 
+    
         self.sections=self.data['cv']['sections']
         self.current_projects=self.sections.get('projects', [])
         self.current_connections=self.data['cv'].get('social_networks', [])
         self.data['cv']['name'] = str(self.name).replace("_", " ")
 
+        # Shared sections for both resume and portfolio
+        self.current_skills = self.sections.get('skills', [])
+        self.summary = self.sections.get('summary', [])
+
         if self.doc_type == 'resume':
             self.current_education=self.sections.get('education', [])
-            self.current_skills=self.sections.get('skills', [])
             self.current_experience=self.sections.get('experience',[])
-            self.summary = self.sections.get('summary', [])
 
         return self.data
 
@@ -377,7 +390,7 @@ class RenderCVDocument:
             raise ValueError("No data loaded")
 
         output_file=Path(filename) if filename else self.yaml_file
-        with open(self.yaml_file, 'w') as f:
+        with open(output_file, 'w') as f:
             self.yaml.dump(self.data, f)
 
         return output_file
@@ -394,10 +407,128 @@ class RenderCVDocument:
         if self.auto_save and self.data is not None:
             self.save()
 
+    def _normalize_formats(self, formats: Iterable[str]) -> List[str]:
+        """
+        Normalize and validate requested output formats.
+
+        Args:
+            formats: Iterable of format strings
+
+        Returns:
+            List[str]: Normalized list of formats
+        """
+        normalized: List[str] = []
+        for fmt in formats or []:
+            fmt_normalized = (fmt or "").strip().lower()
+            if not fmt_normalized:
+                continue
+            if fmt_normalized not in self.SUPPORTED_FORMATS:
+                raise ValueError(
+                    f"Unsupported format '{fmt}'. Supported: {', '.join(sorted(self.SUPPORTED_FORMATS))}"
+                )
+            if fmt_normalized not in normalized:
+                normalized.append(fmt_normalized)
+
+        return normalized or ["pdf"]
+
+    def _get_output_dir(self) -> Path:
+        """
+        Resolve the output directory used by RenderCV.
+
+        Returns:
+            Path: Absolute path to the output directory
+        """
+        if not self.yaml_file:
+            raise ValueError("YAML file not set")
+
+        yaml_parent = self.yaml_file.resolve().parent
+        return yaml_parent / "rendercv_output"
+
+    def render_outputs(self, formats: Iterable[str]) -> tuple[str, Dict[str, List[Path]]]:
+        """
+        Render the YAML file using RenderCV for one or more output formats.
+
+        Args:
+            formats: Iterable of output formats (pdf, html, markdown)
+
+        Returns:
+            tuple[str, Dict[str, List[Path]]]:
+                - Status message
+                - Mapping of format to list of output files
+        """
+        if not self.yaml_file or not self.yaml_file.exists():
+            raise FileNotFoundError(f"YAML file {self.yaml_file} does not exist")
+
+        selected_formats = self._normalize_formats(formats)
+        output_dir = self._get_output_dir()
+        yaml_parent = self.yaml_file.resolve().parent
+        output_base = f"{self.name}_CV"
+        doc_type_label = "Resume" if self.doc_type == 'resume' else "Portfolio"
+
+        if output_dir.exists():
+            shutil.rmtree(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        cmd = [sys.executable, "-m", "rendercv", "render", str(self.yaml_file)]
+        format_flags = {
+            "pdf": "--dont-generate-pdf",
+            "html": "--dont-generate-html",
+        }
+        for fmt, flag in format_flags.items():
+            if fmt not in selected_formats:
+                cmd.append(flag)
+        if "markdown" not in selected_formats and "html" not in selected_formats:
+            cmd.append("--dont-generate-markdown")
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=yaml_parent,
+        )
+
+        outputs: Dict[str, List[Path]] = {}
+        errors: List[str] = []
+
+        if not output_dir.exists():
+            errors.append(f"render failed - output directory not found at {output_dir}")
+        else:
+            format_exts = {
+                "pdf": "pdf",
+                "html": "html",
+                "markdown": "md",
+            }
+            for fmt, ext in format_exts.items():
+                if fmt not in selected_formats:
+                    continue
+                source_file = output_dir / f"{output_base}.{ext}"
+                if not source_file.exists():
+                    errors.append(f"{fmt} not found at {source_file}")
+                    continue
+                renamed = output_dir / f"{self.name}_{doc_type_label}.{ext}"
+                if renamed.exists():
+                    renamed.unlink()
+                source_file.rename(renamed)
+                outputs[fmt] = [renamed]
+
+            if "html" in selected_formats and "markdown" not in selected_formats:
+                markdown_file = output_dir / f"{output_base}.md"
+                if markdown_file.exists():
+                    markdown_file.unlink()
+
+        if result.returncode != 0 and not outputs:
+            details = (result.stderr or "").strip()
+            if not details and result.stdout:
+                details = result.stdout.strip()
+            errors.insert(0, f"render failed (code {result.returncode}): {details}")
+
+        status = "successfully rendered" if not errors else "; ".join(errors)
+        return status, outputs
 
     def render(self) -> tuple[str,Optional[Path]]:
         """
-         Render the YAML file to PDF using the RenderCV command-line tool.
+        Render the YAML file to PDF using the RenderCV command-line tool.
         Cleans up any existing output directory before rendering.
         Renames the output PDF to include 'Resume' or 'Portfolio' based on document type.
 
@@ -409,28 +540,9 @@ class RenderCVDocument:
         Raises:
             FileNotFoundError: If the YAML file does not exist
         """
-        if not self.yaml_file or not self.yaml_file.exists():
-            raise FileNotFoundError(f"YAML file {self.yaml_file} does not exist")
-
-        yaml_file_absolute=self.yaml_file.resolve()
-        default_output=yaml_file_absolute.parent / "rendercv_output"
-        source_pdf = default_output / f"{self.name}_CV.pdf"
-
-        if default_output.exists():
-            shutil.rmtree(default_output)
-
-        result= subprocess.run(['rendercv', 'render', str(self.yaml_file)],capture_output=True,text=True, encoding='utf-8',errors='replace')
-
-        if source_pdf.exists():
-            # Rename PDF to include document type (Resume or Portfolio)
-            doc_type_label = "Resume" if self.doc_type == 'resume' else "Portfolio"
-            renamed_pdf = default_output / f"{self.name}_{doc_type_label}.pdf"
-            source_pdf.rename(renamed_pdf)
-            return "successfully rendered", renamed_pdf
-        else:
-            if result.returncode !=0:
-                return f"render failed (code {result.returncode}): {result.stderr}", None
-            return f"render failed - PDF not found at {source_pdf}", None
+        status, outputs = self.render_outputs(["pdf"])
+        pdf_paths = outputs.get("pdf", [])
+        return status, pdf_paths[0] if pdf_paths else None
 
 # ============== CONTACT & THEME ==============
     @requires_data
@@ -456,6 +568,25 @@ class RenderCVDocument:
                 cv[field_name] = value
         self._auto_save_if_enabled()
         return self
+
+    @requires_data
+    def get_contact_info(self) -> dict:
+        """
+        Get all contact information as a dictionary.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            dict: Dictionary containing name, email, phone, location, and website
+        """
+        cv = self.data.get('cv', {})
+        return {
+            'name': cv.get('name', ''),
+            'email': cv.get('email', ''),
+            'phone': cv.get('phone', ''),
+            'location': cv.get('location', ''),
+            'website': cv.get('website', '')
+        }
+
     @requires_data
     def update_theme(self,selected_theme:str):
         """
@@ -475,6 +606,52 @@ class RenderCVDocument:
         self.data['design']['theme'] = selected_theme
         self._auto_save_if_enabled()
         return f"Successfully updated theme '{selected_theme}'"
+
+    @requires_data
+    def get_theme(self) -> str:
+        """
+        Get the current document theme.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            str: The current theme name
+        """
+        return self.data.get('design', {}).get('theme', 'sb2nov')
+
+    # ============== SUMMARY (shared) ==============
+
+    @requires_data
+    def update_summary(self, new_content: str) -> str:
+        """
+        Update the professional summary section at the top of the document.
+        Available for both resume and portfolio document types.
+
+        Args:
+            new_content: The complete summary text to replace existing content
+
+        Returns:
+            str: Confirmation message that the summary was updated
+        """
+        if 'summary' not in self.sections:
+            self.sections['summary'] = []
+        self.sections['summary'] = [new_content]
+        self.summary = self.sections['summary']
+        self._auto_save_if_enabled()
+
+        return "Summary updated successfully"
+
+    @requires_data
+    def get_summary(self) -> str:
+        """
+        Get the current summary text.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            str: The current summary text, or empty string if no summary exists
+        """
+        if self.summary:
+            return self.summary[0]
+        return ""
 
     # ============== PROJECTS (shared) ==============
     @requires_data
@@ -584,6 +761,59 @@ class RenderCVDocument:
         return self.add_project(project)
 
     @requires_data
+    def get_projects(self) -> List[dict]:
+        """
+        Get all current projects.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            List[dict]: List of project dictionaries with project details
+        """
+        return self.current_projects if self.current_projects else []
+
+    def count_projects(self) -> int:
+        """
+        Get the number of projects in the document.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            int: Number of projects, or 0 if no data is loaded
+        """
+        if self.current_projects is None:
+            return 0
+        return len(self.current_projects)
+
+    def has_projects(self) -> bool:
+        """
+        Check if the document has any projects.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            bool: True if there are projects, False otherwise
+        """
+        return self.count_projects() > 0
+
+    @requires_data
+    def clear_projects(self) -> str:
+        """
+        Remove all projects from the document.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            str: Success message with number of projects removed
+        """
+        if not self.current_projects:
+            return "No projects to clear"
+
+        count = len(self.current_projects)
+        self.sections['projects'] = []
+        self.current_projects = self.sections['projects']
+        self._auto_save_if_enabled()
+        return f"Successfully cleared {count} project(s)"
+
+    # ============== CONNECTIONS (shared) ==============
+
+    @requires_data
     def add_connection(self,connection_info: Connections):
         """
         Add a new social network connection to the CV header.
@@ -652,27 +882,18 @@ class RenderCVDocument:
         self._auto_save_if_enabled()
         return f"Successfully deleted: {network_name}"
 
-    # ============== RESUME-ONLY METHODS ==============
-
     @requires_data
-    @requires_resume
-    def update_summary(self, new_content: str) -> str:
+    def get_connections(self) -> List[dict]:
         """
-        Update the professional summary section at the top of the resume.
-        Available only for resume document type.
-
-        Args:
-            new_content: The complete summary text to replace existing content
+        Get all social network connections.
+        Available for both resume and portfolio document types.
 
         Returns:
-            str: Confirmation message that the summary was updated
+            List[dict]: List of connection dictionaries with 'network' and 'username' keys
         """
-        if 'summary' not in self.sections:
-            self.sections['summary'] = []
-        self.sections['summary'] = [new_content]
-        self._auto_save_if_enabled()
+        return self.current_connections if self.current_connections else []
 
-        return "Summary updated successfully"
+    # ============== EXPERIENCE (resume-only) ==============
 
     @requires_data
     @requires_resume
@@ -830,11 +1051,10 @@ class RenderCVDocument:
         return "Successfully deleted education"
 
     @requires_data
-    @requires_resume
     def add_skills(self, skill: Skills) -> str:
         """
         Add a new skill category to the skills section.
-        Available only for resume document type. Creates the section if it doesn't exist.
+        Available for both resume and portfolio document types. Creates the section if it doesn't exist.
         Prevents duplicate skill labels.
 
         Args:
@@ -859,11 +1079,10 @@ class RenderCVDocument:
         return "Successfully added skills"
 
     @requires_data
-    @requires_resume
     def remove_skill(self, label: str) -> str:
         """
         Remove a skill category by its label.
-        Available only for resume document type.
+        Available for both resume and portfolio document types.
 
         Args:
             label: The exact label of the skill category to remove (e.g., "Languages", "Frameworks")
@@ -881,6 +1100,134 @@ class RenderCVDocument:
         self.current_skills.remove(skill)
         self._auto_save_if_enabled()
         return "Successfully deleted skill"
+
+    @requires_data
+    def modify_skill(self, label: str, new_details: str) -> str:
+        """
+        Modify the details of an existing skill category.
+        Available for both resume and portfolio document types.
+
+        Args:
+            label: The exact label of the skill category to modify (e.g., "Languages", "Frameworks")
+            new_details: The new comma-separated string of skills (e.g., "Python, JavaScript, Go")
+
+        Returns:
+            str: Success message confirming the update, or error if no skills exist or label not found
+        """
+        if not self.current_skills:
+            return "No skills to modify"
+
+        skill = next((s for s in self.current_skills if s.get('label') == label), None)
+        if skill is None:
+            return f"Skill '{label}' not found"
+
+        skill['details'] = new_details
+        self._auto_save_if_enabled()
+        return f"Successfully updated skill '{label}'"
+
+    @requires_data
+    def get_skills(self) -> List[dict]:
+        """
+        Get all current skill categories.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            List[dict]: List of skill dictionaries with 'label' and 'details' keys
+        """
+        return self.current_skills if self.current_skills else []
+
+    def count_skills(self) -> int:
+        """
+        Get the number of skill categories in the document.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            int: Number of skill categories, or 0 if no data is loaded
+        """
+        if self.current_skills is None:
+            return 0
+        return len(self.current_skills)
+
+    def has_skills(self) -> bool:
+        """
+        Check if the document has any skills.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            bool: True if there are skills, False otherwise
+        """
+        return self.count_skills() > 0
+
+    @requires_data
+    def clear_skills(self) -> str:
+        """
+        Remove all skills from the document.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            str: Success message with number of skills removed
+        """
+        if not self.current_skills:
+            return "No skills to clear"
+
+        count = len(self.current_skills)
+        self.current_skills.clear()
+        self._auto_save_if_enabled()
+        return f"Successfully cleared {count} skill category(ies)"
+
+    # ============== EDUCATION (resume-only) ==============
+
+    @requires_data
+    @requires_resume
+    def get_education(self) -> List[dict]:
+        """
+        Get all education entries.
+        Available only for resume document type.
+
+        Returns:
+            List[dict]: List of education dictionaries with education details
+        """
+        return self.current_education if self.current_education else []
+
+    @requires_data
+    @requires_resume
+    def get_experience(self) -> List[dict]:
+        """
+        Get all experience entries.
+        Available only for resume document type.
+
+        Returns:
+            List[dict]: List of experience dictionaries with experience details
+        """
+        return self.current_experience if self.current_experience else []
+
+    @requires_resume
+    def count_education(self) -> int:
+        """
+        Get the number of education entries in the document.
+        Available only for resume document type.
+
+        Returns:
+            int: Number of education entries, or 0 if no data is loaded
+        """
+        if self.current_education is None:
+            return 0
+        return len(self.current_education)
+
+    @requires_resume
+    def count_experience(self) -> int:
+        """
+        Get the number of experience entries in the document.
+        Available only for resume document type.
+
+        Returns:
+            int: Number of experience entries, or 0 if no data is loaded
+        """
+        if self.current_experience is None:
+            return 0
+        return len(self.current_experience)
+
+    # ============== RESUME-ONLY METHODS ==============
 
     @requires_data
     @requires_resume

@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from pathlib import Path
 from fastapi import UploadFile
+from types import SimpleNamespace
+import os
 
 import mysql.connector
 from mysql.connector import Error
@@ -54,6 +56,23 @@ def create_app_context(external_consent_value=False, data_consent_value=False) -
     Raises:
         Exception: If connection cannot be established after retries.
     """
+    if os.getenv("SKIP_DB_INIT") == "1":
+        root_folder = Path(__file__).absolute().resolve().parents[2]
+        legacy_save_dir = root_folder / "User_config_files"
+        default_save_dir = legacy_save_dir / "project_insights"
+        return AppContext(
+            conn=None,
+            store=SimpleNamespace(
+                insert_json=lambda *args, **kwargs: None,
+                fetch_by_id=lambda *args, **kwargs: None,
+            ),
+            legacy_save_dir=legacy_save_dir,
+            default_save_dir=default_save_dir,
+            external_consent=external_consent_value,
+            data_consent=data_consent_value,
+            currently_uploaded_file=None,
+        )
+
     port_number, host_ip = DockerFinder().get_mysql_host_information()
     conn = None
 

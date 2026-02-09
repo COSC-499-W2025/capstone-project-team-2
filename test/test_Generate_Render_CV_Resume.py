@@ -125,6 +125,66 @@ class TestRenderCVDocumentCore(BaseRenderCVTest):
             cv.render()
             mock_run.assert_called_once()
 
+    def test_render_outputs_pdf_html_markdown(self):
+        """Test multi-format rendering and renaming."""
+        cv = self.create_loaded_cv()
+        output_dir = cv.yaml_file.parent / "rendercv_output"
+        output_base = f"{cv.name}_CV"
+
+        def fake_run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=None):
+            output_dir.mkdir(parents=True, exist_ok=True)
+            (output_dir / f"{output_base}.pdf").write_text("pdf")
+            (output_dir / f"{output_base}.html").write_text("html")
+            (output_dir / f"{output_base}.md").write_text("md")
+            return MagicMock(returncode=0, stderr="", stdout="")
+
+        with patch('subprocess.run', side_effect=fake_run) as mock_run:
+            status, outputs = cv.render_outputs(["pdf", "html", "markdown"])
+
+        self.assertEqual(status, "successfully rendered")
+        self.assertIn("pdf", outputs)
+        self.assertIn("html", outputs)
+        self.assertIn("markdown", outputs)
+        self.assertTrue((output_dir / f"{cv.name}_Resume.pdf").exists())
+        self.assertTrue((output_dir / f"{cv.name}_Resume.html").exists())
+        self.assertTrue((output_dir / f"{cv.name}_Resume.md").exists())
+
+        called_cmd = mock_run.call_args[0][0]
+        self.assertNotIn("--dont-generate-pdf", called_cmd)
+        self.assertNotIn("--dont-generate-html", called_cmd)
+        self.assertNotIn("--dont-generate-markdown", called_cmd)
+        self.assertNotIn("--dont-generate-typst", called_cmd)
+
+    def test_render_outputs_html_only(self):
+        """Test HTML-only rendering keeps HTML and removes markdown."""
+        cv = self.create_loaded_cv()
+        output_dir = cv.yaml_file.parent / "rendercv_output"
+        output_base = f"{cv.name}_CV"
+
+        def fake_run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=None):
+            output_dir.mkdir(parents=True, exist_ok=True)
+            (output_dir / f"{output_base}.html").write_text("html")
+            (output_dir / f"{output_base}.md").write_text("md")
+            return MagicMock(returncode=0, stderr="", stdout="")
+
+        with patch('subprocess.run', side_effect=fake_run) as mock_run:
+            status, outputs = cv.render_outputs(["html"])
+
+        self.assertEqual(status, "successfully rendered")
+        self.assertIn("html", outputs)
+        self.assertNotIn("markdown", outputs)
+        self.assertFalse((output_dir / f"{output_base}.md").exists())
+
+        called_cmd = mock_run.call_args[0][0]
+        self.assertIn("--dont-generate-pdf", called_cmd)
+        self.assertNotIn("--dont-generate-html", called_cmd)
+        self.assertNotIn("--dont-generate-markdown", called_cmd)
+
+    def test_render_outputs_invalid_format(self):
+        """Test unsupported format raises error."""
+        cv = self.create_loaded_cv()
+        with self.assertRaises(ValueError):
+            cv.render_outputs(["docx"])
 
 class TestRequiresDataDecorator(BaseRenderCVTest):
     """Test that all data-requiring operations raise ValueError when data not loaded."""
@@ -295,6 +355,28 @@ class TestConnectionsAndContact(BaseRenderCVTest):
         with self.assertRaises(ValueError):
             cv.update_theme('invalid_theme')
 
+    def test_summary_crud(self):
+        """Test update and get summary."""
+        cv = self.create_loaded_cv()
+
+        # Get default summary
+        default_summary = cv.get_summary()
+        self.assertIsInstance(default_summary, str)
+
+        # Update summary
+        result = cv.update_summary("This is my new professional summary.")
+        self.assertEqual(result, "Summary updated successfully")
+        self.assertEqual(cv.get_summary(), "This is my new professional summary.")
+
+        # Update summary again
+        cv.update_summary("Updated summary text.")
+        self.assertEqual(cv.get_summary(), "Updated summary text.")
+
+        # Portfolio also supports summary
+        portfolio = self.create_loaded_cv(doc_type='portfolio')
+        portfolio.update_summary("Portfolio summary")
+        self.assertEqual(portfolio.get_summary(), "Portfolio summary")
+
 
 class TestAutoSaveAndDocType(BaseRenderCVTest):
     """Tests for auto-save and document type restrictions."""
@@ -321,8 +403,6 @@ class TestAutoSaveAndDocType(BaseRenderCVTest):
             portfolio.add_education(Education(institution="Test", area="Test"))
         with self.assertRaises(ValueError):
             portfolio.add_experience(Experience(company="Test"))
-        with self.assertRaises(ValueError):
-            portfolio.add_skills(Skills(label="Test", details="Test"))
 
 
 if __name__ == '__main__':

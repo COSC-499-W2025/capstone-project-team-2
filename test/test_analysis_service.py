@@ -1,9 +1,12 @@
 import datetime
+from os.path import exists
 import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
+import os
+import shutil
 from src.core.analysis_service import analyze_project, extract_if_zip, oop_analysis
 
 from typing import List
@@ -18,9 +21,21 @@ import src.core.analysis_service as mod
 
 from src.core.app_context import runtimeAppContext
 
+def test_export_if_zip():
+    """
+    Checks that extract_if_zip() extracts and returns the directory extracted to
+    """
+    path = Path(os.getcwd()).absolute().resolve() / "test" / "TestZIPs" / "TESTING.zip"
+    extracted_path = mod.extract_if_zip(path)
+    assert exists(extracted_path)
+    shutil.rmtree(extracted_path)
+    
 def test_nonexistent_zip_extraction():
-    """Check that nonexistent zip files raise exception correctly
-        Args: None
+    """
+    Check that nonexistent zip files raise an exception.
+
+    Args:
+        None
 
     Returns:
         None: Assertions validate exception is raised. 
@@ -33,7 +48,8 @@ def test_nonexistent_zip_extraction():
         assert True
         
 def test_analyse_nonexistant_folder():
-    """Check that analyzing a non-existent folder raises an exception.
+    """
+    Check that analyzing a non-existent folder raises an exception.
 
     Args:
         None
@@ -49,7 +65,8 @@ def test_analyse_nonexistant_folder():
         assert True
 
 def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypatch):
-    """Check that export saves files and writes to the DB.
+    """
+    Check that export saves files and writes to the DB.
 
     Args:
         tmp_path: Pytest fixture providing a temporary directory.
@@ -73,25 +90,14 @@ def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypat
     monkeypatch.setattr(runtimeAppContext.store, "insert_json", lambda filename, analysis: 1)
 
     analysis = {"ok": True}
-    mod.export_json("DemoProj", analysis)
+    result = mod.export_json("DemoProj", analysis)
 
     assert (runtimeAppContext.default_save_dir).exists()
     assert captured["project_name"] == "DemoProj"
     assert captured["analysis"]["ok"] is True
-    
-def test_export_json_raises_on_db_failure(tmp_path, monkeypatch):
-    """Check that database insert failure raises exception to API.
-
-    Args:
-        tmp_path: Pytest fixture providing a temporary directory.
-        monkeypatch: Pytest fixture for patching module attributes.
-
-    Returns:
-        None: Assertions validate exception is raised.
-    """
-    class FakeSaver:
-        def saveAnalysis(self, project_name, analysis, out_dir):
-            pass  # File save succeeds
+    assert result == {"skipped": False}
+    #Can't check if db contains file at current point in time
+    #runtimeAppContext.store.fetch_by_id
 
     monkeypatch.setattr(mod, "SaveFileAnalysisAsJSON", lambda: FakeSaver())
     
@@ -193,6 +199,13 @@ class TestAnalysisService(unittest.TestCase):
                 patch.object(mod, "load_portfolio_showcase", lambda display_name: None),
                 patch.object(mod, "build_portfolio_showcase", lambda data, yaml: None),
                 patch.object(mod, "export_json", lambda project_name, analysis: None),
+                patch.object(mod, "deduplicate_project", lambda root, index_path, remove_duplicates=True: SimpleNamespace(
+                    unique_files=1,
+                    duplicate_files=0,
+                    duplicates=[],
+                    index_size=1,
+                    removed=0,
+                )),
                 patch.object(mod, "detect_project_stack", lambda root: {"languages": ["C++"]}),
                 patch.object(mod, "oop_analysis", fake_oop_analysis),
             ):

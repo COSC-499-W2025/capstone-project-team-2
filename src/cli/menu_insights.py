@@ -18,6 +18,7 @@ from src.reporting.project_insights import (
     rank_projects_by_contribution,
     summaries_for_top_ranked_projects,
 )
+from src.reporting.representation_preferences import apply_preferences
 from src.analysis.insight_helpers import parse_date, filter_insights, compute_composite_score
 
 def project_insights_menu(ctx) -> None:
@@ -49,7 +50,31 @@ def project_insights_menu(ctx) -> None:
                 since_str = input("Only include analyses since (YYYY-MM-DD, optional): ").strip() or None
                 since_dt = parse_date(since_str)
 
-                projects = list_project_insights(storage_path=storage_path)
+                try:
+                    preferred = apply_preferences()
+                    projects = [
+                        p
+                        for p in preferred.get("projects", [])
+                        if parse_date(p.get("analyzed_at")) is not None
+                    ]
+                except FileNotFoundError:
+                    projects = list_project_insights(storage_path=storage_path)
+
+                if projects and isinstance(projects[0], dict):
+                    # convert dicts to a simple namespace for reuse
+                    normalized = []
+                    for p in projects:
+                        ns = type("Insight", (), {})()
+                        ns.project_name = p.get("project_name", "unknown")
+                        ns.analyzed_at = p.get("analyzed_at", "")
+                        ns.project_type = p.get("project_type", "unknown")
+                        ns.detection_mode = p.get("detection_mode", "")
+                        ns.languages = p.get("languages", []) or []
+                        ns.frameworks = p.get("frameworks", []) or []
+                        ns.summary = p.get("summary", "")
+                        normalized.append(ns)
+                    projects = normalized
+
                 projects = filter_insights(
                     projects,
                     language=language,
@@ -60,11 +85,11 @@ def project_insights_menu(ctx) -> None:
                 if not projects:
                     print("[INFO] No insights recorded yet.")
                 else:
-                    print("\nProjects (oldest → newest):\n")
+                    print("\nProjects (user-preferred order):\n")
                     for i, p in enumerate(projects, start=1):
-                        langs = ", ".join(p.languages) or "—"
-                        frws = ", ".join(p.frameworks) or "—"
-                        summary = p.summary or "—"
+                        langs = ", ".join(getattr(p, "languages", [])) or "—"
+                        frws = ", ".join(getattr(p, "frameworks", [])) or "—"
+                        summary = getattr(p, "summary", "") or "—"
                         print(
                             f"{i}) {p.project_name} | analyzed_at={p.analyzed_at} | "
                             f"type={p.project_type} ({p.detection_mode}) | "

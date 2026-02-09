@@ -146,3 +146,26 @@ class TestCAnalyzer:
         assert complexity["total_functions"] >= 2
         assert complexity["max_loop_depth"] == 3
         assert complexity["functions_with_nested_loops"] >= 1
+        
+def test_analyze_c_project_per_file_failure_returns_error_report(tmp_path, monkeypatch):
+    # Arrange: make a fake project with one .c file
+    bad_file = tmp_path / "bad.c"
+    bad_file.write_text("int main() { return 0; }", encoding="utf-8")
+
+    # Force analyze_source to fail for this file (simulates unexpected analyzer bug)
+    from src.analyzers.c import c_oop_analyzer as mod
+
+    def boom(*args, **kwargs):
+        raise Exception("boom")
+
+    monkeypatch.setattr(mod, "analyze_source", boom)
+
+    # Act: project analysis should NOT raise, it should return an error report entry
+    reports = analyze_c_project(tmp_path)
+
+    # Assert: we got one report, marked as syntax_ok False with syntax_error populated
+    assert isinstance(reports, list)
+    assert len(reports) == 1
+    assert reports[0]["file"] == str(bad_file)
+    assert reports[0]["syntax_ok"] is False
+    assert "boom" in reports[0]["syntax_error"]

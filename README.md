@@ -63,6 +63,7 @@ The platforms target users are **graduating students** and **early career profes
 - 🤖 **AI Integration** — Ollama (local LLM) and Google Gemini for code analysis
 - 🔍 **Local Analysis** — Offline code analysis without AI dependencies
 - 📝 **Resume Generator** — PDF resume and portfolio generation (AI-powered or offline)
+- 🧹 **Cross-Upload Deduplication** — Hash-based index to keep only one copy of duplicate files across snapshots
 
 
 

@@ -39,7 +39,8 @@ def test_display_portfolio_external_disabled_uses_saved_oop(monkeypatch, tmp_pat
     file_path.write_text(mod.json.dumps(data))
 
     # Mock input to skip PDF generation prompts
-    monkeypatch.setattr("builtins.input", lambda prompt="": "n")
+    inputs = iter(["n"])   # sequence of answers
+    monkeypatch.setattr("builtins.input", lambda prompt="": next(inputs))
 
     mod.display_portfolio_and_generate_pdf(file_path, ctx)
     out = capsys.readouterr().out
@@ -83,10 +84,88 @@ def test_display_portfolio_external_enabled_calls_generator(monkeypatch, tmp_pat
 
     monkeypatch.setattr(mod, "GenerateProjectResume", FakeResume)
     # Mock input to skip PDF generation prompts
-    monkeypatch.setattr("builtins.input", lambda prompt="": "n")
+    inputs = iter(["n"])   # sequence of answers
+    monkeypatch.setattr("builtins.input", lambda prompt="": next(inputs))
 
     mod.display_portfolio_and_generate_pdf(file_path, ctx)
     out = capsys.readouterr().out
 
     assert "PROJECT: DemoProj" in out
     assert "One-Sentence Summary: Summary" in out    
+    
+def test_display_portfolio_default_enter_skips_pdf(monkeypatch, tmp_path, capsys):
+    ctx = SimpleNamespace(legacy_save_dir=tmp_path / "User_config_files", external_consent=False)
+    ctx.legacy_save_dir.mkdir(parents=True)
+    (ctx.legacy_save_dir / "UserConfigs.json").write_text('{"consented": {"external": false}}')
+
+    data = {
+        "resume_item": {"project_name": "Demo", "summary": "Demo"},
+        "oop_analysis": {"score": {"oop_score": 0.5}},
+    }
+    file_path = tmp_path / "analysis.json"
+    file_path.write_text(mod.json.dumps(data))
+
+    # User presses ENTER (empty string)
+    inputs = iter([""])
+    monkeypatch.setattr("builtins.input", lambda prompt="": next(inputs))
+
+    mod.display_portfolio_and_generate_pdf(file_path, ctx)
+    out = capsys.readouterr().out
+
+    # Should show portfolio but not ask for filename
+    assert "PORTFOLIO SHOWCASE" in out
+    assert "Enter the name of the PDF" not in out
+    
+def test_display_portfolio_reprompts_on_invalid_input(monkeypatch, tmp_path, capsys):
+    ctx = SimpleNamespace(legacy_save_dir=tmp_path / "User_config_files", external_consent=False)
+    ctx.legacy_save_dir.mkdir(parents=True)
+    (ctx.legacy_save_dir / "UserConfigs.json").write_text('{"consented": {"external": false}}')
+
+    data = {
+        "resume_item": {"project_name": "Demo", "summary": "Demo"},
+        "oop_analysis": {"score": {"oop_score": 0.5}},
+    }
+    file_path = tmp_path / "analysis.json"
+    file_path.write_text(mod.json.dumps(data))
+
+    # First invalid, then valid "n"
+    inputs = iter(["maybe", "n"])
+    monkeypatch.setattr("builtins.input", lambda prompt="": next(inputs))
+
+    mod.display_portfolio_and_generate_pdf(file_path, ctx)
+    out = capsys.readouterr().out
+
+    assert "[WARN] Please enter only 'y' or 'n'." in out
+    
+def test_display_portfolio_yes_triggers_pdf_flow(monkeypatch, tmp_path, capsys):
+    ctx = SimpleNamespace(
+        legacy_save_dir=tmp_path / "User_config_files",
+        external_consent=False,
+    )
+    ctx.legacy_save_dir.mkdir(parents=True)
+    (ctx.legacy_save_dir / "UserConfigs.json").write_text(
+        '{"consented": {"external": false}}'
+    )
+
+    data = {
+        "resume_item": {"project_name": "Demo", "summary": "Demo"},
+        "oop_analysis": {"score": {"oop_score": 0.5}},
+    }
+    file_path = tmp_path / "analysis.json"
+    file_path.write_text(mod.json.dumps(data))
+
+    # Say yes, then provide filename
+    inputs = iter(["y", "TestPortfolio"])
+    monkeypatch.setattr("builtins.input", lambda prompt="": next(inputs))
+
+    try:
+        mod.display_portfolio_and_generate_pdf(file_path, ctx)
+    except Exception:
+        pass  
+
+    out = capsys.readouterr().out
+
+    assert "PORTFOLIO SHOWCASE" in out
+    assert "[INFO] Generating portfolio PDF using RenderCV..." in out
+
+

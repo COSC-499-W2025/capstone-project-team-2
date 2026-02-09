@@ -20,14 +20,26 @@ def list_skills(detailed: bool = False) -> list:
         list: Unique skill names or detailed skill history records.
     """
     
-    # Wrapped in try-catch block because: 
+    # Wrapped in try-catch block because:
     # 1. runtimeAppContext.legacy_save_dir could be None, which can cause a TypeError
-    # 2. list_skill_history() could fail for other reasons (corrupted JSON, permission issues)
+    # 2. filesystem access can fail (permissions, missing path) and should map to a 500
     
     try:
         storage_path = Path(runtimeAppContext.legacy_save_dir) / "project_insights.json"
+        if not storage_path.exists():
+            raise HTTPException(
+                status_code=404,
+                detail="No project insights have been recorded yet.",
+            )
         history = list_skill_history(storage_path=storage_path)
-    except Exception as exc:
+        if not history:
+            raise HTTPException(
+                status_code=404,
+                detail="No project insights have been recorded yet.",
+            )
+    except HTTPException:
+        raise
+    except (TypeError, OSError) as exc:
         raise HTTPException(
             status_code=500,
             detail=f"Failed to retrieve skills: {exc}",
