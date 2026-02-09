@@ -38,6 +38,9 @@ def update_privacy_consent(payload: PrivacyConsentRequest) -> dict:
             detail="External consent requires data consent to be enabled.",
         )
 
+    runtimeAppContext.external_consent = payload.external_consent
+    runtimeAppContext.data_consent = payload.data_consent
+
     try:
         cfg = ConfigLoader().load()
         configure_json = configuration_for_users(cfg)
@@ -52,8 +55,6 @@ def update_privacy_consent(payload: PrivacyConsentRequest) -> dict:
             detail=f"Failed to persist consent: {exc}",
         )
 
-    runtimeAppContext.external_consent = payload.external_consent
-    runtimeAppContext.data_consent = payload.data_consent
     return {
         "data_consent": payload.data_consent,
         "external_consent": payload.external_consent,

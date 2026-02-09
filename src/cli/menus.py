@@ -69,8 +69,11 @@ def settings_menu() -> None:
         choice = input("Select an option: ").strip()
 
         if choice == "1":
-            cfg = get_config_dict()
-            ConfigurationForUsersUI(cfg).run_configuration_cli()
+            try:
+                cfg = get_config_dict()
+                ConfigurationForUsersUI(cfg).run_configuration_cli()
+            except HTTPException as e:
+                print(e)
         elif choice == "2":
             toggle_external_services()
         elif choice == "3":

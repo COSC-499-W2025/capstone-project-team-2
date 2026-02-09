@@ -35,7 +35,7 @@ def run() -> int:
     except Exception as e:
         print(f"[WARN] Failed to persist consent to configuration: {e}")
 
-    return main_menu(ctx)
+    return main_menu()
 
 
 if __name__ == "__main__":

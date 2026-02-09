@@ -54,13 +54,7 @@ def test_run_persists_consent_and_calls_menu(monkeypatch):
     )
     monkeypatch.setattr(main_mod, "configuration_for_users", lambda data: cfg_obj)
 
-    ctx = DummyContext()
-    monkeypatch.setattr(main_mod, "create_app_context", lambda external_consent_value=False: ctx)
-
-    menu_calls = {}
-
-    def fake_menu(context):
-        menu_calls["called_with"] = context
+    def fake_menu():
         return 0
 
     monkeypatch.setattr(main_mod, "main_menu", fake_menu)
@@ -68,42 +62,3 @@ def test_run_persists_consent_and_calls_menu(monkeypatch):
     result = main_mod.run()
 
     assert result == 0
-    assert menu_calls["called_with"] is ctx
-    assert ctx.closed is True
-
-
-def test_run_closes_context_when_menu_raises(monkeypatch):
-    """Check that context is closed if the menu fails.
-
-    Args:
-        monkeypatch: Pytest fixture for patching module attributes.
-
-    Returns:
-        None: Assertions validate cleanup on failure.
-    """
-    consent = SimpleNamespace(has_external_consent=False, has_data_consent=False)
-    consent.ask_for_consent = lambda: True
-    monkeypatch.setattr(main_mod, "UserConsent", lambda: consent)
-
-    loader = SimpleNamespace()
-    loader.load = lambda: {}
-    monkeypatch.setattr(main_mod, "ConfigLoader", lambda: loader)
-
-    cfg_obj = SimpleNamespace(
-        save_with_consent=lambda *args, **kwargs: None,
-        save_config=lambda: None,
-    )
-    monkeypatch.setattr(main_mod, "configuration_for_users", lambda data: cfg_obj)
-
-    ctx = DummyContext()
-    monkeypatch.setattr(main_mod, "create_app_context", lambda external_consent_value=False: ctx)
-
-    def boom(_):
-        raise RuntimeError("menu failed")
-
-    monkeypatch.setattr(main_mod, "main_menu", boom)
-
-    with pytest.raises(RuntimeError):
-        main_mod.run()
-
-    assert ctx.closed is True
