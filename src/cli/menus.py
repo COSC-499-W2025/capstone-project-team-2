@@ -236,7 +236,6 @@ def analyze_project_menu(ctx: AppContext) -> None:
     while True:
         print("\n=== Analyze Project Menu ===")
         print("\nChoose input type:")
-
         print("  1) Directory")
         print("  2) ZIP file")
         print("  0) Exit to Main Menu")
@@ -253,6 +252,7 @@ def analyze_project_menu(ctx: AppContext) -> None:
                 dir_path = input_path("Enter path to project directory: ")
                 if dir_path:
                     analyze_project(dir_path, use_ai_analysis=use_ai)
+                    project_name = dir_path.name 
             elif choice == "2":
                 zip_path = input_path("Enter path to ZIP: ")
                 if not zip_path:
@@ -260,19 +260,14 @@ def analyze_project_menu(ctx: AppContext) -> None:
                     continue
                 extracted = extract_if_zip(zip_path)
                 if not extracted:
-                    print(
-                        "[ERROR] Could not extract ZIP. Please check the file and "
-                        "try again."
-                    )
-                    return None
-                project_name = zip_path.stem
+                    print("[ERROR] Could not extract ZIP. Please check the file and try again.")
+                    continue 
                 
-                analyze_project(
-                    extracted,
-                    use_ai_analysis=use_ai
-                )
+                project_name = zip_path.stem
+                analyze_project(extracted, use_ai_analysis=use_ai)
+                
             elif choice == "0":
-                return None
+                return
             else:
                 print("Please choose a valid option (0–2).")
                 continue
@@ -281,35 +276,38 @@ def analyze_project_menu(ctx: AppContext) -> None:
 
             # After successful analysis, prompt for thumbnail upload
             if project_name:
-                # Get the UUID from the newly created insight
-                storage_path = Path(ctx.legacy_save_dir) / "project_insights.json"
-                insights = list_project_insights(storage_path=storage_path)
-                
-                # Find the most recent insight matching this project name
-                matching_insight = None
-                for insight in reversed(insights):  # Most recent first
-                    if insight.project_name == project_name:
-                        matching_insight = insight
-                        break
-                
-                if matching_insight:
-                    prompt_thumbnail_upload(
-                        project_id=matching_insight.id,
-                        project_name=project_name,
-                        ctx=ctx
-                    )
-                else:
-                    # Fallback if insight not found (shouldn't happen normally)
-                    print("[WARNING] Could not find project insight. Skipping thumbnail prompt.")
-            
+                try:
+                    # Get the UUID from the newly created insight
+                    storage_path = Path(ctx.legacy_save_dir) / "project_insights.json"
+                    insights = list_project_insights(storage_path=storage_path)
+                    
+                    # Find the most recent insight matching this project name
+                    matching_insight = None
+                    for insight in reversed(insights):  # Most recent first
+                        if insight.project_name == project_name:
+                            matching_insight = insight
+                            break
+                    
+                    if matching_insight:
+                        prompt_thumbnail_upload(
+                            project_id=matching_insight.id,
+                            project_name=project_name,
+                            ctx=ctx
+                        )
+                    else:
+                        # Fallback if insight not found
+                        print("[INFO] Thumbnail prompt skipped - project insight not available.")
+                except Exception as e:
+                    print(f"[INFO] Thumbnail prompt skipped: {e}")
+                    
             return
+            
         except KeyboardInterrupt:
             print("\n[Interrupted] Returning to menu.")
-            return None
+            return
         except Exception as e:
-            print(f"[ERROR] {e}")
-
-
+            raise
+        
 def saved_projects_menu(ctx: AppContext) -> None:
     """
     Display all saved projects from the configured directory and legacy location.
@@ -568,7 +566,7 @@ def main_menu(ctx: AppContext) -> int:
         except KeyboardInterrupt:
             print("\n[Interrupted] Returning to menu.")
         except Exception as e:
-            print(f"[ERROR] {e}")
+            raise
 
 def ai_resume_line_menu(ctx: AppContext) -> None:
     """

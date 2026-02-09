@@ -205,10 +205,14 @@ def analyze_project(root: Path, use_ai_analysis=False) -> None:
     ps = build_portfolio_showcase(portfolio_input, portfolio_yaml)   
      
     #Project insights likely needs to be rebuilt
-    insight = record_project_insight(
-        analysis,
-        contributors=contributors_data,
-    )
+    try:
+        insight = record_project_insight(
+            analysis,
+            contributors=contributors_data,
+        )
+    except Exception as e:
+        logging.warning(f"Failed to record project insight (optional): {e}")
+        insight = None 
 
     #Need to remember this exists but also this can't be here
     #portfolio_yaml = load_portfolio_showcase(display_name)
