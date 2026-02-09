@@ -1,5 +1,6 @@
 ### Navigation
 ## Term 2
+- [Week 4/5](#t2-week-45-01262026--02082026)
 - [Week 3](#t2-week-3-01192025--01252025)
 - [Week 2](#t2-week-2-01122025--01182025)
 - [Week 1](#t2-week-1-01052025--01112025)
@@ -15,6 +16,76 @@
 - [Week 5](#week-5-09292025---10052025)
 - [Week 4](#week-4-09222025---09282025)
 - [Week 3](#week-3-09152025---09212025)
+
+## T2 Week 4/5 (01/26/2026- 02/08/2026)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+<img width="1289" height="734" alt="image" src="https://github.com/user-attachments/assets/1da05a3f-8fa6-4e7f-9567-1d55cc67d9bc" />
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: converting errors to bubble up to api
+ 
+## Associated Tasks from Project Board:
+
+| Task ID | Description                     | Feature                   | Assigned To | Status   |
+| ------- | ------------------------------- | ------------------------- | ----------- | -------- |
+|[#379]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/379)| adjusted errors to raise important ones to api | ssmith86 | complete|
+|[#382]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/382)| added code so that critical errors bubble up to api in individual_contribution_detection.py | ssmith86 | complete |
+|[#384]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/384)| adjusted errors to raise important ones to api | ssmith86 | complete |
+
+ 
+### Progress Update (since 01/26/2026) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td> [#379](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/379)
+        </td>
+        <!-- Status -->
+        <td> complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td> [#382](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/382)
+        </td>
+        <!-- Status -->
+        <td> complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td> [#379](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/379)
+        </td>
+        <!-- Status -->
+        <td> complete
+        </td>
+    </tr>
+    </table>
+
+
+### Extra Details:
+**Coding Tasks**
+- The overall task was fixing the error handling to work with the new api that's being developed
+
+**Other Tasks**
+- Creation of an initial design for the front end GUI
+
+**Reviewing / Collaboration Tasks**
+- reviewed the following PR's: [375]https://github.com/COSC-499-W2025/capstone-project-team-2/pull/375, [388]https://github.com/COSC-499-W2025/capstone-project-team-2/pull/388, [391]https://github.com/COSC-499-W2025/capstone-project-team-2/pull/391
+      
+**Connection to Previous Week**
+- This task was a continuation on my work from last week, which was working on the same thing since we have a significant number of files that need to be gone through
+
+**Plan for Next Week**
+- Completion of the error handling
+- Beginning of front end development
 
 ## T2 Week 3 (01/19/2025- 01/25/2025)
 
