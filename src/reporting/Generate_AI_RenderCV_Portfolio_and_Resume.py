@@ -358,17 +358,7 @@ class RenderCVDocument:
         if self.data.get('cv') is None:
             raise ValueError("Invalid YAML structure: missing required 'cv' key")
 
-        locale_updated = False
-        if self.data.get('locale') is None:
-            self.data['locale'] = {'language': 'en'}
-            locale_updated = True
-        elif self.data.get('locale', {}).get('language') == 'english':
-            self.data['locale']['language'] = 'en'
-            locale_updated = True
-
-        if locale_updated:
-            self.save()
-
+    
         self.sections=self.data['cv']['sections']
         self.current_projects=self.sections.get('projects', [])
         self.current_connections=self.data['cv'].get('social_networks', [])
