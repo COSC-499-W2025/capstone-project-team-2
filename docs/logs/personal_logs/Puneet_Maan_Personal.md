@@ -33,6 +33,7 @@
 - Reviewed PR #353 (Weebtrain): test coverage review.
 - Reviewed PR #352 (Graves067): database-analysis versioning.
 - Reviewed PR #375 (ThunderIW): 296 convert resume generation into fastapi
+- Reviewed PR #385 (Weebtrain): cli conversion to api part 1
 
 ### Connection to last week
 - Continued Milestone 2 delivery by extending human in the loop controls (representation prefs) and building on earlier deduplication work to improve robustness of analysis outputs.
