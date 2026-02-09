@@ -3,6 +3,7 @@
 ## Weekly Overview
 - [Week 2 (Jan 12 - Jan 18)](#week-2-jan-12---jan-18)
 - [Week 3 (Jan 19 - Jan 25)](#week-3-jan-19jan-25)
+- [Week 4-5 (Jan 26 – Feb 8)](#week-4-5-jan-26feb-8)
 
 ## Week 2 (Jan 12 - Jan 18)
 
@@ -85,4 +86,65 @@ Designed and implemented a unified OOP analysis report that aggregates results a
 
 ### Additional Details
 This week’s work focused on both backend API development and advancing the system’s OOP analysis capabilities. I first implemented and tested new API endpoints for privacy consent and skill retrieval, ensuring they met functional and testing requirements. I then worked on a larger feature to unify OOP analysis reporting across multiple programming languages, which required refactoring the analysis orchestrator and coordinating outputs from several language-specific analyzers. The most challenging aspect was ensuring consistent aggregation behavior across languages while keeping the design extensible and compatible with existing services. In the upcoming week, I plan to continue working on remaining Milestone 2 requirements, focus on the peer testing feedback and support the team.
+
+## Week 4-5 (Jan 26–Feb 8)
+
+### Peer Eval Screenshot: 
+
+<img width="1096" height="618" alt="MG T2W5" src="https://github.com/user-attachments/assets/43901d1f-857d-4035-8868-31adc4b68a0f" />
+
+### Tasks Worked On
+- Fixed project duration estimation to correctly handle missing or incomplete timestamps.
+- Updated the /skills API endpoint to return a 404 when insights are missing or empty instead of an empty 200 response.
+- Fixed portfolio workflow so PDF generation is no longer forced by default.
+- Extended the RenderCV pipeline to support multi-format exports (PDF, HTML, Markdown).
+- Updated the RenderCV CLI menu to prompt users for their preferred export formats.
+- Strengthened test coverage for all features by adding or updating comprehensive tests.
+- Reviewed teammates’ pull requests and provided constructive feedback
+
+### Individual Contributions 
+
+- **[PR #355 – project duration fixed](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/355)**
+
+Fixed project duration calculation and made the output human-readable. Improved fallback logic when timestamps were missing.
+
+- **[PR #349 – Skills endpoint Error Handling](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/349)**
+
+Made /skills return 404 when insights are missing or empty. Narrowed exception handling and added edge-case tests.
+
+- **[PR #394 – Multiple export formats](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/394)**
+
+Added PDF, HTML, and Markdown export options to RenderCV. Updated CLI prompts and output handling with new tests.
+
+- **[PR #376 – User prompts added for Portfolio view](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/376)**
+
+Made PDF generation optional instead of forced. Added clear user prompts and updated related tests.
+
+### Tests Implemented
+
+- **[PR #355 – project duration fixed](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/355)**
+1. test_project_duration.py
+- **[PR #349 – Skills endpoint Error Handling](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/349)**
+1. test_skills_API.py: Ensures GET /skills returns accurate and correctly formatted data
+- **[PR #394 – Multiple export formats](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/394)**
+1. test_portfolio.py
+- **[PR #376 – User prompts added for Portfolio view](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/376)**
+1. test_document_generator_menu.py
+2. test_Generate_Render_CV_Resume.py
+3. test_portfolio_rendercv_service.py
+
+### PRs Reviewed
+
+- [**PR #340 – Peer Testing files**](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/340)
+- [**PR #345 – Fixed constent_md not showing up**](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/345)
+- [**PR #347 – PL for Week 18**](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/347)
+- [**PR #356 – Project file traverser for sorting files into analyzers**](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/356)
+- [**PR #378 – Immanuel Wiessler personal log Week 19 done**](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/378)
+- [**PR #382 – added code so that critical errors bubble up to api in individual_contribution_detection.py**](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/382)
+- [**PR #384 – errors in c_oop_analyzer.py to api**](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/384)
+- [**PR #393 – Update Sam_Smith_Personal.md**](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/393)
+
+### Additional Details
+
+In Week 3, I created the initial /skills API endpoint, and in Week 4 I built on that work by adding proper error handling so the endpoint now returns a clear 404 when insights are missing or empty. I also fixed the project duration estimator in Week 4 in response to peer-testing feedback, improving fallback logic for missing timestamps and making outputs human-readable. In Week 5, I shifted focus toward bug fixes and usability improvements based on peer testing, including making PDF generation optional and enabling multiple export formats (PDF/HTML/Markdown) in RenderCV. Overall, Week 4 centered on correctness and reliability of core features, while Week 5 emphasized user experience and robustness. Next week, I plan to address any remaining peer-testing feedback and Milestone 2 requirements, and resolve any issues arising from my recent changes. The main challenges involved handling missing timestamps and updating tests after CLI behaviour changes; both were successfully resolved, and there are currently no major blockers.
 
