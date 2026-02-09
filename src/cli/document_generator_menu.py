@@ -13,7 +13,7 @@ import json
 import os
 import shutil
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 
 from src.core.app_context import runtimeAppContext
 from src.reporting.Generate_AI_Resume import GenerateProjectResume, GenerateLocalResume
@@ -32,7 +32,7 @@ def document_generator_menu() -> None:
     - Load existing documents
     - Add projects from saved analyses (local or AI-powered)
     - Edit contact information and sections
-    - Render to PDF
+    - Render/Export to PDF, HTML, or Markdown
 
     Returns:
         None
@@ -200,12 +200,12 @@ def _document_edit_menu(doc: RenderCVDocument) -> None:
 
             print("\n-- Document --")
             print("  10) View full document")
-            print("  11) Render to PDF")
+            print("  11) Render/Export")
         else:
             # Portfolio uses sequential numbering
             print("\n-- Document --")
             print("  7) View full document")
-            print("  8) Render to PDF")
+            print("  8) Render/Export")
 
         print(f"\n{'─' * 50}")
         print("  0) Save and return")
@@ -1237,13 +1237,43 @@ def _view_document(doc: RenderCVDocument) -> None:
     print(f"\n{'=' * 60}")
     input("Press Enter to continue...")
 
+def _prompt_export_formats() -> List[str]:
+    """
+    Prompt user to select one or more export formats.
+
+    Returns:
+        List[str]: Selected formats (pdf/html/markdown)
+    """
+    options = [
+        ("1", "pdf", "PDF"),
+        ("2", "html", "HTML"),
+        ("3", "markdown", "Markdown"),
+    ]
+
+    print("\nSelect export formats (comma-separated).")
+    for code, fmt, label in options:
+        print(f"  {code}. {label}")
+    raw = input("Formats [default: PDF]: ").strip()
+
+    if not raw:
+        return ["pdf"]
+
+    selected: List[str] = []
+    for part in raw.split(","):
+        token = part.strip()
+        for code, fmt, _label in options:
+            if token == code and fmt not in selected:
+                selected.append(fmt)
+                break
+
+    return selected or ["pdf"]
 
 def _render_document(doc: RenderCVDocument) -> None:
     """
-    Render the document to PDF.
+    Render the document to selected output formats.
 
     Calls the render method on the document and optionally allows
-    the user to save the PDF to a custom location.
+    the user to save outputs to a custom location.
 
     Args:
         doc: The RenderCVDocument instance to render
@@ -1251,39 +1281,45 @@ def _render_document(doc: RenderCVDocument) -> None:
     Returns:
         None: Prints success/error message with PDF path and returns
     """
-    print("\n=== Rendering Document to PDF ===")
+    print("\n=== Rendering Document ===")
+    formats = _prompt_export_formats()
     print("Rendering... (this may take a moment)")
 
     try:
-        status, pdf_path = doc.render()
+        status, outputs = doc.render_outputs(formats)
     except Exception as error:
-        print(f"\n[ERROR] Could not render PDF: {error}")
+        print(f"\n[ERROR] Could not render document: {error}")
         return
 
-    if not pdf_path:
+    if not outputs:
         print(f"\n[ERROR] {status}")
         return
 
     print(f"\n[INFO] Render status: {status}")
 
-    if pdf_path:
-        print(f"[SUCCESS] PDF generated at: {pdf_path}")
+    for fmt in formats:
+        for output_path in outputs.get(fmt, []):
+            print(f"[SUCCESS] {fmt.upper()} generated at: {output_path}")
 
-        save_custom = input("\nSave PDF to a custom location? (y/n): ").strip().lower()
-        if save_custom == "y":
-            attempts = 0
-            max_attempts = 3
-            while attempts < max_attempts:
-                custom_folder = input("Enter the folder path: ").strip()
-                if os.path.exists(custom_folder):
-                    custom_path = Path(custom_folder) / pdf_path.name
-                    shutil.copy2(pdf_path, custom_path)
-                    print(f"[SUCCESS] PDF saved to: {custom_path}")
-                    break
-                else:
-                    attempts += 1
-                    print(f"[ERROR] Path not found. ({attempts}/{max_attempts})")
-            else:
-                print("[WARN] Max attempts reached. PDF remains at default location.")
-    else:
+    all_outputs = [p for paths in outputs.values() for p in paths]
+    if not all_outputs:
         print(f"[ERROR] {status}")
+        return
+
+    save_custom = input("\nSave exported files to a custom location? (y/n): ").strip().lower()
+    if save_custom == "y":
+        attempts = 0
+        max_attempts = 3
+        while attempts < max_attempts:
+            custom_folder = input("Enter the folder path: ").strip()
+            if os.path.exists(custom_folder):
+                for output_path in all_outputs:
+                    custom_path = Path(custom_folder) / output_path.name
+                    shutil.copy2(output_path, custom_path)
+                    print(f"[SUCCESS] Saved to: {custom_path}")
+                break
+            else:
+                attempts += 1
+                print(f"[ERROR] Path not found. ({attempts}/{max_attempts})")
+        else:
+            print("[WARN] Max attempts reached. Files remain at default location.")

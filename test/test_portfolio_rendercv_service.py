@@ -1,4 +1,5 @@
 import unittest
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from src.reporting.portfolio_rendercv_service import PortfolioRenderCVService
@@ -149,14 +150,27 @@ class TestPortfolioRenderCVService(unittest.TestCase):
     @patch("src.reporting.portfolio_rendercv_service.RenderCVDocument")
     def test_render_portfolio_pdf(self, mock_render_cv_document):
         """Render portfolio PDF via RenderCV."""
-        self.mock_cv.render.return_value = ("successfully rendered", "/fake/path.pdf")
+        self.mock_cv.render_outputs.return_value = ("successfully rendered", {"pdf": [Path("/fake/path.pdf")]})
         mock_render_cv_document.return_value = self.mock_cv
 
         service = PortfolioRenderCVService(name="Test User")
         result = service.render_portfolio_pdf()
 
-        self.mock_cv.render.assert_called_once()
+        self.mock_cv.render_outputs.assert_called_once_with(formats=["pdf"])
         self.assertEqual(result[0], "successfully rendered")
+
+    @patch("src.reporting.portfolio_rendercv_service.RenderCVDocument")
+    def test_render_portfolio_outputs(self, mock_render_cv_document):
+        """Render portfolio outputs via RenderCV."""
+        self.mock_cv.render_outputs.return_value = ("ok", {"html": [Path("/fake/path.html")]})
+        mock_render_cv_document.return_value = self.mock_cv
+
+        service = PortfolioRenderCVService(name="Test User")
+        status, outputs = service.render_portfolio_outputs(["html"])
+
+        self.mock_cv.render_outputs.assert_called_once_with(formats=["html"])
+        self.assertEqual(status, "ok")
+        self.assertIn("html", outputs)
 
 
 if __name__ == "__main__":
