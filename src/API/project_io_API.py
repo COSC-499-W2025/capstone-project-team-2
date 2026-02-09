@@ -97,6 +97,7 @@ def delete_project(project_name: str, save_path: str) -> dict:
         out_dict["dbstatus"] = f"[WARNING] Could not query database: {e}"
         db_rows = []
     matching_rows = [row for row in db_rows if row[1] == project_name]
+    print(db_rows)
     if matching_rows:
         deleted_any = False
         for row in matching_rows:
@@ -111,18 +112,13 @@ def delete_project(project_name: str, save_path: str) -> dict:
         else:
             if "dbstatus" not in out_dict:
                 out_dict["dbstatus"] = "[INFO] No DB records were deleted."
+    else:
+        if "dbstatus" not in out_dict:
+            out_dict["dbstatus"] = "[INFO] No DB records were found."
     try:
-        file_deleted = delete_file_from_disk(project_name)
+        save_path_path.unlink()
+        out_dict["status"] = f"[SUCCESS] Deleted '{project_name}' from filesystem!"
     except Exception as e:
         out_dict["status"] = f"[WARNING] Unexpected error while attempting to delete file '{project_name}': {e}"
-        file_deleted = False
-    if file_deleted:
-        out_dict["status"] = f"[SUCCESS] Deleted '{project_name}' from filesystem!"
-    else:
-        if "status" in out_dict:
-            if save_path_path.exists():
-                out_dict["status"] = f"[INFO] File remains on disk at: {project_name}"
-            else:
-                out_dict["status"] = f"[INFO] File not found on disk."
 
     return out_dict
