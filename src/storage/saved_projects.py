@@ -47,7 +47,6 @@ def list_saved_projects(folder: Path) -> list[Path]:
         if f.name
         not in {
             "UserConfigs.json",
-            "default_user_configuration.json",
             "project_insights.json",
         }
     ]
