@@ -55,17 +55,26 @@ def list_saved_projects(folder: Path) -> list[Path]:
     return filtered
 
 
-def show_saved_summary(path: Path) -> None:
+def show_saved_summary(path_or_name: Path | str) -> None:
     """
     Display a summary of a saved analysis JSON.
 
     Args:
-        path (Path): Location of the saved analysis file.
+        path_or_name (Path | str): Location of the saved analysis file, or project name.
     """
+    # Handle both Path objects and string project names
+    if isinstance(path_or_name, str):
+        base_dir = Path(runtimeAppContext.default_save_dir).expanduser().resolve()
+        path = base_dir / f"{path_or_name}.json"
+        display_name = f"{path_or_name}.json"
+    else:
+        path = path_or_name
+        display_name = path.name
+
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except Exception as e:
-        print(f"[ERROR] Could not read {path.name}: {e}")
+        print(f"[ERROR] Could not read {display_name}: {e}")
         return
 
     analysis: dict[str, Any] = data if isinstance(data, dict) else {}
@@ -113,7 +122,7 @@ def show_saved_summary(path: Path) -> None:
                 tmp.append((name, count, pct))
         contributors_list = sorted(tmp, key=lambda tup: tup[1], reverse=True)
 
-    print(f"\n== {path.name} ==")
+    print(f"\n== {display_name} ==")
     print(f"Project root : {analysis.get('project_root', '—')}")
     print(f"Type         : {pt} (mode={mode})")
     print(f"Languages    : {', '.join(langs) or '—'}")
@@ -261,13 +270,13 @@ def get_saved_projects_from_db() -> list[tuple]:
         None
 
     Returns:
-        list[tuple]: (id, filename, uploaded_at) rows.
+        list[tuple]: (Pname, uploaded_at) rows.
     """
     cursor = runtimeAppContext.conn.cursor()
     try:
         cursor.execute(
             # We only need identifiers and metadata for deletion checks.
-            "SELECT id, filename, uploaded_at "
+            "SELECT Pname, uploaded_at "
             "FROM project_data ORDER BY uploaded_at DESC"
         )
         return cursor.fetchall()
@@ -275,17 +284,17 @@ def get_saved_projects_from_db() -> list[tuple]:
         cursor.close()
 
 
-def delete_from_database_by_id(record_id: int) -> bool:
+def delete_from_database_by_name(project_name: str) -> bool:
     """
-    Delete a database record by ID.
+    Delete a database record by project name.
 
     Args:
-        record_id (int): Primary key to remove.
+        project_name (str): Primary key (Pname) to remove.
 
     Returns:
         bool: True if a record was deleted.
     """
-    return runtimeAppContext.store.delete(record_id)
+    return runtimeAppContext.store.delete(project_name)
 
 #TODO remove prints
 def delete_file_from_disk(filename: str) -> bool:
