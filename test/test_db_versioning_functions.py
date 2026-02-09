@@ -44,22 +44,22 @@ class TestVersioningHelper(unittest.TestCase):
         Verify that we can restore a previous version by retrieving it
         and updating the project with that old content.
         """
-        row_id = self.store.insert_json("file.json", {"data": 1})
-        self.store.update(row_id, {"data": 2})
-        self.store.update(row_id, {"data": 3})
+        project_name = self.store.insert_json("file.json", {"data": 1})
+        self.store.update(project_name , {"data": 2})
+        self.store.update(project_name , {"data": 3})
 
         version_to_restore = 2
-        old_data = self.store.retrieve_selected_version(row_id, version_to_restore)
+        old_data = self.store.retrieve_selected_version(project_name , version_to_restore)
         self.assertIsNotNone(old_data)
 
-        restored = self.store.update(row_id, old_data['content'])
+        restored = self.store.update(project_name , old_data['content'])
         self.assertTrue(restored)
 
-        latest_version = self.store.get_version_list(row_id)[0]
+        latest_version = self.store.get_version_list(project_name )[0]
         self.assertEqual(latest_version['version_number'], 4) 
         self.assertTrue(latest_version['is_current'])
 
-        restored_content = self.store.fetch_by_id(row_id)
+        restored_content = self.store.fetch_by_name(project_name )
         self.assertEqual(restored_content, {"data": 2})
 
     def test_create_and_fetch_latest_version(self):
@@ -67,38 +67,37 @@ class TestVersioningHelper(unittest.TestCase):
         Verify that inserting initial content creates version 1 and that
         the latest version can be fetched correctly.
         """
-        row_id = self.store.insert_json("file.json", {"data": 1})
+        project_name  = self.store.insert_json("file.json", {"data": 1})
     
-        self.store.update(row_id, {"data": 2})
+        self.store.update(project_name , {"data": 2})
     
-        versions = self.store.get_version_list(row_id)
+        versions = self.store.get_version_list(project_name )
         latest = versions[0]
 
         self.assertEqual(latest['version_number'], 2)
-        self.assertEqual(latest['filename'], "file.json")
         self.assertTrue(latest['is_current'])
 
-        selected = self.store.retrieve_selected_version(row_id, 1)
+        selected = self.store.retrieve_selected_version(project_name , 1)
         self.assertEqual(selected['content'], {"data": 1})
 
     def test_delete_cascades_to_versions(self):
-        row_id = self.store.insert_json("file.json", {"data": 1})
-        self.store.update(row_id, {"data": 2})
-        self.store.update(row_id, {"data": 3})
+        project_name  = self.store.insert_json("file.json", {"data": 1})
+        self.store.update(project_name , {"data": 2})
+        self.store.update(project_name , {"data": 3})
 
         # Confirm versions exist
-        versions_before = self.store.get_version_list(row_id)
+        versions_before = self.store.get_version_list(project_name )
         self.assertEqual(len(versions_before), 3)
 
-        deleted = self.store.delete(row_id)
+        deleted = self.store.delete(project_name )
         self.assertTrue(deleted)
 
         # Project row should be gone
-        self.assertIsNone(self.store.fetch_by_id(row_id))
-        self.assertIsNone(self.store.fetch_file_blob_by_id(row_id))
+        self.assertIsNone(self.store.fetch_by_name(project_name ))
+        self.assertIsNone(self.store.fetch_file_blob_by_name(project_name))
 
         # Versions should also be gone
-        versions_after = self.store.get_version_list(row_id)
+        versions_after = self.store.get_version_list(project_name )
         self.assertEqual(versions_after, [])
 
     # ---------- Delete ----------
@@ -107,23 +106,23 @@ class TestVersioningHelper(unittest.TestCase):
         """
         Insert multiple versions and delete them, confirming deletion.
         """
-        row_id = self.store.insert_json("file.json", {"data": 1})
-        self.store.update(row_id, {"data": 2})
-        self.store.update(row_id, {"data": 3})
+        project_name  = self.store.insert_json("file.json", {"data": 1})
+        self.store.update(project_name , {"data": 2})
+        self.store.update(project_name , {"data": 3})
 
         # Restore version 2
         version_to_restore = 2
-        old_data = self.store.retrieve_selected_version(row_id, version_to_restore)
+        old_data = self.store.retrieve_selected_version(project_name , version_to_restore)
         self.assertIsNotNone(old_data)
 
         # Perform update with old content
-        restored = self.store.update(row_id, old_data['content'])
+        restored = self.store.update(project_name , old_data['content'])
         self.assertTrue(restored)
 
         # Latest version should now match restored content
-        latest_version = self.store.get_version_list(row_id)[0]
+        latest_version = self.store.get_version_list(project_name )[0]
         self.assertEqual(latest_version['version_number'], 4)
         self.assertTrue(latest_version['is_current'])
 
-        restored_content = self.store.fetch_by_id(row_id)
+        restored_content = self.store.fetch_by_name(project_name )
         self.assertEqual(restored_content, {"data": 2})

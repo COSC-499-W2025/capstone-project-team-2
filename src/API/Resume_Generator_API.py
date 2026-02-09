@@ -1,0 +1,368 @@
+"""
+FastAPI endpoints for resume generation and editing via RenderCV.
+
+Provides a RESTFUL API for creating, reading, updating, and deleting
+resume documents backed by RenderCV YAML files. Resumes are identified
+by a unique ID (name + UUID suffix) returned in the X-Resume-ID header
+upon generation.
+
+Endpoints:
+    POST   /resume/generate          - Create a new resume and render to PDF
+    GET    /resume/{id}              - Retrieve full resume data as JSON
+    POST   /resume/{id}/render       - Re-render an existing resume to PDF
+    POST   /resume/{id}/edit         - Modify a field on an existing section item
+    POST   /resume/{id}/add/project/{project_id}  - Add a project entry
+    DELETE /resume/{id}              - Delete the resume YAML file entirely
+"""
+
+from typing import Optional, List, Any
+import uuid
+import shutil
+from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi.responses import FileResponse
+from pydantic import BaseModel
+from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
+    RenderCVDocument,
+    Project,
+)
+from src.core.app_context import runtimeAppContext
+
+
+resumeRouter = APIRouter()
+
+ALLOWED_CONTACT_FIELDS = {"email", "phone", "location", "website", "name"}
+
+
+class GenerateResumeRequest(BaseModel):
+    """Payload for creating a new resume."""
+    name: str
+    theme: Optional[str] = 'sb2nov'
+    overwrite: bool = False
+
+class EditItem(BaseModel):
+    """A single field edit on a resume section item."""
+    section: str
+    item_name: str
+    field: str
+    new_value: Any
+
+class EditResumeRequest(BaseModel):
+    """Payload containing one or more resume edits."""
+    edits: List[EditItem]
+
+class ProjectRequest(BaseModel):
+    """Optional overrides when adding a project from the database."""
+    name: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    location: Optional[str] = None
+    summary: Optional[str] = None
+    highlights: Optional[List[str]] = None
+
+
+"""-------Helper Methods-------"""
+
+def _load_resume(name: str) -> RenderCVDocument:
+    """Load an existing resume YAML by name.
+
+    Args:
+        name: The resume identifier (name + UUID suffix).
+
+    Returns:
+        RenderCVDocument: The loaded resume document.
+
+    Raises:
+        HTTPException: 404 if the resume YAML file does not exist.
+    """
+    doc = RenderCVDocument(doc_type="resume")
+    try:
+        doc.load(name=name)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Resume '{name}' not found")
+    return doc
+
+def _check_result(result: str):
+    """Validate the result string from a RenderCVDocument operation.
+
+    Args:
+        result: Status message returned by a RenderCVDocument method.
+
+    Returns:
+        str: The result string if it indicates success.
+
+    Raises:
+        HTTPException: 400 if the result does not contain 'successfully'.
+    """
+    if "successfully" not in result.lower():
+        raise HTTPException(status_code=400, detail=result)
+    return result
+
+
+@resumeRouter.post("/resume/generate")
+def generate_resume(payload: GenerateResumeRequest):
+    """Create a new resume YAML from a starter template.
+
+    Generates a unique resume ID by appending a UUID suffix to the provided name.
+    The YAML file is created and optionally themed. Use POST /resume/{id}/render
+    to produce a PDF.
+
+    Args:
+        payload: GenerateResumeRequest with name, optional theme, and overwrite flag.
+
+    Returns:
+        dict: {"resume_id": "<id>", "status": "created"} on success.
+
+    Raises:
+        HTTPException: 409 if resume already exists and overwrite is False.
+    """
+    doc = RenderCVDocument(doc_type="resume")
+    resume_id = str(uuid.uuid4())[:8]
+    full_name = f"{payload.name}_{resume_id}"
+
+    gen_result = doc.generate(name=full_name, overwrite=payload.overwrite)
+
+    if gen_result == "Skipping generation":
+        raise HTTPException(status_code=409,
+                            detail=f"Resume '{payload.name}' already exists. Set overwrite=true to replace it.",
+                            )
+    doc.load(name=full_name)
+
+    if payload.theme and payload.theme != 'sb2nov':
+        try:
+            doc.update_theme(payload.theme)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+    return {"resume_id": full_name, "status": "Resume created successfully"}
+
+
+@resumeRouter.get("/resume/{id}")
+def get_resume(id: str):
+    """Retrieve the full resume data as JSON.
+
+    Returns all sections of the resume including contact info, theme,
+    summary, experience, education, projects, skills, and connections.
+
+    Args:
+        id: The resume identifier (name + UUID suffix from generation).
+
+    Returns:
+        dict: JSON object containing all resume sections.
+
+    Raises:
+        HTTPException: 404 if the resume does not exist.
+    """
+    doc = _load_resume(id)
+    return {
+        "name": id,
+        "contact": doc.get_contact_info(),
+        "theme": doc.get_theme(),
+        "summary": doc.get_summary(),
+        "experience": doc.get_experience(),
+        "education": doc.get_education(),
+        "projects": doc.get_projects(),
+        "skills": doc.get_skills(),
+        "connections": doc.get_connections(),
+    }
+
+
+@resumeRouter.post("/resume/{id}/edit")
+def edit_resume(id: str, payload: EditResumeRequest):
+    """Edit one or more fields on an existing resume.
+
+    Supports batch editing multiple fields across different sections in a single
+    API call. Each edit in the list is applied sequentially.
+
+    Args:
+        id: The resume identifier.
+        payload: EditResumeRequest with a list of edits to apply.
+
+    Returns:
+        dict: {"results": [...]} with the status of each edit.
+
+    Raises:
+        HTTPException: 400 if an unknown section is specified or theme is invalid.
+        HTTPException: 404 if the resume does not exist.
+
+    Example - Single edit:
+        ```json
+        {
+            "edits": [
+                {"section": "summary", "item_name": "", "field": "", "new_value": "Senior software engineer with 10 years experience"}
+            ]
+        }
+        ```
+
+    Example - Multiple edits in one call:
+        ```json
+        {
+            "edits": [
+                {"section": "contact", "item_name": "", "field": "email", "new_value": "new@example.com"},
+                {"section": "contact", "item_name": "", "field": "phone", "new_value": "555-1234"},
+                {"section": "summary", "item_name": "", "field": "", "new_value": "Updated summary text"},
+                {"section": "skills", "item_name": "Python", "field": "", "new_value": "Python 3.12"},
+                {"section": "experience", "item_name": "Software Engineer", "field": "company", "new_value": "New Company Inc."},
+                {"section": "education", "item_name": "BSc Computer Science", "field": "institution", "new_value": "MIT"},
+                {"section": "projects", "item_name": "MyProject", "field": "summary", "new_value": "New project description"},
+                {"section": "theme", "item_name": "", "field": "", "new_value": "classic"}
+            ]
+        }
+        ```
+
+    Section-specific notes:
+        - summary: Only `new_value` is used; `item_name` and `field` are ignored.
+        - contact: Use `field` to specify which contact field to update (e.g., email, phone).
+        - theme: Only `new_value` is used; valid themes are 'sb2nov', 'classic', 'moderncv', 'engineeringresumes'.
+        - skills: Use `item_name` to identify the skill to rename; `new_value` is the new skill name.
+        - experience: Use `item_name` for the job title, `field` for the attribute to change.
+        - education: Use `item_name` for the degree name, `field` for the attribute to change.
+        - projects: Use `item_name` for the project name, `field` for the attribute to change.
+    """
+    doc = _load_resume(id)
+    modify_map = {
+        "experience": doc.modify_experience,
+        "education": doc.modify_education,
+        "projects": doc.modify_project,
+    }
+    results = []
+
+    for edit in payload.edits:
+        section = edit.section.lower()
+
+        if section == "summary":
+            result = _check_result(doc.update_summary(str(edit.new_value)))
+
+        elif section == "contact":
+            if edit.field not in ALLOWED_CONTACT_FIELDS:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Unknown contact field '{edit.field}'. Valid fields: {', '.join(sorted(ALLOWED_CONTACT_FIELDS))}"
+                )
+            doc.update_contact(**{edit.field: edit.new_value})
+            result = f"Successfully updated contact field '{edit.field}'"
+
+        elif section == "theme":
+            try:
+                result = _check_result(doc.update_theme(str(edit.new_value)))
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=str(e))
+
+        elif section == "skills":
+            result = _check_result(doc.modify_skill(edit.item_name, edit.new_value))
+
+        elif section in modify_map:
+            result = _check_result(modify_map[section](edit.item_name, edit.field, edit.new_value))
+
+        else:
+            raise HTTPException(status_code=400,
+                                detail=f"Unknown section '{section}'. Valid: experience, education, projects, skills, summary, contact, theme",
+            )
+        results.append(result)
+
+    return {"results": results}
+
+
+@resumeRouter.post("/resume/{id}/render")
+def render_resume(id: str, background_tasks: BackgroundTasks):
+    """Re-render an existing resume to PDF.
+
+    Loads the resume YAML by ID, renders it to PDF via RenderCV, and returns
+    the file. The rendercv_output directory is cleaned up after the response.
+
+    Args:
+        id: The resume identifier (name + UUID suffix from generation).
+        background_tasks: FastAPI background tasks for post-response cleanup.
+
+    Returns:
+        FileResponse: The rendered PDF file with content-type application/pdf.
+            Includes X-Resume-ID header with the resume identifier.
+
+    Raises:
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 500 if PDF rendering fails.
+    """
+    doc = _load_resume(id)
+    status, pdf_path = doc.render()
+    if pdf_path is None:
+        raise HTTPException(status_code=500, detail=status)
+
+    output_dir = pdf_path.parent
+    background_tasks.add_task(shutil.rmtree, output_dir, True)
+
+    return FileResponse(
+        str(pdf_path),
+        media_type="application/pdf",
+        filename=f"resume_{id}.pdf",
+        headers={"X-Resume-ID": id},
+    )
+
+
+@resumeRouter.post("/resume/{id}/add/project/{project_id}")
+def add_project(id: str, project_id: int, payload: Optional[ProjectRequest] = None):
+    """Add a project entry to the resume from an analysed project in the database.
+
+    Fetches the project analysis record by its database row ID, extracts the
+    resume_item fields, and adds them as a new project on the resume.
+    An optional ProjectRequest body can be provided to override any of the
+    database values.
+
+    Args:
+        id: The resume identifier.
+        project_id: The database row ID of the analysed project.
+        payload: Optional ProjectRequest body to override database values.
+
+    Returns:
+        dict: {"status": "Successfully added project '<name>'"} on success.
+
+    Raises:
+        HTTPException: 400 if the project has no resume_item data.
+        HTTPException: 404 if the resume or project record does not exist.
+        HTTPException: 500 if an unexpected error occurs during save.
+    """
+    doc = _load_resume(id)
+
+    project_data = runtimeAppContext.store.fetch_by_id(project_id)
+    if project_data is None:
+        raise HTTPException(status_code=404, detail=f"Project record '{project_id}' not found in database")
+
+    resume_item = project_data.get("resume_item", {}) if isinstance(project_data, dict) else {}
+    if not resume_item:
+        raise HTTPException(status_code=400, detail=f"Project record '{project_id}' has no resume_item data")
+
+    proj = Project(
+        name=payload.name if payload and payload.name else resume_item.get("project_name", ""),
+        start_date=payload.start_date if payload and payload.start_date else resume_item.get("start_date", "2025-01"),
+        end_date=payload.end_date if payload and payload.end_date else resume_item.get("end_date", "2026-02"),
+        location=payload.location if payload and payload.location else resume_item.get("location", "City, Country"),
+        summary=payload.summary if payload and payload.summary else resume_item.get("summary"),
+        highlights=payload.highlights if payload and payload.highlights else resume_item.get("highlights"),
+    )
+    try:
+        result = _check_result(doc.add_project(proj))
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise
+        raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
+    return {"status": result}
+
+
+@resumeRouter.delete("/resume/{id}")
+def delete_resume(id: str):
+    """Delete a resume YAML file entirely from the system.
+
+    Args:
+        id: The resume identifier.
+
+    Returns:
+        dict: {"status": "Successfully deleted resume '<id>'"} on success.
+
+    Raises:
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 500 if the file cannot be deleted (e.g., permission error).
+    """
+    doc = _load_resume(id)
+    try:
+        doc.yaml_file.unlink()
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete resume: {e}")
+    return {"status": f"Successfully deleted resume '{id}'"}

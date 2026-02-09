@@ -214,6 +214,27 @@ class TestDocumentGeneratorMenu(unittest.TestCase):
 
     @patch('builtins.input')
     @patch('sys.stdout', new_callable=StringIO)
+    def test_render_document_pdf_default(self, mock_stdout, mock_input):
+        """
+        Test rendering document with default PDF format selection.
+
+        Ensures render_outputs is invoked with the default format when
+        the user presses Enter at the format prompt.
+        """
+        mock_doc = MagicMock()
+        mock_doc.render_outputs.return_value = (
+            "successfully rendered",
+            {"pdf": [Path("rendercv_output/Test_Resume.pdf")]}
+        )
+        mock_input.side_effect = ["", "n"]
+
+        _render_document(mock_doc)
+
+        mock_doc.render_outputs.assert_called_once_with(["pdf"])
+        self.assertIn("PDF generated at", mock_stdout.getvalue())
+
+    @patch('builtins.input')
+    @patch('sys.stdout', new_callable=StringIO)
     def test_manage_education_add(self, mock_stdout, mock_input):
         """
         Test the consolidated manage education menu - add flow.
