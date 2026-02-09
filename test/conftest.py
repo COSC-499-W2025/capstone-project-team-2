@@ -18,6 +18,7 @@ def isolate_dedup_side_effects(monkeypatch, tmp_path):
     - Stub deduplicate_project to a no-op result.
     - Point default_save_dir to a per-test temp directory.
     """
+    os.environ.setdefault("SKIP_DB_INIT", "1")
     import src.core.analysis_service as analysis_service
 
     monkeypatch.setattr(

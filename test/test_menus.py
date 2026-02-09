@@ -280,6 +280,8 @@ def test_project_insights_menu_lists_projects(monkeypatch, tmp_path):
 
     import src.cli.menu_insights as mi
     monkeypatch.setattr(mi, "list_project_insights", fake_list_projects)
+    # Option 1 now tries apply_preferences() first; force fallback path.
+    monkeypatch.setattr(mi, "apply_preferences", lambda: (_ for _ in ()).throw(FileNotFoundError()))
     monkeypatch.setattr(mi, "list_skill_history", lambda storage_path: [])
     monkeypatch.setattr(mi, "rank_projects_by_contribution", lambda **kwargs: [])
     monkeypatch.setattr(mi, "summaries_for_top_ranked_projects", lambda **kwargs: [])
