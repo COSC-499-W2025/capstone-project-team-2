@@ -307,28 +307,32 @@ def analyze_c_project(root: Path, extensions: List[str] = None) -> List[Dict[str
     
     canonical_reports = []
     
-    for ext in extensions:
-        for path in root.rglob(f"*{ext}"):
-            # ignored directories
-            if any(part in ignore_dirs for part in path.parts):
-                continue
-            
-            try:
-                source = path.read_text(encoding="utf-8", errors='ignore')
-                report = analyze_source(source, path)
-                canonical_reports.append(report)
-            except Exception as e:
-                # Return error report
-                canonical_reports.append({
-                    "file": str(path),
-                    "module": "",
-                    "classes": [],
-                    "imports": [],
-                    "data_structures": {},
-                    "complexity": {},
-                    "syntax_ok": False,
-                    "syntax_error": str(e),
-                    "c_spec": {},
-                })
+    try:
+        for ext in extensions:
+            for path in root.rglob(f"*{ext}"):
+                # ignored directories
+                if any(part in ignore_dirs for part in path.parts):
+                    continue
+
+                try:
+                    source = path.read_text(encoding="utf-8", errors='ignore')
+                    report = analyze_source(source, path)
+                    canonical_reports.append(report)
+                except Exception as e:
+                    # Return error report (per-file failure stays non-fatal)
+                    canonical_reports.append({
+                        "file": str(path),
+                        "module": "",
+                        "classes": [],
+                        "imports": [],
+                        "data_structures": {},
+                        "complexity": {},
+                        "syntax_ok": False,
+                        "syntax_error": str(e),
+                        "c_spec": {},
+                    })
+    except Exception as e:
+        # Bubble failures to api
+        raise RuntimeError(f"Failed to scan C project at {root}: {e}") from e
     
     return canonical_reports

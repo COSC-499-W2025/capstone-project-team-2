@@ -36,6 +36,10 @@ from src.reporting.project_insights import (
     update_thumbnail_in_insights,
     remove_thumbnail_from_insights,
 )
+from src.reporting.representation_preferences import (
+    load_preferences,
+    save_preferences,
+)
 
 from src.config.user_startup_config import ConfigLoader
 from src.reporting.Generate_AI_Resume import GenerateProjectResume, GenerateLocalResume
@@ -64,6 +68,7 @@ def settings_menu() -> None:
         print("1) User Configuration")
         print("2) Toggle External Services")
         print("3) Manage Thumbnails")
+        print("4) Representation Preferences")
         print("0) Back to Main Menu")
 
         choice = input("Select an option: ").strip()
@@ -78,10 +83,85 @@ def settings_menu() -> None:
             toggle_external_services()
         elif choice == "3":
             thumbnail_management_menu()
+        elif choice == "4":
+            representation_preferences_menu()
         elif choice == "0":
             return
         else:
-            print("Please choose a valid option (0-3).")
+            print("Please choose a valid option (0-4).")
+
+
+def representation_preferences_menu() -> None:
+    """Simple CLI to edit how projects are displayed."""
+    prefs = load_preferences()
+
+    def _available_project_names() -> list[str]:
+        try:
+            return sorted({p.project_name for p in list_project_insights()})
+        except Exception:
+            return []
+
+    def _validate_names(candidates: list[str], available: list[str]) -> tuple[list[str], list[str]]:
+        valid = [c for c in candidates if c in available]
+        missing = [c for c in candidates if c not in available]
+        return valid, missing
+
+    while True:
+        available = _available_project_names()
+        print("\n=== Representation Preferences ===")
+        print(f"Current project order: {prefs.get('project_order') or 'not set'}")
+        print(f"Showcase projects: {prefs.get('showcase_projects') or 'none'}")
+        print(f"Highlight skills: {prefs.get('highlight_skills') or 'none'}")
+        if available:
+            print(f"Available projects: {', '.join(available)}")
+        else:
+            print("Available projects: none recorded yet")
+        print("1) Set project order (comma-separated names)")
+        print("2) Set showcase projects (comma-separated names)")
+        print("3) Set highlight skills (comma-separated list)")
+        print("4) Add/Update chronology override (project, ISO datetime)")
+        print("5) Reset to defaults")
+        print("0) Back")
+
+        choice = input("Select an option: ").strip()
+        if choice == "1":
+            raw = input("Project order (e.g., Alpha,Beta,Gamma): ").strip()
+            order = [p.strip() for p in raw.split(",") if p.strip()]
+            valid, missing = _validate_names(order, available)
+            prefs["project_order"] = valid
+            if missing:
+                print(f"[WARN] Ignored unknown projects: {', '.join(missing)}")
+            save_preferences(prefs)
+        elif choice == "2":
+            raw = input("Showcase projects (comma-separated): ").strip()
+            showcases = [p.strip() for p in raw.split(",") if p.strip()]
+            valid, missing = _validate_names(showcases, available)
+            prefs["showcase_projects"] = valid
+            if missing:
+                print(f"[WARN] Ignored unknown projects: {', '.join(missing)}")
+            save_preferences(prefs)
+        elif choice == "3":
+            raw = input("Highlight skills (comma-separated): ").strip()
+            prefs["highlight_skills"] = [s.strip() for s in raw.split(",") if s.strip()]
+            save_preferences(prefs)
+        elif choice == "4":
+            proj = input("Project name to override: ").strip()
+            ts = input("Analyzed datetime (ISO, e.g., 2025-01-01T00:00:00Z): ").strip()
+            prefs.setdefault("chronology_corrections", {})[proj] = {"analyzed_at": ts}
+            save_preferences(prefs)
+        elif choice == "5":
+            prefs = {
+                "project_order": [],
+                "chronology_corrections": {},
+                "comparison_attributes": ["languages", "frameworks", "duration_estimate"],
+                "highlight_skills": [],
+                "showcase_projects": [],
+            }
+            save_preferences(prefs)
+        elif choice == "0":
+            return
+        else:
+            print("Please choose a valid option (0-5).")
 
 
 def toggle_external_services() -> None:
@@ -234,7 +314,6 @@ def analyze_project_menu() -> None:
     while True:
         print("\n=== Analyze Project Menu ===")
         print("\nChoose input type:")
-
         print("  1) Directory")
         print("  2) ZIP file")
         print("  0) Exit to Main Menu")
@@ -259,7 +338,7 @@ def analyze_project_menu() -> None:
                 runtimeAppContext.currently_uploaded_file = zip_path
                 status = perform_analysis_API(use_ai=use_ai)
             elif choice == "0":
-                return None
+                return
             else:
                 print("Please choose a valid option (0–2).")
                 continue
@@ -291,13 +370,13 @@ def analyze_project_menu() -> None:
                     print("[WARNING] Could not find project insight. Skipping thumbnail prompt.")
             
             return
+            
         except KeyboardInterrupt:
             print("\n[Interrupted] Returning to menu.")
-            return None
+            return
         except Exception as e:
-            print(f"[ERROR] {e}")
-
-
+            raise
+        
 def saved_projects_menu() -> None:
     """
     Display all saved projects from the configured directory and legacy location.
@@ -453,7 +532,7 @@ def main_menu() -> int:
         except KeyboardInterrupt:
             print("\n[Interrupted] Returning to menu.")
         except Exception as e:
-            print(f"[ERROR] {e}")
+            raise
     
 def thumbnail_management_menu() -> None:
     """

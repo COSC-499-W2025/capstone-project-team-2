@@ -15,11 +15,23 @@ Detects:
 
 from pathlib import Path
 from typing import Dict, Any, List, Generator, Type
-from tree_sitter import Language, Parser
-import tree_sitter_cpp as tscpp
-from .base_c_analyzer_utils import cutilities
 import os
 import re
+import logging
+
+_CPP_IMPORT_ERROR: Exception | None = None
+
+try:
+    from tree_sitter import Language, Parser
+    import tree_sitter_cpp as tscpp
+    from .base_c_analyzer_utils import cutilities
+except Exception as e:
+    _CPP_IMPORT_ERROR = e
+    # Allow module to import, but analyzer usage will bubble a RuntimeError later.
+    Language = None  # type: ignore
+    Parser = None    # type: ignore
+    tscpp = None     # type: ignore
+    cutilities = None  # type: ignore
 
 class cppanalysis:
 
@@ -41,9 +53,18 @@ class cppanalysis:
 
 
     # initialize Tree_sitter parser with a CPP language
+    # bubble initialization files inside init
     def __init__(self):
-        self.parser = Parser()
-        self.parser.language = Language(tscpp.language())
+        if _CPP_IMPORT_ERROR is not None:
+            raise RuntimeError(
+                f"C++ analyzer unavailable: dependency/import failure: {_CPP_IMPORT_ERROR}"
+            ) from _CPP_IMPORT_ERROR
+
+        try:
+            self.parser = Parser()
+            self.parser.language = Language(tscpp.language())
+        except Exception as e:
+            raise RuntimeError(f"C++ analyzer initialization failed: {e}") from e
 
     def analyze_file(self, source:str, path:Path) -> Dict[str, Any]:
         """
@@ -60,24 +81,32 @@ class cppanalysis:
         Returns:
             Dict[str, Any]: Parsed analysis report for the given source file.
         """
-
         report = self.empty_report(path)
 
         try:
-            tree = self.parser.parse(bytes(source,"utf8"))
+            tree = self.parser.parse(bytes(source, "utf8"))
             root = tree.root_node
             report["syntax_ok"] = True
-        except Exception:
+        except Exception as e:
             report["syntax_ok"] = False
+            report["error"] = f"Parse failed: {e}"
+            logging.warning("CPP parse failed for %s: %s", path, e, exc_info=True)
             return report
-        
-        report["imports"] = self.extract_includes(root, source)
-        report["classes"] = self.extract_classes(root, source, path)
-        report["data_structures"] = self.extract_data_structures(root, source)
-        report["complexity"] = self.extract_complexity(root)
-        report["cpp_spec"] = self.cpp_spec(root, source)
-        
+
+        try:
+            report["imports"] = self.extract_includes(root, source)
+            report["classes"] = self.extract_classes(root, source, path)
+            report["data_structures"] = self.extract_data_structures(root, source)
+            report["complexity"] = self.extract_complexity(root)
+            report["cpp_spec"] = self.cpp_spec(root, source)
+        except Exception as e:
+            # keep syntax_ok True because parse succeeded
+            report["error"] = f"Extraction failed: {e}"
+            logging.warning("CPP extraction failed for %s: %s", path, e, exc_info=True)
+
         return report
+
+
     
     def empty_report(self, path: Path) -> Dict[str, Any]:
                 return {
@@ -449,19 +478,28 @@ class cppanalysis:
                 return source[child.start_byte:child.end_byte]
         return ""
 
+    @staticmethod
     def analyze_cpp_project(root: Path, extensions=None) -> List[Dict[str, Any]]:
+        root = Path(root)
+
+        if not root.exists():
+            raise ValueError(f"CPP project root does not exist: {root}")
+        if not root.is_dir():
+            raise ValueError(f"CPP project root is not a directory: {root}")
+
         if extensions is None:
             extensions = [".cpp", ".cc", ".cxx", ".hpp", ".h"]
 
-        analyzer = cppanalysis()
-        reports = []
+        analyzer = cppanalysis()  # bubbles import/init failures
 
+        reports = []
         for path in root.rglob("*"):
             if path.suffix.lower() in extensions:
                 try:
                     source = path.read_text(encoding="utf-8", errors="ignore")
                     reports.append(analyzer.analyze_file(source, path))
                 except Exception as e:
+                    logging.warning("CPP file read/analyze failed for %s: %s", path, e, exc_info=True)
                     reports.append({
                         "file": str(path),
                         "module": "",
@@ -473,6 +511,4 @@ class cppanalysis:
                         "syntax_ok": False,
                         "error": str(e),
                     })
-
         return reports
-

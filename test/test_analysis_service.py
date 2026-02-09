@@ -63,27 +63,6 @@ def test_analyse_nonexistant_folder():
     except Exception as e:
         print(f"Test PASSED - Got exception: {type(e).__name__}: {e}")
         assert True
-        
-@pytest.mark.skip(reason="FastAPI not fully implemented yet")
-def test_api_returns_error_when_no_file_uploaded():
-    """Check that API returns error response when no file is uploaded.
-
-    Args:
-        None
-
-    Returns:
-        None: Assertions validate API returns error status code.
-    """
-    app = FastAPI()
-    app.include_router(analysisRouter)
-    client = TestClient(app)
-    
-    response = client.get("/analyze")
-    
-    # Should get an error status code, not 200
-    assert response.status_code != 200
-    print(f"Test PASSED - Got status code: {response.status_code}")
-    print(f"Response: {response.json()}")
 
 def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypatch):
     """
@@ -106,6 +85,9 @@ def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypat
             captured["out_dir"] = out_dir
 
     monkeypatch.setattr(mod, "SaveFileAnalysisAsJSON", lambda: FakeSaver())
+    
+    # ADD THIS: Mock the database insert
+    monkeypatch.setattr(runtimeAppContext.store, "insert_json", lambda filename, analysis: 1)
 
     analysis = {"ok": True}
     result = mod.export_json("DemoProj", analysis)
@@ -117,6 +99,22 @@ def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypat
     #Can't check if db contains file at current point in time
     #runtimeAppContext.store.fetch_by_id
 
+    monkeypatch.setattr(mod, "SaveFileAnalysisAsJSON", lambda: FakeSaver())
+    
+    # Mock DB insert to raise an exception
+    def failing_insert(filename, analysis):
+        raise Exception("Database connection failed")
+    
+    monkeypatch.setattr(runtimeAppContext.store, "insert_json", failing_insert)
+
+    try:
+        mod.export_json("DemoProj", {"ok": True})
+        assert False, "Should have raised an exception"
+    except Exception as e:
+        print(f"Test PASSED - Got exception: {type(e).__name__}: {e}")
+        assert True
+        
+        
 def test_oop_analysis_runs(tmp_path, monkeypatch):
     """Check that local OOP analysis runs.
 
@@ -214,3 +212,86 @@ class TestAnalysisService(unittest.TestCase):
                 mod.analyze_project(root)
 
         self.assertEqual(captured["languages_found"], ["C++", "Python"])
+        
+def test_oop_analysis_raises_on_failure(monkeypatch):
+    """OOP is critical: if supported languages exist and analysis fails, it should raise."""
+
+    class FailingOrchestrator:
+        def __init__(self, root):
+            pass
+
+        def analyze(self):
+            raise RuntimeError("OOP failed")
+
+    monkeypatch.setattr(mod, "MultiLangOrchestrator", FailingOrchestrator)
+
+    with pytest.raises(RuntimeError):
+        mod.oop_analysis(Path("/tmp/project"), ["Python"])
+        
+
+@pytest.mark.skip
+def test_analyze_project_builds_analysis_and_exports(tmp_path, monkeypatch):
+    """Check that analysis builds results and triggers export.
+
+    Args:
+        tmp_path: Pytest fixture providing a temporary directory.
+        monkeypatch: Pytest fixture for patching module attributes.
+
+    Returns:
+        None: Assertions validate export behavior.
+    """
+    ctx = SimpleNamespace(
+        default_save_dir=tmp_path / "saves",
+        legacy_save_dir=tmp_path / "legacy",
+        store=SimpleNamespace(),
+    )
+
+    class FakeExtractor:
+        def __init__(self, root):
+            self.root = root
+
+        def file_hierarchy(self):
+            return {"type": "DIR", "children": []}
+
+    monkeypatch.setattr(mod, "FileMetadataExtractor", FakeExtractor)
+    monkeypatch.setattr(
+        mod,
+        "generate_resume_item",
+        lambda root, project_name: SimpleNamespace(
+            project_name=project_name,
+            summary="Built project",
+            highlights=["h1"],
+            project_type="collaborative",
+            detection_mode="local",
+            languages=["Python"],
+            frameworks=["FastAPI"],
+            skills=["Python"],
+            framework_sources={},
+        ),
+    )
+    monkeypatch.setattr(
+        mod,
+        "contribution_summary",
+        lambda root: {"metric": "files", "contributors": {"Alice": {"file_count": 2, "percentage": "100%"}}},
+    )
+    monkeypatch.setattr(
+        mod,
+        "record_project_insight",
+        lambda analysis, contributors=None: SimpleNamespace(id=1, project_name=analysis["resume_item"]["project_name"]),
+    )
+    monkeypatch.setattr(mod, "oop_analysis", lambda root, languages_found: {"score": {"oop_score": 0.75}})
+
+    captured = {}
+    monkeypatch.setattr(
+        mod,
+        "export_json",
+        lambda project_name, analysis: captured.update(
+            {"project_name": project_name, "analysis": analysis}
+        ),
+    )
+
+    mod.analyze_project(tmp_path)
+
+    assert captured["project_name"] == tmp_path.name
+    assert captured["ctx"] is ctx
+

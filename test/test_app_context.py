@@ -1,7 +1,11 @@
 import types
+import os
 from pathlib import Path
 
 import pytest
+
+# Prevent module-level runtimeAppContext creation from requiring a live DB during test import.
+os.environ.setdefault("SKIP_DB_INIT", "1")
 
 # Covers DB context initialization and cleanup helpers.
 import src.core.app_context as mod
@@ -28,6 +32,8 @@ def test_create_app_context_success(monkeypatch):
     Returns:
         None: Assertions validate context initialization.
     """
+    # Force DB init path for this test even if the suite sets SKIP_DB_INIT=1.
+    monkeypatch.setenv("SKIP_DB_INIT", "0")
     monkeypatch.setattr(mod.DockerFinder, "get_mysql_host_information", lambda self: (3306, "127.0.0.1"))
 
     fake_conn = FakeConnection()
@@ -61,6 +67,8 @@ def test_create_app_context_failure_after_retries(monkeypatch):
     Returns:
         None: Assertions validate error handling.
     """
+    # Force DB init path for this test even if the suite sets SKIP_DB_INIT=1.
+    monkeypatch.setenv("SKIP_DB_INIT", "0")
     monkeypatch.setattr(mod.DockerFinder, "get_mysql_host_information", lambda self: (3306, "127.0.0.1"))
 
     def fail_connect(**kwargs):

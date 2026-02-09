@@ -12,8 +12,6 @@ from langchain_core.prompts import PromptTemplate
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.output_parsers import JsonOutputParser
 
-
-
 @dataclass
 class OOPPrinciple:
     """
@@ -52,7 +50,6 @@ class ResumeItem:
     tech_stack: str
     impact: str
     oop_principles_detected: Dict[str, OOPPrinciple]
-
 
 class GenerateProjectResume:
     IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".webp"}

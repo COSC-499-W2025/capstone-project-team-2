@@ -4,6 +4,7 @@ from pathlib import Path
 import sys
 from unittest.mock import patch, MagicMock
 from git import Actor, Repo
+import pytest
 
 # Add the src directory to the Python path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -30,6 +31,44 @@ def make_fake_extractor(mapping: dict, project_root: Path) -> MagicMock:
 
     fake.get_author.side_effect = get_author
     return fake
+
+@patch('src.analysis.individual_contribution_detection.detect_project_type',
+       return_value={"project_type": "collaborative", "mode": "git"})
+def test_git_tracked_listing_failure_bubbles_to_api(mock_detect):
+    repo = Repo.init(Path(tempfile.mkdtemp()))
+    root = Path(repo.working_tree_dir)
+
+    from git.cmd import Git
+
+    original_execute = Git.execute  # keep real implementation
+
+    def boom_only_for_ls_files(self, command, *args, **kwargs):
+        # command is often a list/tuple like: ['git', 'ls-files', ...]
+        cmd_str = " ".join(command) if isinstance(command, (list, tuple)) else str(command)
+        if "ls-files" in cmd_str:
+            raise Exception("ls_files broken")
+        return original_execute(self, command, *args, **kwargs)
+
+    with patch.object(Git, "execute", boom_only_for_ls_files):
+        with pytest.raises(RuntimeError) as excinfo:
+            contribution_detection.detect_individual_contributions_git(root, repo=repo)
+
+    assert "Failed to list tracked files" in str(excinfo.value)
+
+
+
+def test_entrypoint_repo_open_unexpected_error_bubbles():
+    # project_type_detection says "git", but Repo(root) raises something unexpected
+    root = Path(tempfile.mkdtemp())
+
+    with patch('src.analysis.individual_contribution_detection.detect_project_type',
+               return_value={"project_type": "collaborative", "mode": "git"}):
+        with patch('src.analysis.individual_contribution_detection.Repo',
+                   side_effect=PermissionError("no access")):
+            with pytest.raises(RuntimeError) as excinfo:
+                contribution_detection.detect_individual_contributions(root)
+
+    assert "Git contribution detection failed" in str(excinfo.value) or "Failed to open git repository" in str(excinfo.value)
 
 
 class TestIndividualContributionDetection(unittest.TestCase):

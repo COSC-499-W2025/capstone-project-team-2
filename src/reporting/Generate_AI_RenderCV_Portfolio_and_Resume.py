@@ -4,7 +4,7 @@ import sys
 from functools import wraps
 from pathlib import Path
 from dataclasses import dataclass, asdict
-from typing import Optional, List, Literal
+from typing import Optional, List, Literal, Iterable, Dict
 import ruamel.yaml
 import orjson
 from src.reporting.Generate_AI_Resume import GenerateProjectResume
@@ -157,6 +157,7 @@ class RenderCVDocument:
     Unified builder class for creating and managing RenderCV YAML files.
     Supports both resume and portfolio document types with a single interface.
     """
+    SUPPORTED_FORMATS = {"pdf", "html", "markdown"}
     THEMES = {
         'classic': 'Classic CV theme',
         'engineeringclassic': 'Engineering-focused CV theme',
@@ -357,6 +358,7 @@ class RenderCVDocument:
         if self.data.get('cv') is None:
             raise ValueError("Invalid YAML structure: missing required 'cv' key")
 
+    
         self.sections=self.data['cv']['sections']
         self.current_projects=self.sections.get('projects', [])
         self.current_connections=self.data['cv'].get('social_networks', [])
@@ -405,10 +407,128 @@ class RenderCVDocument:
         if self.auto_save and self.data is not None:
             self.save()
 
+    def _normalize_formats(self, formats: Iterable[str]) -> List[str]:
+        """
+        Normalize and validate requested output formats.
+
+        Args:
+            formats: Iterable of format strings
+
+        Returns:
+            List[str]: Normalized list of formats
+        """
+        normalized: List[str] = []
+        for fmt in formats or []:
+            fmt_normalized = (fmt or "").strip().lower()
+            if not fmt_normalized:
+                continue
+            if fmt_normalized not in self.SUPPORTED_FORMATS:
+                raise ValueError(
+                    f"Unsupported format '{fmt}'. Supported: {', '.join(sorted(self.SUPPORTED_FORMATS))}"
+                )
+            if fmt_normalized not in normalized:
+                normalized.append(fmt_normalized)
+
+        return normalized or ["pdf"]
+
+    def _get_output_dir(self) -> Path:
+        """
+        Resolve the output directory used by RenderCV.
+
+        Returns:
+            Path: Absolute path to the output directory
+        """
+        if not self.yaml_file:
+            raise ValueError("YAML file not set")
+
+        yaml_parent = self.yaml_file.resolve().parent
+        return yaml_parent / "rendercv_output"
+
+    def render_outputs(self, formats: Iterable[str]) -> tuple[str, Dict[str, List[Path]]]:
+        """
+        Render the YAML file using RenderCV for one or more output formats.
+
+        Args:
+            formats: Iterable of output formats (pdf, html, markdown)
+
+        Returns:
+            tuple[str, Dict[str, List[Path]]]:
+                - Status message
+                - Mapping of format to list of output files
+        """
+        if not self.yaml_file or not self.yaml_file.exists():
+            raise FileNotFoundError(f"YAML file {self.yaml_file} does not exist")
+
+        selected_formats = self._normalize_formats(formats)
+        output_dir = self._get_output_dir()
+        yaml_parent = self.yaml_file.resolve().parent
+        output_base = f"{self.name}_CV"
+        doc_type_label = "Resume" if self.doc_type == 'resume' else "Portfolio"
+
+        if output_dir.exists():
+            shutil.rmtree(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        cmd = [sys.executable, "-m", "rendercv", "render", str(self.yaml_file)]
+        format_flags = {
+            "pdf": "--dont-generate-pdf",
+            "html": "--dont-generate-html",
+        }
+        for fmt, flag in format_flags.items():
+            if fmt not in selected_formats:
+                cmd.append(flag)
+        if "markdown" not in selected_formats and "html" not in selected_formats:
+            cmd.append("--dont-generate-markdown")
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=yaml_parent,
+        )
+
+        outputs: Dict[str, List[Path]] = {}
+        errors: List[str] = []
+
+        if not output_dir.exists():
+            errors.append(f"render failed - output directory not found at {output_dir}")
+        else:
+            format_exts = {
+                "pdf": "pdf",
+                "html": "html",
+                "markdown": "md",
+            }
+            for fmt, ext in format_exts.items():
+                if fmt not in selected_formats:
+                    continue
+                source_file = output_dir / f"{output_base}.{ext}"
+                if not source_file.exists():
+                    errors.append(f"{fmt} not found at {source_file}")
+                    continue
+                renamed = output_dir / f"{self.name}_{doc_type_label}.{ext}"
+                if renamed.exists():
+                    renamed.unlink()
+                source_file.rename(renamed)
+                outputs[fmt] = [renamed]
+
+            if "html" in selected_formats and "markdown" not in selected_formats:
+                markdown_file = output_dir / f"{output_base}.md"
+                if markdown_file.exists():
+                    markdown_file.unlink()
+
+        if result.returncode != 0 and not outputs:
+            details = (result.stderr or "").strip()
+            if not details and result.stdout:
+                details = result.stdout.strip()
+            errors.insert(0, f"render failed (code {result.returncode}): {details}")
+
+        status = "successfully rendered" if not errors else "; ".join(errors)
+        return status, outputs
 
     def render(self) -> tuple[str,Optional[Path]]:
         """
-         Render the YAML file to PDF using the RenderCV command-line tool.
+        Render the YAML file to PDF using the RenderCV command-line tool.
         Cleans up any existing output directory before rendering.
         Renames the output PDF to include 'Resume' or 'Portfolio' based on document type.
 
@@ -420,28 +540,9 @@ class RenderCVDocument:
         Raises:
             FileNotFoundError: If the YAML file does not exist
         """
-        if not self.yaml_file or not self.yaml_file.exists():
-            raise FileNotFoundError(f"YAML file {self.yaml_file} does not exist")
-
-        yaml_file_absolute=self.yaml_file.resolve()
-        default_output=yaml_file_absolute.parent / "rendercv_output"
-        source_pdf = default_output / f"{self.name}_CV.pdf"
-
-        if default_output.exists():
-            shutil.rmtree(default_output)
-
-        result= subprocess.run([sys.executable, '-m', 'rendercv', 'render', str(self.yaml_file)],capture_output=True,text=True, encoding='utf-8',errors='replace')
-
-        if source_pdf.exists():
-            # Rename PDF to include document type (Resume or Portfolio)
-            doc_type_label = "Resume" if self.doc_type == 'resume' else "Portfolio"
-            renamed_pdf = default_output / f"{self.name}_{doc_type_label}.pdf"
-            source_pdf.rename(renamed_pdf)
-            return "successfully rendered", renamed_pdf
-        else:
-            if result.returncode !=0:
-                return f"render failed (code {result.returncode}): {result.stderr}", None
-            return f"render failed - PDF not found at {source_pdf}", None
+        status, outputs = self.render_outputs(["pdf"])
+        pdf_paths = outputs.get("pdf", [])
+        return status, pdf_paths[0] if pdf_paths else None
 
 # ============== CONTACT & THEME ==============
     @requires_data
@@ -1157,4 +1258,3 @@ class RenderCVDocument:
             return f"Successfully removed section: {section_name}"
 
         return f"Section '{section_name}' not found"
-
