@@ -52,7 +52,11 @@ def project_insights_menu(ctx) -> None:
 
                 try:
                     preferred = apply_preferences()
-                    projects = [parse_date(p.get("analyzed_at")) and p for p in preferred.get("projects", [])]
+                    projects = [
+                        p
+                        for p in preferred.get("projects", [])
+                        if parse_date(p.get("analyzed_at")) is not None
+                    ]
                 except FileNotFoundError:
                     projects = list_project_insights(storage_path=storage_path)
 

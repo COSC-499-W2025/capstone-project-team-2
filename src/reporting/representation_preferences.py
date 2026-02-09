@@ -151,9 +151,14 @@ def apply_preferences(
     if only_showcase and showcase_set:
         ordered = [ins for ins in ordered if ins.project_name in showcase_set]
     elif showcase_set:
-        ordered = [ins for ins in ordered if ins.project_name in showcase_set] + [
-            ins for ins in ordered if ins.project_name not in showcase_set
-        ]
+        showcased: List[ProjectInsight] = []
+        others: List[ProjectInsight] = []
+        for ins in ordered:
+            if ins.project_name in showcase_set:
+                showcased.append(ins)
+            else:
+                others.append(ins)
+        ordered = showcased + others
 
     response = {
         "projects": [ins.to_dict() for ins in ordered],
