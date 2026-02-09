@@ -38,6 +38,9 @@ def update_privacy_consent(payload: PrivacyConsentRequest) -> dict:
             detail="External consent requires data consent to be enabled.",
         )
 
+    runtimeAppContext.external_consent = payload.external_consent
+    runtimeAppContext.data_consent = payload.data_consent
+
     try:
         cfg = ConfigLoader().load()
         configure_json = configuration_for_users(cfg)
@@ -52,9 +55,56 @@ def update_privacy_consent(payload: PrivacyConsentRequest) -> dict:
             detail=f"Failed to persist consent: {exc}",
         )
 
-    runtimeAppContext.external_consent = payload.external_consent
-    runtimeAppContext.data_consent = payload.data_consent
     return {
         "data_consent": payload.data_consent,
         "external_consent": payload.external_consent,
     }
+
+@consentRouter.post("/config/update")
+def update_config_file(config: dict):
+    """
+    Savses a dictionary as the configuration file 
+
+    API call is /config/update
+
+    Args:
+        dict: dictionary of the config file to save
+
+    Returns:
+        None
+
+    Raises:
+        Raises an HTTP exception of status 500 when config fails to save in any capacity
+    """
+    try:
+        config_saver = configuration_for_users(config)
+        config_saver.save_config()
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=e
+        )
+
+@consentRouter.get("/config/get")
+def get_config_dict() -> dict:
+    """
+    Gets a dictionary of the user conifguration file
+
+    API call is /config/get
+
+    Args:
+        None
+
+    Returns:
+        dict: dictionary of the config file
+
+    Raises:
+        Raises an HTTP exception of status 500 when config fails to load in any capacity
+    """
+    try:
+        return ConfigLoader().load()
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=e
+        )

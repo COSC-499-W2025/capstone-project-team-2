@@ -4,13 +4,11 @@ from pathlib import Path
 # CLI entrypoint that wires consent/config into the shared menu flow.
 #sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from src.config.Configuration import configuration_for_users
-from src.core.app_context import create_app_context
+from src.core.app_context import runtimeAppContext
 from src.cli.menus import main_menu
 from src.config.user_consent import UserConsent
-from src.config.user_startup_config import ConfigLoader
 from src.API.general_API import app
-
+from src.API.consent_API import *
 
 def run() -> int:
     """
@@ -23,6 +21,8 @@ def run() -> int:
     Raises:
         Exception: Propagates unexpected errors after closing context.
     """
+
+    #Considered CLI since we can place our consent .md in our webpage files
     consent_manager = UserConsent()
     proceed = consent_manager.ask_for_consent()
     if not proceed:
@@ -30,21 +30,12 @@ def run() -> int:
         return 1
 
     try:
-        data = ConfigLoader().load()
-        configure_json = configuration_for_users(data)
-        configure_json.save_with_consent(
-            consent_manager.has_external_consent,
-            consent_manager.has_data_consent,
-        )
-        configure_json.save_config()
+        consent_object = PrivacyConsentRequest(data_consent=consent_manager.has_data_consent, external_consent=consent_manager.has_external_consent)
+        update_privacy_consent(consent_object)
     except Exception as e:
         print(f"[WARN] Failed to persist consent to configuration: {e}")
 
-    ctx = create_app_context(external_consent_value=consent_manager.has_external_consent)
-    try:
-        return main_menu(ctx)
-    finally:
-        ctx.close()
+    return main_menu()
 
 
 if __name__ == "__main__":

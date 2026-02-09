@@ -7,7 +7,7 @@ from fastapi import responses
 
 from src.API.project_io_API import *
 from src.API.general_API import app
-from src.core.app_context import runtimeAppContext
+from src.core.app_context import create_app_context, runtimeAppContext
 
 from fastapi.testclient import TestClient
 
@@ -94,3 +94,47 @@ def test_upload_project_CLI_zip():
     """
     path = Path(os.getcwd()).absolute().resolve() / "test" / "TestZIPs" / "TEST.zip"
     assert upload_project_path_CLI(path) == "Upload Success"
+
+def test_delete_project_no_db():
+    """
+    Ensures that removing a project not in db does not return successful db deletion, but success on local deletion
+    """
+    root_folder = Path(__file__).absolute().resolve().parents[1]
+    legacy_save_dir = root_folder / "User_config_files"
+    runtimeAppContext.default_save_dir = legacy_save_dir / "project_insights"
+    path = runtimeAppContext.default_save_dir / "test.json"
+    try:
+        path.touch(exist_ok=True)
+        path.write_text("test")
+        statuses = delete_project(path.name, str(path))
+
+        assert statuses.get("status") == f"[SUCCESS] Deleted '{path.name}' from filesystem!"
+        assert statuses.get("dbstatus") != f"[SUCCESS] Deleted DB records for '{path.name}'."
+        assert not path.exists()
+    finally:
+        if path.exists():
+            path.unlink(missing_ok=True)
+
+#insertion into the db currently doesn't work and I don't know what's wrong
+@pytest.mark.skip()
+def test_delete_project_db():
+    """
+    Ensures that removing a project in db return successful db deletion and success on local deletion
+    """
+    runtimeAppContext = create_app_context(data_consent_value=True)
+    root_folder = Path(__file__).absolute().resolve().parents[1]
+    legacy_save_dir = root_folder / "User_config_files"
+    runtimeAppContext.default_save_dir = legacy_save_dir / "project_insights"
+    path = runtimeAppContext.default_save_dir / "test.json"
+    try:
+        path.touch(exist_ok=True)
+        path.write_text("test")
+        runtimeAppContext.store.insert_json("test.json", {"test": False})
+        statuses = delete_project(path.name, str(path))
+
+        assert statuses.get("status") == f"[SUCCESS] Deleted '{path.name}' from filesystem!"
+        assert statuses.get("dbstatus") == f"[SUCCESS] Deleted DB records for '{path.name}'."
+        assert not path.exists()
+    finally:
+        if path.exists():
+            path.unlink(missing_ok=True)

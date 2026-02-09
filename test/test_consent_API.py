@@ -4,8 +4,12 @@ import unittest
 from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 
+from src.API.consent_API import update_config_file
 from src.API.general_API import app
 from src.core.app_context import runtimeAppContext
+from pathlib import Path
+import os
+import orjson
 
 class TestConsentAPI(unittest.TestCase):
     """
@@ -86,6 +90,30 @@ class TestConsentAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         mock_loader.assert_not_called()
         mock_config_class.assert_not_called()
+
+    def test_config_file_created_correctly(self):
+        """
+        Ensures that updating config correctly creates config file and inputs config data correctly
+        """
+        project_root = Path(__file__).resolve().parents[1]
+
+        config_dir = project_root / "User_config_files"
+        loc_to_save = config_dir / "UserConfigs.json"
+
+        if loc_to_save.exists():
+            os.remove(loc_to_save)
+
+        test_dict = {"test": False}
+
+        update_config_file(test_dict)
+
+        assert loc_to_save.exists()
+        with loc_to_save.open("r") as op:
+            open_str = op.read()
+
+        assert orjson.loads(open_str) == test_dict
+
+    #TODO load config doesn't work due to default config issue, however the API should work
 
 if __name__ == "__main__":
     unittest.main()

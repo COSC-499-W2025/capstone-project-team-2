@@ -20,8 +20,9 @@ from src.reporting.project_insights import (
 )
 from src.reporting.representation_preferences import apply_preferences
 from src.analysis.insight_helpers import parse_date, filter_insights, compute_composite_score
+from src.core.app_context import runtimeAppContext
 
-def project_insights_menu(ctx) -> None:
+def project_insights_menu() -> None:
     """
     View stored project insights: chronological projects, skill history, rankings, and top summaries.
 
@@ -31,7 +32,7 @@ def project_insights_menu(ctx) -> None:
       - Contribution-based ranking (optionally filtered by contributor)
       - Top-ranked project summaries with scores
     """
-    storage_path = Path(ctx.legacy_save_dir) / "project_insights.json"
+    storage_path = Path(runtimeAppContext.legacy_save_dir) / "project_insights.json"
 
     while True:
         print("\n=== Project Insights ===")
