@@ -291,21 +291,5 @@ PROJECT DATA:
         )
 
 
-if __name__ == "__main__":
-    generator = GenerateResumeAI_Ver2("dndDice.json")
-    print(f"Project Name: {generator.project_name}")
-    print(f"Project Exists: {generator.project_exists}")
 
-    entry = generator.generate_AI_Resume_entry()
-    if entry:
-        print(f"\n--- AI Resume Entry ---")
-        print(f"Title: {entry.project_title}")
-        print(f"Summary: {entry.one_sentence_summary}")
-        print(f"Details: {entry.detailed_summary}")
-        print(f"Tech Stack: {entry.tech_stack}")
-        print(f"Impact: {entry.impact}")
-        print(f"\nResponsibilities:")
-        for r in entry.key_responsibilities:
-            print(f"  - {r}")
-        print(f"\nSkills: {', '.join(entry.key_skills_used)}")
 
