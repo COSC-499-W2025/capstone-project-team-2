@@ -517,7 +517,7 @@ class RenderCVDocument:
                 if markdown_file.exists():
                     markdown_file.unlink()
 
-        if result.returncode != 0:
+        if result.returncode != 0 and not outputs:
             details = (result.stderr or "").strip()
             if not details and result.stdout:
                 details = result.stdout.strip()
