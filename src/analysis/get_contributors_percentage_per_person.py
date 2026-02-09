@@ -203,37 +203,40 @@ class get_contributors_percentages_per_person:
         seen_shas=set()
         for branch in Remote_repo.get_branches():
             branch_name = branch.name
-            #print(branch_name)
+
             for author in self.contributors_set:
-                commits = Remote_repo.get_commits(author=author,sha=branch_name)
+                # let exceptions bubble up to API
+                commits = Remote_repo.get_commits(author=author, sha=branch_name)
+
                 for commit in commits:
                     if commit.sha in seen_shas:
                         continue
                     seen_shas.add(commit.sha)
 
-                    detailed_info=Remote_repo.get_commit(commit.sha)
+                    detailed_info = Remote_repo.get_commit(commit.sha)
                     for file in detailed_info.files:
                         if not file.patch:
                             continue
 
-                        suffix=Path(file.filename).suffix.lower()
-                        stats=author_stats[author][file.filename]
-                        stats.setdefault("fileType",suffix)
+                        suffix = Path(file.filename).suffix.lower()
+                        stats = author_stats[author][file.filename]
+                        stats.setdefault("fileType", suffix)
                         stats["additions"] += file.additions or 0
                         stats["deletions"] += file.deletions or 0
                         stats["changes"] += file.changes or 0
 
-            final_dict = {}
-            for author, files in author_stats.items():
-                files_dict = dict(files)
-                total_changes = sum(s["changes"] for s in files_dict.values())
+        # build and return after collecting all branches
+        final_dict = {}
+        for author, files in author_stats.items():
+            files_dict = dict(files)
+            total_changes = sum(s["changes"] for s in files_dict.values())
 
-                final_dict[author] = {
-                    "files": files_dict,
-                    "total_changes": total_changes,
-                }
+            final_dict[author] = {
+                "files": files_dict,
+                "total_changes": total_changes,
+            }
 
-            return final_dict
+        return final_dict
 
     def output_result(self):
         """
@@ -344,9 +347,11 @@ def contribution_summary(project_path: str | Path) -> Dict[str, Any]:
     try:
         Repo(root)
         is_git = True
-    except (InvalidGitRepositoryError, Exception):
+    except (InvalidGitRepositoryError):
         is_git = False
-
+    except Exception as e:
+        raise RuntimeError(f" Failed to inspect repository at {root}: {e}") from e
+        
     if is_git:
         git_analyzer = get_contributors_percentages_per_person(root)
         result = git_analyzer.output_result()

@@ -72,22 +72,20 @@ def oop_analysis(root: Path, languages_found) -> Dict[str, Any] | None:
 
     Returns:
         Dict[str, Any] | None: OOP metrics when run, otherwise None.
+        
+    Critical behavior:
+      - If supported languages are present and analysis fails, raise to the API.
+      - If no supported languages are present, return None.
     """
 
     # Check if project has Python, Java, C, or JavaScript
     supported_languages = {"Python", "Java", "C", "JavaScript", "C++", "C#"}
     detected_languages = set(languages_found) & supported_languages
 
-    if detected_languages:
+    if not detected_languages:
+        return None
         
-        try:
-            oop_metrics = MultiLangOrchestrator(root).analyze()
-            return oop_metrics
-        
-        except (FileNotFoundError, ValueError) as e: 
-            logging.warning(f"OOP analysis failed: {e}")
-
-    return None
+    return MultiLangOrchestrator(root).analyze() # raise exceptions to api
 
 def export_json(project_name: str, analysis: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -159,7 +157,6 @@ def analyze_project(root: Path, use_ai_analysis=False) -> Dict[str, Any]:
         contrib_summary = contribution_summary(root)
         contributors_data = (contrib_summary or {}).get("contributors") or None
     except Exception as e:
-        logging.warning(f"Contribution percentage analysis failed: {e}")
         contrib_summary = None
         contributors_data = None
         
@@ -193,9 +190,16 @@ def analyze_project(root: Path, use_ai_analysis=False) -> Dict[str, Any]:
     if contributors_data:
         analysis["contributors"] = contributors_data
 
-    stack_languages = detect_project_stack(root).get("languages", [])
+    # Optional: stack detection (fallback to resume languages only)
+    try:
+        stack_languages = detect_project_stack(root).get("languages", [])
+    except Exception as e:
+        logging.warning(f"Project stack detection failed (optional): {e}")
+        stack_languages = []
+
     languages_for_oop = sorted(set(stack_languages) | set(resume.languages))
-    oop_metrics = oop_analysis(root, languages_for_oop)
+    oop_metrics = oop_analysis(root, languages_for_oop)  # may raise (critical)
+
         
     if oop_metrics is not None:
         analysis["oop_analysis"] = oop_metrics
@@ -217,7 +221,8 @@ def analyze_project(root: Path, use_ai_analysis=False) -> Dict[str, Any]:
             contributors=contributors_data,
         )
     except Exception as e:
-        logging.warning(f"Failed to record project insight: {e}")
+        logging.warning(f"Failed to record project insight (optional): {e}")
+        insight = None 
 
     #Need to remember this exists but also this can't be here
     #portfolio_yaml = load_portfolio_showcase(display_name)
