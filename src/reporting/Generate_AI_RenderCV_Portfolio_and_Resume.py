@@ -240,7 +240,7 @@ class RenderCVDocument:
                     'sections': {}
                 },
                 'design': {'theme': self.chosen_theme},
-                'locale': {'language': 'english'}
+                'locale': {'language': 'en'}
             }
             if self.doc_type == 'resume':
                 base_template['cv']['sections'] = {
@@ -358,6 +358,17 @@ class RenderCVDocument:
         if self.data.get('cv') is None:
             raise ValueError("Invalid YAML structure: missing required 'cv' key")
 
+        locale_updated = False
+        if self.data.get('locale') is None:
+            self.data['locale'] = {'language': 'en'}
+            locale_updated = True
+        elif self.data.get('locale', {}).get('language') == 'english':
+            self.data['locale']['language'] = 'en'
+            locale_updated = True
+
+        if locale_updated:
+            self.save()
+
         self.sections=self.data['cv']['sections']
         self.current_projects=self.sections.get('projects', [])
         self.current_connections=self.data['cv'].get('social_networks', [])
@@ -460,11 +471,13 @@ class RenderCVDocument:
 
         selected_formats = self._normalize_formats(formats)
         output_dir = self._get_output_dir()
+        yaml_parent = self.yaml_file.resolve().parent
         output_base = f"{self.name}_CV"
         doc_type_label = "Resume" if self.doc_type == 'resume' else "Portfolio"
 
         if output_dir.exists():
             shutil.rmtree(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
 
         cmd = [sys.executable, "-m", "rendercv", "render", str(self.yaml_file)]
         format_flags = {
@@ -476,15 +489,13 @@ class RenderCVDocument:
                 cmd.append(flag)
         if "markdown" not in selected_formats and "html" not in selected_formats:
             cmd.append("--dont-generate-markdown")
-        if "pdf" not in selected_formats:
-            cmd.append("--dont-generate-typst")
-
         result = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
             encoding="utf-8",
             errors="replace",
+            cwd=yaml_parent,
         )
 
         outputs: Dict[str, List[Path]] = {}

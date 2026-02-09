@@ -131,7 +131,7 @@ class TestRenderCVDocumentCore(BaseRenderCVTest):
         output_dir = cv.yaml_file.parent / "rendercv_output"
         output_base = f"{cv.name}_CV"
 
-        def fake_run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace"):
+        def fake_run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=None):
             output_dir.mkdir(parents=True, exist_ok=True)
             (output_dir / f"{output_base}.pdf").write_text("pdf")
             (output_dir / f"{output_base}.html").write_text("html")
@@ -161,7 +161,7 @@ class TestRenderCVDocumentCore(BaseRenderCVTest):
         output_dir = cv.yaml_file.parent / "rendercv_output"
         output_base = f"{cv.name}_CV"
 
-        def fake_run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace"):
+        def fake_run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=None):
             output_dir.mkdir(parents=True, exist_ok=True)
             (output_dir / f"{output_base}.html").write_text("html")
             (output_dir / f"{output_base}.md").write_text("md")
@@ -177,7 +177,6 @@ class TestRenderCVDocumentCore(BaseRenderCVTest):
 
         called_cmd = mock_run.call_args[0][0]
         self.assertIn("--dont-generate-pdf", called_cmd)
-        self.assertIn("--dont-generate-typst", called_cmd)
         self.assertNotIn("--dont-generate-html", called_cmd)
         self.assertNotIn("--dont-generate-markdown", called_cmd)
 
