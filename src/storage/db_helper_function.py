@@ -52,9 +52,9 @@ class HelperFunct:
             project_name = filename
 
             cursor.execute(
-                "INSERT INTO project_versions (project_name, version_number, content, file_blob) "
+                "INSERT INTO project_versions (project_name, project_uploaded_at, version_number, content, file_blob) "
                 "VALUES (%s, %s, %s, %s)",  # 4 placeholders
-                (project_name, 1, json.dumps(data), raw_bytes)  # 4 values - FIXED!
+                (project_name, 1, json.dumps(data), raw_bytes) 
             )
             self.conn.commit()
         
@@ -62,7 +62,6 @@ class HelperFunct:
         finally:
             cursor.close()
 
-            # fetch
 
             # returns the contents of the json file by name
     def fetch_by_name(self, project_name: str):
@@ -167,7 +166,7 @@ class HelperFunct:
 
                 # Save new version
                 cursor.execute(
-                    "INSERT INTO project_versions (project_name, version_number, content, file_blob) "
+                    "INSERT INTO project_versions (project_name, project_uploaded_at,version_number, content, file_blob) "
                     "VALUES (%s, %s, %s, %s)",
                     (project_name, new_version, json.dumps(content), blob)
                     )
@@ -233,12 +232,6 @@ class HelperFunct:
                 - is_current: Whether this is the current active version
             
             Ordered from newest to oldest.
-        
-        Example:
-            versions = helper.get_version_list(5)
-            for v in versions:
-                status = "(Current)" if v['is_current'] else ""
-                print(f"Version {v['version_number']}: {v['filename']} - {v['created_at']} {status}")
         """
         cursor = self.conn.cursor(dictionary=True)
         try:
@@ -251,7 +244,7 @@ class HelperFunct:
                         ELSE FALSE
                     END as is_current
                 FROM project_versions pv
-                JOIN project_data pd ON pv.project_name = pd.Pname
+                JOIN project_data pd ON pv.project_name = pd.Pname AND pv.project_uploaded_at = pd.uploaded_at
                 WHERE pv.project_name = %s
                 ORDER BY pv.version_number DESC
             """, (project_name,))
@@ -283,13 +276,6 @@ class HelperFunct:
                 - file_blob: Raw binary data (bytes)
                 - created_at: Timestamp when version was created
             Returns None if version doesn't exist.
-        
-        Example:
-            selected = helper.retrieve_selected_version(5, 3)
-            if selected:
-                print(f"Loaded: {selected['filename']}")
-                analysis_data = selected['content']
-                raw_file = selected['file_blob']
         """
         cursor = self.conn.cursor(dictionary=True)
         try:
@@ -300,6 +286,7 @@ class HelperFunct:
                     file_blob,
                     created_at
                 FROM project_versions
+                JOIN project_data pd ON pv.project_name = pd.Pname AND pv.project_uploaded_at = pd.uploaded_at
                 WHERE project_name = %s AND version_number = %s
             """, (project_name, version_number))
             
@@ -329,11 +316,6 @@ class HelperFunct:
                 - total_versions: Total number of saved versions
                 - uploaded_at: When project was first created
                 - updated_at: When project was last updated
-        
-        Example:
-            projects = helper.get_all_projects_with_versions()
-            for p in projects:
-                print(f"{p['filename']}: Version {p['current_version']} ({p['total_versions']} total versions)")
         """
         cursor = self.conn.cursor(dictionary=True)
         try:
@@ -345,7 +327,7 @@ class HelperFunct:
                     pd.updated_at,
                     COUNT(pv.id) as total_versions
                 FROM project_data pd
-                LEFT JOIN project_versions pv ON pd.Pname = pv.project_name
+                LEFT JOIN project_versions pv ON pd.Pname = pv.project_name AND pv.project_uploaded_at = pd.uploaded_at
                 GROUP BY pd.Pname
                 ORDER BY pd.updated_at DESC
             """)
@@ -405,7 +387,7 @@ class HelperFunct:
                     SELECT version_number FROM (
                         SELECT version_number
                         FROM project_versions
-                        WHERE project_name = %s
+                        WHERE project_name = %s AND project_uploaded_at = %s
                         ORDER BY version_number DESC
                         LIMIT %s
                     ) as keep_versions
