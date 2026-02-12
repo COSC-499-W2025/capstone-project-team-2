@@ -44,7 +44,7 @@ class TestVersioningHelper(unittest.TestCase):
         Verify that we can restore a previous version by retrieving it
         and updating the project with that old content.
         """
-        project_name = self.store.insert_json("file.json", {"data": 1})
+        project_name, _ = self.store.insert_json("file.json", {"data": 1})
         self.store.update(project_name , {"data": 2})
         self.store.update(project_name , {"data": 3})
 
@@ -67,10 +67,10 @@ class TestVersioningHelper(unittest.TestCase):
         Verify that inserting initial content creates version 1 and that
         the latest version can be fetched correctly.
         """
-        project_name  = self.store.insert_json("file.json", {"data": 1})
-    
+        project_name, _ = self.store.insert_json("file.json", {"data": 1})
+
         self.store.update(project_name , {"data": 2})
-    
+
         versions = self.store.get_version_list(project_name )
         latest = versions[0]
 
@@ -81,7 +81,7 @@ class TestVersioningHelper(unittest.TestCase):
         self.assertEqual(selected['content'], {"data": 1})
 
     def test_delete_cascades_to_versions(self):
-        project_name  = self.store.insert_json("file.json", {"data": 1})
+        project_name, _ = self.store.insert_json("file.json", {"data": 1})
         self.store.update(project_name , {"data": 2})
         self.store.update(project_name , {"data": 3})
 
@@ -106,7 +106,7 @@ class TestVersioningHelper(unittest.TestCase):
         """
         Insert multiple versions and delete them, confirming deletion.
         """
-        project_name  = self.store.insert_json("file.json", {"data": 1})
+        project_name, _ = self.store.insert_json("file.json", {"data": 1})
         self.store.update(project_name , {"data": 2})
         self.store.update(project_name , {"data": 3})
 

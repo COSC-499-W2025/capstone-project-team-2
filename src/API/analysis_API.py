@@ -37,7 +37,6 @@ def perform_analysis_API(use_ai: bool = False) -> dict:
                 folder = folder_path
         else:   #Can only be an UploadFile at this point
             folder = extract_if_zip(folder_path)
-        analyze_project(folder, use_ai_analysis=use_ai)
         result = analyze_project(folder, use_ai_analysis=use_ai) or {}
         return {
             "status": "Analysis Finished and Saved",

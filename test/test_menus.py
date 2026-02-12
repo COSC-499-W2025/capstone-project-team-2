@@ -139,7 +139,7 @@ def test_main_menu_routes_to_insights_menu(monkeypatch):
     """Option 6 should dispatch to project_insights_menu."""
     called = {}
     monkeypatch.setattr("builtins.input", _inputs(["6", "0"]))
-    monkeypatch.setattr(mod, "project_insights_menu", called.setdefault("hit", True))
+    monkeypatch.setattr(mod, "project_insights_menu", lambda: called.setdefault("hit", True))
     mod.main_menu()
     assert called.get("hit") is True
 
@@ -148,7 +148,7 @@ def test_main_menu_routes_to_document_generator(monkeypatch):
     """Option 5 should dispatch to document_generator_menu."""
     called = {}
     monkeypatch.setattr("builtins.input", _inputs(["5", "0"]))
-    monkeypatch.setattr(mod, "document_generator_menu", called.setdefault("hit", True))
+    monkeypatch.setattr(mod, "document_generator_menu", lambda: called.setdefault("hit", True))
     mod.main_menu()
     assert called.get("hit") is True
 
