@@ -109,6 +109,13 @@ def deduplicate_project(root: Path, index_path: Path, remove_duplicates: bool = 
 
                 record = index.get(digest)
                 if record:
+                    # Skip if duplicate is from the same project (re-analysis)
+                    if record.get("project") == root.name:
+                        # Update the index entry with current path and count as unique
+                        index[digest] = {"path": str(path), "project": root.name}
+                        unique_files += 1
+                        continue
+
                     dup_entry = {
                         "path": str(path),
                         "original": record.get("path"),

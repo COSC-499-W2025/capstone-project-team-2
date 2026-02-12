@@ -25,9 +25,9 @@ class HelperFunct:
         self.conn = connection
 
 
-    def insert_json(self, filename: str, data: dict, raw_bytes: bytes = None) -> int:
+    def insert_json(self, filename: str, data: dict, raw_bytes: bytes = None) -> tuple[str, bool]:
         """
-        Insert JSON data into the database, storing both the structured JSON
+        Insert or update JSON data in the database, storing both the structured JSON
         content and the raw binary representation.
 
         Args:
@@ -36,7 +36,9 @@ class HelperFunct:
             raw_bytes: Optional raw byte representation of the JSON content.
 
         Returns:
-            int: The database row ID of the newly inserted record.
+            tuple[str, bool]: A tuple containing:
+                - The project name (filename) of the inserted/updated record
+                - True if this was an update (project existed), False if new insert
         """
 
         if raw_bytes is None:
@@ -44,21 +46,36 @@ class HelperFunct:
 
         cursor = self.conn.cursor()
         try:
-            cursor.execute(
-                "INSERT INTO project_data (Pname, content, file_blob) VALUES (%s, %s, %s)",
-                (filename, json.dumps(data), raw_bytes)
-            )
+            # Check if project already exists
+            cursor.execute("SELECT 1 FROM project_data WHERE Pname = %s", (filename,))
+            was_update = cursor.fetchone() is not None
 
             project_name = filename
 
+            # Get the current max version for this project
+            cursor.execute(
+                "SELECT COALESCE(MAX(version_number), 0) FROM project_versions WHERE project_name = %s",
+                (project_name,)
+            )
+            max_version = cursor.fetchone()[0]
+            new_version = max_version + 1
+
+            # Use upsert to handle re-analysis of the same project
+            # Also update current_version when updating
+            cursor.execute(
+                "INSERT INTO project_data (Pname, content, file_blob, current_version) VALUES (%s, %s, %s, %s) "
+                "ON DUPLICATE KEY UPDATE content = VALUES(content), file_blob = VALUES(file_blob), current_version = %s",
+                (filename, json.dumps(data), raw_bytes, new_version, new_version)
+            )
+
             cursor.execute(
                 "INSERT INTO project_versions (project_name, version_number, content, file_blob) "
-                "VALUES (%s, %s, %s, %s)",  # 4 placeholders
-                (project_name, 1, json.dumps(data), raw_bytes)  # 4 values - FIXED!
+                "VALUES (%s, %s, %s, %s)",
+                (project_name, new_version, json.dumps(data), raw_bytes)
             )
             self.conn.commit()
-        
-            return project_name
+
+            return project_name, was_update
         finally:
             cursor.close()
 
