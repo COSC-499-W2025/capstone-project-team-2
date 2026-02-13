@@ -1720,7 +1720,7 @@ Overall, this week was a productive one where I learned a lot about building RES
 # 📝 Personal Log – Week 20 (02/09/2026 – 02/15/2026)
 
 ## 📊 Peer Evaluation
-*(Screenshot not yet available)*
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/1-16-2026.png)
 
 ---
 
@@ -1786,7 +1786,7 @@ and refactoring the AI resume generation to use database-stored insights instead
 ## 🧠 Reflection on Current Cycle (Week 20)
 
 **Week 20** was focused on addressing critical bugs and improving the reliability of our system.
-The most impactful fix was fixing the system that occur last sunday, which was a critical bug that caused file uploads to trigger deletion of entire project folders, while at the same time adding some additional robustness to the project upload system such as that the project is both deleted from the database and the filesystem upon the deletion of the corresponding project, and additonally overwriting the contents if the stuff was adding to a previous existing project in the database. This cascading failure was particularly severe because it impacted related features like displaying saved projects and caused version tracking to fail when identical files were re-uploaded. The fix ([PR #400](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/400)) ensures that project folders are now preserved during uploads, duplicate detection correctly maintains a single copy of each project rather than creating duplicates, and the deletion flow properly cleans up both the database records and filesystem artifacts in sync.
+The most impactful fix was fixing the system that occured last sunday, which was a critical bug that caused file uploads to trigger deletion of entire project folders, while at the same time adding some additional robustness to the project upload system such as that the project is both deleted from the database and the filesystem upon the deletion of the corresponding project, and additonally overwriting the contents if the stuff was adding to a previous existing project in the database. This cascading failure was particularly severe because it impacted related features like displaying saved projects and caused version tracking to fail when identical files were re-uploaded. The fix ([PR #400](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/400)) ensures that project folders are now preserved during uploads, duplicate detection correctly maintains a single copy of each project rather than creating duplicates, and the deletion flow properly cleans up both the database records and filesystem artifacts in sync.
 
 The second task was addressing the default save config issue ([#401](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/401)). When starting the program, the default configuration was not loading because the config file was placed in a gitignored directory. The solution was to relocate the default config file to a separate location that is tracked by version control, ensuring that new users and fresh clones of the repository always have the correct default configuration available on startup.
 
