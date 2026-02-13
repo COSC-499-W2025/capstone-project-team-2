@@ -1726,7 +1726,10 @@ Overall, this week was a productive one where I learned a lot about building RES
 
 ## 🔗 Connection to Previous Week
 
-Following Week 19's conversion of the Portfolio and Resume generation modules into FastAPI-based REST APIs, this week focused on fixing critical bugs in the project upload system (re-analysis, versioning, and duplicate detection), resolving the default save config issue caused by gitignore, and refactoring the AI resume generation to use database-stored insights instead of scanning the filesystem.
+Following Week 19's conversion of the Portfolio and Resume generation modules into FastAPI-based REST APIs, 
+this week focused on fixing critical bugs in the project upload system (re-analysis, versioning, and duplicate detection), 
+resolving the default save config issue caused by gitignore, 
+and refactoring the AI resume generation to use database-stored insights instead of scanning the filesystem.
 
 ---
 
