@@ -197,16 +197,16 @@ class TestAddProject(_BasePortfolioTest):
 
 
 class TestRenderPortfolio(_BasePortfolioTest):
-    """Tests for POST /portfolio/{id}/render."""
+    """Tests for POST /portfolio/{id}/render/{format}."""
 
     @patch("src.API.Portfolio_Generator_API.shutil")
     def test_success(self, _mock_shutil):
         with tempfile.TemporaryDirectory() as tmp_dir:
             fake_pdf = Path(tmp_dir) / "portfolio.pdf"
             fake_pdf.write_bytes(b"%PDF-1.4 fake content")
-            self.mock_doc.render.return_value = ("Success", fake_pdf)
+            self.mock_doc.render_outputs.return_value = ("successfully rendered", {"pdf": [fake_pdf]})
 
-            resp = self.client.post("/portfolio/test_abc123/render")
+            resp = self.client.post("/portfolio/test_abc123/render/pdf")
             self.assertEqual(resp.status_code, 200)
             self.assertIn("X-Portfolio-ID", resp.headers)
             self.assertEqual(resp.headers["content-type"], "application/pdf")
@@ -215,14 +215,14 @@ class TestRenderPortfolio(_BasePortfolioTest):
         """Test 404 for missing portfolio and 500 for render failure."""
         # Portfolio not found
         self._set_not_found()
-        resp = self.client.post("/portfolio/fake_id/render")
+        resp = self.client.post("/portfolio/fake_id/render/pdf")
         self.assertEqual(resp.status_code, 404)
         self.assertIn("not found", resp.json()["detail"])
 
         # Render failure
         self.mock_doc.load.side_effect = None  # Reset to allow load
-        self.mock_doc.render.return_value = ("Render failed", None)
-        resp = self.client.post("/portfolio/test_abc123/render")
+        self.mock_doc.render_outputs.return_value = ("Render failed", {})
+        resp = self.client.post("/portfolio/test_abc123/render/pdf")
         self.assertEqual(resp.status_code, 500)
         self.assertIn("Render failed", resp.json()["detail"])
 

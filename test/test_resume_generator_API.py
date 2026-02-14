@@ -102,9 +102,9 @@ class TestResumeFullWorkflow(_BaseResumeTest):
         with tempfile.TemporaryDirectory() as tmp_dir:
             fake_pdf = Path(tmp_dir) / "resume.pdf"
             fake_pdf.write_bytes(b"%PDF-1.4 fake content")
-            self.mock_doc.render.return_value = ("Success", fake_pdf)
+            self.mock_doc.render_outputs.return_value = ("successfully rendered", {"pdf": [fake_pdf]})
 
-            resp = self.client.post(f"/resume/{resume_id}/render")
+            resp = self.client.post(f"/resume/{resume_id}/render/pdf")
             self.assertEqual(resp.status_code, 200)
             self.assertIn("X-Resume-ID", resp.headers)
             self.assertEqual(resp.headers["content-type"], "application/pdf")
@@ -170,7 +170,7 @@ class TestErrorHandling(_BaseResumeTest):
         })
         self.assertEqual(resp.status_code, 404)
 
-        resp = self.client.post("/resume/fake_id/render")
+        resp = self.client.post("/resume/fake_id/render/pdf")
         self.assertEqual(resp.status_code, 404)
 
         resp = self.client.delete("/resume/fake_id")
@@ -192,9 +192,9 @@ class TestErrorHandling(_BaseResumeTest):
         self.assertIn("Unknown section", resp.json()["detail"])
 
     def test_render_failure(self):
-        """Render returning no PDF path returns 500."""
-        self.mock_doc.render.return_value = ("Render failed", None)
-        resp = self.client.post("/resume/test_abc123/render")
+        """Render returning no output returns 500."""
+        self.mock_doc.render_outputs.return_value = ("Render failed", {})
+        resp = self.client.post("/resume/test_abc123/render/pdf")
         self.assertEqual(resp.status_code, 500)
         self.assertIn("Render failed", resp.json()["detail"])
 
