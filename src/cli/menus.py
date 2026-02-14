@@ -24,7 +24,7 @@ from src.core.app_context import runtimeAppContext
 from src.reporting.portfolio import display_portfolio_and_generate_pdf
 from src.storage.saved_projects import (
     delete_file_from_disk,
-    delete_from_database_by_id,
+    delete_from_database_by_name,
     get_saved_projects_from_db,
     list_saved_projects,
     show_saved_summary,
@@ -400,7 +400,7 @@ def saved_projects_menu() -> None:
 
             print(f"\nSaved analyses:\n")
             for i, p in enumerate(items, start=1):
-                print(f"{i}) {p.name}")
+                print(f"{i}) {p}")
 
             sel = input(
                 "\nChoose a file to view (or press 0 to exit to main menu): "
@@ -449,7 +449,7 @@ def delete_analysis_menu() -> None:
 
             print("\nSaved projects:\n")
             for i, p in enumerate(projects, start=1):
-                print(f"{i}) {p.name}")
+                print(f"{i}) {p}")
 
             sel = input(
                 "\nEnter the number of the project to delete (or 0 to exit): "
@@ -467,8 +467,7 @@ def delete_analysis_menu() -> None:
                 print("[ERROR] Selection out of range.")
                 continue
 
-            file_path = projects[sel_idx]
-            filename = file_path.name
+            filename = projects[sel_idx]
 
             confirm = input(
                 f"Are you sure you want to delete '{filename}' from disk "
@@ -478,7 +477,18 @@ def delete_analysis_menu() -> None:
                 print("[INFO] Deletion cancelled.")
                 continue
 
-            #delete
+            # Delete from database first (Pname is the filename without .json)
+            full_filename = f"{filename}.json"
+            deleted_from_db = delete_from_database_by_name(full_filename)
+            if deleted_from_db:
+                print(f"[INFO] Deleted '{full_filename}' from database.")
+
+            # Delete from disk
+            if delete_file_from_disk(full_filename):
+                print(f"[SUCCESS] Deleted '{full_filename}' from disk.")
+            else:
+                if not deleted_from_db:
+                    print(f"[WARNING] Could not delete '{full_filename}'.")
 
             another = input("\nDelete another analysis? (y/n): ").strip().lower()
             if not another.startswith("y"):

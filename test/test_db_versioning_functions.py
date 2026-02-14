@@ -70,7 +70,7 @@ class TestVersioningHelper(unittest.TestCase):
         project_name, _ = self.store.insert_json("file.json", {"data": 1})
     
         self.store.update(project_name , {"data": 2})
-    
+
         versions = self.store.get_version_list(project_name )
         latest = versions[0]
 

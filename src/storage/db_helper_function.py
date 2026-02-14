@@ -27,7 +27,7 @@ class HelperFunct:
 
     def insert_json(self, filename: str, data: dict, raw_bytes: bytes = None) -> tuple[str, bool]:
         """
-        Insert JSON data into the database, storing both the structured JSON
+        Insert or update JSON data in the database, storing both the structured JSON
         content and the raw binary representation.
 
         Args:
@@ -36,7 +36,9 @@ class HelperFunct:
             raw_bytes: Optional raw byte representation of the JSON content.
 
         Returns:
-            int: The database row ID of the newly inserted record.
+            tuple[str, bool]: A tuple containing:
+                - The project name (filename) of the inserted/updated record
+                - True if this was an update (project existed), False if new insert
         """
 
         if raw_bytes is None:
