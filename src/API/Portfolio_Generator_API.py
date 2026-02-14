@@ -15,7 +15,7 @@ Endpoints:
     GET    /portfolio/{id}                           - Retrieve full portfolio data as JSON
     POST   /portfolio/{id}/edit                      - Modify a field on an existing section item
     POST   /portfolio/{id}/add/project/{project_id}  - Add a project entry
-    POST   /portfolio/{id}/render                    - Re-render an existing portfolio to PDF
+    POST   /portfolio/{id}/render/{format}             - Re-render an existing portfolio to a specified format (pdf, html, markdown)
     DELETE /portfolio/{id}                           - Delete the portfolio YAML file entirely
 """
 
@@ -281,35 +281,48 @@ def add_project(portfolio_id:str,project_id:int,payload: Optional[ProjectRequest
         raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
     return {"status": result}
 
-@portfolioRouter.post("/portfolio/{portfolio_id}/render")
-def render_portfolio(portfolio_id: str, background_tasks: BackgroundTasks):
-    """Render an existing portfolio to PDF.
+@portfolioRouter.post("/portfolio/{portfolio_id}/render/{format}")
+def render_portfolio(portfolio_id: str, format: str, background_tasks: BackgroundTasks):
+    """Render an existing portfolio to the specified format.
 
-    Use this after making edits to regenerate the PDF without creating
+    Use this after making edits to regenerate the output without creating
     a new portfolio.
 
     Args:
         portfolio_id: The portfolio identifier.
+        format: Output format - one of 'pdf', 'html', or 'markdown'.
         background_tasks: FastAPI background tasks for cleanup after response.
 
     Returns:
-        FileResponse: The rendered portfolio PDF.
+        FileResponse: The rendered portfolio file in the requested format.
 
     Raises:
+        HTTPException: 400 if the format is not supported.
         HTTPException: 404 if the portfolio does not exist.
         HTTPException: 500 if rendering fails.
     """
+    fmt = format.strip().lower()
+    supported = {"pdf", "html", "markdown"}
+    if fmt not in supported:
+        raise HTTPException(status_code=400, detail=f"Unsupported format '{format}'. Supported: {', '.join(sorted(supported))}")
+
     doc = _load_portfolio(portfolio_id)
-    status, pdf_path = doc.render()
-    if pdf_path is None:
+    status, outputs = doc.render_outputs([fmt])
+
+    paths = outputs.get(fmt, [])
+    if not paths:
         raise HTTPException(status_code=500, detail=status)
 
-    output_dir = pdf_path.parent
+    output_dir = paths[0].parent
     background_tasks.add_task(shutil.rmtree, output_dir, True)
+
+    media_types = {"pdf": "application/pdf", "html": "text/html", "markdown": "text/markdown"}
+    extensions = {"pdf": "pdf", "html": "html", "markdown": "md"}
+
     return FileResponse(
-        str(pdf_path),
-        media_type='application/pdf',
-        filename=f"portfolio_{portfolio_id}.pdf",
+        str(paths[0]),
+        media_type=media_types[fmt],
+        filename=f"portfolio_{portfolio_id}.{extensions[fmt]}",
         headers={"X-Portfolio-ID": portfolio_id},
     )
 
