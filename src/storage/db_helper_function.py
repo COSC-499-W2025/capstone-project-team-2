@@ -25,7 +25,7 @@ class HelperFunct:
         self.conn = connection
 
 
-    def insert_json(self, filename: str, data: dict, raw_bytes: bytes = None) -> int:
+    def insert_json(self, filename: str, data: dict, raw_bytes: bytes = None) -> tuple[str, bool]:
         """
         Insert JSON data into the database, storing both the structured JSON
         content and the raw binary representation.
@@ -44,9 +44,22 @@ class HelperFunct:
 
         cursor = self.conn.cursor()
         try:
+
+            cursor.execute("SELECT 1 FROM project_data WHERE Pname = %s", (filename,))
+            was_update = cursor.fetchone() is not None
+
             cursor.execute(
-                "INSERT INTO project_data (Pname, content, file_blob) VALUES (%s, %s, %s)",
-                (filename, json.dumps(data), raw_bytes)
+                "SELECT COALESCE(MAX(version_number), 0) FROM project_versions WHERE project_name = %s",
+                (filename,)
+            )
+            new_version = cursor.fetchone()[0] + 1
+
+            cursor.execute(
+                "INSERT INTO project_data (Pname, content, file_blob, current_version) "
+                "VALUES (%s, %s, %s, %s) "
+                "ON DUPLICATE KEY UPDATE "
+                "content = VALUES(content), file_blob = VALUES(file_blob), current_version = %s",
+                (filename, json.dumps(data), raw_bytes, new_version, new_version)
             )
 
             cursor.execute(
@@ -56,13 +69,14 @@ class HelperFunct:
             uploaded_at = cursor.fetchone()[0]
 
             cursor.execute(
-                "INSERT INTO project_versions (project_name, project_uploaded_at, version_number, content, file_blob) "
+                "INSERT INTO project_versions "
+                "(project_name, project_uploaded_at, version_number, content, file_blob) "
                 "VALUES (%s, %s, %s, %s, %s)",
-                (filename, uploaded_at, 1, json.dumps(data), raw_bytes)
+                (filename, uploaded_at, new_version, json.dumps(data), raw_bytes)
             )
+
             self.conn.commit()
-        
-            return filename
+            return filename, was_update
         finally:
             cursor.close()
 
@@ -285,15 +299,12 @@ class HelperFunct:
         try:
             cursor.execute("""
                 SELECT
-                    pv.version_number,
-                    pv.content,
-                    pv.file_blob,
-                    pv.created_at
-                FROM project_versions pv
-                JOIN project_data pd
-                    ON pv.project_name = pd.Pname
-                    AND pv.project_uploaded_at = pd.uploaded_at
-                WHERE pv.project_name = %s AND pv.version_number = %s
+                    version_number,
+                    content,
+                    file_blob,
+                    created_at
+                FROM project_versions
+                WHERE project_name = %s AND version_number = %s
             """, (project_name, version_number))
             
             version = cursor.fetchone()
@@ -334,7 +345,7 @@ class HelperFunct:
                     COUNT(pv.id) as total_versions
                 FROM project_data pd
                 LEFT JOIN project_versions pv ON pd.Pname = pv.project_name AND pv.project_uploaded_at = pd.uploaded_at
-                GROUP BY pd.Pname
+                GROUP BY pd.Pname, pd.current_version, pd.uploaded_at, pd.updated_at
                 ORDER BY pd.updated_at DESC
             """)
             
