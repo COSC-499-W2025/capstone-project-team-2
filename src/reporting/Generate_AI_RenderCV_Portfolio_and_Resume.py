@@ -4,7 +4,7 @@ import sys
 from functools import wraps
 from pathlib import Path
 from dataclasses import dataclass, asdict
-from typing import Optional, List, Literal
+from typing import Optional, List, Literal, Iterable, Dict
 import ruamel.yaml
 import orjson
 from src.reporting.Generate_AI_Resume import GenerateProjectResume
@@ -25,13 +25,15 @@ def requires_data(method):
     """
 
     @wraps(method)
-    def wrapper(self,*args,**kwargs):
+    def wrapper(self, *args, **kwargs):
         if self.data is None:
             raise ValueError("No data loaded")
         if self.data.get('cv') is None:
             raise ValueError("Invalid data structure: missing required 'cv' key")
-        return method(self,*args,**kwargs)
+        return method(self, *args, **kwargs)
+
     return wrapper
+
 
 def requires_resume(method):
     """
@@ -45,15 +47,17 @@ def requires_resume(method):
         function: Wrapped method that raises ValueError if doc_type is not 'resume'
 
     """
+
     @wraps(method)
-    def wrapper(self,*args,**kwargs):
+    def wrapper(self, *args, **kwargs):
         if self.doc_type != 'resume':
             raise ValueError("Method requires document type 'resume'")
-        return method(self,*args,**kwargs)
+        return method(self, *args, **kwargs)
+
     return wrapper
 
 
-#==================DATACLASSES====================
+# ==================DATACLASSES====================
 
 @dataclass
 class Experience:
@@ -68,13 +72,14 @@ class Experience:
         highlights: List of accomplishments or responsibilities
 
     """
-    company:str
+    company: str
     position: Optional[str] = None
     start_date: Optional[str] = None
     end_date: Optional[str] = None
     location: Optional[str] = None
     highlights: Optional[List[str]] = None
     to_dict = dataclass_to_dict
+
 
 @dataclass
 class Skills:
@@ -84,9 +89,10 @@ class Skills:
         label: Category name for the skill group (e.g., 'Languages', 'Frameworks')
         details: Comma-separated string of skills in this category (e.g., 'Python, JavaScript, Go')
     """
-    label:str
-    details:str
+    label: str
+    details: str
     to_dict = dataclass_to_dict
+
 
 @dataclass
 class Education:
@@ -114,6 +120,7 @@ class Education:
     highlights: Optional[List[str]] = None
     to_dict = dataclass_to_dict
 
+
 @dataclass
 class Connections:
     """
@@ -126,6 +133,7 @@ class Connections:
     network: Optional[str] = None
     username: Optional[str] = None
     to_dict = dataclass_to_dict
+
 
 @dataclass
 class Project:
@@ -148,8 +156,10 @@ class Project:
     highlights: Optional[List[str]] = None
     to_dict = dataclass_to_dict
 
+
 # ========== DOCUMENT TYPE =========
 DocumentType = Literal['resume', 'portfolio']
+
 
 # ========= UNIFIED CLASS =========
 class RenderCVDocument:
@@ -157,6 +167,7 @@ class RenderCVDocument:
     Unified builder class for creating and managing RenderCV YAML files.
     Supports both resume and portfolio document types with a single interface.
     """
+    SUPPORTED_FORMATS = {"pdf", "html", "markdown"}
     THEMES = {
         'classic': 'Classic CV theme',
         'engineeringclassic': 'Engineering-focused CV theme',
@@ -164,7 +175,9 @@ class RenderCVDocument:
         'moderncv': 'Modern CV theme',
         'sb2nov': 'Clean resume theme (recommended for resumes)',
     }
-    def __init__(self, doc_type: DocumentType = 'resume', auto_save: bool = True, output_dir: str = 'rendercv_output')->None:
+
+    def __init__(self, doc_type: DocumentType = 'resume', auto_save: bool = True,
+                 output_dir: str = 'rendercv_output') -> None:
         """
         Initialize the CV/Resume/Portfolio builder with configuration options.
 
@@ -181,7 +194,7 @@ class RenderCVDocument:
         self.cv_files_dir = Path(__file__).parent.parent.parent / "User_config_files" / "Generate_render_CV_files"
         self.project_insight_folder = Path(__file__).parent.parent.parent / "User_config_files" / "project_insights"
 
-        #Cached section data
+        # Cached section data
         self.summary: Optional[List[str]] = None
         self.current_experience: Optional[List[dict]] = None
         self.current_projects: Optional[List[dict]] = None
@@ -196,12 +209,12 @@ class RenderCVDocument:
         self.auto_save: bool = auto_save
         self.output_dir: Path = Path(output_dir)
 
-        #YAML parser instance
+        # YAML parser instance
         self.yaml = ruamel.yaml.YAML()
         self.yaml.preserve_quotes = True
 
     @property
-    def _file_suffix(self)->str:
+    def _file_suffix(self) -> str:
         """
             Determines the file suffix based on the document type.
             used for generating consistent filenames
@@ -211,93 +224,92 @@ class RenderCVDocument:
             """
         return "Resume_CV" if self.doc_type == 'resume' else "Portfolio_CV"
 
+    def _get_template(self) -> dict:
+        """
+        Generate a starter template dictionary based on the document type.
+        on the document type.
+        Creates the base YAML structure with placeholder content
 
-    def _get_template(self)-> dict:
-            """
-            Generate a starter template dictionary based on the document type.
-            on the document type.
-            Creates the base YAML structure with placeholder content
+        Args:
+            name: The person's name to used in the template, underscore will be replaced with spaces
 
-            Args:
-                name: The person's name to used in the template, underscore will be replaced with spaces
+        Returns:
+              dict: Complete YAML template dictionary
 
-            Returns:
-                  dict: Complete YAML template dictionary
-
-            """
-            base_template = {
-                'cv': {
-                    'name': self.name.replace('_', ' '),
+        """
+        base_template = {
+            'cv': {
+                'name': self.name.replace('_', ' '),
+                'location': 'City, State',
+                'email': 'your.email@example.com',
+                'phone': '+1 234 567 8901',
+                'website': 'https://yourwebsite.com',
+                'social_networks': [
+                    {'network': 'LinkedIn', 'username': ''},
+                    {'network': 'GitHub', 'username': ''}
+                ],
+                'sections': {}
+            },
+            'design': {'theme': self.chosen_theme},
+            'locale': {'language': 'english'}
+        }
+        if self.doc_type == 'resume':
+            base_template['cv']['sections'] = {
+                'summary': [
+                    'A brief summary about yourself and your professional background.'
+                ],
+                'education': [{
+                    'institution': 'University Name',
+                    'area': 'Field of Study',
+                    'degree': 'BS',
+                    'start_date': '2020-09',
+                    'end_date': '2024-05',
                     'location': 'City, State',
-                    'email': 'your.email@example.com',
-                    'phone': '+1 234 567 8901',
-                    'website': 'https://yourwebsite.com',
-                    'social_networks': [
-                        {'network': 'LinkedIn', 'username': ''},
-                        {'network': 'GitHub', 'username': ''}
-                    ],
-                    'sections': {}
-                },
-                'design': {'theme': self.chosen_theme},
-                'locale': {'language': 'english'}
+                    'highlights': ['GPA: X.XX/4.00']
+                }],
+                'experience': [{
+                    'company': 'Company Name',
+                    'position': 'Position Title',
+                    'start_date': '2023-06',
+                    'end_date': '2023-07',
+                    'location': 'City, State',
+                    'highlights': ['Accomplishment 1', 'Accomplishment 2']
+                }],
+                'projects': [{
+                    'name': 'Project Name',
+                    'start_date': '2023-01',
+                    'end_date': '2024-05',
+                    'summary': 'Brief description of the project',
+                    'highlights': ['Key feature 1', 'Key feature 2']
+                }],
+                'skills': [
+                    {'label': 'Languages', 'details': 'Python, JavaScript, etc.'},
+                    {'label': 'Frameworks', 'details': 'React, Django, etc.'},
+                    {'label': 'Tools', 'details': 'Git, Docker, etc.'}
+                ]
             }
-            if self.doc_type == 'resume':
-                base_template['cv']['sections'] = {
-                    'summary': [
-                        'A brief summary about yourself and your professional background.'
-                    ],
-                    'education': [{
-                        'institution': 'University Name',
-                        'area': 'Field of Study',
-                        'degree': 'BS',
-                        'start_date': '2020-09',
-                        'end_date': '2024-05',
-                        'location': 'City, State',
-                        'highlights': ['GPA: X.XX/4.00']
-                    }],
-                    'experience': [{
-                        'company': 'Company Name',
-                        'position': 'Position Title',
-                        'start_date': '2023-06',
-                        'end_date': '2023-07',
-                        'location': 'City, State',
-                        'highlights': ['Accomplishment 1', 'Accomplishment 2']
-                    }],
-                    'projects': [{
-                        'name': 'Project Name',
-                        'start_date': '2023-01',
-                        'end_date': '2024-05',
-                        'summary': 'Brief description of the project',
-                        'highlights': ['Key feature 1', 'Key feature 2']
-                    }],
-                    'skills': [
-                        {'label': 'Languages', 'details': 'Python, JavaScript, etc.'},
-                        {'label': 'Frameworks', 'details': 'React, Django, etc.'},
-                        {'label': 'Tools', 'details': 'Git, Docker, etc.'}
-                    ]
-                }
-            else:
-                base_template['cv']['sections'] = {
-                    'summary': [
-                        'A brief summary about yourself and your professional background.'
-                    ],
-                    'projects': [{
-                        'name': 'Project Name',
-                        'start_date': '2023-01',
-                        'end_date': '2024-05',
-                        'summary': 'Brief description of the project',
-                        'highlights': ['Key feature 1', 'Key feature 2']
-                    }],
-                    'skills': [
-                        {'label': 'Languages', 'details': 'Python, JavaScript, etc.'},
-                        {'label': 'Technologies', 'details': 'React, Docker, AWS, etc.'},
-                        {'label': 'Tools', 'details': 'Git, VS Code, etc.'}
-                    ]
-                }
-            return base_template
+        else:
+            base_template['cv']['sections'] = {
+                'summary': [
+                    'A brief summary about yourself and your professional background.'
+                ],
+                'projects': [{
+                    'name': 'Project Name',
+                    'start_date': '2023-01',
+                    'end_date': '2024-05',
+                    'summary': 'Brief description of the project',
+                    'highlights': ['Key feature 1', 'Key feature 2']
+                }],
+                'skills': [
+                    {'label': 'Languages', 'details': 'Python, JavaScript, etc.'},
+                    {'label': 'Technologies', 'details': 'React, Docker, AWS, etc.'},
+                    {'label': 'Tools', 'details': 'Git, VS Code, etc.'}
+                ]
+            }
+        return base_template
 
-    #====== FILE Operations =======
-    def generate(self,overwrite:bool=False, name: str = "Jane Doe"):
+    # ====== FILE Operations =======
+    def generate(self, overwrite: bool = False, name: str = "Jane Doe"):
         """
         Generate a starter YAML file with template content.
         Creates the necessary directories and writes the initial YAML structure.
@@ -325,9 +337,7 @@ class RenderCVDocument:
 
         return "Success"
 
-
-
-    def load(self,name: Optional[str] = None)-> dict:
+    def load(self, name: Optional[str] = None) -> dict:
         """
         Loads an existing YAML file into memory for editing
         Parses the file and caches section data for easy access
@@ -345,7 +355,7 @@ class RenderCVDocument:
         """
 
         if name:
-            self.name= name.replace(" ", "_")
+            self.name = name.replace(" ", "_")
             self.yaml_file = self.cv_files_dir / f"{self.name}_{self._file_suffix}.yaml"
 
         if not self.yaml_file or not self.yaml_file.exists():
@@ -357,9 +367,9 @@ class RenderCVDocument:
         if self.data.get('cv') is None:
             raise ValueError("Invalid YAML structure: missing required 'cv' key")
 
-        self.sections=self.data['cv']['sections']
-        self.current_projects=self.sections.get('projects', [])
-        self.current_connections=self.data['cv'].get('social_networks', [])
+        self.sections = self.data['cv']['sections']
+        self.current_projects = self.sections.get('projects', [])
+        self.current_connections = self.data['cv'].get('social_networks', [])
         self.data['cv']['name'] = str(self.name).replace("_", " ")
 
         # Shared sections for both resume and portfolio
@@ -367,13 +377,12 @@ class RenderCVDocument:
         self.summary = self.sections.get('summary', [])
 
         if self.doc_type == 'resume':
-            self.current_education=self.sections.get('education', [])
-            self.current_experience=self.sections.get('experience',[])
+            self.current_education = self.sections.get('education', [])
+            self.current_experience = self.sections.get('experience', [])
 
         return self.data
 
-
-    def save(self,filename:Optional[str] = None):
+    def save(self, filename: Optional[str] = None):
         """
         Save the current CV data to a YAML file.
         Writes the in-memory data structure back to disk.
@@ -387,13 +396,13 @@ class RenderCVDocument:
         if self.data is None:
             raise ValueError("No data loaded")
 
-        output_file=Path(filename) if filename else self.yaml_file
+        output_file = Path(filename) if filename else self.yaml_file
         with open(output_file, 'w') as f:
             self.yaml.dump(self.data, f)
 
         return output_file
 
-    def _auto_save_if_enabled(self)-> None:
+    def _auto_save_if_enabled(self) -> None:
         """
         Automatically saves the data if auto_save is enabled.
         called internally after each modification method.
@@ -405,10 +414,128 @@ class RenderCVDocument:
         if self.auto_save and self.data is not None:
             self.save()
 
-
-    def render(self) -> tuple[str,Optional[Path]]:
+    def _normalize_formats(self, formats: Iterable[str]) -> List[str]:
         """
-         Render the YAML file to PDF using the RenderCV command-line tool.
+        Normalize and validate requested output formats.
+
+        Args:
+            formats: Iterable of format strings
+
+        Returns:
+            List[str]: Normalized list of formats
+        """
+        normalized: List[str] = []
+        for fmt in formats or []:
+            fmt_normalized = (fmt or "").strip().lower()
+            if not fmt_normalized:
+                continue
+            if fmt_normalized not in self.SUPPORTED_FORMATS:
+                raise ValueError(
+                    f"Unsupported format '{fmt}'. Supported: {', '.join(sorted(self.SUPPORTED_FORMATS))}"
+                )
+            if fmt_normalized not in normalized:
+                normalized.append(fmt_normalized)
+
+        return normalized or ["pdf"]
+
+    def _get_output_dir(self) -> Path:
+        """
+        Resolve the output directory used by RenderCV.
+
+        Returns:
+            Path: Absolute path to the output directory
+        """
+        if not self.yaml_file:
+            raise ValueError("YAML file not set")
+
+        yaml_parent = self.yaml_file.resolve().parent
+        return yaml_parent / "rendercv_output"
+
+    def render_outputs(self, formats: Iterable[str]) -> tuple[str, Dict[str, List[Path]]]:
+        """
+        Render the YAML file using RenderCV for one or more output formats.
+
+        Args:
+            formats: Iterable of output formats (pdf, html, markdown)
+
+        Returns:
+            tuple[str, Dict[str, List[Path]]]:
+                - Status message
+                - Mapping of format to list of output files
+        """
+        if not self.yaml_file or not self.yaml_file.exists():
+            raise FileNotFoundError(f"YAML file {self.yaml_file} does not exist")
+
+        selected_formats = self._normalize_formats(formats)
+        output_dir = self._get_output_dir()
+        yaml_parent = self.yaml_file.resolve().parent
+        output_base = f"{self.name}_CV"
+        doc_type_label = "Resume" if self.doc_type == 'resume' else "Portfolio"
+
+        if output_dir.exists():
+            shutil.rmtree(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        cmd = [sys.executable, "-m", "rendercv", "render", str(self.yaml_file)]
+        format_flags = {
+            "pdf": "--dont-generate-pdf",
+            "html": "--dont-generate-html",
+        }
+        for fmt, flag in format_flags.items():
+            if fmt not in selected_formats:
+                cmd.append(flag)
+        if "markdown" not in selected_formats and "html" not in selected_formats:
+            cmd.append("--dont-generate-markdown")
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=yaml_parent,
+        )
+
+        outputs: Dict[str, List[Path]] = {}
+        errors: List[str] = []
+
+        if not output_dir.exists():
+            errors.append(f"render failed - output directory not found at {output_dir}")
+        else:
+            format_exts = {
+                "pdf": "pdf",
+                "html": "html",
+                "markdown": "md",
+            }
+            for fmt, ext in format_exts.items():
+                if fmt not in selected_formats:
+                    continue
+                source_file = output_dir / f"{output_base}.{ext}"
+                if not source_file.exists():
+                    errors.append(f"{fmt} not found at {source_file}")
+                    continue
+                renamed = output_dir / f"{self.name}_{doc_type_label}.{ext}"
+                if renamed.exists():
+                    renamed.unlink()
+                source_file.rename(renamed)
+                outputs[fmt] = [renamed]
+
+            if "html" in selected_formats and "markdown" not in selected_formats:
+                markdown_file = output_dir / f"{output_base}.md"
+                if markdown_file.exists():
+                    markdown_file.unlink()
+
+        if result.returncode != 0 and not outputs:
+            details = (result.stderr or "").strip()
+            if not details and result.stdout:
+                details = result.stdout.strip()
+            errors.insert(0, f"render failed (code {result.returncode}): {details}")
+
+        status = "successfully rendered" if not errors else "; ".join(errors)
+        return status, outputs
+
+    def render(self) -> tuple[str, Optional[Path]]:
+        """
+        Render the YAML file to PDF using the RenderCV command-line tool.
         Cleans up any existing output directory before rendering.
         Renames the output PDF to include 'Resume' or 'Portfolio' based on document type.
 
@@ -420,32 +547,14 @@ class RenderCVDocument:
         Raises:
             FileNotFoundError: If the YAML file does not exist
         """
-        if not self.yaml_file or not self.yaml_file.exists():
-            raise FileNotFoundError(f"YAML file {self.yaml_file} does not exist")
+        status, outputs = self.render_outputs(["pdf"])
+        pdf_paths = outputs.get("pdf", [])
+        return status, pdf_paths[0] if pdf_paths else None
 
-        yaml_file_absolute=self.yaml_file.resolve()
-        default_output=yaml_file_absolute.parent / "rendercv_output"
-        source_pdf = default_output / f"{self.name}_CV.pdf"
-
-        if default_output.exists():
-            shutil.rmtree(default_output)
-
-        result= subprocess.run([sys.executable, '-m', 'rendercv', 'render', str(self.yaml_file)],capture_output=True,text=True, encoding='utf-8',errors='replace')
-
-        if source_pdf.exists():
-            # Rename PDF to include document type (Resume or Portfolio)
-            doc_type_label = "Resume" if self.doc_type == 'resume' else "Portfolio"
-            renamed_pdf = default_output / f"{self.name}_{doc_type_label}.pdf"
-            source_pdf.rename(renamed_pdf)
-            return "successfully rendered", renamed_pdf
-        else:
-            if result.returncode !=0:
-                return f"render failed (code {result.returncode}): {result.stderr}", None
-            return f"render failed - PDF not found at {source_pdf}", None
-
-# ============== CONTACT & THEME ==============
+    # ============== CONTACT & THEME ==============
     @requires_data
-    def update_contact(self,email: Optional[str] = None,phone: Optional[str] = None,location: Optional[str] = None,website: Optional[str] = None,name: Optional[str] = None):
+    def update_contact(self, email: Optional[str] = None, phone: Optional[str] = None, location: Optional[str] = None,
+                       website: Optional[str] = None, name: Optional[str] = None):
         """
         Update contact information fields in the CV header.
         Only non-empty values will be updated; None or empty strings are ignored.
@@ -460,9 +569,9 @@ class RenderCVDocument:
         Returns:
             RenderCVDocument: Returns self to enable method chaining
         """
-        cv=self.data['cv']
+        cv = self.data['cv']
         fields = {'email': email, 'phone': phone, 'location': location, 'website': website, 'name': name}
-        for field_name,value in fields.items():
+        for field_name, value in fields.items():
             if value and str(value).strip():
                 cv[field_name] = value
         self._auto_save_if_enabled()
@@ -487,7 +596,7 @@ class RenderCVDocument:
         }
 
     @requires_data
-    def update_theme(self,selected_theme:str):
+    def update_theme(self, selected_theme: str):
         """
         Change the visual theme used for rendering the CV/resume.
         Validates that the theme is one of the supported RenderCV themes.
@@ -554,7 +663,7 @@ class RenderCVDocument:
 
     # ============== PROJECTS (shared) ==============
     @requires_data
-    def add_project(self,project_info: Project):
+    def add_project(self, project_info: Project):
         """
         Add a new project entry to the projects section.
         Available for both resume and portfolio document types. Creates the section if it doesn't exist.
@@ -571,10 +680,10 @@ class RenderCVDocument:
 
         if 'projects' not in self.sections:
             self.sections['projects'] = []
-            self.current_projects=self.sections['projects']
+            self.current_projects = self.sections['projects']
 
         existing = [p['name'] for p in self.current_projects]
-        if project_info.name  in existing:
+        if project_info.name in existing:
             return f"Project '{project_info.name}' already exists"
         self.current_projects.append(project_info.to_dict())
         self._auto_save_if_enabled()
@@ -607,7 +716,7 @@ class RenderCVDocument:
         return f"Successfully modified {field}"
 
     @requires_data
-    def remove_project(self,project_name: str):
+    def remove_project(self, project_name: str):
         """
         Remove a project entry by its name.
         Available for both resume and portfolio document types.
@@ -713,7 +822,7 @@ class RenderCVDocument:
     # ============== CONNECTIONS (shared) ==============
 
     @requires_data
-    def add_connection(self,connection_info: Connections):
+    def add_connection(self, connection_info: Connections):
         """
         Add a new social network connection to the CV header.
         Creates the social_networks section if it doesn't exist. Prevents duplicate networks.
@@ -1157,4 +1266,3 @@ class RenderCVDocument:
             return f"Successfully removed section: {section_name}"
 
         return f"Section '{section_name}' not found"
-
