@@ -74,7 +74,7 @@ def return_all_saved_projects() -> list:
 def get_project_by_name(project_name: str):
     return id
 
-@projectsRouter.get("/{id}/delete")
+@projectsRouter.get("/{id}/delete/")
 def delete_project(project_name: str, save_path: str) -> dict:
     """
     Deletes a project from the database and local save

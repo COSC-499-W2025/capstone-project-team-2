@@ -106,8 +106,10 @@ def test_delete_project_no_db():
     try:
         path.touch(exist_ok=True)
         path.write_text("test")
-        statuses = delete_project(path.name, str(path))
+        response = test_client.get(f"/projects/{path.name}/delete/?save_path={str(path)}")
+        statuses = response.json()
 
+        assert response.status_code == 200
         assert statuses.get("status") == f"[SUCCESS] Deleted '{path.name}' from filesystem!"
         assert statuses.get("dbstatus") != f"[SUCCESS] Deleted DB records for '{path.name}'."
         assert not path.exists()
@@ -130,8 +132,10 @@ def test_delete_project_db():
         path.touch(exist_ok=True)
         path.write_text("test")
         runtimeAppContext.store.insert_json("test.json", {"test": False})
-        statuses = delete_project(path.name, str(path))
+        response = test_client.get(f"/projects/{path.name}/delete/?save_path={str(path)}")
+        statuses = response.json()
 
+        assert response.status_code == 200
         assert statuses.get("status") == f"[SUCCESS] Deleted '{path.name}' from filesystem!"
         assert statuses.get("dbstatus") == f"[SUCCESS] Deleted DB records for '{path.name}'."
         assert not path.exists()
