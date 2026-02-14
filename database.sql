@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS project_data (
     current_version INT DEFAULT 1,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY(Pname, uploaded_at)
+    UNIQUE KEY unique_pname (Pname)
 ) ENGINE=InnoDB;
 
 -- project versions table -- 
