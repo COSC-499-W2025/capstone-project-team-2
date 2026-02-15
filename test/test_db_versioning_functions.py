@@ -19,8 +19,8 @@ class TestVersioningHelper(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.conn = mysql.connector.connect(
-            host="app_database",
-            port=3306,
+            host="localhost",
+            port=3308,
             database="appdb",
             user="appuser",
             password="apppassword"
@@ -68,7 +68,7 @@ class TestVersioningHelper(unittest.TestCase):
         the latest version can be fetched correctly.
         """
         project_name, _ = self.store.insert_json("file.json", {"data": 1})
-
+    
         self.store.update(project_name , {"data": 2})
 
         versions = self.store.get_version_list(project_name )
