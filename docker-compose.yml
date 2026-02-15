@@ -23,6 +23,8 @@ services:
       - ./test/data:/app/test/data
     environment:
       - OLLAMA_HOST=http://ollama2:11434
+      - DB_HOST=app_database
+      - DB_PORT=3306
     depends_on:
       app_database:
         condition: service_healthy

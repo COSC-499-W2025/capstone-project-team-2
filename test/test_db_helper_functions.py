@@ -5,9 +5,11 @@ from pathlib import Path
 import mysql.connector
 import sys
 import os
+from dotenv import load_dotenv
 
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+load_dotenv()
 
 from src.storage.db_helper_function import HelperFunct
 
@@ -45,8 +47,8 @@ class TestHelperFunct(unittest.TestCase):
             None: Initializes shared database resources for the test class.
         """
         cls.conn = mysql.connector.connect(
-            host="app_database",
-            port=3306,
+            host= os.environ.get("DB_HOST", "localhost"),
+            port= int(os.environ.get("DB_PORT", 3308)),
             database="appdb",
             user="appuser",
             password="apppassword"
