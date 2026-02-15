@@ -110,7 +110,9 @@ def export_json(project_name: str, analysis: Dict[str, Any]) -> Dict[str, Any]:
     saver.saveAnalysis(project_name, analysis_copy, str(out_dir))
 
     try:
-        runtimeAppContext.store.insert_json(filename, analysis_copy)
+        _, was_update = runtimeAppContext.store.insert_json(filename, analysis_copy)
+        if was_update:
+            print(f"[INFO] Project '{filename}' already exists - updated with new version")
     except Exception as e:
         logging.warning(f"Could not save to database: {e}")
 
@@ -232,6 +234,7 @@ def analyze_project(root: Path, use_ai_analysis=False) -> Dict[str, Any]:
     #    ps = analysis["portfolio_showcase"]
     #    display_portfolio_showcase(ps)
     #    return
+
     dedup_result = deduplicate_project(
         root,
         Path(runtimeAppContext.default_save_dir) / "dedup_index.json",
