@@ -3,9 +3,11 @@ import json
 import sys
 import os
 import mysql.connector
+from dotenv import load_dotenv
 
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+load_dotenv()
 
 from src.storage.db_helper_function import HelperFunct
 
@@ -19,8 +21,8 @@ class TestVersioningHelper(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.conn = mysql.connector.connect(
-            host="localhost",
-            port=3308,
+            host= os.environ.get("DB_HOST", "localhost"),
+            port= int(os.environ.get("DB_PORT", 3308)),
             database="appdb",
             user="appuser",
             password="apppassword"
