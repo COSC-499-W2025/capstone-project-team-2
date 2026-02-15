@@ -178,7 +178,7 @@ class TestGenerateResumeAI_Ver2(unittest.TestCase):
         result = gen.generate_AI_Resume_entry()
         self.assertIsInstance(result, AIResumeEntry)
         self.assertEqual(result.project_title, "Task Manager")
-        self.assertEqual(result.key_responsibilities, ["Designed API", "Implemented auth"])
+        self.assertEqual(result.key_responsibilities, ["Designed API", "Implemented auth", "Tech Stack: Python, Flask, React"])
         self.assertEqual(result.tech_stack, "Python, Flask, React")
 
     def test_generate_passes_context_to_chain(self, mock_ctx):

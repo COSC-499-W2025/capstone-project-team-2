@@ -280,13 +280,20 @@ PROJECT DATA:
         result = self._get_chain().invoke({"project_data": context})
 
         # Convert result to dataclass
+        key_responsibilities = list(result.get("key_responsibilities", []))
+        tech_stack = result.get("tech_stack", "")
+
+        # Add tech stack as a highlight if detected
+        if tech_stack:
+            key_responsibilities.append(f"Tech Stack: {tech_stack}")
+
         return AIResumeEntry(
             project_title=result.get("project_title", ""),
             one_sentence_summary=result.get("one_sentence_summary", ""),
             detailed_summary=result.get("detailed_summary", ""),
-            key_responsibilities=result.get("key_responsibilities", []),
+            key_responsibilities=key_responsibilities,
             key_skills_used=result.get("key_skills_used", []),
-            tech_stack=result.get("tech_stack", ""),
+            tech_stack=tech_stack,
             impact=result.get("impact", ""),
         )
 
