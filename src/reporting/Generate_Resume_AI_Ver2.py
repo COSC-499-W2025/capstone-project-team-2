@@ -57,11 +57,17 @@ class ResumeProjectInfo:
         resume_item = data.get("resume_item", {})
         oop_analysis = data.get("oop_analysis", {})
         oop_score_info = oop_analysis.get("score", {})
-        project_type_info = data.get("project_type", {})
+        project_type_info = data.get("project_type", "unknown")
+        if isinstance(project_type_info, dict):
+            project_type_value = project_type_info.get("project_type", "unknown")
+        elif isinstance(project_type_info, str):
+            project_type_value = project_type_info
+        else:
+            project_type_value = "unknown"
 
         return cls(
             project_name=resume_item.get("project_name", ""),
-            project_type=project_type_info.get("project_type", "unknown"),
+            project_type=project_type_value,
             skills=resume_item.get("skills", []),
             languages=resume_item.get("languages", []),
             frameworks=resume_item.get("frameworks", []),

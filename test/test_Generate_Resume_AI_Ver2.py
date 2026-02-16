@@ -56,6 +56,29 @@ class TestResumeProjectInfo(unittest.TestCase):
         self.assertEqual(info.languages, [])
         self.assertEqual(info.oop_score, 0.0)
 
+    def test_project_type_as_string(self):
+        """Handle project_type being a plain string instead of a dict."""
+        data = {
+            "resume_item": {"project_name": "App", "languages": [], "skills": [],
+                            "frameworks": [], "summary": "", "highlights": [],
+                            "framework_sources": {}},
+            "project_type": "individual",
+            "duration_estimate": "1 week",
+        }
+        info = ResumeProjectInfo.from_project_data(data)
+        self.assertEqual(info.project_type, "individual")
+
+    def test_project_type_missing(self):
+        """Handle missing project_type key gracefully."""
+        data = {
+            "resume_item": {"project_name": "App", "languages": [], "skills": [],
+                            "frameworks": [], "summary": "", "highlights": [],
+                            "framework_sources": {}},
+            "duration_estimate": "1 week",
+        }
+        info = ResumeProjectInfo.from_project_data(data)
+        self.assertEqual(info.project_type, "unknown")
+
     def test_missing_oop_analysis_defaults(self):
         """Handle missing OOP analysis section gracefully with defaults."""
         data = {"resume_item": {"project_name": "Script", "languages": ["Python"],
