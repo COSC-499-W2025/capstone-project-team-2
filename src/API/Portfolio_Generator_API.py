@@ -28,6 +28,10 @@ from pydantic import BaseModel
 from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
     RenderCVDocument,Project
 )
+from src.reporting.portfolio_service import (
+    load_portfolio_showcase,
+    save_project_role_override,
+)
 from src.core.app_context import runtimeAppContext
 
 portfolioRouter = APIRouter(tags=["Portfolio"])
@@ -64,6 +68,11 @@ class ProjectRequest(BaseModel):
     location: Optional[str] = None
     summary: Optional[str] = None
     highlights: Optional[list[str]] = None
+
+
+class ProjectRoleOverrideRequest(BaseModel):
+    """Request payload for setting a project's showcase role."""
+    role: str = Field(default="Backend Developer", max_length=200)
 
 
 
@@ -106,6 +115,54 @@ def _check_result(result:str):
     return result
 
 """---API Calls/Requests---"""
+
+@portfolioRouter.post("/portfolio-showcase/{project_name}/role")
+def set_portfolio_showcase_role(project_name: str, payload: ProjectRoleOverrideRequest):
+    """
+    Save a human-authored role override for a project's portfolio showcase.
+
+    Args:
+        project_name: Project name used for override storage.
+        payload: Contains role text to persist.
+
+    Returns:
+        dict: Saved project name and role.
+    """
+    role = payload.role.strip()
+    if not role:
+        raise HTTPException(status_code=400, detail="Role cannot be empty.")
+
+    try:
+        saved = save_project_role_override(project_name, role)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save role override: {e}")
+
+    return {
+        "project_name": project_name,
+        "role": saved.get("project", {}).get("role"),
+        "status": "Role override saved successfully",
+    }
+
+
+@portfolioRouter.get("/portfolio-showcase/{project_name}/role")
+def get_portfolio_showcase_role(project_name: str):
+    """
+    Return the saved role override for a project's portfolio showcase.
+
+    Args:
+        project_name: Project name used for override lookup.
+
+    Returns:
+        dict: Project role if found.
+    """
+    overrides = load_portfolio_showcase(project_name)
+    role = (overrides.get("project") or {}).get("role")
+    if not role:
+        raise HTTPException(status_code=404, detail=f"No saved role for project '{project_name}'.")
+
+    return {"project_name": project_name, "role": role}
+
+
 @portfolioRouter.post("/portfolio/generate")
 def generate_portfolio(payload: GeneratePortfolioRequest):
     """Create a new portfolio YAML document.

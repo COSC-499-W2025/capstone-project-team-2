@@ -173,14 +173,7 @@ def load_portfolio_showcase(project_name: str) -> Dict[str, Any]:
     Returns:
         dict: Portfolio override data, or empty dict if file not found or invalid.
     """
-    project_root = Path(__file__).resolve().parents[2]
-    config_dir = project_root / "User_config_files"
-    portfolio_dir = config_dir / "portfolio_overrides"
-    portfolio_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Sanitize project name for filename
-    safe_name = project_name.replace(" ", "_").replace("/", "_")
-    yaml_path = portfolio_dir / f"{safe_name}.yaml"
+    yaml_path = _portfolio_override_path(project_name)
     
     if not yaml_path.exists():
         return {}
@@ -193,3 +186,50 @@ def load_portfolio_showcase(project_name: str) -> Dict[str, Any]:
     except Exception as e:
         print(f"[WARNING] Could not parse portfolio YAML for '{project_name}': {e}")
         return {}
+
+
+def _portfolio_override_path(project_name: str) -> Path:
+    """
+    Resolve the YAML override path for a project showcase.
+
+    Args:
+        project_name (str): Project display name.
+
+    Returns:
+        Path: Normalized YAML path under User_config_files/portfolio_overrides.
+    """
+    project_root = Path(__file__).resolve().parents[2]
+    portfolio_dir = project_root / "User_config_files" / "portfolio_overrides"
+    portfolio_dir.mkdir(parents=True, exist_ok=True)
+    safe_name = project_name.replace(" ", "_").replace("/", "_")
+    return portfolio_dir / f"{safe_name}.yaml"
+
+
+def save_project_role_override(project_name: str, role: str) -> Dict[str, Any]:
+    """
+    Persist a human-authored role override for a project showcase.
+
+    Args:
+        project_name (str): Project name used for override lookup.
+        role (str): Role text supplied by the user.
+
+    Returns:
+        Dict[str, Any]: Full merged override payload after saving.
+    """
+    yaml_path = _portfolio_override_path(project_name)
+    overrides = load_portfolio_showcase(project_name)
+    if not isinstance(overrides, dict):
+        overrides = {}
+
+    project_block = overrides.get("project")
+    if not isinstance(project_block, dict):
+        project_block = {}
+    project_block["role"] = role
+    overrides["project"] = project_block
+
+    yaml = ruamel.yaml.YAML()
+    yaml.preserve_quotes = True
+    with open(yaml_path, "w", encoding="utf-8") as f:
+        yaml.dump(overrides, f)
+
+    return overrides
