@@ -64,7 +64,9 @@ def create_app_context(external_consent_value=False, data_consent_value=False) -
             conn=None,
             store=SimpleNamespace(
                 insert_json=lambda *args, **kwargs: None,
-                fetch_by_id=lambda *args, **kwargs: None,
+                fetch_by_name=lambda *args, **kwargs: None,
+                delete=lambda *args, **kwargs: False,
+                count_file_references=lambda *args, **kwargs: 0,
             ),
             legacy_save_dir=legacy_save_dir,
             default_save_dir=default_save_dir,

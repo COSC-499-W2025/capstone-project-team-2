@@ -11,7 +11,7 @@ Endpoints:
     GET    /resume/{id}              - Retrieve full resume data as JSON
     POST   /resume/{id}/render       - Re-render an existing resume to PDF
     POST   /resume/{id}/edit         - Modify a field on an existing section item
-    POST   /resume/{id}/add/project/{project_id}  - Add a project entry
+    POST   /resume/{id}/add/project/{project_name}  - Add a project entry
     DELETE /resume/{id}              - Delete the resume YAML file entirely
 """
 
@@ -297,8 +297,8 @@ def render_resume(id: str, background_tasks: BackgroundTasks):
     )
 
 
-@resumeRouter.post("/resume/{id}/add/project/{project_id}")
-def add_project(id: str, project_id: int, payload: Optional[ProjectRequest] = None):
+@resumeRouter.post("/resume/{id}/add/project/{project_name}")
+def add_project(id: str, project_name: str, payload: Optional[ProjectRequest] = None):
     """Add a project entry to the resume from an analysed project in the database.
 
     Fetches the project analysis record by its database row ID, extracts the
@@ -308,7 +308,7 @@ def add_project(id: str, project_id: int, payload: Optional[ProjectRequest] = No
 
     Args:
         id: The resume identifier.
-        project_id: The database row ID of the analysed project.
+        project_name: The project name (Pname) of the analysed project.
         payload: Optional ProjectRequest body to override database values.
 
     Returns:
@@ -321,13 +321,28 @@ def add_project(id: str, project_id: int, payload: Optional[ProjectRequest] = No
     """
     doc = _load_resume(id)
 
-    project_data = runtimeAppContext.store.fetch_by_id(project_id)
+    candidates = [project_name]
+    if not project_name.endswith(".json"):
+        candidates.append(f"{project_name}.json")
+
+    project_data = None
+    for candidate in candidates:
+        project_data = runtimeAppContext.store.fetch_by_name(candidate)
+        if project_data is not None:
+            break
+
     if project_data is None:
-        raise HTTPException(status_code=404, detail=f"Project record '{project_id}' not found in database")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Project record '{project_name}' not found in database",
+        )
 
     resume_item = project_data.get("resume_item", {}) if isinstance(project_data, dict) else {}
     if not resume_item:
-        raise HTTPException(status_code=400, detail=f"Project record '{project_id}' has no resume_item data")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Project record '{project_name}' has no resume_item data",
+        )
 
     proj = Project(
         name=payload.name if payload and payload.name else resume_item.get("project_name", ""),
