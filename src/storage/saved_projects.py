@@ -210,8 +210,26 @@ def show_saved_summary(path_or_name: Path | str) -> None:
                     doc_path = doc.get("path", "—")
                     doc_format = doc.get("format", "—")
                     doc_words = doc.get("word_count", 0)
-                    doc_type = (doc.get("doc_type") or {}).get("label", "unknown")
-                    doc_conf = (doc.get("doc_type") or {}).get("confidence", "unknown")
+                    doc_type_info = doc.get("doc_type") or {}
+                    doc_type_raw = doc_type_info.get("label", "unknown")
+                    doc_conf_raw = doc_type_info.get("confidence", "unknown")
+                    doc_signals = doc_type_info.get("signals") or []
+  
+                      
+
+                    if doc_type_raw in {"unknown", "", "—", None}:
+                        doc_type = "unclassified"
+                    else:
+                        doc_type = str(doc_type_raw)
+
+                    if doc_conf_raw in {"unknown", "", "—", None}:
+                        if doc_type == "unclassified":
+                            doc_conf = "not enough recognizable signals"
+                        else:
+                            doc_conf = "confidence unavailable"
+                    else:
+                        doc_conf = str(doc_conf_raw)
+
                     print(f"    - {doc_path} ({doc_format}, {doc_words} words, {doc_type}, {doc_conf})")
                     title = doc.get("title")
                     summary = doc.get("summary")
@@ -237,6 +255,8 @@ def show_saved_summary(path_or_name: Path | str) -> None:
                     if key_points:
                         kp = "; ".join(key_points[:4])
                         print(f"      Highlights: {kp}")
+                    if doc_type == "unclassified" and not doc_signals:
+                        print("      Note    : No strong text patterns were detected for document typing.")
                     metrics_bits = []
                     if page_count:
                         metrics_bits.append(f"{page_count} pages")
