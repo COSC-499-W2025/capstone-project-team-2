@@ -210,9 +210,12 @@ def show_saved_summary(path_or_name: Path | str) -> None:
                     doc_path = doc.get("path", "—")
                     doc_format = doc.get("format", "—")
                     doc_words = doc.get("word_count", 0)
-                    doc_type_raw = (doc.get("doc_type") or {}).get("label", "unknown")
-                    doc_conf_raw = (doc.get("doc_type") or {}).get("confidence", "unknown")
-                    doc_signals = (doc.get("doc_type") or {}).get("signals") or []
+                    doc_type_info = doc.get("doc_type") or {}
+                    doc_type_raw = doc_type_info.get("label", "unknown")
+                    doc_conf_raw = doc_type_info.get("confidence", "unknown")
+                    doc_signals = doc_type_info.get("signals") or []
+  
+                      
 
                     if doc_type_raw in {"unknown", "", "—", None}:
                         doc_type = "unclassified"
