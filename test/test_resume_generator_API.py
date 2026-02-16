@@ -117,7 +117,7 @@ class TestResumeFullWorkflow(_BaseResumeTest):
 
 
 class TestAddProjectFromDB(_BaseResumeTest):
-    """Tests for POST /resume/{id}/add/project/{project_id}."""
+    """Tests for POST /resume/{id}/add/project/{project_name}."""
 
     def setUp(self):
         super().setUp()
@@ -129,27 +129,27 @@ class TestAddProjectFromDB(_BaseResumeTest):
         """Covers successful add, missing DB record, missing resume_item, and unexpected error."""
         # Success — project added from DB
         self.mock_doc.add_project.return_value = "Successfully added project 'WarframeFinderStreamlit'"
-        self.mock_ctx.store.fetch_by_id.return_value = SAMPLE_DB_RECORD
-        resp = self.client.post("/resume/test_abc123/add/project/1")
+        self.mock_ctx.store.fetch_by_name.return_value = SAMPLE_DB_RECORD
+        resp = self.client.post("/resume/test_abc123/add/project/WarframeFinderStreamlit")
         self.assertEqual(resp.status_code, 200)
         self.assertIn("Successfully", resp.json()["status"])
 
         # 404 — DB record not found
-        self.mock_ctx.store.fetch_by_id.return_value = None
-        resp = self.client.post("/resume/test_abc123/add/project/999")
+        self.mock_ctx.store.fetch_by_name.return_value = None
+        resp = self.client.post("/resume/test_abc123/add/project/UnknownProject")
         self.assertEqual(resp.status_code, 404)
         self.assertIn("not found in database", resp.json()["detail"])
 
         # 400 — record exists but has no resume_item
-        self.mock_ctx.store.fetch_by_id.return_value = {"hierarchy": {}, "project_root": "C:\\some\\path"}
-        resp = self.client.post("/resume/test_abc123/add/project/1")
+        self.mock_ctx.store.fetch_by_name.return_value = {"hierarchy": {}, "project_root": "C:\\some\\path"}
+        resp = self.client.post("/resume/test_abc123/add/project/WarframeFinderStreamlit")
         self.assertEqual(resp.status_code, 400)
         self.assertIn("no resume_item", resp.json()["detail"])
 
         # 500 — unexpected error during save
         self.mock_doc.add_project.side_effect = RuntimeError("disk full")
-        self.mock_ctx.store.fetch_by_id.return_value = SAMPLE_DB_RECORD
-        resp = self.client.post("/resume/test_abc123/add/project/1")
+        self.mock_ctx.store.fetch_by_name.return_value = SAMPLE_DB_RECORD
+        resp = self.client.post("/resume/test_abc123/add/project/WarframeFinderStreamlit")
         self.assertEqual(resp.status_code, 500)
         self.assertIn("disk full", resp.json()["detail"])
 

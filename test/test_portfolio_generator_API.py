@@ -157,7 +157,7 @@ class TestEditPortfolio(_BasePortfolioTest):
 
 
 class TestAddProject(_BasePortfolioTest):
-    """Tests for POST /portfolio/{id}/add/project/{project_id}."""
+    """Tests for POST /portfolio/{id}/add/project/{project_name}."""
 
     def setUp(self):
         super().setUp()
@@ -167,31 +167,31 @@ class TestAddProject(_BasePortfolioTest):
 
     def test_from_db_success(self):
         self.mock_doc.add_project.return_value = "Successfully added project 'WarframeFinderStreamlit'"
-        self.mock_ctx.store.fetch_by_id.return_value = SAMPLE_DB_RECORD
+        self.mock_ctx.store.fetch_by_name.return_value = SAMPLE_DB_RECORD
 
-        resp = self.client.post("/portfolio/test_abc123/add/project/1")
+        resp = self.client.post("/portfolio/test_abc123/add/project/WarframeFinderStreamlit")
         self.assertEqual(resp.status_code, 200)
         self.assertIn("Successfully", resp.json()["status"])
 
     def test_missing_data_returns_404(self):
         """Test 404 for missing DB record and missing resume_item."""
         # DB record not found
-        self.mock_ctx.store.fetch_by_id.return_value = None
-        resp = self.client.post("/portfolio/test_abc123/add/project/999")
+        self.mock_ctx.store.fetch_by_name.return_value = None
+        resp = self.client.post("/portfolio/test_abc123/add/project/UnknownProject")
         self.assertEqual(resp.status_code, 404)
         self.assertIn("not found in database", resp.json()["detail"])
 
         # Record exists but no resume_item
-        self.mock_ctx.store.fetch_by_id.return_value = {"hierarchy": {}, "project_root": "C:\\some\\path"}
-        resp = self.client.post("/portfolio/test_abc123/add/project/1")
+        self.mock_ctx.store.fetch_by_name.return_value = {"hierarchy": {}, "project_root": "C:\\some\\path"}
+        resp = self.client.post("/portfolio/test_abc123/add/project/WarframeFinderStreamlit")
         self.assertEqual(resp.status_code, 404)
         self.assertIn("no resume_item", resp.json()["detail"])
 
     def test_unexpected_error_returns_500(self):
         self.mock_doc.add_project.side_effect = RuntimeError("disk full")
-        self.mock_ctx.store.fetch_by_id.return_value = SAMPLE_DB_RECORD
+        self.mock_ctx.store.fetch_by_name.return_value = SAMPLE_DB_RECORD
 
-        resp = self.client.post("/portfolio/test_abc123/add/project/1")
+        resp = self.client.post("/portfolio/test_abc123/add/project/WarframeFinderStreamlit")
         self.assertEqual(resp.status_code, 500)
         self.assertIn("disk full", resp.json()["detail"])
 

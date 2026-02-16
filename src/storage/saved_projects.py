@@ -7,6 +7,25 @@ from src.core.app_context import AppContext
 from src.aggregation.oop_aggregator import pretty_print_oop_report
 from src.core.app_context import runtimeAppContext
 
+INTERNAL_ANALYSIS_ARTIFACTS = {
+    "UserConfigs.json",
+    "project_insights.json",
+    "dedup_index.json",
+    "representation_preferences.json",
+}
+
+def is_internal_analysis_artifact(filename: str | Path) -> bool:
+    """
+    Return True when filename belongs to an internal system artifact.
+
+    Args:
+        filename (str | Path): Candidate filename/path.
+
+    Returns:
+        bool: True for protected internal artifacts.
+    """
+    return Path(filename).name in INTERNAL_ANALYSIS_ARTIFACTS
+
 def list_saved_projects(folder: Path) -> list[Path]:
     """
     Return saved analysis files from the configured folder and legacy location.
@@ -44,14 +63,31 @@ def list_saved_projects(folder: Path) -> list[Path]:
     filtered = [
         f
         for f in unique_files
-        if f.name
-        not in {
-            "UserConfigs.json",
-            "project_insights.json",
-        }
+        if not is_internal_analysis_artifact(f.name)
     ]
 
     return filtered
+
+def find_saved_file_path(filename: str) -> Path | None:
+    """
+    Locate a saved analysis file in default or legacy save locations.
+
+    Args:
+        filename (str): Name of file to find.
+
+    Returns:
+        Path | None: Resolved file path if found, otherwise None.
+    """
+    base_dir = Path(runtimeAppContext.default_save_dir).expanduser().resolve()
+    primary = base_dir / filename
+    if primary.exists():
+        return primary
+
+    legacy = base_dir.parent / filename
+    if legacy.exists():
+        return legacy
+
+    return None
 
 
 def show_saved_summary(path_or_name: Path | str) -> None:
@@ -327,15 +363,13 @@ def delete_file_from_disk(filename: str) -> bool:
         bool: True if the file was removed.
     """
     try:
-        base_dir = Path(runtimeAppContext.default_save_dir).expanduser().resolve()
-        file_path = base_dir / filename
+        if is_internal_analysis_artifact(filename):
+            print(f"[INFO] '{Path(filename).name}' is an internal artifact and cannot be deleted here.")
+            return False
 
-        if not file_path.exists():
-            legacy_path = base_dir.parent / filename
-            if legacy_path.exists():
-                file_path = legacy_path
-            else:
-                return False
+        file_path = find_saved_file_path(filename)
+        if file_path is None:
+            return False
 
         try:
             refs = runtimeAppContext.store.count_file_references(filename)

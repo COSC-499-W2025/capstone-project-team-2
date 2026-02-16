@@ -33,6 +33,9 @@ def test_list_saved_projects_filters_config_and_dedupes(tmp_path):
     (tmp_path / "dup.json").write_text("{}")
     # Config file should be filtered
     (new_dir / "UserConfigs.json").write_text("{}")
+    (new_dir / "project_insights.json").write_text("{}")
+    (new_dir / "dedup_index.json").write_text("{}")
+    (legacy_file.parent / "representation_preferences.json").write_text("{}")
 
     projects = mod.list_saved_projects(new_dir)
     names = {p.name for p in projects}
@@ -41,7 +44,27 @@ def test_list_saved_projects_filters_config_and_dedupes(tmp_path):
     assert "new.json" in names
     assert "dup.json" in names
     assert "UserConfigs.json" not in names
+    assert "project_insights.json" not in names
+    assert "dedup_index.json" not in names
+    assert "representation_preferences.json" not in names
     assert len(projects) == 4
+
+
+def test_delete_file_from_disk_blocks_internal_artifacts(tmp_path, capsys):
+    """
+    Internal system JSON artifacts should not be deleted through this helper.
+    """
+    runtimeAppContext.default_save_dir = tmp_path / "project_insights"
+    runtimeAppContext.default_save_dir.mkdir(parents=True, exist_ok=True)
+    protected = runtimeAppContext.default_save_dir / "dedup_index.json"
+    protected.write_text("{}")
+
+    deleted = mod.delete_file_from_disk("dedup_index.json")
+
+    assert deleted is False
+    assert protected.exists() is True
+    assert "internal artifact" in capsys.readouterr().out.lower()
+
 
 def test_show_saved_summary_prints_contributors(monkeypatch, tmp_path, capsys):
     """Check that contributor summaries are printed.

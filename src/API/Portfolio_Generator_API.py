@@ -14,7 +14,7 @@ Endpoints:
     POST   /portfolio/generate                       - Create a new portfolio YAML document
     GET    /portfolio/{id}                           - Retrieve full portfolio data as JSON
     POST   /portfolio/{id}/edit                      - Modify a field on an existing section item
-    POST   /portfolio/{id}/add/project/{project_id}  - Add a project entry
+    POST   /portfolio/{id}/add/project/{project_name}  - Add a project entry
     POST   /portfolio/{id}/render                    - Re-render an existing portfolio to PDF
     DELETE /portfolio/{id}                           - Delete the portfolio YAML file entirely
 """
@@ -241,13 +241,13 @@ def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
     return {"results": results}
 
 
-@portfolioRouter.post("/portfolio/{portfolio_id}/add/project/{project_id}")
-def add_project(portfolio_id:str,project_id:int,payload: Optional[ProjectRequest]=None):
+@portfolioRouter.post("/portfolio/{portfolio_id}/add/project/{project_name}")
+def add_project(portfolio_id: str, project_name: str, payload: Optional[ProjectRequest] = None):
     """Add a project from the database to a portfolio.
 
     Args:
         portfolio_id: The portfolio identifier.
-        project_id: The database ID of the project to add.
+        project_name: The project name (Pname) of the analysed project.
         payload: Optional overrides for project fields.
 
     Returns:
@@ -258,12 +258,27 @@ def add_project(portfolio_id:str,project_id:int,payload: Optional[ProjectRequest
         HTTPException: 500 if adding the project fails.
     """
     doc=_load_portfolio(portfolio_id)
-    project_data=runtimeAppContext.store.fetch_by_id(project_id)
+    candidates = [project_name]
+    if not project_name.endswith(".json"):
+        candidates.append(f"{project_name}.json")
+
+    project_data = None
+    for candidate in candidates:
+        project_data = runtimeAppContext.store.fetch_by_name(candidate)
+        if project_data is not None:
+            break
+
     if project_data is None:
-        raise HTTPException(status_code=404, detail=f"Project {project_id} not found in database")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Project '{project_name}' not found in database",
+        )
     resume_item=project_data.get("resume_item",{}) if isinstance(project_data,dict) else {}
     if not resume_item:
-        raise HTTPException(status_code=404, detail=f"Project record {project_id} has no resume_item data")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Project record '{project_name}' has no resume_item data",
+        )
 
     proj= Project(
         name=payload.name if payload and payload.name else resume_item.get("project_name",""),
