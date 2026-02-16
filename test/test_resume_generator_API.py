@@ -234,5 +234,51 @@ class TestErrorHandling(_BaseResumeTest):
             _mock_shutil.rmtree.assert_called_once_with(output_dir, True)
 
 
+class TestExportResume(_BaseResumeTest):
+    """Tests for POST /resume/{id}/export/{format} and /resume/{id}/export/{format}/custom."""
+
+    @patch("src.API.Resume_Generator_API.shutil")
+    @patch("src.API.Resume_Generator_API.RENDERED_OUTPUTS_DIR")
+    def test_save_default(self, mock_dir, mock_shutil):
+        """Save to default directory returns path."""
+        mock_dir.mkdir = MagicMock()
+        mock_dir.__truediv__ = lambda self, name: Path("/fake/rendered_outputs") / name
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            fake_pdf = Path(tmp_dir) / "resume.pdf"
+            fake_pdf.write_bytes(b"%PDF-1.4 fake")
+            self.mock_doc.render_outputs.return_value = ("successfully rendered", {"pdf": [fake_pdf]})
+
+            resp = self.client.post("/resume/test_abc123/export/pdf")
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Saved successfully", resp.json()["status"])
+            self.assertIn("path", resp.json())
+
+    @patch("src.API.Resume_Generator_API.shutil")
+    def test_save_custom(self, mock_shutil):
+        """Save to custom directory returns path."""
+        with tempfile.TemporaryDirectory() as tmp_dir, tempfile.TemporaryDirectory() as custom_dir:
+            fake_pdf = Path(tmp_dir) / "resume.pdf"
+            fake_pdf.write_bytes(b"%PDF-1.4 fake")
+            self.mock_doc.render_outputs.return_value = ("successfully rendered", {"pdf": [fake_pdf]})
+
+            resp = self.client.post("/resume/test_abc123/export/pdf/custom", json={"path": custom_dir})
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Saved successfully", resp.json()["status"])
+            self.assertIn(custom_dir.replace("\\", "/"), resp.json()["path"].replace("\\", "/"))
+
+    def test_save_custom_invalid_dir(self):
+        """Save to non-existent directory returns 400."""
+        resp = self.client.post("/resume/test_abc123/export/pdf/custom", json={"path": "/nonexistent/dir"})
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("does not exist", resp.json()["detail"])
+
+    def test_save_unsupported_format(self):
+        """Save with unsupported format returns 400."""
+        resp = self.client.post("/resume/test_abc123/export/docx")
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Unsupported format", resp.json()["detail"])
+
+
 if __name__ == "__main__":
     unittest.main()
