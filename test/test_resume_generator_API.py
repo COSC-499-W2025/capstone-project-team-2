@@ -98,16 +98,25 @@ class TestResumeFullWorkflow(_BaseResumeTest):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(resp.json()["results"]), 7)
 
-        # 4. Render resume to PDF
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            fake_pdf = Path(tmp_dir) / "resume.pdf"
-            fake_pdf.write_bytes(b"%PDF-1.4 fake content")
-            self.mock_doc.render.return_value = ("Success", fake_pdf)
+        # 4. Render resume in all supported formats
+        format_cases = [
+            ("pdf", "resume.pdf", b"%PDF-1.4 fake", "application/pdf"),
+            ("html", "resume.html", b"<html>test</html>", "text/html; charset=utf-8"),
+            ("markdown", "resume.md", b"# Resume", "text/markdown; charset=utf-8"),
+        ]
+        for fmt, filename, content, expected_type in format_cases:
+            with self.subTest(format=fmt), tempfile.TemporaryDirectory() as tmp_dir:
+                fake_file = Path(tmp_dir) / filename
+                fake_file.write_bytes(content)
+                self.mock_doc.render_outputs.return_value = (
+                    "successfully rendered",
+                    {fmt: [fake_file]},
+                )
 
-            resp = self.client.post(f"/resume/{resume_id}/render")
-            self.assertEqual(resp.status_code, 200)
-            self.assertIn("X-Resume-ID", resp.headers)
-            self.assertEqual(resp.headers["content-type"], "application/pdf")
+                resp = self.client.post(f"/resume/{resume_id}/render/{fmt}")
+                self.assertEqual(resp.status_code, 200)
+                self.assertIn("X-Resume-ID", resp.headers)
+                self.assertEqual(resp.headers["content-type"], expected_type)
 
         # 5. Delete resume
         self.mock_doc.yaml_file = MagicMock()
@@ -170,7 +179,7 @@ class TestErrorHandling(_BaseResumeTest):
         })
         self.assertEqual(resp.status_code, 404)
 
-        resp = self.client.post("/resume/fake_id/render")
+        resp = self.client.post("/resume/fake_id/render/pdf")
         self.assertEqual(resp.status_code, 404)
 
         resp = self.client.delete("/resume/fake_id")
@@ -192,11 +201,37 @@ class TestErrorHandling(_BaseResumeTest):
         self.assertIn("Unknown section", resp.json()["detail"])
 
     def test_render_failure(self):
-        """Render returning no PDF path returns 500."""
-        self.mock_doc.render.return_value = ("Render failed", None)
-        resp = self.client.post("/resume/test_abc123/render")
+        """Render returning empty paths returns 500."""
+        self.mock_doc.render_outputs.return_value = ("Render failed", {"pdf": []})
+        resp = self.client.post("/resume/test_abc123/render/pdf")
         self.assertEqual(resp.status_code, 500)
         self.assertIn("Render failed", resp.json()["detail"])
+
+    def test_render_unsupported_format(self):
+        """Render with unsupported format returns 400."""
+        resp = self.client.post("/resume/test_abc123/render/docx")
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Unsupported format", resp.json()["detail"])
+
+    @patch("src.API.Resume_Generator_API.shutil")
+    def test_render_output_parent_directory_cleanup(self, _mock_shutil):
+        """Verify cleanup targets the parent directory of the rendered file."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            output_dir = Path(tmp_dir) / "rendercv_output"
+            output_dir.mkdir()
+            fake_pdf = output_dir / "resume.pdf"
+            fake_pdf.write_bytes(b"%PDF-1.4 fake content")
+
+            self.mock_doc.render_outputs.return_value = (
+                "successfully rendered",
+                {"pdf": [fake_pdf]},
+            )
+
+            resp = self.client.post("/resume/test_abc123/render/pdf")
+            self.assertEqual(resp.status_code, 200)
+
+            # Verify shutil.rmtree was scheduled on the parent dir (output_dir)
+            _mock_shutil.rmtree.assert_called_once_with(output_dir, True)
 
 
 if __name__ == "__main__":
