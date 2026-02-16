@@ -7,15 +7,18 @@ by a unique ID (name + UUID suffix) returned in the X-Resume-ID header
 upon generation.
 
 Endpoints:
-    POST   /resume/generate          - Create a new resume and render to PDF
-    GET    /resume/{id}              - Retrieve full resume data as JSON
-    POST   /resume/{id}/render/{format} - Re-render an existing resume to a specified format (pdf, html, markdown)
-    POST   /resume/{id}/edit         - Modify a field on an existing section item
+    POST   /resume/generate                  - Create a new resume
+    GET    /resume/{id}                      - Retrieve full resume data as JSON
+    POST   /resume/{id}/render/{format}      - Re-render and return as file response
+    POST   /resume/{id}/export/{format}        - Render and export to default directory
+    POST   /resume/{id}/export/{format}/custom - Render and export to a custom directory
+    POST   /resume/{id}/edit                 - Modify a field on an existing section item
     POST   /resume/{id}/add/project/{project_name}  - Add a project entry
-    DELETE /resume/{id}              - Delete the resume YAML file entirely
+    DELETE /resume/{id}                      - Delete the resume YAML file entirely
 """
 
 from typing import Optional, List, Any
+from pathlib import Path
 import uuid
 import shutil
 from fastapi import APIRouter, HTTPException, BackgroundTasks
@@ -26,6 +29,8 @@ from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
     Project,
 )
 from src.core.app_context import runtimeAppContext
+
+RENDERED_OUTPUTS_DIR = Path(__file__).resolve().parents[2] / "User_config_files" / "Generate_render_CV_files" / "rendered_outputs"
 
 
 resumeRouter = APIRouter(tags=["Resume"])
@@ -60,6 +65,13 @@ class ProjectRequest(BaseModel):
     summary: Optional[str] = None
     highlights: Optional[List[str]] = None
 
+class SaveRequest(BaseModel):
+    """Payload for saving a rendered file to a custom location."""
+    path: str
+
+
+SUPPORTED_FORMATS = {"pdf", "html", "markdown"}
+EXTENSIONS = {"pdf": "pdf", "html": "html", "markdown": "md"}
 
 """-------Helper Methods-------"""
 
@@ -81,6 +93,21 @@ def _load_resume(name: str) -> RenderCVDocument:
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail=f"Resume '{name}' not found")
     return doc
+
+def _validate_format(format: str) -> str:
+    """Validate and normalize the output format string."""
+    fmt = format.strip().lower()
+    if fmt not in SUPPORTED_FORMATS:
+        raise HTTPException(status_code=400, detail=f"Unsupported format '{format}'. Supported: {', '.join(sorted(SUPPORTED_FORMATS))}")
+    return fmt
+
+def _render_and_get_path(doc: RenderCVDocument, fmt: str) -> Path:
+    """Render a document and return the output file path."""
+    status, outputs = doc.render_outputs([fmt])
+    paths = outputs.get(fmt, [])
+    if not paths:
+        raise HTTPException(status_code=500, detail=status)
+    return paths[0]
 
 def _check_result(result: str):
     """Validate the result string from a RenderCVDocument operation.
@@ -283,30 +310,86 @@ def render_resume(id: str, format: str, background_tasks: BackgroundTasks):
         HTTPException: 404 if the resume does not exist.
         HTTPException: 500 if rendering fails.
     """
-    fmt = format.strip().lower()
-    supported = {"pdf", "html", "markdown"}
-    if fmt not in supported:
-        raise HTTPException(status_code=400, detail=f"Unsupported format '{format}'. Supported: {', '.join(sorted(supported))}")
-
+    fmt = _validate_format(format)
     doc = _load_resume(id)
-    status, outputs = doc.render_outputs([fmt])
+    rendered_path = _render_and_get_path(doc, fmt)
 
-    paths = outputs.get(fmt, [])
-    if not paths:
-        raise HTTPException(status_code=500, detail=status)
-
-    output_dir = paths[0].parent
-    background_tasks.add_task(shutil.rmtree, output_dir, True)
+    background_tasks.add_task(shutil.rmtree, rendered_path.parent, True)
 
     media_types = {"pdf": "application/pdf", "html": "text/html", "markdown": "text/markdown"}
-    extensions = {"pdf": "pdf", "html": "html", "markdown": "md"}
 
     return FileResponse(
-        str(paths[0]),
+        str(rendered_path),
         media_type=media_types[fmt],
-        filename=f"resume_{id}.{extensions[fmt]}",
+        filename=f"resume_{id}.{EXTENSIONS[fmt]}",
         headers={"X-Resume-ID": id},
     )
+
+
+@resumeRouter.post("/resume/{id}/export/{format}")
+def export_resume(id: str, format: str):
+    """Render a resume and save it to the default output directory.
+
+    Renders the resume in the requested format and saves the file to
+    User_config_files/rendered_outputs/.
+
+    Args:
+        id: The resume identifier.
+        format: Output format - one of 'pdf', 'html', or 'markdown'.
+
+    Returns:
+        dict: {"status": "Saved successfully", "path": "<saved file path>"}.
+
+    Raises:
+        HTTPException: 400 if the format is not supported.
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 500 if rendering fails.
+    """
+    fmt = _validate_format(format)
+    doc = _load_resume(id)
+    rendered_path = _render_and_get_path(doc, fmt)
+
+    RENDERED_OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
+    dest = RENDERED_OUTPUTS_DIR / f"resume_{id}.{EXTENSIONS[fmt]}"
+    shutil.copy2(rendered_path, dest)
+    shutil.rmtree(rendered_path.parent, True)
+
+    return {"status": "Saved successfully", "path": str(dest)}
+
+
+@resumeRouter.post("/resume/{id}/export/{format}/custom")
+def export_resume_custom(id: str, format: str, payload: SaveRequest):
+    """Render a resume and save it to a custom location.
+
+    Renders the resume in the requested format and saves the file to
+    the directory specified in the request body.
+
+    Args:
+        id: The resume identifier.
+        format: Output format - one of 'pdf', 'html', or 'markdown'.
+        payload: SaveRequest with the target directory path.
+
+    Returns:
+        dict: {"status": "Saved successfully", "path": "<saved file path>"}.
+
+    Raises:
+        HTTPException: 400 if the format is not supported or directory does not exist.
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 500 if rendering fails.
+    """
+    fmt = _validate_format(format)
+    target_dir = Path(payload.path).expanduser().resolve()
+    if not target_dir.is_dir():
+        raise HTTPException(status_code=400, detail=f"Directory '{payload.path}' does not exist")
+
+    doc = _load_resume(id)
+    rendered_path = _render_and_get_path(doc, fmt)
+
+    dest = target_dir / f"resume_{id}.{EXTENSIONS[fmt]}"
+    shutil.copy2(rendered_path, dest)
+    shutil.rmtree(rendered_path.parent, True)
+
+    return {"status": "Saved successfully", "path": str(dest)}
 
 
 @resumeRouter.post("/resume/{id}/add/project/{project_name}")
