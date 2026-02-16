@@ -9,9 +9,9 @@ upon generation.
 Endpoints:
     POST   /resume/generate          - Create a new resume and render to PDF
     GET    /resume/{id}              - Retrieve full resume data as JSON
-    POST   /resume/{id}/render       - Re-render an existing resume to PDF
+    POST   /resume/{id}/render/{format} - Re-render an existing resume to a specified format (pdf, html, markdown)
     POST   /resume/{id}/edit         - Modify a field on an existing section item
-    POST   /resume/{id}/add/project/{project_name}  - Add a project entry
+    POST   /resume/{id}/add/project/{project_id}  - Add a project entry
     DELETE /resume/{id}              - Delete the resume YAML file entirely
 """
 
@@ -28,7 +28,7 @@ from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
 from src.core.app_context import runtimeAppContext
 
 
-resumeRouter = APIRouter()
+resumeRouter = APIRouter(tags=["Resume"])
 
 ALLOWED_CONTACT_FIELDS = {"email", "phone", "location", "website", "name"}
 
@@ -38,6 +38,7 @@ class GenerateResumeRequest(BaseModel):
     name: str
     theme: Optional[str] = 'sb2nov'
     overwrite: bool = False
+
 
 class EditItem(BaseModel):
     """A single field edit on a resume section item."""
@@ -262,53 +263,64 @@ def edit_resume(id: str, payload: EditResumeRequest):
     return {"results": results}
 
 
-@resumeRouter.post("/resume/{id}/render")
-def render_resume(id: str, background_tasks: BackgroundTasks):
-    """Re-render an existing resume to PDF.
+@resumeRouter.post("/resume/{id}/render/{format}")
+def render_resume(id: str, format: str, background_tasks: BackgroundTasks):
+    """Re-render an existing resume to the specified format.
 
-    Loads the resume YAML by ID, renders it to PDF via RenderCV, and returns
-    the file. The rendercv_output directory is cleaned up after the response.
+    Loads the resume YAML by ID, renders it via RenderCV in the requested
+    format, and returns the file directly.
 
     Args:
         id: The resume identifier (name + UUID suffix from generation).
+        format: Output format - one of 'pdf', 'html', or 'markdown'.
         background_tasks: FastAPI background tasks for post-response cleanup.
 
     Returns:
-        FileResponse: The rendered PDF file with content-type application/pdf.
-            Includes X-Resume-ID header with the resume identifier.
+        FileResponse: The rendered file in the requested format.
 
     Raises:
+        HTTPException: 400 if the format is not supported.
         HTTPException: 404 if the resume does not exist.
-        HTTPException: 500 if PDF rendering fails.
+        HTTPException: 500 if rendering fails.
     """
+    fmt = format.strip().lower()
+    supported = {"pdf", "html", "markdown"}
+    if fmt not in supported:
+        raise HTTPException(status_code=400, detail=f"Unsupported format '{format}'. Supported: {', '.join(sorted(supported))}")
+
     doc = _load_resume(id)
-    status, pdf_path = doc.render()
-    if pdf_path is None:
+    status, outputs = doc.render_outputs([fmt])
+
+    paths = outputs.get(fmt, [])
+    if not paths:
         raise HTTPException(status_code=500, detail=status)
 
-    output_dir = pdf_path.parent
+    output_dir = paths[0].parent
     background_tasks.add_task(shutil.rmtree, output_dir, True)
 
+    media_types = {"pdf": "application/pdf", "html": "text/html", "markdown": "text/markdown"}
+    extensions = {"pdf": "pdf", "html": "html", "markdown": "md"}
+
     return FileResponse(
-        str(pdf_path),
-        media_type="application/pdf",
-        filename=f"resume_{id}.pdf",
+        str(paths[0]),
+        media_type=media_types[fmt],
+        filename=f"resume_{id}.{extensions[fmt]}",
         headers={"X-Resume-ID": id},
     )
 
 
-@resumeRouter.post("/resume/{id}/add/project/{project_name}")
-def add_project(id: str, project_name: str, payload: Optional[ProjectRequest] = None):
+@resumeRouter.post("/resume/{id}/add/project/{project_id}")
+def add_project(id: str, project_id: int, payload: Optional[ProjectRequest] = None):
     """Add a project entry to the resume from an analysed project in the database.
 
-    Fetches the project analysis record by project name (Pname), extracts the
+    Fetches the project analysis record by its database row ID, extracts the
     resume_item fields, and adds them as a new project on the resume.
     An optional ProjectRequest body can be provided to override any of the
     database values.
 
     Args:
         id: The resume identifier.
-        project_name: The project name (Pname) of the analysed project.
+        project_id: The database row ID of the analysed project.
         payload: Optional ProjectRequest body to override database values.
 
     Returns:
@@ -321,28 +333,13 @@ def add_project(id: str, project_name: str, payload: Optional[ProjectRequest] = 
     """
     doc = _load_resume(id)
 
-    candidates = [project_name]
-    if not project_name.endswith(".json"):
-        candidates.append(f"{project_name}.json")
-
-    project_data = None
-    for candidate in candidates:
-        project_data = runtimeAppContext.store.fetch_by_name(candidate)
-        if project_data is not None:
-            break
-
+    project_data = runtimeAppContext.store.fetch_by_id(project_id)
     if project_data is None:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Project record '{project_name}' not found in database",
-        )
+        raise HTTPException(status_code=404, detail=f"Project record '{project_id}' not found in database")
 
     resume_item = project_data.get("resume_item", {}) if isinstance(project_data, dict) else {}
     if not resume_item:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Project record '{project_name}' has no resume_item data",
-        )
+        raise HTTPException(status_code=400, detail=f"Project record '{project_id}' has no resume_item data")
 
     proj = Project(
         name=payload.name if payload and payload.name else resume_item.get("project_name", ""),
