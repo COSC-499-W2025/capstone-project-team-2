@@ -1747,7 +1747,9 @@ and refactoring the AI resume generation to use database-stored insights instead
 - Confirmed AI resume generation retrieves insights only from the database without scanning the project folder
 
 ### Reviewing/Collaboration Tasks
-- Reviewed PR: [Timestamp primary key #408](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/408)
+- Reviewed PR (1st reviewer): [Timestamp primary key #408](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/408)
+- Reviewed PR (1st reviewer): [Incorporate a key role of the user in a given project #413](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/413)
+- Reviewed PR (2nd reviewer): [Clarity on the factors mentioned in the document analysis #409](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/409)
 
 ---
 
