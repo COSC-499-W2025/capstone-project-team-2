@@ -9,10 +9,15 @@ This module tests:
 import unittest
 import io
 import sys
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
 from src.reporting.portfolio_service import (
     PortfolioShowcase,
     build_portfolio_showcase,
     display_portfolio_showcase,
+    load_portfolio_showcase,
+    save_project_role_override,
 )
 class TestBuildPortfolioShowcase(unittest.TestCase):
     """Test suite for build_portfolio_showcase function."""
@@ -117,6 +122,36 @@ class TestDisplayPortfolioShowcase(unittest.TestCase):
         self.assertIn('Evidence:', captured)
         self.assertIn('Skills:', captured)
         self.assertIn('Contributors:', captured)
+
+
+class TestPortfolioRoleOverrides(unittest.TestCase):
+    """Tests for YAML-backed role override persistence."""
+
+    def test_save_project_role_override_persists_and_preserves_fields(self):
+        with TemporaryDirectory() as tmp_dir:
+            override_path = Path(tmp_dir) / "My_Project.yaml"
+            override_path.write_text(
+                "project:\n"
+                "  title: My Project\n"
+                "portfolio:\n"
+                "  overview: Existing overview\n",
+                encoding="utf-8",
+            )
+
+            with patch(
+                "src.reporting.portfolio_service._portfolio_override_path",
+                return_value=override_path,
+            ):
+                saved = save_project_role_override("My Project", "Backend Developer")
+
+                self.assertEqual(saved["project"]["role"], "Backend Developer")
+                self.assertEqual(saved["project"]["title"], "My Project")
+                self.assertEqual(saved["portfolio"]["overview"], "Existing overview")
+
+                loaded = load_portfolio_showcase("My Project")
+                self.assertEqual(loaded["project"]["role"], "Backend Developer")
+                self.assertEqual(loaded["project"]["title"], "My Project")
+                self.assertEqual(loaded["portfolio"]["overview"], "Existing overview")
 
 if __name__ == '__main__':
     unittest.main()

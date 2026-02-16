@@ -252,5 +252,44 @@ class TestDeletePortfolio(_BasePortfolioTest):
         self.assertIn("Permission denied", resp.json()["detail"])
 
 
+class TestPortfolioShowcaseRoleAPI(_BasePortfolioTest):
+    """Tests for project-level portfolio showcase role overrides."""
+
+    @patch("src.API.Portfolio_Generator_API.save_project_role_override")
+    def test_set_role_success(self, mock_save):
+        mock_save.return_value = {"project": {"role": "Team Lead"}}
+        resp = self.client.post(
+            "/portfolio-showcase/MyProject/role",
+            json={"role": "Team Lead"},
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["project_name"], "MyProject")
+        self.assertEqual(resp.json()["role"], "Team Lead")
+        mock_save.assert_called_once_with("MyProject", "Team Lead")
+
+    def test_set_role_empty_returns_400(self):
+        resp = self.client.post(
+            "/portfolio-showcase/MyProject/role",
+            json={"role": "   "},
+        )
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("cannot be empty", resp.json()["detail"])
+
+    @patch("src.API.Portfolio_Generator_API.load_portfolio_showcase")
+    def test_get_role_success(self, mock_load):
+        mock_load.return_value = {"project": {"role": "Backend Developer"}}
+        resp = self.client.get("/portfolio-showcase/MyProject/role")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["project_name"], "MyProject")
+        self.assertEqual(resp.json()["role"], "Backend Developer")
+
+    @patch("src.API.Portfolio_Generator_API.load_portfolio_showcase")
+    def test_get_role_not_found_returns_404(self, mock_load):
+        mock_load.return_value = {}
+        resp = self.client.get("/portfolio-showcase/UnknownProject/role")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("No saved role", resp.json()["detail"])
+
+
 if __name__ == "__main__":
     unittest.main()
