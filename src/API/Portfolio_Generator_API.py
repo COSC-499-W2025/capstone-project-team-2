@@ -72,7 +72,7 @@ class ProjectRequest(BaseModel):
 
 class ProjectRoleOverrideRequest(BaseModel):
     """Request payload for setting a project's showcase role."""
-    role: str
+    role: str = Field(default="Backend Developer", max_length=200)
 
 
 
