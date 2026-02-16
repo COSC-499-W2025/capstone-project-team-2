@@ -301,7 +301,7 @@ def render_resume(id: str, background_tasks: BackgroundTasks):
 def add_project(id: str, project_name: str, payload: Optional[ProjectRequest] = None):
     """Add a project entry to the resume from an analysed project in the database.
 
-    Fetches the project analysis record by its database row ID, extracts the
+    Fetches the project analysis record by project name (Pname), extracts the
     resume_item fields, and adds them as a new project on the resume.
     An optional ProjectRequest body can be provided to override any of the
     database values.

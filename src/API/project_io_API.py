@@ -13,6 +13,19 @@ projectsRouter = APIRouter(
     prefix="/projects"
 )
 
+
+def _allowed_project_save_dirs() -> tuple[Path, ...]:
+    """Return canonical directories where project JSON files are allowed to live."""
+    default_dir = Path(runtimeAppContext.default_save_dir).expanduser().resolve()
+    legacy_dir = default_dir.parent.resolve()
+    return (default_dir, legacy_dir)
+
+
+def _is_path_within_allowed_dirs(path: Path, allowed_dirs: tuple[Path, ...]) -> bool:
+    """Return True when path resolves inside one of allowed directories."""
+    resolved = path.expanduser().resolve()
+    return any(resolved == d or d in resolved.parents for d in allowed_dirs)
+
 @projectsRouter.post("/upload")
 async def upload_project(upload_file: UploadFile) -> str:
     """
@@ -145,7 +158,37 @@ def delete_project(id: str, save_path: str | None = Query(default=None)) -> dict
             "dbstatus": f"[INFO] '{project_name}' is an internal artifact. DB deletion skipped.",
             "status": f"[INFO] '{project_name}' is an internal artifact and cannot be deleted.",
         }
+
     save_path_path = Path(save_path) if save_path else None
+    allowed_dirs = _allowed_project_save_dirs()
+    if save_path_path is not None:
+        save_file_name = save_path_path.name
+
+        if is_internal_analysis_artifact(save_file_name):
+            return {
+                "dbstatus": f"[INFO] '{project_name}' DB deletion skipped.",
+                "status": f"[INFO] '{save_file_name}' is an internal artifact and cannot be deleted.",
+            }
+
+        if save_file_name != project_name:
+            return {
+                "dbstatus": f"[INFO] '{project_name}' DB deletion skipped.",
+                "status": (
+                    f"[WARNING] save_path filename '{save_file_name}' must match requested "
+                    f"project '{project_name}'."
+                ),
+            }
+
+        if not _is_path_within_allowed_dirs(save_path_path, allowed_dirs):
+            allowed_str = ", ".join(str(p) for p in allowed_dirs)
+            return {
+                "dbstatus": f"[INFO] '{project_name}' DB deletion skipped.",
+                "status": (
+                    f"[WARNING] Refusing to delete '{save_file_name}' outside allowed save "
+                    f"directories: {allowed_str}."
+                ),
+            }
+
     out_dict = {}
 
     # Delete DB record by Pname.
