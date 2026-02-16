@@ -5,6 +5,7 @@
 ## Quick Navigation
 
 ### Term 2
+- [Week 20 (02/09/2026 – 02/15/2026)](#-personal-log--week-20-02092026--02152026)
 - [Week 19 (02/02/2026 – 02/08/2026)](#-personal-log--week-19-02022026--02082026)
 - [Week 18 (01/26/2026 – 02/01/2026)](#-personal-log--week-18-01262026--02012026)
 - [Week 17 (01/19/2026 – 01/25/2026)](#-personal-log--week-17-01192026--01252026)
@@ -1711,5 +1712,88 @@ I also reviewed [PR #376](https://github.com/COSC-499-W2025/capstone-project-tea
 Additionally, I reviewed [PR #388](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/388) (Database updates) where I suggested a change to fix an issue with local pytest not working. I confirmed through Docker that the tests pass with no issues after the fix.
 
 Overall, this week was a productive one where I learned a lot about building REST APIs with FastAPI, particularly around Pydantic validation, background task management, and structuring endpoints for CRUD operations. The transition from CLI to API architecture sets a solid foundation for the frontend integration work ahead.
+
+---
+
+
+
+# 📝 Personal Log – Week 20 (02/09/2026 – 02/15/2026)
+
+## 📊 Peer Evaluation
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/1-16-2026.png)
+
+---
+
+## 🔗 Connection to Previous Week
+
+Following Week 19's conversion of the Portfolio and Resume generation modules into FastAPI-based REST APIs, 
+this week focused on fixing critical bugs in the project upload system (re-analysis, versioning, and duplicate detection), 
+resolving the default save config issue caused by gitignore, 
+and refactoring the AI resume generation to use database-stored insights instead of scanning the filesystem.
+
+---
+
+## 🚀 Work Completed
+
+### Coding Tasks
+- Fixed project re-analysis, versioning, and duplicate detection — resolved a critical bug where file uploads triggered deletion of entire project folders, which cascaded into failures for displaying saved projects and version tracking ([PR #400](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/400))
+- Addressed default save config issue — the default configuration was not showing on program start because the file was located in a gitignored directory; relocated the default config file to a separate location ([#401](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/401))
+- Refactored AI resume generation to use database-stored Project Insights as the authoritative source instead of scanning the filesystem, 
+   eliminating filesystem dependencies and ensuring deterministic outputs ([#373](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/373))
+
+### Testing/Debugging Tasks
+- Verified that project folders are preserved during uploads and that duplicate detection correctly maintains a single copy of each project
+- Tested default config file loading from the new location
+- Confirmed AI resume generation retrieves insights only from the database without scanning the project folder
+
+### Reviewing/Collaboration Tasks
+- Reviewed PR (1st reviewer): [Timestamp primary key #408](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/408)
+- Reviewed PR (1st reviewer): [Incorporate a key role of the user in a given project #413](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/413)
+- Reviewed PR (2nd reviewer): [Clarity on the factors mentioned in the document analysis #409](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/409)
+
+---
+
+## 📌 Associated Tasks from Project Board
+- [Project re-analysis, versioning, and duplicate detection #404](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/404)
+- [Default save config issue #401](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/401)
+- [Generate AI resume needs Fixing #373](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/373)
+
+---
+
+## 📈 Progress Update
+
+| Task/Issue | Status |
+|------------|--------|
+| **Fixed project re-analysis, versioning, and duplicate detection** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Default save config issue** | ![In Progress](https://img.shields.io/badge/Status-In%20Progress-yellow) |
+| **Refactored AI resume generation to use database insights** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+
+---
+
+## ⚠️ Issues/Blockers
+
+- **Project folder deletion bug**: File uploads were triggering deletion of entire project folders, cascading into failures for saved project display and version tracking
+- **Resolution**: Fixed the upload system to preserve project folders and implemented duplicate detection to maintain a single copy of each project
+- **Default config in gitignore**: The default save configuration file was not being included in the repository due to gitignore rules
+- **Resolution**: Relocating the default config file to a separate, non-ignored location
+
+---
+
+## 🎯 Next Week's Goals
+- Continue working on outstanding Milestone 2 requirements
+- Get ready for milestone 2 presentation and Video Demo after the reading break
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 20)
+
+**Week 20** was focused on addressing critical bugs and improving the reliability of our system.
+The most impactful fix was fixing the system that occured last sunday, which was a critical bug that caused file uploads to trigger deletion of entire project folders, while at the same time adding some additional robustness to the project upload system such as that the project is both deleted from the database and the filesystem upon the deletion of the corresponding project, and additonally overwriting the contents if the stuff was adding to a previous existing project in the database. This cascading failure was particularly severe because it impacted related features like displaying saved projects and caused version tracking to fail when identical files were re-uploaded. The fix ([PR #400](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/400)) ensures that project folders are now preserved during uploads, duplicate detection correctly maintains a single copy of each project rather than creating duplicates, and the deletion flow properly cleans up both the database records and filesystem artifacts in sync.
+
+The second task was addressing the default save config issue ([#401](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/401)). When starting the program, the default configuration was not loading because the config file was placed in a gitignored directory. The solution was to relocate the default config file to a separate location that is tracked by version control, ensuring that new users and fresh clones of the repository always have the correct default configuration available on startup.
+
+The third task was a significant refactor of the AI resume generation system ([#373](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/373)). The previous implementation scanned the filesystem to gather project data for generating resume lines, which was fragile — project files or derived data could be deleted, moved, or renamed, leading to errors and inconsistent AI outputs. The refactored version now uses database-stored Project Insights as the authoritative data source, achieving deterministic outputs, eliminating filesystem dependencies, and providing clear separation between data persistence and AI generation logic.
+
+Overall, this week reinforced the importance of robust data management — both in how we handle file uploads and how we source data for AI features. By grounding our systems in database-stored state rather than filesystem assumptions, we've made the application more reliable and maintainable going forward.
 
 ---
