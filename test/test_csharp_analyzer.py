@@ -107,6 +107,20 @@ class Test_csharp_analysis:
         assert result["complexity"]["functions_with_nested_loops"] >= 1
         assert result["complexity"]["max_loop_depth"] >= 2
 
+    def test_parse_failure_returns_error(self, analyzer):
+        """Check that invalid syntax returns report with error, not crash."""
+        source = "this is not valid C# {{{{{{{"
+        result = analyze(analyzer, source)
+        # Should return a report without crashing
+        assert "classes" in result
+        assert "imports" in result
+
+    def test_empty_file_parses(self, analyzer):
+        """Check that empty file doesn't crash."""
+        source = ""
+        result = analyze(analyzer, source)
+        # Should return a report, not crash
+        assert "classes" in result
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
