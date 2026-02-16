@@ -4,10 +4,11 @@ from pathlib import Path
 import sys
 from unittest.mock import patch
 import logging
+import pytest
 
 # Add the src directory to the Python path
 sys.path.append(str(Path(__file__).parent.parent))
-from src.contribution_skill_association import (
+from src.analysis.contribution_skill_association import (
     associate_contribution_skills,
     get_skills_for_file_subset,
     dedupe_ordered,
@@ -17,6 +18,15 @@ from src.contribution_skill_association import (
 )
 
 class TestContributionSkills(unittest.TestCase):
+    
+    """
+    Unit tests for contribution-to-skill association logic.
+
+    These tests verify correct skill detection and aggregation at both the
+    project and contributor levels, including caching behavior, duplicate
+    handling, missing files, exception safety, and cross-platform path handling.
+    """
+    
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.project_root = Path(self.temp_dir.name)
@@ -35,7 +45,7 @@ class TestContributionSkills(unittest.TestCase):
         path.write_text(content, encoding="utf-8")
         return path
 
-    @patch('src.contribution_skill_association.detect_individual_contributions')
+    @patch('src.analysis.contribution_skill_association.detect_individual_contributions')
     def test_non_collaborative_project_returns_empty(self, mock_detect):
         """Non-collaborative projects should return empty structure."""
         mock_detect.return_value = {
@@ -50,8 +60,8 @@ class TestContributionSkills(unittest.TestCase):
         self.assertEqual(result["project_skills"], [])
         self.assertEqual(result["contributors"], {})
 
-    @patch('src.contribution_skill_association.detect_individual_contributions')
-    @patch('src.contribution_skill_association.identify_skills')
+    @patch('src.analysis.contribution_skill_association.detect_individual_contributions')
+    @patch('src.analysis.contribution_skill_association.identify_skills')
     def test_multiple_contributors_different_skills(self, mock_identify, mock_detect):
         """Multiple contributors with different file types should get different skills."""
         mock_detect.return_value = {
@@ -88,8 +98,8 @@ class TestContributionSkills(unittest.TestCase):
         self.assertEqual(result["contributors"]["Alice"]["skills"], ["Python"])
         self.assertEqual(result["contributors"]["Bob"]["skills"], ["JavaScript"])
 
-    @patch('src.contribution_skill_association.detect_individual_contributions')
-    @patch('src.contribution_skill_association.identify_skills')
+    @patch('src.analysis.contribution_skill_association.detect_individual_contributions')
+    @patch('src.analysis.contribution_skill_association.identify_skills')
     def test_project_skills_vs_contributor_skills(self, mock_identify, mock_detect):
         """Project-wide skills should differ from individual contributor skills."""
         mock_detect.return_value = {
@@ -123,7 +133,7 @@ class TestContributionSkills(unittest.TestCase):
         # Alice only has Python
         self.assertEqual(result["contributors"]["Alice"]["skills"], ["Python"])
 
-    @patch('src.contribution_skill_association.identify_skills')
+    @patch('src.analysis.contribution_skill_association.identify_skills')
     def test_caching_behavior(self, mock_identify):
         """Same file set should use cached results."""
         mock_identify.return_value = ["Python"]
@@ -153,8 +163,8 @@ class TestContributionSkills(unittest.TestCase):
         clear_skills_cache()
         self.assertEqual(len(skills_cache), 0)
 
-    @patch('src.contribution_skill_association.detect_individual_contributions')
-    @patch('src.contribution_skill_association.identify_skills')
+    @patch('src.analysis.contribution_skill_association.detect_individual_contributions')
+    @patch('src.analysis.contribution_skill_association.identify_skills')
     def test_empty_and_duplicate_files(self, mock_identify, mock_detect):
         """Should handle empty file lists and deduplicates."""
         mock_detect.return_value = {
@@ -184,8 +194,8 @@ class TestContributionSkills(unittest.TestCase):
         self.assertEqual(result["contributors"]["Bob"]["file_count"], 0)
         self.assertEqual(result["contributors"]["Bob"]["skills"], [])
 
-    @patch('src.contribution_skill_association.detect_individual_contributions')
-    @patch('src.contribution_skill_association.identify_skills')
+    @patch('src.analysis.contribution_skill_association.detect_individual_contributions')
+    @patch('src.analysis.contribution_skill_association.identify_skills')
     def test_missing_files_and_exceptions(self, mock_identify, mock_detect):
         """Should handle missing files and identify_skills exceptions gracefully."""
         mock_detect.return_value = {
@@ -211,8 +221,8 @@ class TestContributionSkills(unittest.TestCase):
         # Should handle exception gracefully
         self.assertEqual(result["contributors"]["Alice"]["skills"], [])
 
-    @patch('src.contribution_skill_association.detect_individual_contributions')
-    @patch('src.contribution_skill_association.identify_skills')
+    @patch('src.analysis.contribution_skill_association.detect_individual_contributions')
+    @patch('src.analysis.contribution_skill_association.identify_skills')
     def test_duplicate_skills_and_none_handling(self, mock_identify, mock_detect):
         """Should deduplicate and sort skills, handle None returns."""
         mock_detect.return_value = {
@@ -267,8 +277,8 @@ class TestContributionSkills(unittest.TestCase):
         # Test empty list
         self.assertEqual(stable_unique_sorted([]), [])
 
-    @patch('src.contribution_skill_association.detect_individual_contributions')
-    @patch('src.contribution_skill_association.identify_skills')
+    @patch('src.analysis.contribution_skill_association.detect_individual_contributions')
+    @patch('src.analysis.contribution_skill_association.identify_skills')
     def test_nested_directories_and_posix_paths(self, mock_identify, mock_detect):
         """Should handle nested directories and POSIX paths correctly."""
         mock_detect.return_value = {

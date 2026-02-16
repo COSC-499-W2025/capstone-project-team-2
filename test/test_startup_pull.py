@@ -5,7 +5,7 @@ import unittest
 import json
 from pathlib import Path
 import orjson 
-from src.user_startup_config import ConfigLoader
+from src.config.user_startup_config import ConfigLoader
 
 
 class TestStartupConfigPull(unittest.TestCase):
@@ -58,7 +58,9 @@ class TestStartupConfigPull(unittest.TestCase):
         """
         temp_root = Path(self.temp_dir)
         user_path = temp_root / "UserConfigs.json"
-        default_path = temp_root / "default_user_configuration.json"
+        templates_dir = temp_root / "Templates"
+        templates_dir.mkdir(parents=True, exist_ok=True)
+        default_path = templates_dir / "default_user_configuration.json"
 
         class UserConfig:
             def __init__(self, defaults=None):

@@ -9,6 +9,7 @@ services:
     networks:
       - app_network
 
+
 # test runner on compose/start
   test:
     build: .
@@ -22,6 +23,8 @@ services:
       - ./test/data:/app/test/data
     environment:
       - OLLAMA_HOST=http://ollama2:11434
+      - DB_HOST=app_database
+      - DB_PORT=3306
     depends_on:
       app_database:
         condition: service_healthy
@@ -32,19 +35,17 @@ services:
     restart: "no"
 
 
-
       # waits for the tests to resolve
 
   app:
     build: .
     container_name: desktop_app # container name
     working_dir: /app
-    command: python -m src.main
+    command: python -m src.cli.main
     depends_on:
       app_database:
         condition: service_healthy # health check before app starts
-      test:
-          condition: service_completed_successfully
+      
     environment:
       - DISPLAY=${DISPLAY}
       - DATABASE_URL=mysql+mysqlconnector://appuser:apppassword@app_database:3306/appdb

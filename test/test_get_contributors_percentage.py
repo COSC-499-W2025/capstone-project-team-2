@@ -2,8 +2,8 @@ from pathlib import Path
 import shutil
 import sys
 sys.path.append(str(Path(__file__).parent.parent))
-from src.get_contributors_percentage_per_person import contribution_summary, contribution_percentages_from_local
-from src.individual_contribution_detection import UNATTRIBUTED
+from src.analysis.get_contributors_percentage_per_person import contribution_summary, contribution_percentages_from_local
+from src.analysis.individual_contribution_detection import UNATTRIBUTED
 import unittest
 import tempfile
 from git import Repo, Actor
@@ -11,6 +11,21 @@ from github import Github, Auth
 import os
 from dotenv import load_dotenv
 import uuid
+from unittest.mock import patch
+import pytest
+
+
+def test_contribution_summary_bubbles_unexpected_repo_error():
+    root = Path(tempfile.mkdtemp())
+
+    with patch(
+        "src.analysis.get_contributors_percentage_per_person.Repo",
+        side_effect=PermissionError("no access"),
+    ):
+        with pytest.raises(RuntimeError) as excinfo:
+            contribution_summary(root)
+
+    assert "Failed to inspect repository" in str(excinfo.value)
 
 class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
 
@@ -265,6 +280,8 @@ class TestIndividualContributionDetection_percentage_non_git(unittest.TestCase):
 
             self.assertIsInstance(stats['file_count'], int)
             self.assertGreaterEqual(stats['file_count'], 0)
+            
+
 
 if __name__ == "__main__":
     unittest.main()

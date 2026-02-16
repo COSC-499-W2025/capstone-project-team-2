@@ -4,9 +4,17 @@ from pathlib import Path
 import sys
 import textwrap
 sys.path.append(str(Path(__file__).parent.parent))
-from src.python_analyzer import analyze_python_project_oop
+from src.analyzers.python.python_oop_analyzer import analyze_python_project_oop
 
 class TestPythonOOPAstAnalyzer(unittest.TestCase):
+    """Check that the Python OOP analyzer returns expected metrics.
+
+    Args:
+        None: No arguments are required for this test case class.
+
+    Returns:
+        None: This class defines unit tests and does not return values.
+    """
 
     def _write_file(self, root: Path, rel_path: str, content: str) -> Path:
         

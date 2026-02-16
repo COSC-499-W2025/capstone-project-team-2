@@ -4,7 +4,7 @@ import shutil
 import unittest
 import json
 from pathlib import Path
-from src.Configuration import configuration_for_users
+from src.config.Configuration import configuration_for_users
 
 
 class TestUserConfigStore(unittest.TestCase):

@@ -2,3 +2,21 @@
 .venv_py310
 .venv
 .env
+nul
+
+# User-local configuration & generated files
+User_config_files/
+src/User_config_files/
+project_insights/
+
+# IDE files
+.idea/
+
+# Extracted repos / temp folders
+capstone-project-team-2/
+COSC 344 Assignment 7/
+
+# macOS junk
+.DS_Store
+__MACOSX/
+.idea/vcs.xml
