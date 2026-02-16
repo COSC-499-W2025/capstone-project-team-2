@@ -79,6 +79,18 @@ class TestResumeProjectInfo(unittest.TestCase):
         info = ResumeProjectInfo.from_project_data(data)
         self.assertEqual(info.project_type, "unknown")
 
+    def test_oop_score_as_number(self):
+        """Handle OOP score being a plain number instead of a dict."""
+        data = {"resume_item": {"project_name": "App", "languages": ["Python"],
+                "skills": [], "frameworks": [], "summary": "", "highlights": [],
+                "framework_sources": {}},
+                "project_type": "individual",
+                "oop_analysis": {"score": 0.85},
+                "duration_estimate": "1 week"}
+        info = ResumeProjectInfo.from_project_data(data)
+        self.assertEqual(info.oop_score, 0.85)
+        self.assertEqual(info.oop_rating, "")
+
     def test_missing_oop_analysis_defaults(self):
         """Handle missing OOP analysis section gracefully with defaults."""
         data = {"resume_item": {"project_name": "Script", "languages": ["Python"],
@@ -203,6 +215,14 @@ class TestGenerateResumeAI_Ver2(unittest.TestCase):
         self.assertEqual(result.project_title, "Task Manager")
         self.assertEqual(result.key_responsibilities, ["Designed API", "Implemented auth", "Tech Stack: Python, Flask, React"])
         self.assertEqual(result.tech_stack, "Python, Flask, React")
+
+    def test_generate_returns_none_on_api_error(self, mock_ctx):
+        """Return None when the LLM chain raises an exception."""
+        mock_ctx.store.project_exists.return_value = True
+        mock_ctx.store.fetch_by_name.return_value = SAMPLE_DATA
+        gen = GenerateResumeAI_Ver2("demo.json")
+        gen._chain = MagicMock(invoke=MagicMock(side_effect=Exception("API error")))
+        self.assertIsNone(gen.generate_AI_Resume_entry())
 
     def test_generate_passes_context_to_chain(self, mock_ctx):
         """Verify project context is passed to the LLM chain."""

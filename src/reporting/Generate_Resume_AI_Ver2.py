@@ -56,7 +56,11 @@ class ResumeProjectInfo:
         """
         resume_item = data.get("resume_item", {})
         oop_analysis = data.get("oop_analysis", {})
-        oop_score_info = oop_analysis.get("score", {})
+        oop_score_raw = oop_analysis.get("score", {})
+        if isinstance(oop_score_raw, dict):
+            oop_score_info = oop_score_raw
+        else:
+            oop_score_info = {"oop_score": oop_score_raw if isinstance(oop_score_raw, (int, float)) else 0.0, "rating": ""}
         project_type_info = data.get("project_type", "unknown")
         if isinstance(project_type_info, dict):
             project_type_value = project_type_info.get("project_type", "unknown")
@@ -133,6 +137,7 @@ Guidelines:
 - Focus on technical accomplishments
 - Keep bullet points concise but impactful
 - Highlight OOP principles if the score is medium or high
+- Return ONLY valid JSON, no code fences or extra text
 
 PROJECT DATA:
 {project_data}
@@ -283,7 +288,11 @@ PROJECT DATA:
         print(f"Generating AI resume entry for: {self.project_data.project_name}")
 
         # Invoke the LangChain chain
-        result = self._get_chain().invoke({"project_data": context})
+        try:
+            result = self._get_chain().invoke({"project_data": context})
+        except Exception as e:
+            print(f"Error generating AI resume entry: {e}")
+            return None
 
         # Convert result to dataclass
         key_responsibilities = list(result.get("key_responsibilities", []))
