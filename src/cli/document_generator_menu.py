@@ -16,7 +16,8 @@ from pathlib import Path
 from typing import Optional, List
 
 from src.core.app_context import runtimeAppContext
-from src.reporting.Generate_AI_Resume import GenerateProjectResume, GenerateLocalResume
+from src.reporting.Generate_AI_Resume import GenerateLocalResume
+from src.reporting.Generate_Resume_AI_Ver2 import GenerateResumeAI_Ver2
 from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
     RenderCVDocument, Project, Education, Skills, Connections
 )
@@ -303,8 +304,13 @@ def _add_project_from_analysis(doc: RenderCVDocument) -> None:
         if resume_item.tech_stack:
             summary = f"{summary} Tech stack: {resume_item.tech_stack}"
 
+        start_date = input("Start date (YYYY-MM, or press Enter to skip): ").strip()
+        end_date = input("End date (YYYY-MM, or press Enter to skip): ").strip()
+
         project = Project(
             name=resume_item.project_title,
+            start_date=start_date if start_date else None,
+            end_date=end_date if end_date else None,
             summary=summary,
             highlights=resume_item.key_responsibilities or []
         )
@@ -319,9 +325,9 @@ def _add_project_from_ai(doc: RenderCVDocument) -> None:
     """
     Add a project to the document using AI-powered analysis.
 
-    Requires external consent to be enabled. Lists saved project analyses and
-    uses GenerateProjectResume to create an AI-generated resume item from the
-    project root path stored in the analysis.
+    Requires external consent to be enabled. Lists analyzed projects from the
+    database and uses GenerateResumeAI_Ver2 to create an AI-generated resume
+    entry via Gemini LLM.
 
     Args:
         doc: The RenderCVDocument instance to add the project to
@@ -334,16 +340,19 @@ def _add_project_from_ai(doc: RenderCVDocument) -> None:
         print("Enable external services in Settings to use AI analysis.\n")
         return
 
-    folder = Path(runtimeAppContext.default_save_dir).resolve()
-    items = list_saved_projects(folder)
+    # List all analyzed projects from the database
+    projects_list = runtimeAppContext.store.get_all_projects_with_versions()
 
-    if not items:
-        print("[INFO] No saved projects found.")
+    if not projects_list:
+        print("[INFO] No analyzed projects found in the database.")
+        print("Analyze a project first using 'Analyze project' from the main menu.")
         return
 
-    print("\nSaved analyses:")
-    for i, p in enumerate(items, start=1):
-        print(f"  {i}) {p.name}")
+    print("\nAnalyzed projects:")
+    for i, p in enumerate(projects_list, start=1):
+        name = p.get("project_name", "Unknown")
+        versions = p.get("version_count", 1)
+        print(f"  {i}) {name} ({versions} version{'s' if versions != 1 else ''})")
 
     sel = input("\nSelect a project for AI analysis (or 0 to cancel): ").strip()
     if not sel or sel == "0":
@@ -351,35 +360,36 @@ def _add_project_from_ai(doc: RenderCVDocument) -> None:
 
     try:
         idx = int(sel) - 1
-        if idx < 0 or idx >= len(items):
+        if idx < 0 or idx >= len(projects_list):
             print("[ERROR] Invalid selection.")
             return
     except ValueError:
         print("[ERROR] Please enter a number.")
         return
 
-    chosen_path = items[idx]
-    try:
-        data = json.loads(chosen_path.read_text(encoding="utf-8"))
-    except Exception as e:
-        print(f"[ERROR] Could not read {chosen_path.name}: {e}")
-        return
+    project_name = projects_list[idx].get("project_name")
 
-    project_root = data.get("project_root")
-    if not project_root:
-        print("[ERROR] Saved analysis does not contain 'project_root'.")
-        return
-
-    print("[INFO] Generating AI analysis... (this may take a moment)")
+    print("[INFO] Generating AI resume entry... (this may take a moment)")
     try:
-        ai_resume = GenerateProjectResume(project_root).generate(saveToJson=False)
+        generator = GenerateResumeAI_Ver2(project_name)
+        ai_resume = generator.generate_AI_Resume_entry()
+
+        if ai_resume is None:
+            print("[ERROR] Could not generate AI resume entry.")
+            return
 
         summary = ai_resume.one_sentence_summary
         if ai_resume.tech_stack:
             summary = f"{summary} Tech stack: {ai_resume.tech_stack}"
 
+        print("[INFO] AI resume entry generated successfully.")
+        start_date = input("Start date (YYYY-MM, or press Enter to skip): ").strip()
+        end_date = input("End date (YYYY-MM, or press Enter to skip): ").strip()
+
         project = Project(
             name=ai_resume.project_title,
+            start_date=start_date if start_date else None,
+            end_date=end_date if end_date else None,
             summary=summary,
             highlights=ai_resume.key_responsibilities or []
         )
@@ -983,6 +993,8 @@ def _modify_project(doc: RenderCVDocument, idx: int, project: dict) -> None:
     print("(Press Enter to keep current value)\n")
 
     name = input(f"Name [{project.get('name', '')}]: ").strip()
+    start_date = input(f"Start date (YYYY-MM) [{project.get('start_date', '')}]: ").strip()
+    end_date = input(f"End date (YYYY-MM) [{project.get('end_date', '')}]: ").strip()
     summary = input(f"Summary [{project.get('summary', '')[:50]}...]: ").strip()
 
     print(f"\nCurrent highlights:")
@@ -1005,6 +1017,10 @@ def _modify_project(doc: RenderCVDocument, idx: int, project: dict) -> None:
 
     if name:
         projects[idx]['name'] = name
+    if start_date:
+        projects[idx]['start_date'] = start_date
+    if end_date:
+        projects[idx]['end_date'] = end_date
     if summary:
         projects[idx]['summary'] = summary
     if highlights is not None:
