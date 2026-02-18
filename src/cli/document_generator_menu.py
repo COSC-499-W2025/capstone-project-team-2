@@ -1143,7 +1143,7 @@ def _update_summary(doc: RenderCVDocument) -> None:
     """
     print("\n=== Update Professional Summary ===")
 
-    current = doc.sections.get('summary', [''])[0] if doc.sections.get('summary') else ''
+    current = doc.sections.get('summary', [''])[0] if doc.sections and doc.sections.get('summary') else ''
     print(f"Current summary: {current[:100]}..." if len(current) > 100 else f"Current summary: {current}")
 
     print("\nEnter new summary (or press Enter to keep current):")
