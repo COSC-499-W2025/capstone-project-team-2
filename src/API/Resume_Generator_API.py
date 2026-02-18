@@ -416,7 +416,16 @@ def add_project(id: str, project_name: str, payload: Optional[ProjectRequest] = 
     """
     doc = _load_resume(id)
 
-    project_data = runtimeAppContext.store.fetch_by_name(project_name)
+    candidates = [project_name]
+    if not project_name.endswith(".json"):
+        candidates.append(f"{project_name}.json")
+
+    project_data = None
+    for candidate in candidates:
+        project_data = runtimeAppContext.store.fetch_by_name(candidate)
+        if project_data is not None:
+            break
+
     if project_data is None:
         raise HTTPException(status_code=404, detail=f"Project record '{project_name}' not found in database")
 
