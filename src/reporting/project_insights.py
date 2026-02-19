@@ -450,12 +450,12 @@ def record_project_insight(
         contributors=normalized,
         stats=stats,
         file_analysis=_compute_file_analysis(hierarchy),
-file_analysis=_compute_file_analysis(hierarchy),
-snapshot_label=snapshot_label)
+        snapshot_label=snapshot_label,
+    )
 
     path = Path(storage_path)
     entries = _read_entries(path)
-    entries.append(insight_dict.to_dict())
+    entries.append(insight.to_dict())
     _write_entries(path, entries)
 
     return insight
