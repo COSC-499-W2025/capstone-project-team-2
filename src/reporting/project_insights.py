@@ -450,7 +450,8 @@ def record_project_insight(
         contributors=normalized,
         stats=stats,
         file_analysis=_compute_file_analysis(hierarchy),
-    )
+file_analysis=_compute_file_analysis(hierarchy),
+snapshot_label=snapshot_label)
 
     path = Path(storage_path)
     entries = _read_entries(path)
