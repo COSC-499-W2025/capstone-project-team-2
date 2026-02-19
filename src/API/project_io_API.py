@@ -27,23 +27,20 @@ def _is_path_within_allowed_dirs(path: Path, allowed_dirs: tuple[Path, ...]) -> 
     return any(resolved == d or d in resolved.parents for d in allowed_dirs)
 
 @projectsRouter.post("/upload")
-async def upload_project(upload_file: UploadFile) -> str:
+async def upload_project(upload_file: UploadFile) -> dict:
     """
-    Upload a ZIP project file for later analysis.
+    Upload a ZIP project file (new snapshot) for later analysis.
 
-    API call is ``POST /projects/upload``.
-
-    Args:
-        upload_file (UploadFile): Uploaded file from multipart form-data.
-
-    Returns:
-        str: ``"Upload Success"`` when the file is a ZIP, otherwise
-            ``"Error, file is not a zip file!"``.
+    Supports incremental uploads by keeping the latest uploaded file in
+    ``runtimeAppContext.currently_uploaded_file`` and returning basic metadata.
     """
     if not zipfile.is_zipfile(upload_file.file):
-        return "Error, file is not a zip file!"
+        return {"status": "error", "message": "file is not a zip file"}
+
+    # Stash the upload for analysis; FastAPI UploadFile is a SpooledTemporaryFile
+    # so we need a deep copy to avoid the stream being consumed.
     runtimeAppContext.currently_uploaded_file = copy.deepcopy(upload_file)
-    return "Upload Success"
+    return {"status": "ok", "filename": upload_file.filename}
 
 def upload_project_path_CLI(upload_file: Path) -> str:
     """
