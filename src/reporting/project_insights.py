@@ -454,10 +454,7 @@ def record_project_insight(
 
     path = Path(storage_path)
     entries = _read_entries(path)
-    insight_dict = insight.to_dict()
-    if snapshot_label:
-        insight_dict["snapshot_label"] = snapshot_label
-    entries.append(insight_dict)
+    entries.append(insight_dict.to_dict())
     _write_entries(path, entries)
 
     return insight
