@@ -4,11 +4,12 @@ import os
 
 class SaveFileAnalysisAsJSON:
     """
-    Persist analysis payloads to JSON on disk.
+    Persist analysis payloads to JSON on disk, without mutating them.
 
-    This class is intentionally simple: it serializes the provided dict with
-    indentation so humans can read diffs, and it avoids any mutation of the
-    payload prior to writing.
+    Responsibilities:
+    - Pretty-print the supplied dict (2-space indent, UTF-8)
+    - Ensure the target directory exists
+    - Write a single `<project_name>.json` file
     """
 
     def convertAnalysisToJSON(self, project_dict: dict) -> str:
