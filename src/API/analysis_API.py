@@ -13,7 +13,7 @@ analysisRouter = APIRouter(
 )
 
 @analysisRouter.get("/")
-def perform_analysis_API(use_ai: bool = False) -> dict:
+def perform_analysis_API(use_ai: bool = False, project_name: str | None = None) -> dict:
     """
     API call for performing analysis on a project folder. Extracts from a zip file if provided Path is a zip file. Analysis is saved.
 
@@ -37,10 +37,11 @@ def perform_analysis_API(use_ai: bool = False) -> dict:
                 folder = folder_path
         else:   #Can only be an UploadFile at this point
             folder = extract_if_zip(folder_path)
-        result = analyze_project(folder, use_ai_analysis=use_ai) or {}
+        result = analyze_project(folder, use_ai_analysis=use_ai, project_name=project_name) or {}
         return {
             "status": "Analysis Finished and Saved",
             "dedup": result.get("dedup"),
+            "snapshots": result.get("snapshots", []),
         }
     except Exception as e:
         return {
