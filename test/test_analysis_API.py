@@ -25,7 +25,6 @@ def test_analysis_API_performed():
     assert body["status"] == "Analysis Finished and Saved"
     assert "dedup" in body
     assert "snapshots" in body
-    assert "snapshots" in body
 
 def test_analysis_API_performed_with_upload_file():
     """
