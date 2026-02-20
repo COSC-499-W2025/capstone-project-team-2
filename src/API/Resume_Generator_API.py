@@ -23,7 +23,7 @@ import uuid
 import shutil
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
     RenderCVDocument,
     Project,
@@ -40,6 +40,11 @@ ALLOWED_CONTACT_FIELDS = {"email", "phone", "location", "website", "name"}
 
 class GenerateResumeRequest(BaseModel):
     """Payload for creating a new resume."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "name": "John_Doe",
+        "theme": "sb2nov",
+        "overwrite": False,
+    }})
     name: str
     theme: Optional[str] = 'sb2nov'
     overwrite: bool = False
@@ -47,6 +52,12 @@ class GenerateResumeRequest(BaseModel):
 
 class EditItem(BaseModel):
     """A single field edit on a resume section item."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "section": "contact",
+        "item_name": "",
+        "field": "email",
+        "new_value": "john.doe@example.com",
+    }})
     section: str
     item_name: str
     field: str
@@ -54,10 +65,28 @@ class EditItem(BaseModel):
 
 class EditResumeRequest(BaseModel):
     """Payload containing one or more resume edits."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "edits": [
+            {"section": "contact", "item_name": "", "field": "email", "new_value": "john.doe@example.com"},
+            {"section": "contact", "item_name": "", "field": "phone", "new_value": "555-123-4567"},
+            {"section": "summary", "item_name": "", "field": "", "new_value": "Software engineer with 5 years of experience."},
+            {"section": "experience", "item_name": "Software Engineer", "field": "company", "new_value": "Acme Corp"},
+            {"section": "projects", "item_name": "MyProject", "field": "summary", "new_value": "Built a REST API with FastAPI."},
+            {"section": "theme", "item_name": "", "field": "", "new_value": "classic"},
+        ]
+    }})
     edits: List[EditItem]
 
 class ProjectRequest(BaseModel):
     """Optional overrides when adding a project from the database."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "name": "My Capstone Project",
+        "start_date": "2024-09",
+        "end_date": "2025-04",
+        "location": "Kelowna, BC",
+        "summary": "Built a developer portfolio generation tool using FastAPI and RenderCV.",
+        "highlights": ["Designed REST API with FastAPI", "Integrated RenderCV for PDF generation"],
+    }})
     name: Optional[str] = None
     start_date: Optional[str] = None
     end_date: Optional[str] = None
@@ -67,6 +96,9 @@ class ProjectRequest(BaseModel):
 
 class SaveRequest(BaseModel):
     """Payload for saving a rendered file to a custom location."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "path": "/home/user/Documents/resumes",
+    }})
     path: str
 
 
