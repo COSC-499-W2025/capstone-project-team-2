@@ -27,9 +27,13 @@ class MultiLangOrchestrator:
     def __init__(self, project_root: str | Path):
         """Initialize with the project root directory."""
         self.root = Path(project_root).resolve()
+        if not self.root.exists():
+            raise ValueError(f"Project root does not exist: {self.root}")
+        if not self.root.is_dir():
+            raise ValueError(f"Project root is not a directory: {self.root}")
         self.py_analyzer = PythonOOPAstAnalyzer(self.root)
         self.js_analyzer = JavaScriptOOPAnalyzer(self.root)
-
+        
     def discover_files(self) -> Tuple[List[Path], List[Path], List[Path], List[Path], List[Path], List[Path]]:
         """
         Discover all Python, Java, JavaScript, C, C++, and C# files, skipping common ignore dirs.
