@@ -414,6 +414,12 @@ def add_project(portfolio_id: str, project_name: str, payload: Optional[ProjectR
         raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
     return {"status": result}
 
+@portfolioRouter.post("/portfolio/{portfolio_id}/render")
+def render_portfolio_default(portfolio_id: str, background_tasks: BackgroundTasks):
+    """Backward-compatible route that renders a portfolio as PDF (default format)."""
+    return render_portfolio(portfolio_id, "pdf", background_tasks)
+
+
 @portfolioRouter.post("/portfolio/{portfolio_id}/render/{format}")
 def render_portfolio(portfolio_id: str, format: str, background_tasks: BackgroundTasks):
     """Render an existing portfolio to the specified format.

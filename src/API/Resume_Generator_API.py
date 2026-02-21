@@ -322,6 +322,12 @@ def edit_resume(id: str, payload: EditResumeRequest):
     return {"results": results}
 
 
+@resumeRouter.post("/resume/{id}/render")
+def render_resume_default(id: str, background_tasks: BackgroundTasks):
+    """Backward-compatible route that renders a resume as PDF (default format)."""
+    return render_resume(id, "pdf", background_tasks)
+
+
 @resumeRouter.post("/resume/{id}/render/{format}")
 def render_resume(id: str, format: str, background_tasks: BackgroundTasks):
     """Re-render an existing resume to the specified format.
