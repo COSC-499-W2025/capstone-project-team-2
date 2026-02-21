@@ -54,10 +54,12 @@ class configuration_for_users:
            """
 
 
-        with open(self.loc_to_save, "wb") as f: #Reading the json_file
-            f.write(orjson.dumps(self.jsonfile,option=orjson.OPT_INDENT_2)) #dumping the data it to be saved using the orjson library
-
-        return os.path.exists(self.loc_to_save)
+        try:
+            with open(self.loc_to_save, "wb") as f:
+                f.write(orjson.dumps(self.jsonfile, option=orjson.OPT_INDENT_2))
+            return os.path.exists(self.loc_to_save)
+        except Exception:
+            return False
         #Returns bool state to see if the actually file exists and created successfully
 
 

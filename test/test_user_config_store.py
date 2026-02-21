@@ -78,6 +78,7 @@ class TestUserConfigStore(unittest.TestCase):
 
 
         self.assertTrue(os.path.exists(self.test_temp_file_path))
+        
 
     def test_invalid_valid_json(self):
 
@@ -133,4 +134,18 @@ class TestUserConfigStore(unittest.TestCase):
         os.chdir(self.original_cwd)
         if os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir)
+            
+    def test_save_config_returns_false_on_failure(self):
+        """
+        Check that save_config returns False when write fails.
+        
+        This test verifies the following:
+        - That save_config returns False when the path is invalid
+        - That no exception is raised
+        
+        :return: pass or fail
+        """
+        self.instance.loc_to_save = Path("/nonexistent/directory/file.json")
+        result = self.instance.save_config()
+        self.assertFalse(result)
 
