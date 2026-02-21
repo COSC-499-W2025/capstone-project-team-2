@@ -164,7 +164,8 @@ def generate_resume(payload: GenerateResumeRequest):
 
     Generates a unique resume ID by appending a UUID suffix to the provided name.
     The YAML file is created and optionally themed. Use POST /resume/{id}/render
-    to produce a PDF.
+    to produce a PDF (default), or POST /resume/{id}/render/{format} to specify
+    the output format ('pdf', 'html', or 'markdown').
 
     Args:
         payload: GenerateResumeRequest with name, optional theme, and overwrite flag.
