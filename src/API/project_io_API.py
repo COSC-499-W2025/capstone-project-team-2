@@ -54,19 +54,21 @@ def _resolve_project_identifier(identifier: str) -> _ResolvedProjectIdentifier:
     """
     insights = list_project_insights(storage_path=_insights_storage_path())
 
+    name_match: _ResolvedProjectIdentifier | None = None
     for insight in insights:
         if insight.id == identifier:
             return _ResolvedProjectIdentifier(
                 insight_id=insight.id,
                 project_name=insight.project_name,
             )
-
-    for insight in insights:
-        if insight.project_name == identifier:
-            return _ResolvedProjectIdentifier(
+        if insight.project_name == identifier and name_match is None:
+            name_match = _ResolvedProjectIdentifier(
                 insight_id=insight.id,
                 project_name=insight.project_name,
             )
+
+    if name_match is not None:
+        return name_match
 
     raise HTTPException(
         status_code=404,
