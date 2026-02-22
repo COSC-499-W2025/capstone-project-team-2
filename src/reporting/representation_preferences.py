@@ -119,6 +119,7 @@ def apply_preferences(
     only_showcase: bool = False,
     storage_path: Optional[Path] = None,
     pref_path: Optional[Path] = None,
+    snapshot_label: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Apply stored preferences to project insights for presentation.
@@ -136,6 +137,9 @@ def apply_preferences(
     insights = insights or list_project_insights(
         storage_path=storage_path or project_insights.DEFAULT_STORAGE
     )
+
+    if snapshot_label:
+        insights = [i for i in insights if getattr(i, "snapshot_label", None) == snapshot_label]
 
     chronology = prefs.get("chronology_corrections") or {}
     corrected = [_apply_chronology(item, chronology) for item in insights]

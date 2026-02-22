@@ -50,17 +50,25 @@ def set_preferences(payload: PreferencesPayload) -> Dict[str, Any]:
 
 
 @representationRouter.get("/projects")
-def list_projects_with_preferences(only_showcase: bool = Query(False)) -> Dict[str, Any]:
+def list_projects_with_preferences(
+    only_showcase: bool = Query(False),
+    snapshot_label: str | None = Query(default=None),
+) -> Dict[str, Any]:
     """
     Return project insights ordered and filtered per user preferences.
 
-    Args: only_showcase: When True, return only showcase projects if defined.
+    Args:
+        only_showcase: When True, return only showcase projects if defined.
+        snapshot_label: Optional snapshot label to filter incremental uploads.
 
     Returns: Dict[str, Any]: Ordered projects and applied preference metadata.
     """
 
     try:
-        result = apply_preferences(only_showcase=only_showcase)
+        result = apply_preferences(
+            only_showcase=only_showcase,
+            snapshot_label=snapshot_label,
+        )
         if not result.get("projects"):
             raise HTTPException(status_code=404, detail="No project insights are available.")
         return result

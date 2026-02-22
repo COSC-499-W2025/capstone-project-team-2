@@ -58,15 +58,21 @@ def test_upload_file_API():
     #Making a test file
     path = os.getcwd()
     path = os.path.join(path, "api_test.zip")
-    with zipfile.ZipFile(path, "w")as f:
-        f.write("test")
-    file = {"upload_file": Path(path).open("rb")}
-    
-    #Calls the API with the file to get a response from the upload, should return a success string
-    response = test_client.post("/projects/upload", files=file)
-    assert response.status_code == 200
-    assert response.json() == "Upload Success"
-    if os.path.exists(path):
+    with zipfile.ZipFile(path, "w") as f:
+        f.writestr("dummy.txt", "test")
+
+    fh = Path(path).open("rb")
+    try:
+        file = {"upload_file": fh}
+        #Calls the API with the file to get a response from the upload, should return a success string
+        response = test_client.post("/projects/upload", files=file)
+        assert response.status_code == 200
+        body = response.json()
+        assert body["status"] == "ok"
+        assert body["filename"] == "api_test.zip"
+    finally:
+        fh.close()
+        if os.path.exists(path):
             os.remove(path)
 
 def test_upload_file_API_no_zip():
@@ -79,7 +85,9 @@ def test_upload_file_API_no_zip():
     #Calls the API with the file to get a response from the upload, should return a string error
     response = test_client.post("/projects/upload", files={"upload_file": path.open("rb")})
     assert response.status_code == 200
-    assert response.json() == "Error, file is not a zip file!"
+    body = response.json()
+    assert body["status"] == "error"
+    assert "zip file" in body["message"]
 
 def test_upload_project_CLI_dir():
     """
