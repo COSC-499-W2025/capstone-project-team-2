@@ -135,17 +135,13 @@ class TestUserConfigStore(unittest.TestCase):
         if os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir)
             
-    def test_save_config_returns_false_on_failure(self):
+    def test_save_config_raises_on_failure(self):
         """
-        Check that save_config returns False when write fails.
-        
+        Check that save_config raises IOError when write fails.
         This test verifies the following:
-        - That save_config returns False when the path is invalid
-        - That no exception is raised
-        
+        - That save_config raises IOError when the path is invalid
         :return: pass or fail
         """
         self.instance.loc_to_save = Path("/nonexistent/directory/file.json")
-        result = self.instance.save_config()
-        self.assertFalse(result)
-
+        with self.assertRaises(IOError):
+            self.instance.save_config()
