@@ -1,4 +1,6 @@
 import json
+import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 from fastapi import APIRouter, UploadFile, HTTPException, Query
 import zipfile
@@ -8,10 +10,70 @@ from src.storage import saved_projects
 from src.storage.saved_projects import list_saved_projects
 from src.core.app_context import runtimeAppContext
 from src.storage.saved_projects import *
+from src.config.project_thumbnails import ThumbnailManager
+from src.reporting.project_insights import (
+    list_project_insights,
+    update_thumbnail_in_insights,
+    remove_thumbnail_from_insights,
+)
 
 projectsRouter = APIRouter(
     prefix="/projects"
 )
+
+
+@dataclass
+class _ResolvedProjectIdentifier:
+    """Resolved identifier info for thumbnail operations."""
+
+    insight_id: str
+    project_name: str
+
+
+def _insights_storage_path() -> Path:
+    """Return the path to project insights storage."""
+    return Path(runtimeAppContext.legacy_save_dir) / "project_insights.json"
+
+
+def _thumbnail_storage_dir() -> Path:
+    """Return the directory where thumbnails are stored."""
+    return Path(runtimeAppContext.legacy_save_dir) / "thumbnails"
+
+
+def _resolve_project_identifier(identifier: str) -> _ResolvedProjectIdentifier:
+    """
+    Resolve a project identifier from insights by UUID first, then project name.
+
+    Args:
+        identifier: Insight UUID or project name.
+
+    Returns:
+        _ResolvedProjectIdentifier: Matched insight id and project name.
+
+    """
+    insights = list_project_insights(storage_path=_insights_storage_path())
+
+    for insight in insights:
+        if insight.id == identifier:
+            return _ResolvedProjectIdentifier(
+                insight_id=insight.id,
+                project_name=insight.project_name,
+            )
+
+    for insight in insights:
+        if insight.project_name == identifier:
+            return _ResolvedProjectIdentifier(
+                insight_id=insight.id,
+                project_name=insight.project_name,
+            )
+
+    raise HTTPException(
+        status_code=404,
+        detail=(
+            f"Project '{identifier}' was not found in insights. "
+            "Analyze the project first to create an insight record."
+        ),
+    )
 
 
 def _allowed_project_save_dirs() -> tuple[Path, ...]:
@@ -229,3 +291,147 @@ def delete_project_legacy(id: str, save_path: str | None = Query(default=None)) 
     ``DELETE /projects/{id}`` behavior.
     """
     return delete_project(id=id, save_path=save_path)
+
+
+@projectsRouter.post("/{id}/thumbnail")
+async def upload_project_thumbnail(
+    id: str,
+    thumbnail: UploadFile,
+    resize: bool = Query(default=True),
+) -> dict:
+    """
+    Upload and associate a project thumbnail image.
+
+    Args:
+        id: Insight UUID or project name.
+        thumbnail: Image file uploaded via multipart form-data.
+        resize: Whether to resize to standard thumbnail dimensions.
+
+    Returns:
+        dict: Saved thumbnail metadata and association status.
+    """
+    resolved = _resolve_project_identifier(id)
+    filename = thumbnail.filename or ""
+    suffix = Path(filename).suffix.lower()
+    if not suffix:
+        raise HTTPException(
+            status_code=400,
+            detail="Thumbnail filename must include an image extension.",
+        )
+
+    temp_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            temp_path = Path(tmp.name)
+            tmp.write(await thumbnail.read())
+
+        manager = ThumbnailManager(storage_dir=_thumbnail_storage_dir())
+        success, error, thumb_path = manager.add_thumbnail(
+            project_id=resolved.insight_id,
+            image_path=temp_path,
+            resize=resize,
+        )
+        if not success or thumb_path is None:
+            raise HTTPException(
+                status_code=400,
+                detail=error or "Failed to store thumbnail.",
+            )
+
+        linked = update_thumbnail_in_insights(
+            resolved.insight_id,
+            thumb_path,
+            storage_path=_insights_storage_path(),
+        )
+        if not linked:
+            raise HTTPException(
+                status_code=500,
+                detail=(
+                    "Thumbnail file was saved but could not be linked to "
+                    "the project insight."
+                ),
+            )
+
+        return {
+            "status": "Thumbnail uploaded successfully",
+            "project_id": resolved.insight_id,
+            "project_name": resolved.project_name,
+            "thumbnail": {
+                "path": str(thumb_path),
+                "filename": thumb_path.name,
+            },
+        }
+    finally:
+        if temp_path is not None:
+            temp_path.unlink(missing_ok=True)
+        await thumbnail.close()
+
+
+@projectsRouter.get("/{id}/thumbnail")
+def get_project_thumbnail(id: str) -> dict:
+    """
+    Retrieve thumbnail metadata for a project.
+
+    Args:
+        id: Insight UUID or project name.
+
+    Returns:
+        dict: Thumbnail metadata for the matched project.
+    """
+    resolved = _resolve_project_identifier(id)
+    manager = ThumbnailManager(storage_dir=_thumbnail_storage_dir())
+    thumb_path = manager.get_thumbnail_path(resolved.insight_id)
+    if thumb_path is None:
+        # Backward compatibility with older project-name thumbnail keys.
+        thumb_path = manager.get_thumbnail_path(resolved.project_name)
+
+    if thumb_path is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No thumbnail found for project '{resolved.project_name}'.",
+        )
+
+    return {
+        "project_id": resolved.insight_id,
+        "project_name": resolved.project_name,
+        "thumbnail": {
+            "path": str(thumb_path),
+            "filename": thumb_path.name,
+        },
+    }
+
+
+@projectsRouter.delete("/{id}/thumbnail")
+def delete_project_thumbnail(id: str) -> dict:
+    """
+    Delete a project's associated thumbnail image.
+
+    Args:
+        id: Insight UUID or project name.
+
+    Returns:
+        dict: Deletion status for thumbnail and insight metadata.
+    """
+    resolved = _resolve_project_identifier(id)
+    manager = ThumbnailManager(storage_dir=_thumbnail_storage_dir())
+
+    deleted = manager.delete_thumbnail(resolved.insight_id)
+    if not deleted:
+        # Backward compatibility with older project-name thumbnail keys.
+        deleted = manager.delete_thumbnail(resolved.project_name)
+
+    if not deleted:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No thumbnail found for project '{resolved.project_name}'.",
+        )
+
+    remove_thumbnail_from_insights(
+        resolved.insight_id,
+        storage_path=_insights_storage_path(),
+    )
+
+    return {
+        "status": "Thumbnail deleted successfully",
+        "project_id": resolved.insight_id,
+        "project_name": resolved.project_name,
+    }
