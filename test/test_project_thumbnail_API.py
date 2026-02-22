@@ -174,7 +174,6 @@ def test_get_thumbnail_missing_returns_404(monkeypatch, tmp_path):
     assert response.status_code == 404
     assert "No thumbnail found" in response.json()["detail"]
 
-
 def test_delete_thumbnail_success(monkeypatch, tmp_path):
     """DELETE /projects/{id}/thumbnail removes file and insight metadata."""
     monkeypatch.setattr(runtimeAppContext, "legacy_save_dir", tmp_path)
