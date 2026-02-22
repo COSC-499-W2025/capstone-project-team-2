@@ -1,10 +1,11 @@
 import json
+import io
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
+import uuid
 from fastapi import APIRouter, UploadFile, HTTPException, Query
 import zipfile
-import copy
 
 from src.storage import saved_projects
 from src.storage.saved_projects import list_saved_projects
@@ -75,6 +76,28 @@ def _resolve_project_identifier(identifier: str) -> _ResolvedProjectIdentifier:
         ),
     )
 
+def _persist_uploaded_zip(upload_file: UploadFile, payload: bytes) -> Path:
+    """
+    Persist an uploaded ZIP payload to a temp file and return its path.
+
+    Args:
+        upload_file: Source upload metadata.
+        payload: Raw ZIP bytes.
+
+    Returns:
+        Path: Filesystem path to persisted ZIP.
+    """
+    upload_dir = Path(tempfile.gettempdir()) / "devdoc_uploads"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    source_name = Path(upload_file.filename or "uploaded_project.zip").name
+    source_stem = Path(source_name).stem or "uploaded_project"
+    source_suffix = Path(source_name).suffix or ".zip"
+    out_name = f"{source_stem}_{uuid.uuid4().hex[:8]}{source_suffix}"
+    out_path = upload_dir / out_name
+    out_path.write_bytes(payload)
+    return out_path
+
 
 def _allowed_project_save_dirs() -> tuple[Path, ...]:
     """Return canonical directories where project JSON files are allowed to live."""
@@ -93,16 +116,21 @@ async def upload_project(upload_file: UploadFile) -> dict:
     """
     Upload a ZIP project file (new snapshot) for later analysis.
 
-    Supports incremental uploads by keeping the latest uploaded file in
-    ``runtimeAppContext.currently_uploaded_file`` and returning basic metadata.
+    Stores the uploaded ZIP as a temporary file and tracks that path in
+    ``runtimeAppContext.currently_uploaded_file`` for follow-up ``/analyze`` calls.
     """
-    if not zipfile.is_zipfile(upload_file.file):
+    payload = await upload_file.read()
+    await upload_file.close()
+    if not payload or not zipfile.is_zipfile(io.BytesIO(payload)):
         return {"status": "error", "message": "file is not a zip file"}
 
-    # Stash the upload for analysis; FastAPI UploadFile is a SpooledTemporaryFile
-    # so we need a deep copy to avoid the stream being consumed.
-    runtimeAppContext.currently_uploaded_file = copy.deepcopy(upload_file)
-    return {"status": "ok", "filename": upload_file.filename}
+    persisted_zip = _persist_uploaded_zip(upload_file, payload)
+    runtimeAppContext.currently_uploaded_file = persisted_zip
+    return {
+        "status": "ok",
+        "filename": upload_file.filename,
+        "stored_path": str(persisted_zip),
+    }
 
 def upload_project_path_CLI(upload_file: Path) -> str:
     """
