@@ -130,6 +130,32 @@ def test_get_thumbnail_success(monkeypatch, tmp_path):
     assert body["thumbnail"]["filename"] == "proj-uuid-123.png"
 
 
+def test_get_thumbnail_falls_back_to_project_name(monkeypatch, tmp_path):
+    """GET thumbnail should fall back to project-name key when UUID key is missing."""
+    monkeypatch.setattr(runtimeAppContext, "legacy_save_dir", tmp_path)
+    monkeypatch.setattr(project_io_API, "list_project_insights", lambda storage_path: [_insight()])
+
+    class _FakeThumbnailManager:
+        def __init__(self, storage_dir):
+            self.storage_dir = storage_dir
+
+        def get_thumbnail_path(self, project_id):
+            if project_id == "proj-uuid-123":
+                return None
+            if project_id == "MyProject":
+                return Path("/tmp/MyProject.png")
+            return None
+
+    monkeypatch.setattr(project_io_API, "ThumbnailManager", _FakeThumbnailManager)
+
+    response = test_client.get("/projects/MyProject/thumbnail")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["project_id"] == "proj-uuid-123"
+    assert body["project_name"] == "MyProject"
+    assert body["thumbnail"]["filename"] == "MyProject.png"
+
+
 def test_get_thumbnail_missing_returns_404(monkeypatch, tmp_path):
     """GET thumbnail should return 404 when no thumbnail exists."""
     monkeypatch.setattr(runtimeAppContext, "legacy_save_dir", tmp_path)
