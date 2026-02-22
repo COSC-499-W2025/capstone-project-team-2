@@ -152,7 +152,7 @@ Uploads a ZIP for later analysis.
   }
   ```
 
-### `GET /projects/`
+### `GET /projects` (also accepts `/projects/`)
 Returns saved project names.
 
 - Success `200`: `[]` or `['project_1', 'project_2']`
@@ -580,6 +580,38 @@ Deletes portfolio YAML.
 - Errors:
   - `404`: portfolio not found.
   - `500`: filesystem deletion failure.
+
+## Required Endpoint Coverage
+
+The milestone-required endpoints are all implemented and documented in this file.
+
+- `POST /projects/upload`
+- `POST /privacy-consent`
+- `GET /projects` (or `/projects/`)
+- `GET /projects/{id}`
+- `GET /skills`
+- `GET /resume/{id}`
+- `POST /resume/generate`
+- `POST /resume/{id}/edit`
+- `GET /portfolio/{id}` (implemented as `GET /portfolio/{portfolio_id}`)
+- `POST /portfolio/generate`
+- `POST /portfolio/{id}/edit` (implemented as `POST /portfolio/{portfolio_id}/edit`)
+
+### HTTP-Style Test Coverage (No Real Server)
+
+All endpoint tests are executed through FastAPI `TestClient`, which issues HTTP-style requests in-process without starting a live server.
+
+- `POST /projects/upload`: `test/test_project_io_API.py`, `test/test_analysis_API.py`
+- `POST /privacy-consent`: `test/test_consent_API.py`
+- `GET /projects`: `test/test_project_io_API.py`
+- `GET /projects/{id}`: `test/test_project_io_API.py`
+- `GET /skills`: `test/test_skills_API.py`
+- `GET /resume/{id}`: `test/test_resume_generator_API.py`
+- `POST /resume/generate`: `test/test_resume_generator_API.py`
+- `POST /resume/{id}/edit`: `test/test_resume_generator_API.py`
+- `GET /portfolio/{id}`: `test/test_portfolio_generator_API.py`
+- `POST /portfolio/generate`: `test/test_portfolio_generator_API.py`
+- `POST /portfolio/{id}/edit`: `test/test_portfolio_generator_API.py`
 
 ## Endpoint Coverage Checklist
 
