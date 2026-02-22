@@ -267,7 +267,7 @@ python -m src.main
 
 All API endpoints are documented in one reference:
 
-- [`docs/api_endpoints.md`](docs/api_endpoints.md)
+- [`docs/API_ENDPOINTS.md`](docs/API_ENDPOINTS.md)
 
 If you run the FastAPI app, interactive docs are also available at:
 
