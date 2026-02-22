@@ -1,9 +1,7 @@
 import shutil
-from typing import assert_type
 import pytest
 from pathlib import Path
 import os
-from fastapi import responses
 
 from src.API.project_io_API import *
 from src.API.general_API import app
@@ -24,7 +22,7 @@ def test_return_all_saved_projects_none():
     """
     response = test_client.get("/projects")
     assert response.status_code == 200
-    assert_type(response.json(), list)  #Checks that list is still returned
+    assert isinstance(response.json(), list)  #Checks that list is still returned
 
 def test_return_all_saved_projects():
     """
@@ -46,7 +44,7 @@ def test_return_all_saved_projects():
 
     response = test_client.get("/projects")
     assert response.status_code == 200
-    assert_type(response.json(), list)
+    assert isinstance(response.json(), list)
     assert response.json() != None #Checks that list is not empty
 
     shutil.rmtree(out_dir)  #Deletes files made by test
