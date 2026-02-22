@@ -351,7 +351,7 @@ def _add_project_from_ai(doc: RenderCVDocument) -> None:
     print("\nAnalyzed projects:")
     for i, p in enumerate(projects_list, start=1):
         name = p.get("project_name", "Unknown")
-        versions = p.get("version_count", 1)
+        versions = p.get("total_versions", 1)
         print(f"  {i}) {name} ({versions} version{'s' if versions != 1 else ''})")
 
     sel = input("\nSelect a project for AI analysis (or 0 to cancel): ").strip()

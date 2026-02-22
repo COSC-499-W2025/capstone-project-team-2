@@ -502,7 +502,7 @@ class TestDocumentGeneratorMenu(unittest.TestCase):
         """
         mock_ctx.external_consent = True
         mock_ctx.store.get_all_projects_with_versions.return_value = [
-            {"project_name": "MyProject", "version_count": 2},
+            {"project_name": "MyProject", "total_versions": 2},
         ]
 
         mock_resume = MagicMock()
@@ -537,7 +537,7 @@ class TestDocumentGeneratorMenu(unittest.TestCase):
         """
         mock_ctx.external_consent = True
         mock_ctx.store.get_all_projects_with_versions.return_value = [
-            {"project_name": "SkipDates", "version_count": 1},
+            {"project_name": "SkipDates", "total_versions": 1},
         ]
 
         mock_resume = MagicMock()
@@ -593,7 +593,7 @@ class TestDocumentGeneratorMenu(unittest.TestCase):
         """
         mock_ctx.external_consent = True
         mock_ctx.store.get_all_projects_with_versions.return_value = [
-            {"project_name": "Proj1", "version_count": 1},
+            {"project_name": "Proj1", "total_versions": 1},
         ]
         initial_count = len(self.doc.data['cv']['sections'].get('projects', []))
         mock_input.side_effect = ["0"]
@@ -612,7 +612,7 @@ class TestDocumentGeneratorMenu(unittest.TestCase):
         """
         mock_ctx.external_consent = True
         mock_ctx.store.get_all_projects_with_versions.return_value = [
-            {"project_name": "Proj1", "version_count": 1},
+            {"project_name": "Proj1", "total_versions": 1},
         ]
         mock_input.side_effect = ["5"]
         _add_project_from_ai(self.doc)
