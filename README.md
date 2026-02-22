@@ -17,10 +17,11 @@
      - [Google Gemini API Key Setup](#-google-gemini-api-key-setup)
      - [GitHub Token Setup](#-github-token-setup)
    - [Python Setup](#python-setup)
-6. [Key Components](#key-components)
-7. [DFD Level 1](#dfd-level-1)
-8. [Work Breakdown Structure](#-work-breakdown-structure)
-9. [Team Contract](#team-contract)
+6. [API Documentation](#api-documentation)
+7. [Key Components](#key-components)
+8. [DFD Level 1](#dfd-level-1)
+9. [Work Breakdown Structure](#-work-breakdown-structure)
+10. [Team Contract](#team-contract)
 
 
 
@@ -261,6 +262,18 @@ python src/main.py
 ```bash
 python -m src.main
 ```
+
+## API Documentation
+
+All API endpoints are documented in one reference:
+
+- [`docs/api_endpoints.md`](docs/api_endpoints.md)
+
+If you run the FastAPI app, interactive docs are also available at:
+
+- `/docs` (Swagger UI)
+- `/redoc`
+- `/openapi.json`
 
 ## Key Components
 
