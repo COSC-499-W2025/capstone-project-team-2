@@ -70,9 +70,9 @@ class JavaScriptOOPAnalyzer:
         """
         self.root = root.resolve()
         if not self.root.exists():
-            raise ValueError(f"JavaScript project root does not exist: {self.root}")
+            raise FileNotFoundError(f"JavaScript project root does not exist: {self.root}")
         if not self.root.is_dir():
-            raise ValueError(f"JavaScript project root is not a directory: {self.root}")
+            raise NotADirectoryError(f"JavaScript project root is not a directory: {self.root}")
         
         self.js_files: List[Path] = []
         self.class_infos: List[ClassInfo] = []
