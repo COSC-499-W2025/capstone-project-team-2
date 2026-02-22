@@ -13,6 +13,19 @@ from fastapi.testclient import TestClient
 
 test_client = TestClient(app)
 
+@pytest.fixture
+def make_project_save_dir(monkeypatch, tmp_path):
+    """
+    Creates and patches runtime save dir for tests that need local project files.
+    """
+    def _make(relative: str = "project_insights") -> Path:
+        save_dir = tmp_path / relative
+        save_dir.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setattr(runtimeAppContext, "default_save_dir", save_dir)
+        return save_dir
+
+    return _make
+
 def test_return_all_saved_projects_none():
     """
     Tests API returns no saved projects when no projects have been saved
@@ -113,17 +126,15 @@ def test_get_project_by_name_prefers_database(monkeypatch):
     assert body["source"] == "database"
     assert body["analysis"] == expected
 
-def test_get_project_by_name_uses_filesystem_fallback(monkeypatch, tmp_path):
+def test_get_project_by_name_uses_filesystem_fallback(monkeypatch, make_project_save_dir):
     """
     Ensures GET /projects/{id} falls back to filesystem when DB misses.
     """
-    save_dir = tmp_path / "project_insights"
-    save_dir.mkdir(parents=True, exist_ok=True)
+    save_dir = make_project_save_dir()
     project_file = save_dir / "beta.json"
     expected = {"resume_item": {"project_name": "beta"}, "duration_estimate": "Unknown"}
     project_file.write_text(json.dumps(expected), encoding="utf-8")
 
-    monkeypatch.setattr(runtimeAppContext, "default_save_dir", save_dir)
     monkeypatch.setattr(runtimeAppContext.store, "fetch_by_name", lambda _name: None)
 
     response = test_client.get("/projects/beta")
@@ -133,30 +144,25 @@ def test_get_project_by_name_uses_filesystem_fallback(monkeypatch, tmp_path):
     assert body["source"] == "filesystem"
     assert body["analysis"] == expected
 
-def test_get_project_by_name_invalid_json_returns_500(monkeypatch, tmp_path):
+def test_get_project_by_name_invalid_json_returns_500(monkeypatch, make_project_save_dir):
     """
     Ensures malformed saved JSON returns HTTP 500.
     """
-    save_dir = tmp_path / "project_insights"
-    save_dir.mkdir(parents=True, exist_ok=True)
+    save_dir = make_project_save_dir()
     bad_file = save_dir / "broken.json"
     bad_file.write_text("{bad json", encoding="utf-8")
 
-    monkeypatch.setattr(runtimeAppContext, "default_save_dir", save_dir)
     monkeypatch.setattr(runtimeAppContext.store, "fetch_by_name", lambda _name: None)
 
     response = test_client.get("/projects/broken")
     assert response.status_code == 500
     assert "Failed to parse saved project file 'broken.json'" in response.json()["detail"]
 
-def test_get_project_by_name_not_found_returns_404(monkeypatch, tmp_path):
+def test_get_project_by_name_not_found_returns_404(monkeypatch, make_project_save_dir):
     """
     Ensures GET /projects/{id} returns 404 when no project exists.
     """
-    save_dir = tmp_path / "project_insights"
-    save_dir.mkdir(parents=True, exist_ok=True)
-
-    monkeypatch.setattr(runtimeAppContext, "default_save_dir", save_dir)
+    make_project_save_dir()
     monkeypatch.setattr(runtimeAppContext.store, "fetch_by_name", lambda _name: None)
 
     response = test_client.get("/projects/missing_project")
@@ -197,13 +203,11 @@ def test_delete_project_endpoint_blocks_internal_artifacts(monkeypatch):
     mock_db_delete.assert_not_called()
     mock_disk_delete.assert_not_called()
 
-def test_delete_project_endpoint_rejects_mismatched_save_path(monkeypatch, tmp_path):
+def test_delete_project_endpoint_rejects_mismatched_save_path(tmp_path, make_project_save_dir):
     """
     Ensures DELETE /projects/{id} rejects save_path filename mismatch.
     """
-    save_dir = tmp_path / "project_insights"
-    save_dir.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setattr(runtimeAppContext, "default_save_dir", save_dir)
+    make_project_save_dir()
 
     bad_path = tmp_path / "wrong_name.json"
     response = test_client.delete(f"/projects/right_name?save_path={bad_path}")
@@ -213,13 +217,11 @@ def test_delete_project_endpoint_rejects_mismatched_save_path(monkeypatch, tmp_p
     assert "must match requested project 'right_name.json'" in body["status"]
     assert body["dbstatus"] == "[INFO] 'right_name.json' DB deletion skipped."
 
-def test_delete_project_endpoint_rejects_outside_allowed_path(monkeypatch, tmp_path):
+def test_delete_project_endpoint_rejects_outside_allowed_path(tmp_path, make_project_save_dir):
     """
     Ensures DELETE /projects/{id} rejects save_path outside allowed save dirs.
     """
-    save_dir = tmp_path / "allowed" / "project_insights"
-    save_dir.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setattr(runtimeAppContext, "default_save_dir", save_dir)
+    save_dir = make_project_save_dir("allowed/project_insights")
 
     outside_dir = tmp_path / "outside"
     outside_dir.mkdir(parents=True, exist_ok=True)
@@ -231,17 +233,16 @@ def test_delete_project_endpoint_rejects_outside_allowed_path(monkeypatch, tmp_p
     assert "Refusing to delete 'outside_project.json' outside allowed save directories" in body["status"]
     assert body["dbstatus"] == "[INFO] 'outside_project.json' DB deletion skipped."
 
-def test_delete_project_endpoint_deletes_given_save_path(monkeypatch, tmp_path):
+def test_delete_project_endpoint_deletes_given_save_path(monkeypatch, make_project_save_dir):
     """
     Ensures DELETE /projects/{id}?save_path=... removes file when valid.
     """
-    save_dir = tmp_path / "project_insights"
-    save_dir.mkdir(parents=True, exist_ok=True)
+    save_dir = make_project_save_dir()
     target = save_dir / "gamma.json"
     target.write_text("{}", encoding="utf-8")
 
-    monkeypatch.setattr(runtimeAppContext, "default_save_dir", save_dir)
-    monkeypatch.setattr("src.API.project_io_API.delete_from_database_by_name", lambda _name: False)
+    mock_db_delete = Mock(return_value=False)
+    monkeypatch.setattr("src.API.project_io_API.delete_from_database_by_name", mock_db_delete)
 
     response = test_client.delete(f"/projects/gamma?save_path={target}")
     assert response.status_code == 200
@@ -249,6 +250,7 @@ def test_delete_project_endpoint_deletes_given_save_path(monkeypatch, tmp_path):
     assert body["dbstatus"] == "[INFO] No DB records were found."
     assert body["status"] == "[SUCCESS] Deleted 'gamma.json' from filesystem!"
     assert not target.exists()
+    mock_db_delete.assert_called_once_with("gamma.json")
 
 def test_delete_project_legacy_route_forwards_to_delete(monkeypatch):
     """
