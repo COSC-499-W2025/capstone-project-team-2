@@ -1848,7 +1848,9 @@ Following Week 20's bug fixes and refactoring work, this bonus week focused on a
 
 ## ⚠️ Issues/Blockers
 
--
+- **PR #419 - Changes requested by mahigangal**: The code was using `version_count` from the database query, but the database actually returns `total_versions`, causing incorrect version numbers to display in the CLI (usually showing 1). Fixed by updating the code and tests to use `total_versions` — mahigangal approved after the fix.
+- **PR #415 - Changes requested by Puneet-Maan**: The resume endpoint needed to attempt fetching both the raw project name and the `.json` suffixed version to prevent 404 errors for stored projects using the `.json` suffix. Updated the endpoint logic accordingly.
+- **PR #415 - Changes requested by mahigangal**: Legacy compatibility routes needed to be added for the old `/resume/{id}/render` and `/portfolio/{portfolio_id}/render` endpoints (without the `{format}` parameter) so that older clients calling those paths would not receive 404 errors. Added the legacy routes and both reviewers approved.
 
 ---
 
