@@ -237,6 +237,7 @@ def test_changed_files_are_rehashed(tmp_path, monkeypatch):
     deduplicate_project(proj, index_path)
     assert calls["count"] == 1
 
-    f.write_text("v2")  # updates metadata, must trigger re-hash
+    # Use different byte length so fingerprint changes even if mtime granularity is coarse.
+    f.write_text("v2-updated")
     deduplicate_project(proj, index_path)
     assert calls["count"] == 2
