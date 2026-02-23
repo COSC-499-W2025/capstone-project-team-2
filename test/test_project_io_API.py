@@ -1,9 +1,8 @@
 import shutil
-from typing import assert_type
 import pytest
 from pathlib import Path
 import os
-from fastapi import responses
+import json
 
 from src.API.project_io_API import *
 from src.API.general_API import app
@@ -24,7 +23,7 @@ def test_return_all_saved_projects_none():
     """
     response = test_client.get("/projects")
     assert response.status_code == 200
-    assert_type(response.json(), list)  #Checks that list is still returned
+    assert isinstance(response.json(), list)  #Checks that list is still returned
 
 def test_return_all_saved_projects():
     """
@@ -46,7 +45,7 @@ def test_return_all_saved_projects():
 
     response = test_client.get("/projects")
     assert response.status_code == 200
-    assert_type(response.json(), list)
+    assert isinstance(response.json(), list)
     assert response.json() != None #Checks that list is not empty
 
     shutil.rmtree(out_dir)  #Deletes files made by test
@@ -102,6 +101,37 @@ def test_upload_project_CLI_zip():
     """
     path = Path(os.getcwd()).absolute().resolve() / "test" / "TestZIPs" / "TEST.zip"
     assert upload_project_path_CLI(path) == "Upload Success"
+
+def test_get_project_by_name_filesystem_success(monkeypatch, tmp_path):
+    """
+    Ensures GET /projects/{id} returns saved analysis JSON from local filesystem.
+    """
+    save_dir = tmp_path / "project_insights"
+    save_dir.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(runtimeAppContext, "default_save_dir", save_dir)
+
+    expected_analysis = {"summary": "ok", "skills": ["Python"]}
+    (save_dir / "sample_project.json").write_text(
+        json.dumps(expected_analysis),
+        encoding="utf-8",
+    )
+
+    response = test_client.get("/projects/sample_project")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["project_name"] == "sample_project"
+    assert body["source"] == "filesystem"
+    assert body["analysis"] == expected_analysis
+
+def test_get_project_by_name_not_found():
+    """
+    Ensures GET /projects/{id} returns 404 when project does not exist.
+    """
+    response = test_client.get("/projects/definitely_missing_project")
+
+    assert response.status_code == 404
+    assert "not found" in response.json()["detail"].lower()
 
 def test_delete_project_no_db():
     """
