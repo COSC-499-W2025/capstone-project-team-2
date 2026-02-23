@@ -3,6 +3,7 @@ import pytest
 from pathlib import Path
 import os
 import json
+from unittest.mock import Mock
 
 from src.API.project_io_API import *
 from src.API.general_API import app
@@ -11,6 +12,19 @@ from src.core.app_context import create_app_context, runtimeAppContext
 from fastapi.testclient import TestClient
 
 test_client = TestClient(app)
+
+@pytest.fixture
+def make_project_save_dir(monkeypatch, tmp_path):
+    """
+    Creates and patches runtime save dir for tests that need local project files.
+    """
+    def _make(relative: str = "project_insights") -> Path:
+        save_dir = tmp_path / relative
+        save_dir.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setattr(runtimeAppContext, "default_save_dir", save_dir)
+        return save_dir
+
+    return _make
 
 def test_return_all_saved_projects_none():
     """
@@ -102,6 +116,161 @@ def test_upload_project_CLI_zip():
     path = Path(os.getcwd()).absolute().resolve() / "test" / "TestZIPs" / "TEST.zip"
     assert upload_project_path_CLI(path) == "Upload Success"
 
+def test_get_project_by_name_prefers_database(monkeypatch):
+    """
+    Ensures GET /projects/{id} returns DB data when available.
+    """
+    expected = {"resume_item": {"project_name": "alpha"}}
+    monkeypatch.setattr(
+        runtimeAppContext.store,
+        "fetch_by_name",
+        lambda filename: expected if filename == "alpha.json" else None,
+    )
+
+    response = test_client.get("/projects/alpha")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["project_name"] == "alpha"
+    assert body["source"] == "database"
+    assert body["analysis"] == expected
+
+def test_get_project_by_name_uses_filesystem_fallback(monkeypatch, make_project_save_dir):
+    """
+    Ensures GET /projects/{id} falls back to filesystem when DB misses.
+    """
+    save_dir = make_project_save_dir()
+    project_file = save_dir / "beta.json"
+    expected = {"resume_item": {"project_name": "beta"}, "duration_estimate": "Unknown"}
+    project_file.write_text(json.dumps(expected), encoding="utf-8")
+
+    monkeypatch.setattr(runtimeAppContext.store, "fetch_by_name", lambda _name: None)
+
+    response = test_client.get("/projects/beta")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["project_name"] == "beta"
+    assert body["source"] == "filesystem"
+    assert body["analysis"] == expected
+
+def test_get_project_by_name_invalid_json_returns_500(monkeypatch, make_project_save_dir):
+    """
+    Ensures malformed saved JSON returns HTTP 500.
+    """
+    save_dir = make_project_save_dir()
+    bad_file = save_dir / "broken.json"
+    bad_file.write_text("{bad json", encoding="utf-8")
+
+    monkeypatch.setattr(runtimeAppContext.store, "fetch_by_name", lambda _name: None)
+
+    response = test_client.get("/projects/broken")
+    assert response.status_code == 500
+    assert "Failed to parse saved project file 'broken.json'" in response.json()["detail"]
+
+def test_get_project_by_name_not_found_returns_404(monkeypatch, make_project_save_dir):
+    """
+    Ensures GET /projects/{id} returns 404 when no project exists.
+    """
+    make_project_save_dir()
+    monkeypatch.setattr(runtimeAppContext.store, "fetch_by_name", lambda _name: None)
+
+    response = test_client.get("/projects/missing_project")
+    assert response.status_code == 404
+    assert "missing_project" in response.json()["detail"]
+
+def test_delete_project_endpoint_calls_db_and_disk_helpers(monkeypatch):
+    """
+    Ensures DELETE /projects/{id} uses DB and disk helper functions.
+    """
+    mock_db_delete = Mock(return_value=True)
+    mock_disk_delete = Mock(return_value=True)
+    monkeypatch.setattr("src.API.project_io_API.delete_from_database_by_name", mock_db_delete)
+    monkeypatch.setattr("src.API.project_io_API.delete_file_from_disk", mock_disk_delete)
+
+    response = test_client.delete("/projects/demo_project")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["dbstatus"] == "[SUCCESS] Deleted DB records for 'demo_project.json'."
+    assert body["status"] == "[SUCCESS] Deleted 'demo_project.json' from filesystem!"
+    mock_db_delete.assert_called_once_with("demo_project.json")
+    mock_disk_delete.assert_called_once_with("demo_project.json")
+
+def test_delete_project_endpoint_blocks_internal_artifacts(monkeypatch):
+    """
+    Ensures DELETE /projects/{id} does not allow deleting internal artifacts.
+    """
+    mock_db_delete = Mock(return_value=True)
+    mock_disk_delete = Mock(return_value=True)
+    monkeypatch.setattr("src.API.project_io_API.delete_from_database_by_name", mock_db_delete)
+    monkeypatch.setattr("src.API.project_io_API.delete_file_from_disk", mock_disk_delete)
+
+    response = test_client.delete("/projects/dedup_index.json")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["dbstatus"] == "[INFO] 'dedup_index.json' is an internal artifact. DB deletion skipped."
+    assert body["status"] == "[INFO] 'dedup_index.json' is an internal artifact and cannot be deleted."
+    mock_db_delete.assert_not_called()
+    mock_disk_delete.assert_not_called()
+
+def test_delete_project_endpoint_rejects_mismatched_save_path(tmp_path, make_project_save_dir):
+    """
+    Ensures DELETE /projects/{id} rejects save_path filename mismatch.
+    """
+    make_project_save_dir()
+
+    bad_path = tmp_path / "wrong_name.json"
+    response = test_client.delete(f"/projects/right_name?save_path={bad_path}")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert "must match requested project 'right_name.json'" in body["status"]
+    assert body["dbstatus"] == "[INFO] 'right_name.json' DB deletion skipped."
+
+def test_delete_project_endpoint_rejects_outside_allowed_path(tmp_path, make_project_save_dir):
+    """
+    Ensures DELETE /projects/{id} rejects save_path outside allowed save dirs.
+    """
+    save_dir = make_project_save_dir("allowed/project_insights")
+
+    outside_dir = tmp_path / "outside"
+    outside_dir.mkdir(parents=True, exist_ok=True)
+    outside_path = outside_dir / "outside_project.json"
+
+    response = test_client.delete(f"/projects/outside_project?save_path={outside_path}")
+    assert response.status_code == 200
+    body = response.json()
+    assert "Refusing to delete 'outside_project.json' outside allowed save directories" in body["status"]
+    assert body["dbstatus"] == "[INFO] 'outside_project.json' DB deletion skipped."
+
+def test_delete_project_endpoint_deletes_given_save_path(monkeypatch, make_project_save_dir):
+    """
+    Ensures DELETE /projects/{id}?save_path=... removes file when valid.
+    """
+    save_dir = make_project_save_dir()
+    target = save_dir / "gamma.json"
+    target.write_text("{}", encoding="utf-8")
+
+    mock_db_delete = Mock(return_value=False)
+    monkeypatch.setattr("src.API.project_io_API.delete_from_database_by_name", mock_db_delete)
+
+    response = test_client.delete(f"/projects/gamma?save_path={target}")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["dbstatus"] == "[INFO] No DB records were found."
+    assert body["status"] == "[SUCCESS] Deleted 'gamma.json' from filesystem!"
+    assert not target.exists()
+    mock_db_delete.assert_called_once_with("gamma.json")
+
+def test_delete_project_legacy_route_forwards_to_delete(monkeypatch):
+    """
+    Ensures GET /projects/{id}/delete forwards to delete_project().
+    """
+    mock_delete = Mock(return_value={"status": "ok", "dbstatus": "ok"})
+    monkeypatch.setattr("src.API.project_io_API.delete_project", mock_delete)
+
+    response = test_client.get("/projects/legacy_proj/delete?save_path=/tmp/legacy_proj.json")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok", "dbstatus": "ok"}
+    mock_delete.assert_called_once_with(id="legacy_proj", save_path="/tmp/legacy_proj.json")
 def test_get_project_by_name_filesystem_success(monkeypatch, tmp_path):
     """
     Ensures GET /projects/{id} returns saved analysis JSON from local filesystem.
