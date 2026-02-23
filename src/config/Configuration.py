@@ -45,20 +45,19 @@ class configuration_for_users:
 
 
     def save_config(self):
-
         """
-           Saves the JSON configuration file to the user's system.
+        Saves the JSON configuration file to the user's system.
 
-           :return:
-               bool: True if the file was saved successfully, False otherwise.
-           """
-
-
-        with open(self.loc_to_save, "wb") as f: #Reading the json_file
-            f.write(orjson.dumps(self.jsonfile,option=orjson.OPT_INDENT_2)) #dumping the data it to be saved using the orjson library
-
-        return os.path.exists(self.loc_to_save)
-        #Returns bool state to see if the actually file exists and created successfully
+        :return:
+            bool: True if the file was saved successfully.
+        :raises IOError: If the file could not be saved.
+        """
+        try:
+            with open(self.loc_to_save, "wb") as f:
+                f.write(orjson.dumps(self.jsonfile, option=orjson.OPT_INDENT_2))
+            return os.path.exists(self.loc_to_save)
+        except Exception as e:
+            raise IOError(f"Failed to save configuration: {e}") from e
 
 
 

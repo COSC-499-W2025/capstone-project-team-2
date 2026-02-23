@@ -1,8 +1,9 @@
 import copy
 import datetime
+import json
 import logging
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from fastapi import UploadFile
 
@@ -103,23 +104,76 @@ def export_json(project_name: str, analysis: Dict[str, Any]) -> Dict[str, Any]:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     filename = project_name + ".json"
+    dest_path = out_dir / filename
+
+    def _snapshot(payload: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a compact snapshot record for incremental uploads."""
+        resume = payload.get("resume_item", {}) or {}
+        return {
+            "analyzed_at": datetime.datetime.now(tz=datetime.timezone.utc).isoformat(),
+            "project_root": payload.get("project_root"),
+            "duration_estimate": payload.get("duration_estimate"),
+            "resume_item": resume,
+            "project_type": payload.get("project_type"),
+            "dedup": payload.get("dedup"),
+            "contributors": payload.get("contributors"),
+        }
+
     # Copy to avoid mutating the caller's analysis dict before persistence.
     analysis_copy = copy.deepcopy(analysis)
+
+    # If a previous snapshot exists, preserve its history and append a new entry.
+    snapshots: List[Dict[str, Any]] = []
+    if dest_path.exists():
+        try:
+            existing = json.loads(dest_path.read_text(encoding="utf-8"))
+        except Exception:
+            existing = None
+
+        if isinstance(existing, dict):
+            prev_snapshots = existing.get("snapshots")
+            if isinstance(prev_snapshots, list):
+                snapshots.extend(prev_snapshots)
+
+            # Treat the existing top-level analysis as a snapshot if not already tracked.
+            if not prev_snapshots:
+                snapshots.append(_snapshot(existing))
+
+            # Merge high-level aggregates so history isn’t lost.
+            prev_skills = set(existing.get("resume_item", {}).get("skills", []))
+            prev_frameworks = set(existing.get("resume_item", {}).get("frameworks", []))
+            analysis_copy.setdefault("resume_item", {})
+            analysis_copy["resume_item"].setdefault("skills", [])
+            analysis_copy["resume_item"].setdefault("frameworks", [])
+            analysis_copy["resume_item"]["skills"] = sorted(
+                prev_skills | set(analysis_copy["resume_item"].get("skills", []))
+            )
+            analysis_copy["resume_item"]["frameworks"] = sorted(
+                prev_frameworks | set(analysis_copy["resume_item"].get("frameworks", []))
+            )
+
+    snapshots.append(_snapshot(analysis_copy))
+    analysis_copy["snapshots"] = snapshots
 
     saver = SaveFileAnalysisAsJSON()
     saver.saveAnalysis(project_name, analysis_copy, str(out_dir))
 
     try:
-        _, was_update = runtimeAppContext.store.insert_json(filename, analysis_copy)
+        db_result = runtimeAppContext.store.insert_json(filename, analysis_copy)
+        was_update = False
+        if isinstance(db_result, tuple):
+            _, was_update = db_result
+        elif db_result:
+            was_update = True
         if was_update:
             print(f"[INFO] Project '{filename}' already exists - updated with new version")
     except Exception as e:
         logging.warning(f"Could not save to database: {e}")
 
-    return {"skipped": False}
+    return {"skipped": False, "snapshots": snapshots}
 
 
-def analyze_project(root: Path, use_ai_analysis=False) -> Dict[str, Any]:
+def analyze_project(root: Path, use_ai_analysis=False, project_name: str | None = None) -> Dict[str, Any]:
     """
     Analyze a project folder and persist results.
 
@@ -131,7 +185,7 @@ def analyze_project(root: Path, use_ai_analysis=False) -> Dict[str, Any]:
         None
     """
 
-    display_name = root.name
+    display_name = project_name or root.name
     hierarchy = FileMetadataExtractor(root).file_hierarchy()  #Metadata extracted with datetime objects
     try:
         duration = Project_Duration_Estimator(hierarchy).get_duration_human() #Project duration estimate
@@ -217,10 +271,13 @@ def analyze_project(root: Path, use_ai_analysis=False) -> Dict[str, Any]:
     ps = build_portfolio_showcase(portfolio_input, portfolio_yaml)   
      
     #Project insights likely needs to be rebuilt
+    snapshot_label = datetime.datetime.now(tz=datetime.timezone.utc).isoformat()
+
     try:
         insight = record_project_insight(
             analysis,
             contributors=contributors_data,
+            snapshot_label=snapshot_label,
         )
     except Exception as e:
         logging.warning(f"Failed to record project insight (optional): {e}")
@@ -248,5 +305,8 @@ def analyze_project(root: Path, use_ai_analysis=False) -> Dict[str, Any]:
         "removed": dedup_result.removed,
     }
 
-    export_json(display_name, convert_datetime_to_string(analysis))
-    return {"dedup": analysis["dedup"]}
+    export_meta = export_json(display_name, convert_datetime_to_string(analysis)) or {}
+    return {
+        "dedup": analysis["dedup"],
+        "snapshots": export_meta.get("snapshots", []),
+    }

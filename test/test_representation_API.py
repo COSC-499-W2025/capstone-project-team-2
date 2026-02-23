@@ -101,3 +101,22 @@ def test_projects_respects_showcase_filter(client: TestClient, tmp_path: Path, m
     body = resp.json()
     assert len(body["projects"]) == 1
     assert body["projects"][0]["project_name"] == "Beta"
+
+
+def test_projects_filters_by_snapshot_label(client: TestClient, tmp_path: Path, monkeypatch):
+    """Ensure snapshot_label filtering returns only matching snapshots."""
+    insights_path = tmp_path / "project_insights.json"
+    sample = [
+        {"id": "1", "project_name": "Alpha", "summary": "", "analyzed_at": "2024-01-01T00:00:00Z", "snapshot_label": "v1"},
+        {"id": "2", "project_name": "Alpha", "summary": "", "analyzed_at": "2024-02-01T00:00:00Z", "snapshot_label": "v2"},
+    ]
+    insights_path.write_text(json.dumps(sample), encoding="utf-8")
+    monkeypatch.setattr(prefs, "PREFERENCES_PATH", tmp_path / "representation_preferences.json")
+    from src.reporting import project_insights
+    monkeypatch.setattr(project_insights, "DEFAULT_STORAGE", insights_path)
+
+    resp = client.get("/representation/projects?snapshot_label=v2")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert len(body["projects"]) == 1
+    assert body["projects"][0]["analyzed_at"].startswith("2024-02")

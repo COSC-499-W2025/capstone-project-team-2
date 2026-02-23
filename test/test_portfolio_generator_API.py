@@ -197,32 +197,47 @@ class TestAddProject(_BasePortfolioTest):
 
 
 class TestRenderPortfolio(_BasePortfolioTest):
-    """Tests for POST /portfolio/{id}/render."""
+    """Tests for POST /portfolio/{id}/render/{format}."""
 
     @patch("src.API.Portfolio_Generator_API.shutil")
-    def test_success(self, _mock_shutil):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            fake_pdf = Path(tmp_dir) / "portfolio.pdf"
-            fake_pdf.write_bytes(b"%PDF-1.4 fake content")
-            self.mock_doc.render.return_value = ("Success", fake_pdf)
+    def test_render_all_formats(self, _mock_shutil):
+        """Test rendering in all supported formats: pdf, html, markdown."""
+        format_cases = [
+            ("pdf", "portfolio.pdf", b"%PDF-1.4 fake", "application/pdf"),
+            ("html", "portfolio.html", b"<html>test</html>", "text/html; charset=utf-8"),
+            ("markdown", "portfolio.md", b"# Portfolio", "text/markdown; charset=utf-8"),
+        ]
+        for fmt, filename, content, expected_type in format_cases:
+            with self.subTest(format=fmt), tempfile.TemporaryDirectory() as tmp_dir:
+                fake_file = Path(tmp_dir) / filename
+                fake_file.write_bytes(content)
+                self.mock_doc.render_outputs.return_value = (
+                    "successfully rendered",
+                    {fmt: [fake_file]},
+                )
 
-            resp = self.client.post("/portfolio/test_abc123/render")
-            self.assertEqual(resp.status_code, 200)
-            self.assertIn("X-Portfolio-ID", resp.headers)
-            self.assertEqual(resp.headers["content-type"], "application/pdf")
+                resp = self.client.post(f"/portfolio/test_abc123/render/{fmt}")
+                self.assertEqual(resp.status_code, 200)
+                self.assertIn("X-Portfolio-ID", resp.headers)
+                self.assertEqual(resp.headers["content-type"], expected_type)
 
-    def test_error_cases(self):
-        """Test 404 for missing portfolio and 500 for render failure."""
+    def test_render_error_cases(self):
+        """Test unsupported format (400), not found (404), and render failure (500)."""
+        # Unsupported format
+        resp = self.client.post("/portfolio/test_abc123/render/docx")
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Unsupported format", resp.json()["detail"])
+
         # Portfolio not found
         self._set_not_found()
-        resp = self.client.post("/portfolio/fake_id/render")
+        resp = self.client.post("/portfolio/fake_id/render/pdf")
         self.assertEqual(resp.status_code, 404)
         self.assertIn("not found", resp.json()["detail"])
 
         # Render failure
-        self.mock_doc.load.side_effect = None  # Reset to allow load
-        self.mock_doc.render.return_value = ("Render failed", None)
-        resp = self.client.post("/portfolio/test_abc123/render")
+        self.mock_doc.load.side_effect = None
+        self.mock_doc.render_outputs.return_value = ("Render failed", {"pdf": []})
+        resp = self.client.post("/portfolio/test_abc123/render/pdf")
         self.assertEqual(resp.status_code, 500)
         self.assertIn("Render failed", resp.json()["detail"])
 
@@ -289,6 +304,52 @@ class TestPortfolioShowcaseRoleAPI(_BasePortfolioTest):
         resp = self.client.get("/portfolio-showcase/UnknownProject/role")
         self.assertEqual(resp.status_code, 404)
         self.assertIn("No saved role", resp.json()["detail"])
+
+
+class TestExportPortfolio(_BasePortfolioTest):
+    """Tests for POST /portfolio/{id}/export/{format} and /portfolio/{id}/export/{format}/custom."""
+
+    @patch("src.API.Portfolio_Generator_API.shutil")
+    @patch("src.API.Portfolio_Generator_API.RENDERED_OUTPUTS_DIR")
+    def test_save_default(self, mock_dir, mock_shutil):
+        """Save to default directory returns path."""
+        mock_dir.mkdir = MagicMock()
+        mock_dir.__truediv__ = lambda self, name: Path("/fake/rendered_outputs") / name
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            fake_pdf = Path(tmp_dir) / "portfolio.pdf"
+            fake_pdf.write_bytes(b"%PDF-1.4 fake")
+            self.mock_doc.render_outputs.return_value = ("successfully rendered", {"pdf": [fake_pdf]})
+
+            resp = self.client.post("/portfolio/test_abc123/export/pdf")
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Saved successfully", resp.json()["status"])
+            self.assertIn("path", resp.json())
+
+    @patch("src.API.Portfolio_Generator_API.shutil")
+    def test_save_custom(self, mock_shutil):
+        """Save to custom directory returns path."""
+        with tempfile.TemporaryDirectory() as tmp_dir, tempfile.TemporaryDirectory() as custom_dir:
+            fake_pdf = Path(tmp_dir) / "portfolio.pdf"
+            fake_pdf.write_bytes(b"%PDF-1.4 fake")
+            self.mock_doc.render_outputs.return_value = ("successfully rendered", {"pdf": [fake_pdf]})
+
+            resp = self.client.post("/portfolio/test_abc123/export/pdf/custom", json={"path": custom_dir})
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Saved successfully", resp.json()["status"])
+            self.assertIn(custom_dir.replace("\\", "/"), resp.json()["path"].replace("\\", "/"))
+
+    def test_save_custom_invalid_dir(self):
+        """Save to non-existent directory returns 400."""
+        resp = self.client.post("/portfolio/test_abc123/export/pdf/custom", json={"path": "/nonexistent/dir"})
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("does not exist", resp.json()["detail"])
+
+    def test_save_unsupported_format(self):
+        """Save with unsupported format returns 400."""
+        resp = self.client.post("/portfolio/test_abc123/export/docx")
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Unsupported format", resp.json()["detail"])
 
 
 if __name__ == "__main__":

@@ -35,6 +35,8 @@ from src.cli.document_generator_menu import (
     _manage_education,
     _manage_skills,
     _add_project_manually,
+    _add_project_from_ai,
+    _modify_project,
     _add_education,
     _add_skills,
     _render_document,
@@ -488,6 +490,239 @@ class TestDocumentGeneratorMenu(unittest.TestCase):
 
         output = mock_stdout.getvalue()
         self.assertIn("valid option", output.lower())
+
+
+    @patch('src.cli.document_generator_menu.GenerateResumeAI_Ver2')
+    @patch('src.cli.document_generator_menu.runtimeAppContext')
+    @patch('builtins.input')
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_add_project_from_ai_success(self, mock_stdout, mock_input, mock_ctx, mock_gen_cls):
+        """
+        Test adding a project from AI analysis (Ver2) with valid selection and dates.
+        """
+        mock_ctx.external_consent = True
+        mock_ctx.store.get_all_projects_with_versions.return_value = [
+            {"project_name": "MyProject", "total_versions": 2},
+        ]
+
+        mock_resume = MagicMock()
+        mock_resume.project_title = "MyProject"
+        mock_resume.one_sentence_summary = "A great project"
+        mock_resume.tech_stack = "Python, Flask"
+        mock_resume.key_responsibilities = ["Built API", "Wrote tests"]
+        mock_gen_cls.return_value.generate_AI_Resume_entry.return_value = mock_resume
+
+        # Select project 1, enter start date, enter end date
+        mock_input.side_effect = ["1", "2024-01", "2024-06"]
+        _add_project_from_ai(self.doc)
+
+        output = mock_stdout.getvalue()
+        self.assertIn("[SUCCESS]", output)
+
+        projects = self.doc.data['cv']['sections'].get('projects', [])
+        proj = next((p for p in projects if p['name'] == 'MyProject'), None)
+        self.assertIsNotNone(proj)
+        self.assertEqual(proj['start_date'], '2024-01')
+        self.assertEqual(proj['end_date'], '2024-06')
+        self.assertIn("Python, Flask", proj['summary'])
+        self.assertEqual(len(proj['highlights']), 2)
+
+    @patch('src.cli.document_generator_menu.GenerateResumeAI_Ver2')
+    @patch('src.cli.document_generator_menu.runtimeAppContext')
+    @patch('builtins.input')
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_add_project_from_ai_no_dates(self, mock_stdout, mock_input, mock_ctx, mock_gen_cls):
+        """
+        Test adding a project from AI analysis with dates skipped.
+        """
+        mock_ctx.external_consent = True
+        mock_ctx.store.get_all_projects_with_versions.return_value = [
+            {"project_name": "SkipDates", "total_versions": 1},
+        ]
+
+        mock_resume = MagicMock()
+        mock_resume.project_title = "SkipDates"
+        mock_resume.one_sentence_summary = "No dates project"
+        mock_resume.tech_stack = ""
+        mock_resume.key_responsibilities = ["Did stuff"]
+        mock_gen_cls.return_value.generate_AI_Resume_entry.return_value = mock_resume
+
+        # Select project 1, skip both dates
+        mock_input.side_effect = ["1", "", ""]
+        _add_project_from_ai(self.doc)
+
+        projects = self.doc.data['cv']['sections'].get('projects', [])
+        proj = next((p for p in projects if p['name'] == 'SkipDates'), None)
+        self.assertIsNotNone(proj)
+        self.assertIsNone(proj.get('start_date'))
+        self.assertIsNone(proj.get('end_date'))
+
+    @patch('src.cli.document_generator_menu.runtimeAppContext')
+    @patch('builtins.input')
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_add_project_from_ai_no_consent(self, mock_stdout, mock_input, mock_ctx):
+        """
+        Test that AI analysis is blocked when external consent is disabled.
+        """
+        mock_ctx.external_consent = False
+        _add_project_from_ai(self.doc)
+
+        output = mock_stdout.getvalue()
+        self.assertIn("External services are disabled", output)
+
+    @patch('src.cli.document_generator_menu.runtimeAppContext')
+    @patch('builtins.input')
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_add_project_from_ai_no_projects(self, mock_stdout, mock_input, mock_ctx):
+        """
+        Test AI analysis when no projects exist in the database.
+        """
+        mock_ctx.external_consent = True
+        mock_ctx.store.get_all_projects_with_versions.return_value = []
+        _add_project_from_ai(self.doc)
+
+        output = mock_stdout.getvalue()
+        self.assertIn("No analyzed projects found", output)
+
+    @patch('src.cli.document_generator_menu.runtimeAppContext')
+    @patch('builtins.input')
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_add_project_from_ai_cancel(self, mock_stdout, mock_input, mock_ctx):
+        """
+        Test cancelling project selection in AI analysis.
+        """
+        mock_ctx.external_consent = True
+        mock_ctx.store.get_all_projects_with_versions.return_value = [
+            {"project_name": "Proj1", "total_versions": 1},
+        ]
+        initial_count = len(self.doc.data['cv']['sections'].get('projects', []))
+        mock_input.side_effect = ["0"]
+        _add_project_from_ai(self.doc)
+
+        # No new project should have been added
+        projects = self.doc.data['cv']['sections'].get('projects', [])
+        self.assertEqual(len(projects), initial_count)
+
+    @patch('src.cli.document_generator_menu.runtimeAppContext')
+    @patch('builtins.input')
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_add_project_from_ai_invalid_selection(self, mock_stdout, mock_input, mock_ctx):
+        """
+        Test invalid selection in AI analysis project list.
+        """
+        mock_ctx.external_consent = True
+        mock_ctx.store.get_all_projects_with_versions.return_value = [
+            {"project_name": "Proj1", "total_versions": 1},
+        ]
+        mock_input.side_effect = ["5"]
+        _add_project_from_ai(self.doc)
+
+        output = mock_stdout.getvalue()
+        self.assertIn("[ERROR] Invalid selection", output)
+
+    @patch('builtins.input')
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_modify_project_with_dates(self, mock_stdout, mock_input):
+        """
+        Test modifying a project entry including start and end dates.
+        """
+        # Add a project first
+        self.doc.add_project(Project(
+            name="Original",
+            summary="Original summary",
+            highlights=["Original highlight"]
+        ))
+
+        projects = self.doc.data['cv']['sections'].get('projects', [])
+        idx = len(projects) - 1
+        project = projects[idx]
+
+        # Modify: new name, start date, end date, new summary, don't edit highlights
+        mock_input.side_effect = [
+            "Updated Name",   # name
+            "2023-06",        # start date
+            "2024-12",        # end date
+            "Updated summary", # summary
+            "n",              # don't edit highlights
+        ]
+        _modify_project(self.doc, idx, project)
+
+        output = mock_stdout.getvalue()
+        self.assertIn("[SUCCESS]", output)
+
+        updated = self.doc.data['cv']['sections']['projects'][idx]
+        self.assertEqual(updated['name'], 'Updated Name')
+        self.assertEqual(updated['start_date'], '2023-06')
+        self.assertEqual(updated['end_date'], '2024-12')
+        self.assertEqual(updated['summary'], 'Updated summary')
+        # Highlights unchanged
+        self.assertEqual(updated['highlights'], ['Original highlight'])
+
+    @patch('builtins.input')
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_modify_project_skip_dates(self, mock_stdout, mock_input):
+        """
+        Test modifying a project while skipping date fields preserves existing values.
+        """
+        self.doc.add_project(Project(
+            name="DateTest",
+            start_date="2022-01",
+            end_date="2023-01",
+            summary="Has dates",
+            highlights=["H1"]
+        ))
+
+        projects = self.doc.data['cv']['sections'].get('projects', [])
+        idx = len(projects) - 1
+        project = projects[idx]
+
+        # Skip all fields (press Enter on everything)
+        mock_input.side_effect = [
+            "",   # keep name
+            "",   # keep start date
+            "",   # keep end date
+            "",   # keep summary
+            "n",  # don't edit highlights
+        ]
+        _modify_project(self.doc, idx, project)
+
+        updated = self.doc.data['cv']['sections']['projects'][idx]
+        self.assertEqual(updated['name'], 'DateTest')
+        self.assertEqual(updated['start_date'], '2022-01')
+        self.assertEqual(updated['end_date'], '2023-01')
+
+    @patch('builtins.input')
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_modify_project_with_highlights(self, mock_stdout, mock_input):
+        """
+        Test modifying a project including replacing highlights.
+        """
+        self.doc.add_project(Project(
+            name="HighlightTest",
+            summary="Test",
+            highlights=["Old highlight"]
+        ))
+
+        projects = self.doc.data['cv']['sections'].get('projects', [])
+        idx = len(projects) - 1
+        project = projects[idx]
+
+        mock_input.side_effect = [
+            "",              # keep name
+            "2024-01",       # add start date
+            "2024-12",       # add end date
+            "",              # keep summary
+            "y",             # edit highlights
+            "New highlight 1",
+            "New highlight 2",
+            "",              # end highlights
+        ]
+        _modify_project(self.doc, idx, project)
+
+        updated = self.doc.data['cv']['sections']['projects'][idx]
+        self.assertEqual(updated['start_date'], '2024-01')
+        self.assertEqual(updated['end_date'], '2024-12')
+        self.assertEqual(updated['highlights'], ['New highlight 1', 'New highlight 2'])
 
 
 if __name__ == '__main__':
