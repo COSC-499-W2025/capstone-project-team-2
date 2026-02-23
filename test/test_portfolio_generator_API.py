@@ -306,6 +306,111 @@ class TestPortfolioShowcaseRoleAPI(_BasePortfolioTest):
         self.assertIn("No saved role", resp.json()["detail"])
 
 
+class TestRemoveProject(_BasePortfolioTest):
+    """Tests for DELETE /portfolio/{id}/project/{project_name}."""
+
+    def test_success_and_error_cases(self):
+        """Covers success, project not found, no projects, and portfolio not found."""
+        # Success
+        self.mock_doc.remove_project.return_value = "Successfully removed project 'MyProject'"
+        resp = self.client.delete("/portfolio/test_abc123/project/MyProject")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+
+        # Project not found
+        self.mock_doc.remove_project.return_value = "Project 'Unknown' not found"
+        resp = self.client.delete("/portfolio/test_abc123/project/Unknown")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+        # No projects at all
+        self.mock_doc.remove_project.return_value = "No projects in portfolio"
+        resp = self.client.delete("/portfolio/test_abc123/project/SomeProject")
+        self.assertEqual(resp.status_code, 404)
+
+        # Portfolio itself not found
+        self._set_not_found()
+        resp = self.client.delete("/portfolio/fake_id/project/MyProject")
+        self.assertEqual(resp.status_code, 404)
+
+
+class TestAddProjectExtended(_BasePortfolioTest):
+    """Tests for add-project overrides, _check_result failure, and default render."""
+
+    def setUp(self):
+        super().setUp()
+        patcher = patch(CTX_PATCH)
+        self.mock_ctx = patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_payload_overrides_and_check_result_failure(self):
+        """Covers payload overrides succeeding and _check_result rejecting a bad result."""
+        # Payload overrides DB values
+        self.mock_doc.add_project.return_value = "Successfully added project 'CustomName'"
+        self.mock_ctx.store.fetch_by_name.return_value = SAMPLE_DB_RECORD
+        resp = self.client.post(
+            "/portfolio/test_abc123/add/project/WarframeFinderStreamlit",
+            json={
+                "name": "CustomName",
+                "start_date": "2024-01",
+                "end_date": "2025-06",
+                "location": "Vancouver, BC",
+                "summary": "Custom summary",
+                "highlights": ["Custom highlight"],
+            },
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+
+        # _check_result rejects non-success string
+        self.mock_doc.add_project.return_value = "Failed: duplicate project name"
+        resp = self.client.post("/portfolio/test_abc123/add/project/WarframeFinderStreamlit")
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("duplicate project name", resp.json()["detail"])
+
+    @patch("src.API.Portfolio_Generator_API.shutil")
+    def test_default_render_and_showcase_save_error(self, _mock_shutil):
+        """Covers default render (no format) returning PDF and showcase role save error."""
+        # Default render uses PDF
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            fake_pdf = Path(tmp_dir) / "portfolio.pdf"
+            fake_pdf.write_bytes(b"%PDF-1.4 fake")
+            self.mock_doc.render_outputs.return_value = (
+                "successfully rendered",
+                {"pdf": [fake_pdf]},
+            )
+            resp = self.client.post("/portfolio/test_abc123/render")
+            self.assertEqual(resp.status_code, 200)
+            self.assertEqual(resp.headers["content-type"], "application/pdf")
+            self.assertIn("X-Portfolio-ID", resp.headers)
+
+    @patch("src.API.Portfolio_Generator_API.save_project_role_override")
+    def test_showcase_role_save_error_returns_500(self, mock_save):
+        """Test 500 when save_project_role_override raises an exception."""
+        mock_save.side_effect = RuntimeError("DB connection lost")
+        resp = self.client.post(
+            "/portfolio-showcase/MyProject/role",
+            json={"role": "Team Lead"},
+        )
+        self.assertEqual(resp.status_code, 500)
+        self.assertIn("Failed to save role override", resp.json()["detail"])
+
+
+class TestExportPortfolioErrors(_BasePortfolioTest):
+    """Test export endpoints return 404 for missing portfolios."""
+
+    def test_export_not_found_cases(self):
+        """Both default and custom export return 404 for missing portfolios."""
+        self._set_not_found()
+        resp = self.client.post("/portfolio/fake_id/export/pdf")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+        resp = self.client.post("/portfolio/fake_id/export/pdf/custom", json={"path": "/tmp"})
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+
 class TestExportPortfolio(_BasePortfolioTest):
     """Tests for POST /portfolio/{id}/export/{format} and /portfolio/{id}/export/{format}/custom."""
 
