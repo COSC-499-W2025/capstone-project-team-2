@@ -152,3 +152,57 @@ def test_lock_contention_times_out_and_warns(tmp_path, monkeypatch, caplog):
     assert result.unique_files == 0
     assert result.duplicate_files == 0
     assert any("Could not acquire dedup index lock" in msg for msg in caplog.messages)
+
+
+def test_unchanged_files_reuse_cached_hash(tmp_path, monkeypatch):
+    """
+    On re-analysis of unchanged files, dedup should reuse cached digest instead of re-hashing.
+    """
+    proj = tmp_path / "proj"
+    proj.mkdir()
+    f = proj / "file.txt"
+    f.write_text("content")
+    index_path = tmp_path / "dedup_index.json"
+
+    calls = {"count": 0}
+    original = dedup_mod._file_hash
+
+    def counting_hash(path: Path) -> str:
+        calls["count"] += 1
+        return original(path)
+
+    monkeypatch.setattr(dedup_mod, "_file_hash", counting_hash)
+
+    deduplicate_project(proj, index_path)
+    assert calls["count"] == 1
+
+    # Same file, unchanged metadata/content -> should reuse cached hash.
+    deduplicate_project(proj, index_path)
+    assert calls["count"] == 1
+
+
+def test_changed_files_are_rehashed(tmp_path, monkeypatch):
+    """
+    If a file changes, dedup should recompute its hash and refresh cache entry.
+    """
+    proj = tmp_path / "proj"
+    proj.mkdir()
+    f = proj / "file.txt"
+    f.write_text("v1")
+    index_path = tmp_path / "dedup_index.json"
+
+    calls = {"count": 0}
+    original = dedup_mod._file_hash
+
+    def counting_hash(path: Path) -> str:
+        calls["count"] += 1
+        return original(path)
+
+    monkeypatch.setattr(dedup_mod, "_file_hash", counting_hash)
+
+    deduplicate_project(proj, index_path)
+    assert calls["count"] == 1
+
+    f.write_text("v2")  # updates metadata, must trigger re-hash
+    deduplicate_project(proj, index_path)
+    assert calls["count"] == 2

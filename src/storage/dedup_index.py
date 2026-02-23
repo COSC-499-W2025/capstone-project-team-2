@@ -15,12 +15,13 @@ import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from filelock import FileLock, Timeout
 
 
 CHUNK_SIZE = 1024 * 1024  # 1 MB
 LOCK_TIMEOUT = 10  # seconds
+FILE_CACHE_KEY = "__file_cache__"
 
 
 @dataclass
@@ -49,7 +50,7 @@ def _file_hash(path: Path) -> str:
     return h.hexdigest()
 
 
-def _load_index(index_path: Path) -> Dict[str, dict]:
+def _load_index(index_path: Path) -> Tuple[Dict[str, dict], Dict[str, dict]]:
     """
     Load the hash index from disk.
 
@@ -57,27 +58,76 @@ def _load_index(index_path: Path) -> Dict[str, dict]:
         index_path (Path): Location of the index file.
 
     Returns:
-        dict: Loaded index or empty dict on failure.
+        Tuple[Dict[str, dict], Dict[str, dict]]:
+            Hash index plus per-path metadata cache.
     """
     if index_path.exists():
         try:
-            return json.loads(index_path.read_text(encoding="utf-8"))
+            raw = json.loads(index_path.read_text(encoding="utf-8"))
+            if not isinstance(raw, dict):
+                return {}, {}
+
+            file_cache = raw.get(FILE_CACHE_KEY, {})
+            if not isinstance(file_cache, dict):
+                file_cache = {}
+
+            hash_index: Dict[str, dict] = {
+                k: v for k, v in raw.items() if k != FILE_CACHE_KEY and isinstance(v, dict)
+            }
+            return hash_index, file_cache
         except Exception as e:
             logging.warning("Failed to load dedup index at %s: %s", index_path, e)
-            return {}
-    return {}
+            return {}, {}
+    return {}, {}
 
 
-def _save_index(index_path: Path, index: Dict[str, dict]) -> None:
+def _save_index(index_path: Path, index: Dict[str, dict], file_cache: Dict[str, dict]) -> None:
     """
     Persist the hash index to disk.
 
     Args:
         index_path (Path): Destination path.
         index (dict): Hash map to store.
+        file_cache (dict): Path metadata cache used to skip unnecessary re-hashing.
     """
     index_path.parent.mkdir(parents=True, exist_ok=True)
-    index_path.write_text(json.dumps(index, indent=2, sort_keys=True), encoding="utf-8")
+    payload = dict(index)
+    payload[FILE_CACHE_KEY] = file_cache
+    index_path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+
+
+def _path_cache_key(path: Path) -> str:
+    """Return a stable cache key for path-based metadata."""
+    return str(path.resolve())
+
+
+def _stat_fingerprint(path: Path) -> Tuple[int, int]:
+    """Return lightweight file metadata used to detect unchanged files."""
+    stat = path.stat()
+    return stat.st_size, stat.st_mtime_ns
+
+
+def _digest_for_path(path: Path, file_cache: Dict[str, dict]) -> str:
+    """
+    Return content digest for a file, reusing cached hash when metadata is unchanged.
+
+    The cache uses file size + nanosecond mtime as a cheap pre-check.
+    """
+    cache_key = _path_cache_key(path)
+    size, mtime_ns = _stat_fingerprint(path)
+    cached = file_cache.get(cache_key)
+
+    if (
+        isinstance(cached, dict)
+        and cached.get("size") == size
+        and cached.get("mtime_ns") == mtime_ns
+        and isinstance(cached.get("hash"), str)
+    ):
+        return cached["hash"]
+
+    digest = _file_hash(path)
+    file_cache[cache_key] = {"size": size, "mtime_ns": mtime_ns, "hash": digest}
+    return digest
 
 
 def deduplicate_project(root: Path, index_path: Path, remove_duplicates: bool = False) -> DedupResult:
@@ -93,7 +143,7 @@ def deduplicate_project(root: Path, index_path: Path, remove_duplicates: bool = 
 
     try:
         with lock:
-            index = _load_index(index_path)
+            index, file_cache = _load_index(index_path)
             duplicates: List[dict] = []
             unique_files = 0
             removed = 0
@@ -102,7 +152,7 @@ def deduplicate_project(root: Path, index_path: Path, remove_duplicates: bool = 
                 if not path.is_file():
                     continue
                 try:
-                    digest = _file_hash(path)
+                    digest = _digest_for_path(path, file_cache)
                 except Exception:
                     # Skip unreadable files but continue processing others
                     continue
@@ -125,6 +175,7 @@ def deduplicate_project(root: Path, index_path: Path, remove_duplicates: bool = 
                     if remove_duplicates:
                         try:
                             path.unlink(missing_ok=True)
+                            file_cache.pop(_path_cache_key(path), None)
                             dup_entry["removed"] = True
                             removed += 1
                         except Exception:
@@ -135,7 +186,7 @@ def deduplicate_project(root: Path, index_path: Path, remove_duplicates: bool = 
                     index[digest] = {"path": str(path), "project": root.name}
                     unique_files += 1
 
-            _save_index(index_path, index)
+            _save_index(index_path, index, file_cache)
 
             return DedupResult(
                 unique_files=unique_files,
