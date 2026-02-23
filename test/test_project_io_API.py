@@ -71,15 +71,21 @@ def test_upload_file_API():
     #Making a test file
     path = os.getcwd()
     path = os.path.join(path, "api_test.zip")
-    with zipfile.ZipFile(path, "w")as f:
-        f.write("test")
-    file = {"upload_file": Path(path).open("rb")}
-    
-    #Calls the API with the file to get a response from the upload, should return a success string
-    response = test_client.post("/projects/upload", files=file)
-    assert response.status_code == 200
-    assert response.json() == "Upload Success"
-    if os.path.exists(path):
+    with zipfile.ZipFile(path, "w") as f:
+        f.writestr("dummy.txt", "test")
+
+    fh = Path(path).open("rb")
+    try:
+        file = {"upload_file": fh}
+        #Calls the API with the file to get a response from the upload, should return a success string
+        response = test_client.post("/projects/upload", files=file)
+        assert response.status_code == 200
+        body = response.json()
+        assert body["status"] == "ok"
+        assert body["filename"] == "api_test.zip"
+    finally:
+        fh.close()
+        if os.path.exists(path):
             os.remove(path)
 
 def test_upload_file_API_no_zip():
@@ -92,7 +98,9 @@ def test_upload_file_API_no_zip():
     #Calls the API with the file to get a response from the upload, should return a string error
     response = test_client.post("/projects/upload", files={"upload_file": path.open("rb")})
     assert response.status_code == 200
-    assert response.json() == "Error, file is not a zip file!"
+    body = response.json()
+    assert body["status"] == "error"
+    assert "zip file" in body["message"]
 
 def test_upload_project_CLI_dir():
     """
@@ -263,6 +271,36 @@ def test_delete_project_legacy_route_forwards_to_delete(monkeypatch):
     assert response.status_code == 200
     assert response.json() == {"status": "ok", "dbstatus": "ok"}
     mock_delete.assert_called_once_with(id="legacy_proj", save_path="/tmp/legacy_proj.json")
+def test_get_project_by_name_filesystem_success(monkeypatch, tmp_path):
+    """
+    Ensures GET /projects/{id} returns saved analysis JSON from local filesystem.
+    """
+    save_dir = tmp_path / "project_insights"
+    save_dir.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(runtimeAppContext, "default_save_dir", save_dir)
+
+    expected_analysis = {"summary": "ok", "skills": ["Python"]}
+    (save_dir / "sample_project.json").write_text(
+        json.dumps(expected_analysis),
+        encoding="utf-8",
+    )
+
+    response = test_client.get("/projects/sample_project")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["project_name"] == "sample_project"
+    assert body["source"] == "filesystem"
+    assert body["analysis"] == expected_analysis
+
+def test_get_project_by_name_not_found():
+    """
+    Ensures GET /projects/{id} returns 404 when project does not exist.
+    """
+    response = test_client.get("/projects/definitely_missing_project")
+
+    assert response.status_code == 404
+    assert "not found" in response.json()["detail"].lower()
 
 def test_delete_project_no_db():
     """

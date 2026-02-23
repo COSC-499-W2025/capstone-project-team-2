@@ -157,6 +157,21 @@ class TestJavaScriptOOPAnalyzer(unittest.TestCase):
 
         self.assertGreater(metrics["data_structures"]["list_literals"], 0)
         self.assertGreater(metrics["data_structures"]["dict_literals"], 0)
+        
+    def test_nonexistent_path_raises_error(self):
+        """Check that non-existent path raises FileNotFoundError."""
+        fake_path = Path("/fake/nonexistent/path")
+        with self.assertRaises(FileNotFoundError):
+            JavaScriptOOPAnalyzer(fake_path)
+
+    def test_file_path_instead_of_directory_raises_error(self):
+        """Check that passing a file instead of directory raises NotADirectoryError."""
+        # Create a file, not a directory
+        file_path = self.tmpdir / "somefile.js"
+        file_path.write_text("const x = 1;", encoding="utf-8")
+
+        with self.assertRaises(NotADirectoryError):
+            JavaScriptOOPAnalyzer(file_path)
 
 if __name__ == "__main__":
     unittest.main()

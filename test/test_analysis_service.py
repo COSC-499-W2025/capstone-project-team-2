@@ -95,7 +95,8 @@ def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypat
     assert (runtimeAppContext.default_save_dir).exists()
     assert captured["project_name"] == "DemoProj"
     assert captured["analysis"]["ok"] is True
-    assert result == {"skipped": False}
+    assert result["skipped"] is False
+    assert "snapshots" in result
     #Can't check if db contains file at current point in time
     #runtimeAppContext.store.fetch_by_id
 
@@ -212,7 +213,46 @@ class TestAnalysisService(unittest.TestCase):
                 mod.analyze_project(root)
 
         self.assertEqual(captured["languages_found"], ["C++", "Python"])
-        
+
+def test_export_json_appends_snapshots_and_merges_skills(tmp_path, monkeypatch):
+    """Ensure incremental uploads append snapshots and union skills/frameworks."""
+    import json
+    save_dir = tmp_path / "saves"
+    monkeypatch.setattr(mod.runtimeAppContext, "default_save_dir", save_dir)
+    monkeypatch.setattr(mod.runtimeAppContext, "store", SimpleNamespace(insert_json=lambda *args, **kwargs: None))
+
+    base_analysis = {
+        "project_root": "/p1",
+        "duration_estimate": "1 day",
+        "resume_item": {
+            "project_name": "Demo",
+            "skills": ["Python"],
+            "frameworks": ["FastAPI"],
+        },
+        "dedup": {},
+    }
+
+    mod.export_json("Demo", base_analysis)
+
+    second_analysis = {
+        "project_root": "/p1",
+        "duration_estimate": "2 days",
+        "resume_item": {
+            "project_name": "Demo",
+            "skills": ["Docker"],
+            "frameworks": ["FastAPI", "React"],
+        },
+        "dedup": {},
+    }
+
+    meta = mod.export_json("Demo", second_analysis)
+    saved = json.loads((save_dir / "Demo.json").read_text())
+
+    assert meta["snapshots"]  # snapshots returned
+    assert len(saved.get("snapshots", [])) == 2
+    assert set(saved["resume_item"]["skills"]) == {"Python", "Docker"}
+    assert set(saved["resume_item"]["frameworks"]) == {"FastAPI", "React"}
+
 def test_oop_analysis_raises_on_failure(monkeypatch):
     """OOP is critical: if supported languages exist and analysis fails, it should raise."""
 
@@ -294,4 +334,3 @@ def test_analyze_project_builds_analysis_and_exports(tmp_path, monkeypatch):
 
     assert captured["project_name"] == tmp_path.name
     assert captured["ctx"] is ctx
-

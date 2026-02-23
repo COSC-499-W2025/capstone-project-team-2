@@ -315,6 +315,7 @@ class ProjectInsight:
     stats: JsonEntry = field(default_factory=dict)
     file_analysis: JsonEntry = field(default_factory=dict)
     thumbnail: Optional[Dict[str, Any]] = None
+    snapshot_label: Optional[str] = None
 
     def contribution_score(self, contributor: Optional[str] = None) -> int:
         """
@@ -387,6 +388,7 @@ def _entry_to_dataclass(entry: JsonEntry) -> ProjectInsight:
         stats=stats,
         file_analysis=file_analysis,
         thumbnail=entry.get("thumbnail"),
+        snapshot_label=entry.get("snapshot_label"),
     )
 
 
@@ -397,6 +399,7 @@ def record_project_insight(
     contributors: Optional[ContributorData] = None,
     analyzed_at: Optional[datetime] = None,
     insight_id: Optional[str] = None,
+    snapshot_label: Optional[str] = None,
 ) -> ProjectInsight:
     """
     Save a new project insight to the JSON log.
@@ -447,6 +450,7 @@ def record_project_insight(
         contributors=normalized,
         stats=stats,
         file_analysis=_compute_file_analysis(hierarchy),
+        snapshot_label=snapshot_label,
     )
 
     path = Path(storage_path)
