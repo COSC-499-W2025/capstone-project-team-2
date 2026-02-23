@@ -107,6 +107,22 @@ class Test_csharp_analysis:
         assert result["complexity"]["functions_with_nested_loops"] >= 1
         assert result["complexity"]["max_loop_depth"] >= 2
 
+    def test_invalid_syntax_does_not_crash(self, analyzer):
+        """Check that invalid syntax doesn't crash and returns valid report structure."""
+        source = "this is not valid C# {{{{{{{"
+        result = analyze(analyzer, source)
+        # Tree-sitter is error-tolerant, so it will parse (syntax_ok=True)
+        # but should return empty classes for garbage input
+        assert result["syntax_ok"] == True
+        assert result["classes"] == []
+
+    def test_empty_file_parses(self, analyzer):
+        """Check that empty file returns valid empty report."""
+        source = ""
+        result = analyze(analyzer, source)
+        # Empty file should parse successfully with no classes
+        assert result["syntax_ok"] == True
+        assert result["classes"] == []
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
