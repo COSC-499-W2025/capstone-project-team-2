@@ -20,6 +20,9 @@ When the app is running:
 - Query:
   - `use_ai` (bool, default `false`)
   - `project_name` (optional string)
+  - `remove_duplicates` (bool, default `true`)
+    - `true`: detect duplicates and delete duplicate copies
+    - `false`: detect/report duplicates only (no deletion)
 - Returns `200`:
   - `{"status":"Analysis Finished and Saved","dedup":{...},"snapshots":[...]}`
 

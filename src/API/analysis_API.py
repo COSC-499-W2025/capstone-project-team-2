@@ -13,15 +13,20 @@ analysisRouter = APIRouter(
 )
 
 @analysisRouter.get("/")
-def perform_analysis_API(use_ai: bool = False, project_name: str | None = None) -> dict:
+def perform_analysis_API(
+    use_ai: bool = False,
+    project_name: str | None = None,
+    remove_duplicates: bool = True,
+) -> dict:
     """
     API call for performing analysis on a project folder. Extracts from a zip file if provided Path is a zip file. Analysis is saved.
 
     HTTP call is GET /analyze
-    Optional Get /analyze/?use_ai=bool
+    Optional Get /analyze/?use_ai=bool&remove_duplicates=bool
 
     Args:
         use_ai (bool): determines whether analysis uses ai
+        remove_duplicates (bool): controls whether duplicate files are deleted.
 
     Returns:
         dict: status message and dedup summary on success; str error on failure under status.
@@ -37,7 +42,12 @@ def perform_analysis_API(use_ai: bool = False, project_name: str | None = None) 
                 folder = folder_path
         else:   #Can only be an UploadFile at this point
             folder = extract_if_zip(folder_path)
-        result = analyze_project(folder, use_ai_analysis=use_ai, project_name=project_name) or {}
+        result = analyze_project(
+            folder,
+            use_ai_analysis=use_ai,
+            project_name=project_name,
+            remove_duplicates=remove_duplicates,
+        ) or {}
         return {
             "status": "Analysis Finished and Saved",
             "dedup": result.get("dedup"),
