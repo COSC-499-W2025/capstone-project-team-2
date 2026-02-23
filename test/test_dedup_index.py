@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -94,6 +95,39 @@ def test_deduplicate_project_can_remove_duplicates(tmp_path):
     # Original file should remain, duplicate should be removed
     assert f1.exists()
     assert not f2.exists()
+
+
+def test_deduplicate_project_removes_deleted_file_from_cache(tmp_path):
+    """
+    When a duplicate file is deleted, its per-path file cache entry should be removed.
+    """
+    proj1 = tmp_path / "proj1"
+    proj1.mkdir()
+    f1 = proj1 / "a.txt"
+    f1.write_text("same")
+
+    proj2 = tmp_path / "proj2"
+    proj2.mkdir()
+    f2 = proj2 / "b.txt"
+    f2.write_text("same")
+
+    index_path = tmp_path / "dedup_index.json"
+
+    deduplicate_project(proj1, index_path)
+    deduplicate_project(proj2, index_path)
+
+    cache_key = dedup_mod._path_cache_key(f2)
+    index_before = json.loads(index_path.read_text(encoding="utf-8"))
+    file_cache_before = index_before.get(dedup_mod.FILE_CACHE_KEY, {})
+    assert cache_key in file_cache_before
+
+    result = deduplicate_project(proj2, index_path, remove_duplicates=True)
+    assert result.removed == 1
+    assert not f2.exists()
+
+    index_after = json.loads(index_path.read_text(encoding="utf-8"))
+    file_cache_after = index_after.get(dedup_mod.FILE_CACHE_KEY, {})
+    assert cache_key not in file_cache_after
 
 
 def test_corrupted_index_logs_warning(tmp_path, caplog):
