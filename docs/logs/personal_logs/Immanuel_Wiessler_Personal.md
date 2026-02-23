@@ -5,6 +5,7 @@
 ## Quick Navigation
 
 ### Term 2
+- [Week 21 - Bonus Week (02/16/2026 – 02/22/2026)](#-personal-log--week-21---bonus-week-02162026--02222026)
 - [Week 20 (02/09/2026 – 02/15/2026)](#-personal-log--week-20-02092026--02152026)
 - [Week 19 (02/02/2026 – 02/08/2026)](#-personal-log--week-19-02022026--02082026)
 - [Week 18 (01/26/2026 – 02/01/2026)](#-personal-log--week-18-01262026--02012026)
@@ -1795,5 +1796,77 @@ The second task was addressing the default save config issue ([#401](https://git
 The third task was a significant refactor of the AI resume generation system ([#373](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/373)). The previous implementation scanned the filesystem to gather project data for generating resume lines, which was fragile — project files or derived data could be deleted, moved, or renamed, leading to errors and inconsistent AI outputs. The refactored version now uses database-stored Project Insights as the authoritative data source, achieving deterministic outputs, eliminating filesystem dependencies, and providing clear separation between data persistence and AI generation logic.
 
 Overall, this week reinforced the importance of robust data management — both in how we handle file uploads and how we source data for AI features. By grounding our systems in database-stored state rather than filesystem assumptions, we've made the application more reliable and maintainable going forward.
+
+---
+
+
+# 📝 Personal Log – Week 21 - Bonus Week (02/16/2026 – 02/22/2026)
+
+## 📊 Peer Evaluation
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/1-16-2026.png)
+
+---
+---
+
+## 🔗 Connection to Previous Week
+
+Following Week 20's bug fixes and refactoring work, this bonus week focused on adding some additonally endpoints the Resume and portofilo api system and intergration 
+
+---
+
+## 🚀 Work Completed
+
+### Coding Tasks
+- Integrated updated AI resume generation (Ver2) into the document generator pipeline, replacing the older Ver1 with GenerateResumeAI_Ver2 to enable AI-powered resume entry generation from database-stored project data ([PR #419](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/419))
+- Added multi-format rendering support (PDF, HTML, Markdown) to the Resume and Portfolio APIs, including new export endpoints for saving rendered files to default or user-specified locations ([PR #415](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/415))
+
+### Testing/Debugging Tasks
+- Wrote 9 unit tests for the AI resume generation Ver2 integration, covering project addition and modification workflows with optional date entry and preservation of existing project data; all tests passed locally and in Docker ([PR #419](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/419))
+- Wrote 37 tests and 6 subtests for the multi-format rendering endpoints (PDF, HTML, Markdown), covering success paths, export to default and custom locations, and error scenarios for both Resume and Portfolio APIs; all tests passed locally and in Docker ([PR #415](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/415))
+
+### Reviewing/Collaboration Tasks
+- Reviewed PR (2nd reviewer): [Added error handling for save_config method #427](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/427)
+- Reviewed PR (1st reviewer): [Incremental Uploads with Snapshot Aware Insights #422](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/422)
+- Reviewed PR (2nd reviewer): [Fixed error handling in load method to raise appropriate errors to the API #429](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/429)
+- Reviewed PR (1st reviewer): [Add endpoint reference and required endpoint test coverage #435](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/435)
+
+---
+
+## 📌 Associated Tasks from Project Board
+- [Feature Request: Support Multiple Generation Types in APIs (Resume & Portfolio) #414](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/414)
+
+---
+
+## 📈 Progress Update
+
+| Task/Issue | Status |
+|------------|--------|
+| **AI resume generation Ver2 integration** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Multi-format rendering support for Resume and Portfolio APIs** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+
+---
+
+## ⚠️ Issues/Blockers
+
+-
+
+---
+
+## 🎯 Next Week's Goals
+- Made sure that stuff is ready for milestone 2 submission
+- begin to working/start on frontend intergreation
+- add missing endpoints(delete endpoints for education, experiece, and projects)
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 21 - Bonus Week)
+
+**Week 21 - Bonus Week** was focused on extending the Resume and Portfolio API system with new capabilities and improving overall code quality ahead of the Milestone 2 submission.
+
+The first major task was integrating the updated AI resume generation (Ver2) into the document generator pipeline ([PR #419](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/419)). The previous Ver1 implementation was replaced with GenerateResumeAI_Ver2, which pulls project data directly from the database rather than relying on filesystem scanning. This makes resume generation more reliable and consistent. The update also added support for optional date entry and ensures that existing project information is preserved when modifying entries. 9 unit tests were written to verify the new workflows, all of which passed locally and in Docker.
+
+The second task was adding multi-format rendering support to both the Resume and Portfolio APIs ([PR #415](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/415)). Previously, the APIs only supported PDF output. This PR extended the render endpoints with a `{format}` path parameter to support PDF, HTML, and Markdown output. New export endpoints were also introduced, allowing users to save rendered files to either a default project directory or a custom location. Shared helper functions were added to reduce code duplication across the two APIs, and a missing import in the Portfolio Generator was fixed along the way. Test coverage for this PR was comprehensive — 37 tests and 6 subtests covering all three formats, export paths, and error scenarios.
+
+Beyond coding, this week also involved reviewing 4 PRs across the team, covering error handling improvements, snapshot-aware incremental uploads, and API documentation additions. Overall, this bonus week made meaningful progress in advancing the API layer toward frontend integration readiness.
 
 ---
