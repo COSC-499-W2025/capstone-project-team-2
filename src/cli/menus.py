@@ -24,6 +24,7 @@ from src.core.app_context import runtimeAppContext
 from src.reporting.portfolio import display_portfolio_and_generate_pdf
 from src.storage.saved_projects import (
     delete_file_from_disk,
+    find_saved_file_path,
     delete_from_database_by_name,
     get_saved_projects_from_db,
     list_saved_projects,
@@ -484,11 +485,28 @@ def delete_analysis_menu() -> None:
                 print(f"[INFO] Deleted '{full_filename}' from database.")
 
             # Delete from disk
+            candidate_before = find_saved_file_path(full_filename)
             if delete_file_from_disk(full_filename):
-                print(f"[SUCCESS] Deleted '{full_filename}' from disk.")
+                deleted_path = (
+                    str(candidate_before)
+                    if candidate_before is not None
+                    else f"(resolved from configured save directories)"
+                )
+                print(f"[SUCCESS] Deleted '{full_filename}' from disk at: {deleted_path}")
             else:
+                base_dir = Path(runtimeAppContext.default_save_dir).expanduser().resolve()
+                primary = base_dir / full_filename
+                legacy = base_dir.parent / full_filename
                 if not deleted_from_db:
-                    print(f"[WARNING] Could not delete '{full_filename}'.")
+                    print(
+                        f"[WARNING] Could not delete '{full_filename}'. "
+                        f"Checked: '{primary}' and '{legacy}'."
+                    )
+                else:
+                    print(
+                        f"[INFO] No local file deleted for '{full_filename}'. "
+                        f"Checked: '{primary}' and '{legacy}'."
+                    )
 
             another = input("\nDelete another analysis? (y/n): ").strip().lower()
             if not another.startswith("y"):

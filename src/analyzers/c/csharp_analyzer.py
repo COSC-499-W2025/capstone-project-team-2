@@ -22,9 +22,12 @@ class csharpanalysis:
     """
 
     def __init__(self):
-        self.parser = Parser()
-        self.parser.language = Language(tscs.language())
-    
+        try:
+            self.parser = Parser()
+            self.parser.language = Language(tscs.language())
+        except Exception as e:
+            raise RuntimeError(f"C# analyzer initialization failed: {e}") from e
+        
     def analyze_file(self, source: str, path: Path) -> Dict[str, Any]:
         """
         Analyze a C# source file and extract structural information.
@@ -42,15 +45,19 @@ class csharpanalysis:
             tree = self.parser.parse(bytes(source,"utf8"))
             root = tree.root_node
             report["syntax_ok"] = True
-        except Exception:
+        except Exception as e:
             report["syntax_ok"] = False
+            report["error"] = f"Parse failed: {e}"
             return report
-        
-        report["imports"] = self.extract_usings(root, source)
-        report["classes"] = self.extract_classes(root, source, path)
-        report["data_structures"] = self.extract_data_structures(root, source)
-        report["complexity"] = self.extract_complexity(root)
-        
+    
+        try:
+            report["imports"] = self.extract_usings(root, source)
+            report["classes"] = self.extract_classes(root, source, path)
+            report["data_structures"] = self.extract_data_structures(root, source)
+            report["complexity"] = self.extract_complexity(root)
+        except Exception as e:
+            report["error"] = f"Extraction failed: {e}"
+    
         return report
     
     def empty_report(self, path: Path) -> Dict[str, Any]:

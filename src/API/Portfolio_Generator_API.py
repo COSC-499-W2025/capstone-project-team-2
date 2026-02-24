@@ -11,24 +11,33 @@ experience sections. They focus on projects, skills, summary, contact,
 and connections.
 
 Endpoints:
-    POST   /portfolio/generate                       - Create a new portfolio YAML document
-    GET    /portfolio/{id}                           - Retrieve full portfolio data as JSON
-    POST   /portfolio/{id}/edit                      - Modify a field on an existing section item
-    POST   /portfolio/{id}/add/project/{project_id}  - Add a project entry
-    POST   /portfolio/{id}/render                    - Re-render an existing portfolio to PDF
-    DELETE /portfolio/{id}                           - Delete the portfolio YAML file entirely
+    POST   /portfolio/generate                          - Create a new portfolio YAML document
+    GET    /portfolio/{id}                              - Retrieve full portfolio data as JSON
+    POST   /portfolio/{id}/edit                         - Modify a field on an existing section item
+    POST   /portfolio/{id}/add/project/{project_name}   - Add a project entry
+    POST   /portfolio/{id}/render/{format}              - Re-render and return as file response
+    POST   /portfolio/{id}/export/{format}                - Render and export to default directory
+    POST   /portfolio/{id}/export/{format}/custom         - Render and export to a custom directory
+    DELETE /portfolio/{id}                              - Delete the portfolio YAML file entirely
 """
 
 from typing import Optional,List
+from pathlib import Path
 import uuid
 import shutil
 from fastapi import APIRouter, HTTPException,BackgroundTasks
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
     RenderCVDocument,Project
 )
+from src.reporting.portfolio_service import (
+    load_portfolio_showcase,
+    save_project_role_override,
+)
 from src.core.app_context import runtimeAppContext
+
+RENDERED_OUTPUTS_DIR = Path(__file__).resolve().parents[2] / "User_config_files" / "Generate_render_CV_files" / "rendered_outputs"
 
 portfolioRouter = APIRouter(tags=["Portfolio"])
 
@@ -37,6 +46,11 @@ portfolioRouter = APIRouter(tags=["Portfolio"])
 
 class GeneratePortfolioRequest(BaseModel):
     """Request payload for creating a new portfolio document."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "name": "Jane_Doe",
+        "theme": "sb2nov",
+        "overwrite": False,
+    }})
     name: str
     theme: Optional[str]= 'sb2nov'
     overwrite:bool = False
@@ -44,6 +58,12 @@ class GeneratePortfolioRequest(BaseModel):
 
 class editItem(BaseModel):
     """Single edit operation specifying section, item, field, and new value."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "section": "contact",
+        "item_name": "",
+        "field": "email",
+        "new_value": "jane.doe@example.com",
+    }})
     section: str
     item_name: str
     field: str
@@ -52,12 +72,29 @@ class editItem(BaseModel):
 
 class EditProjectRequest(BaseModel):
     """Request payload containing a list of edit operations to apply."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "edits": [
+            {"section": "contact", "item_name": "", "field": "email", "new_value": "jane.doe@example.com"},
+            {"section": "contact", "item_name": "", "field": "phone", "new_value": "555-987-6543"},
+            {"section": "summary", "item_name": "", "field": "", "new_value": "Full-stack developer passionate about open source."},
+            {"section": "projects", "item_name": "MyProject", "field": "summary", "new_value": "Developed a portfolio site with FastAPI."},
+            {"section": "theme", "item_name": "", "field": "", "new_value": "classic"},
+        ]
+    }})
     edits: list[editItem]
 
 
 
 class ProjectRequest(BaseModel):
     """Optional overrides for project fields when adding a project."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "name": "My Capstone Project",
+        "start_date": "2024-09",
+        "end_date": "2025-04",
+        "location": "Kelowna, BC",
+        "summary": "Built a developer portfolio generation tool using FastAPI and RenderCV.",
+        "highlights": ["Designed REST API with FastAPI", "Integrated RenderCV for PDF generation"],
+    }})
     name:Optional[str] = None
     start_date:Optional[str] = None
     end_date: Optional[str] = None
@@ -66,8 +103,41 @@ class ProjectRequest(BaseModel):
     highlights: Optional[list[str]] = None
 
 
+class ProjectRoleOverrideRequest(BaseModel):
+    """Request payload for setting a project's showcase role."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "role": "Backend Developer",
+    }})
+    role: str = Field(default="Backend Developer", max_length=200)
+
+class SaveRequest(BaseModel):
+    """Payload for saving a rendered file to a custom location."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "path": "/home/user/Documents/portfolios",
+    }})
+    path: str
+
+
+SUPPORTED_FORMATS = {"pdf", "html", "markdown"}
+EXTENSIONS = {"pdf": "pdf", "html": "html", "markdown": "md"}
 
 """----Helper Methods---"""
+
+def _validate_format(format: str) -> str:
+    """Validate and normalize the output format string."""
+    fmt = format.strip().lower()
+    if fmt not in SUPPORTED_FORMATS:
+        raise HTTPException(status_code=400, detail=f"Unsupported format '{format}'. Supported: {', '.join(sorted(SUPPORTED_FORMATS))}")
+    return fmt
+
+def _render_and_get_path(doc: RenderCVDocument, fmt: str) -> Path:
+    """Render a document and return the output file path."""
+    status, outputs = doc.render_outputs([fmt])
+    paths = outputs.get(fmt, [])
+    if not paths:
+        raise HTTPException(status_code=500, detail=status)
+    return paths[0]
+
 def _load_portfolio(name:str) -> RenderCVDocument:
     """Load an existing portfolio by name.
 
@@ -106,6 +176,54 @@ def _check_result(result:str):
     return result
 
 """---API Calls/Requests---"""
+
+@portfolioRouter.post("/portfolio-showcase/{project_name}/role")
+def set_portfolio_showcase_role(project_name: str, payload: ProjectRoleOverrideRequest):
+    """
+    Save a human-authored role override for a project's portfolio showcase.
+
+    Args:
+        project_name: Project name used for override storage.
+        payload: Contains role text to persist.
+
+    Returns:
+        dict: Saved project name and role.
+    """
+    role = payload.role.strip()
+    if not role:
+        raise HTTPException(status_code=400, detail="Role cannot be empty.")
+
+    try:
+        saved = save_project_role_override(project_name, role)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save role override: {e}")
+
+    return {
+        "project_name": project_name,
+        "role": saved.get("project", {}).get("role"),
+        "status": "Role override saved successfully",
+    }
+
+
+@portfolioRouter.get("/portfolio-showcase/{project_name}/role")
+def get_portfolio_showcase_role(project_name: str):
+    """
+    Return the saved role override for a project's portfolio showcase.
+
+    Args:
+        project_name: Project name used for override lookup.
+
+    Returns:
+        dict: Project role if found.
+    """
+    overrides = load_portfolio_showcase(project_name)
+    role = (overrides.get("project") or {}).get("role")
+    if not role:
+        raise HTTPException(status_code=404, detail=f"No saved role for project '{project_name}'.")
+
+    return {"project_name": project_name, "role": role}
+
+
 @portfolioRouter.post("/portfolio/generate")
 def generate_portfolio(payload: GeneratePortfolioRequest):
     """Create a new portfolio YAML document.
@@ -241,13 +359,13 @@ def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
     return {"results": results}
 
 
-@portfolioRouter.post("/portfolio/{portfolio_id}/add/project/{project_id}")
-def add_project(portfolio_id:str,project_id:int,payload: Optional[ProjectRequest]=None):
+@portfolioRouter.post("/portfolio/{portfolio_id}/add/project/{project_name}")
+def add_project(portfolio_id: str, project_name: str, payload: Optional[ProjectRequest] = None):
     """Add a project from the database to a portfolio.
 
     Args:
         portfolio_id: The portfolio identifier.
-        project_id: The database ID of the project to add.
+        project_name: The project name (Pname) of the analysed project.
         payload: Optional overrides for project fields.
 
     Returns:
@@ -258,12 +376,27 @@ def add_project(portfolio_id:str,project_id:int,payload: Optional[ProjectRequest
         HTTPException: 500 if adding the project fails.
     """
     doc=_load_portfolio(portfolio_id)
-    project_data=runtimeAppContext.store.fetch_by_id(project_id)
+    candidates = [project_name]
+    if not project_name.endswith(".json"):
+        candidates.append(f"{project_name}.json")
+
+    project_data = None
+    for candidate in candidates:
+        project_data = runtimeAppContext.store.fetch_by_name(candidate)
+        if project_data is not None:
+            break
+
     if project_data is None:
-        raise HTTPException(status_code=404, detail=f"Project {project_id} not found in database")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Project '{project_name}' not found in database",
+        )
     resume_item=project_data.get("resume_item",{}) if isinstance(project_data,dict) else {}
     if not resume_item:
-        raise HTTPException(status_code=404, detail=f"Project record {project_id} has no resume_item data")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Project record '{project_name}' has no resume_item data",
+        )
 
     proj= Project(
         name=payload.name if payload and payload.name else resume_item.get("project_name",""),
@@ -282,36 +415,111 @@ def add_project(portfolio_id:str,project_id:int,payload: Optional[ProjectRequest
     return {"status": result}
 
 @portfolioRouter.post("/portfolio/{portfolio_id}/render")
-def render_portfolio(portfolio_id: str, background_tasks: BackgroundTasks):
-    """Render an existing portfolio to PDF.
+def render_portfolio_default(portfolio_id: str, background_tasks: BackgroundTasks):
+    """Backward-compatible route that renders a portfolio as PDF (default format)."""
+    return render_portfolio(portfolio_id, "pdf", background_tasks)
 
-    Use this after making edits to regenerate the PDF without creating
+
+@portfolioRouter.post("/portfolio/{portfolio_id}/render/{format}")
+def render_portfolio(portfolio_id: str, format: str, background_tasks: BackgroundTasks):
+    """Render an existing portfolio to the specified format.
+
+    Use this after making edits to regenerate the output without creating
     a new portfolio.
 
     Args:
         portfolio_id: The portfolio identifier.
+        format: Output format - one of 'pdf', 'html', or 'markdown'.
         background_tasks: FastAPI background tasks for cleanup after response.
 
     Returns:
-        FileResponse: The rendered portfolio PDF.
+        FileResponse: The rendered portfolio file in the requested format.
 
     Raises:
+        HTTPException: 400 if the format is not supported.
         HTTPException: 404 if the portfolio does not exist.
         HTTPException: 500 if rendering fails.
     """
+    fmt = _validate_format(format)
     doc = _load_portfolio(portfolio_id)
-    status, pdf_path = doc.render()
-    if pdf_path is None:
-        raise HTTPException(status_code=500, detail=status)
+    rendered_path = _render_and_get_path(doc, fmt)
 
-    output_dir = pdf_path.parent
-    background_tasks.add_task(shutil.rmtree, output_dir, True)
+    background_tasks.add_task(shutil.rmtree, rendered_path.parent, True)
+
+    media_types = {"pdf": "application/pdf", "html": "text/html", "markdown": "text/markdown"}
+
     return FileResponse(
-        str(pdf_path),
-        media_type='application/pdf',
-        filename=f"portfolio_{portfolio_id}.pdf",
+        str(rendered_path),
+        media_type=media_types[fmt],
+        filename=f"portfolio_{portfolio_id}.{EXTENSIONS[fmt]}",
         headers={"X-Portfolio-ID": portfolio_id},
     )
+
+
+@portfolioRouter.post("/portfolio/{portfolio_id}/export/{format}")
+def export_portfolio(portfolio_id: str, format: str):
+    """Render a portfolio and save it to the default output directory.
+
+    Renders the portfolio in the requested format and saves the file to
+    User_config_files/rendered_outputs/.
+
+    Args:
+        portfolio_id: The portfolio identifier.
+        format: Output format - one of 'pdf', 'html', or 'markdown'.
+
+    Returns:
+        dict: {"status": "Saved successfully", "path": "<saved file path>"}.
+
+    Raises:
+        HTTPException: 400 if the format is not supported.
+        HTTPException: 404 if the portfolio does not exist.
+        HTTPException: 500 if rendering fails.
+    """
+    fmt = _validate_format(format)
+    doc = _load_portfolio(portfolio_id)
+    rendered_path = _render_and_get_path(doc, fmt)
+
+    RENDERED_OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
+    dest = RENDERED_OUTPUTS_DIR / f"portfolio_{portfolio_id}.{EXTENSIONS[fmt]}"
+    shutil.copy2(rendered_path, dest)
+    shutil.rmtree(rendered_path.parent, True)
+
+    return {"status": "Saved successfully", "path": str(dest)}
+
+
+@portfolioRouter.post("/portfolio/{portfolio_id}/export/{format}/custom")
+def export_portfolio_custom(portfolio_id: str, format: str, payload: SaveRequest):
+    """Render a portfolio and save it to a custom location.
+
+    Renders the portfolio in the requested format and saves the file to
+    the directory specified in the request body.
+
+    Args:
+        portfolio_id: The portfolio identifier.
+        format: Output format - one of 'pdf', 'html', or 'markdown'.
+        payload: SaveRequest with the target directory path.
+
+    Returns:
+        dict: {"status": "Saved successfully", "path": "<saved file path>"}.
+
+    Raises:
+        HTTPException: 400 if the format is not supported or directory does not exist.
+        HTTPException: 404 if the portfolio does not exist.
+        HTTPException: 500 if rendering fails.
+    """
+    fmt = _validate_format(format)
+    target_dir = Path(payload.path).expanduser().resolve()
+    if not target_dir.is_dir():
+        raise HTTPException(status_code=400, detail=f"Directory '{payload.path}' does not exist")
+
+    doc = _load_portfolio(portfolio_id)
+    rendered_path = _render_and_get_path(doc, fmt)
+
+    dest = target_dir / f"portfolio_{portfolio_id}.{EXTENSIONS[fmt]}"
+    shutil.copy2(rendered_path, dest)
+    shutil.rmtree(rendered_path.parent, True)
+
+    return {"status": "Saved successfully", "path": str(dest)}
 
 
 @portfolioRouter.delete("/portfolio/{portfolio_id}")

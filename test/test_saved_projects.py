@@ -33,6 +33,9 @@ def test_list_saved_projects_filters_config_and_dedupes(tmp_path):
     (tmp_path / "dup.json").write_text("{}")
     # Config file should be filtered
     (new_dir / "UserConfigs.json").write_text("{}")
+    (new_dir / "project_insights.json").write_text("{}")
+    (new_dir / "dedup_index.json").write_text("{}")
+    (legacy_file.parent / "representation_preferences.json").write_text("{}")
 
     projects = mod.list_saved_projects(new_dir)
     names = {p.name for p in projects}
@@ -41,7 +44,26 @@ def test_list_saved_projects_filters_config_and_dedupes(tmp_path):
     assert "new.json" in names
     assert "dup.json" in names
     assert "UserConfigs.json" not in names
+    assert "project_insights.json" not in names
+    assert "dedup_index.json" not in names
+    assert "representation_preferences.json" not in names
     assert len(projects) == 4
+
+
+def test_delete_file_from_disk_blocks_internal_artifacts(tmp_path, capsys):
+    """
+    Internal system JSON artifacts should not be deleted through this helper.
+    """
+    runtimeAppContext.default_save_dir = tmp_path / "project_insights"
+    runtimeAppContext.default_save_dir.mkdir(parents=True, exist_ok=True)
+    protected = runtimeAppContext.default_save_dir / "dedup_index.json"
+    protected.write_text("{}")
+
+    deleted = mod.delete_file_from_disk("dedup_index.json")
+
+    assert deleted is False
+    assert protected.exists() is True
+    assert "internal artifact" in capsys.readouterr().out.lower()
 
 
 def test_show_saved_summary_prints_contributors(monkeypatch, tmp_path, capsys):
@@ -85,6 +107,103 @@ def test_show_saved_summary_prints_contributors(monkeypatch, tmp_path, capsys):
     assert "Alice" in out and "3 files" in out
     assert "Bob" in out and "2 files" in out
     assert "Résumé line" in out
+
+def test_show_saved_summary_unclassified_doc_type_message(tmp_path, capsys):
+    """Check that unknown document typing is explained clearly to users."""
+    file_path = tmp_path / "analysis.json"
+    data = {
+        "analysis": {
+            "project_root": "/tmp/demo",
+            "resume_item": {
+                "project_type": "individual",
+                "detection_mode": "local",
+                "languages": [],
+                "frameworks": [],
+                "skills": [],
+                "summary": "Built demo.",
+            },
+            "document_analysis": {
+                "summary": {
+                    "unique_documents": 1,
+                    "duplicate_documents": 0,
+                    "total_words": 8,
+                    "by_format": {"TXT": 1},
+                    "by_type": {"unknown": 1},
+                },
+                "documents": [
+                    {
+                        "path": "scores.txt",
+                        "format": "TXT",
+                        "word_count": 8,
+                        "doc_type": {
+                            "label": "unknown",
+                            "confidence": "unknown",
+                            "signals": [],
+                        },
+                        "summary": "COSC 121 Top Students Ricardo 100 Julie 98",
+                    }
+                ],
+                "duplicates": [],
+                "errors": [],
+            },
+        }
+    }
+    file_path.write_text(mod.json.dumps(data))
+
+    mod.show_saved_summary(file_path)
+    out = capsys.readouterr().out
+
+    assert "unclassified" in out
+    assert "not enough recognizable signals" in out
+    assert "No strong text patterns were detected for document typing." in out
+
+def test_show_saved_summary_confidence_unavailable_when_label_exists(tmp_path, capsys):
+    """Check fallback confidence text when type exists but confidence is missing."""
+    file_path = tmp_path / "analysis.json"
+    data = {
+        "analysis": {
+            "project_root": "/tmp/demo",
+            "resume_item": {
+                "project_type": "individual",
+                "detection_mode": "local",
+                "languages": [],
+                "frameworks": [],
+                "skills": [],
+                "summary": "Built demo.",
+            },
+            "document_analysis": {
+                "summary": {
+                    "unique_documents": 1,
+                    "duplicate_documents": 0,
+                    "total_words": 42,
+                    "by_format": {"MD": 1},
+                    "by_type": {"report": 1},
+                },
+                "documents": [
+                    {
+                        "path": "report.md",
+                        "format": "MD",
+                        "word_count": 42,
+                        "doc_type": {
+                            "label": "report",
+                            "confidence": "unknown",
+                            "signals": ["report"],
+                        },
+                        "summary": "Quarterly report summary.",
+                    }
+                ],
+                "duplicates": [],
+                "errors": [],
+            },
+        }
+    }
+    file_path.write_text(mod.json.dumps(data))
+
+    mod.show_saved_summary(file_path)
+    out = capsys.readouterr().out
+
+    assert "report, confidence unavailable" in out
+    assert "No strong text patterns were detected for document typing." not in out
 
 #Test doesn't work for unknown reasons, likely fake cursor doesn't work
 @pytest.mark.skip()

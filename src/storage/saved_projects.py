@@ -7,6 +7,25 @@ from src.core.app_context import AppContext
 from src.aggregation.oop_aggregator import pretty_print_oop_report
 from src.core.app_context import runtimeAppContext
 
+INTERNAL_ANALYSIS_ARTIFACTS = {
+    "UserConfigs.json",
+    "project_insights.json",
+    "dedup_index.json",
+    "representation_preferences.json",
+}
+
+def is_internal_analysis_artifact(filename: str | Path) -> bool:
+    """
+    Return True when filename belongs to an internal system artifact.
+
+    Args:
+        filename (str | Path): Candidate filename/path.
+
+    Returns:
+        bool: True for protected internal artifacts.
+    """
+    return Path(filename).name in INTERNAL_ANALYSIS_ARTIFACTS
+
 def list_saved_projects(folder: Path) -> list[Path]:
     """
     Return saved analysis files from the configured folder and legacy location.
@@ -44,14 +63,31 @@ def list_saved_projects(folder: Path) -> list[Path]:
     filtered = [
         f
         for f in unique_files
-        if f.name
-        not in {
-            "UserConfigs.json",
-            "project_insights.json",
-        }
+        if not is_internal_analysis_artifact(f.name)
     ]
 
     return filtered
+
+def find_saved_file_path(filename: str) -> Path | None:
+    """
+    Locate a saved analysis file in default or legacy save locations.
+
+    Args:
+        filename (str): Name of file to find.
+
+    Returns:
+        Path | None: Resolved file path if found, otherwise None.
+    """
+    base_dir = Path(runtimeAppContext.default_save_dir).expanduser().resolve()
+    primary = base_dir / filename
+    if primary.exists():
+        return primary
+
+    legacy = base_dir.parent / filename
+    if legacy.exists():
+        return legacy
+
+    return None
 
 
 def show_saved_summary(path_or_name: Path | str) -> None:
@@ -210,8 +246,26 @@ def show_saved_summary(path_or_name: Path | str) -> None:
                     doc_path = doc.get("path", "—")
                     doc_format = doc.get("format", "—")
                     doc_words = doc.get("word_count", 0)
-                    doc_type = (doc.get("doc_type") or {}).get("label", "unknown")
-                    doc_conf = (doc.get("doc_type") or {}).get("confidence", "unknown")
+                    doc_type_info = doc.get("doc_type") or {}
+                    doc_type_raw = doc_type_info.get("label", "unknown")
+                    doc_conf_raw = doc_type_info.get("confidence", "unknown")
+                    doc_signals = doc_type_info.get("signals") or []
+  
+                      
+
+                    if doc_type_raw in {"unknown", "", "—", None}:
+                        doc_type = "unclassified"
+                    else:
+                        doc_type = str(doc_type_raw)
+
+                    if doc_conf_raw in {"unknown", "", "—", None}:
+                        if doc_type == "unclassified":
+                            doc_conf = "not enough recognizable signals"
+                        else:
+                            doc_conf = "confidence unavailable"
+                    else:
+                        doc_conf = str(doc_conf_raw)
+
                     print(f"    - {doc_path} ({doc_format}, {doc_words} words, {doc_type}, {doc_conf})")
                     title = doc.get("title")
                     summary = doc.get("summary")
@@ -237,6 +291,8 @@ def show_saved_summary(path_or_name: Path | str) -> None:
                     if key_points:
                         kp = "; ".join(key_points[:4])
                         print(f"      Highlights: {kp}")
+                    if doc_type == "unclassified" and not doc_signals:
+                        print("      Note    : No strong text patterns were detected for document typing.")
                     metrics_bits = []
                     if page_count:
                         metrics_bits.append(f"{page_count} pages")
@@ -307,15 +363,13 @@ def delete_file_from_disk(filename: str) -> bool:
         bool: True if the file was removed.
     """
     try:
-        base_dir = Path(runtimeAppContext.default_save_dir).expanduser().resolve()
-        file_path = base_dir / filename
+        if is_internal_analysis_artifact(filename):
+            print(f"[INFO] '{Path(filename).name}' is an internal artifact and cannot be deleted here.")
+            return False
 
-        if not file_path.exists():
-            legacy_path = base_dir.parent / filename
-            if legacy_path.exists():
-                file_path = legacy_path
-            else:
-                return False
+        file_path = find_saved_file_path(filename)
+        if file_path is None:
+            return False
 
         try:
             refs = runtimeAppContext.store.count_file_references(filename)

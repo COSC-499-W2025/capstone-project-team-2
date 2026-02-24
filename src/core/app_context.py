@@ -4,6 +4,13 @@ from fastapi import UploadFile
 from types import SimpleNamespace
 import os
 
+# Decide DB init behavior: default connect, but auto-skip when running pytest unless overridden.
+_env_skip = os.getenv("SKIP_DB_INIT")
+if _env_skip is None:
+    argv = os.sys.argv if os.sys.argv else []
+    if ("PYTEST_CURRENT_TEST" in os.environ) or any("pytest" in arg for arg in argv):
+        os.environ["SKIP_DB_INIT"] = "1"
+
 import mysql.connector
 from mysql.connector import Error
 import sys
@@ -64,7 +71,9 @@ def create_app_context(external_consent_value=False, data_consent_value=False) -
             conn=None,
             store=SimpleNamespace(
                 insert_json=lambda *args, **kwargs: None,
-                fetch_by_id=lambda *args, **kwargs: None,
+                fetch_by_name=lambda *args, **kwargs: None,
+                delete=lambda *args, **kwargs: False,
+                count_file_references=lambda *args, **kwargs: 0,
             ),
             legacy_save_dir=legacy_save_dir,
             default_save_dir=default_save_dir,

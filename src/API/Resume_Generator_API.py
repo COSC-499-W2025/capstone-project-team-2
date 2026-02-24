@@ -7,40 +7,57 @@ by a unique ID (name + UUID suffix) returned in the X-Resume-ID header
 upon generation.
 
 Endpoints:
-    POST   /resume/generate          - Create a new resume and render to PDF
-    GET    /resume/{id}              - Retrieve full resume data as JSON
-    POST   /resume/{id}/render       - Re-render an existing resume to PDF
-    POST   /resume/{id}/edit         - Modify a field on an existing section item
-    POST   /resume/{id}/add/project/{project_id}  - Add a project entry
-    DELETE /resume/{id}              - Delete the resume YAML file entirely
+    POST   /resume/generate                  - Create a new resume
+    GET    /resume/{id}                      - Retrieve full resume data as JSON
+    POST   /resume/{id}/render/{format}      - Re-render and return as file response
+    POST   /resume/{id}/export/{format}        - Render and export to default directory
+    POST   /resume/{id}/export/{format}/custom - Render and export to a custom directory
+    POST   /resume/{id}/edit                 - Modify a field on an existing section item
+    POST   /resume/{id}/add/project/{project_name}  - Add a project entry
+    DELETE /resume/{id}                      - Delete the resume YAML file entirely
 """
 
 from typing import Optional, List, Any
+from pathlib import Path
 import uuid
 import shutil
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
     RenderCVDocument,
     Project,
 )
 from src.core.app_context import runtimeAppContext
 
+RENDERED_OUTPUTS_DIR = Path(__file__).resolve().parents[2] / "User_config_files" / "Generate_render_CV_files" / "rendered_outputs"
 
-resumeRouter = APIRouter()
+
+resumeRouter = APIRouter(tags=["Resume"])
 
 ALLOWED_CONTACT_FIELDS = {"email", "phone", "location", "website", "name"}
 
 
 class GenerateResumeRequest(BaseModel):
     """Payload for creating a new resume."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "name": "John_Doe",
+        "theme": "sb2nov",
+        "overwrite": False,
+    }})
     name: str
     theme: Optional[str] = 'sb2nov'
     overwrite: bool = False
 
+
 class EditItem(BaseModel):
     """A single field edit on a resume section item."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "section": "contact",
+        "item_name": "",
+        "field": "email",
+        "new_value": "john.doe@example.com",
+    }})
     section: str
     item_name: str
     field: str
@@ -48,10 +65,28 @@ class EditItem(BaseModel):
 
 class EditResumeRequest(BaseModel):
     """Payload containing one or more resume edits."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "edits": [
+            {"section": "contact", "item_name": "", "field": "email", "new_value": "john.doe@example.com"},
+            {"section": "contact", "item_name": "", "field": "phone", "new_value": "555-123-4567"},
+            {"section": "summary", "item_name": "", "field": "", "new_value": "Software engineer with 5 years of experience."},
+            {"section": "experience", "item_name": "Software Engineer", "field": "company", "new_value": "Acme Corp"},
+            {"section": "projects", "item_name": "MyProject", "field": "summary", "new_value": "Built a REST API with FastAPI."},
+            {"section": "theme", "item_name": "", "field": "", "new_value": "classic"},
+        ]
+    }})
     edits: List[EditItem]
 
 class ProjectRequest(BaseModel):
     """Optional overrides when adding a project from the database."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "name": "My Capstone Project",
+        "start_date": "2024-09",
+        "end_date": "2025-04",
+        "location": "Kelowna, BC",
+        "summary": "Built a developer portfolio generation tool using FastAPI and RenderCV.",
+        "highlights": ["Designed REST API with FastAPI", "Integrated RenderCV for PDF generation"],
+    }})
     name: Optional[str] = None
     start_date: Optional[str] = None
     end_date: Optional[str] = None
@@ -59,6 +94,16 @@ class ProjectRequest(BaseModel):
     summary: Optional[str] = None
     highlights: Optional[List[str]] = None
 
+class SaveRequest(BaseModel):
+    """Payload for saving a rendered file to a custom location."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "path": "/home/user/Documents/resumes",
+    }})
+    path: str
+
+
+SUPPORTED_FORMATS = {"pdf", "html", "markdown"}
+EXTENSIONS = {"pdf": "pdf", "html": "html", "markdown": "md"}
 
 """-------Helper Methods-------"""
 
@@ -80,6 +125,21 @@ def _load_resume(name: str) -> RenderCVDocument:
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail=f"Resume '{name}' not found")
     return doc
+
+def _validate_format(format: str) -> str:
+    """Validate and normalize the output format string."""
+    fmt = format.strip().lower()
+    if fmt not in SUPPORTED_FORMATS:
+        raise HTTPException(status_code=400, detail=f"Unsupported format '{format}'. Supported: {', '.join(sorted(SUPPORTED_FORMATS))}")
+    return fmt
+
+def _render_and_get_path(doc: RenderCVDocument, fmt: str) -> Path:
+    """Render a document and return the output file path."""
+    status, outputs = doc.render_outputs([fmt])
+    paths = outputs.get(fmt, [])
+    if not paths:
+        raise HTTPException(status_code=500, detail=status)
+    return paths[0]
 
 def _check_result(result: str):
     """Validate the result string from a RenderCVDocument operation.
@@ -104,7 +164,8 @@ def generate_resume(payload: GenerateResumeRequest):
 
     Generates a unique resume ID by appending a UUID suffix to the provided name.
     The YAML file is created and optionally themed. Use POST /resume/{id}/render
-    to produce a PDF.
+    to produce a PDF (default), or POST /resume/{id}/render/{format} to specify
+    the output format ('pdf', 'html', or 'markdown').
 
     Args:
         payload: GenerateResumeRequest with name, optional theme, and overwrite flag.
@@ -263,52 +324,125 @@ def edit_resume(id: str, payload: EditResumeRequest):
 
 
 @resumeRouter.post("/resume/{id}/render")
-def render_resume(id: str, background_tasks: BackgroundTasks):
-    """Re-render an existing resume to PDF.
+def render_resume_default(id: str, background_tasks: BackgroundTasks):
+    """Backward-compatible route that renders a resume as PDF (default format)."""
+    return render_resume(id, "pdf", background_tasks)
 
-    Loads the resume YAML by ID, renders it to PDF via RenderCV, and returns
-    the file. The rendercv_output directory is cleaned up after the response.
+
+@resumeRouter.post("/resume/{id}/render/{format}")
+def render_resume(id: str, format: str, background_tasks: BackgroundTasks):
+    """Re-render an existing resume to the specified format.
+
+    Loads the resume YAML by ID, renders it via RenderCV in the requested
+    format, and returns the file directly.
 
     Args:
         id: The resume identifier (name + UUID suffix from generation).
+        format: Output format - one of 'pdf', 'html', or 'markdown'.
         background_tasks: FastAPI background tasks for post-response cleanup.
 
     Returns:
-        FileResponse: The rendered PDF file with content-type application/pdf.
-            Includes X-Resume-ID header with the resume identifier.
+        FileResponse: The rendered file in the requested format.
 
     Raises:
+        HTTPException: 400 if the format is not supported.
         HTTPException: 404 if the resume does not exist.
-        HTTPException: 500 if PDF rendering fails.
+        HTTPException: 500 if rendering fails.
     """
+    fmt = _validate_format(format)
     doc = _load_resume(id)
-    status, pdf_path = doc.render()
-    if pdf_path is None:
-        raise HTTPException(status_code=500, detail=status)
+    rendered_path = _render_and_get_path(doc, fmt)
 
-    output_dir = pdf_path.parent
-    background_tasks.add_task(shutil.rmtree, output_dir, True)
+    background_tasks.add_task(shutil.rmtree, rendered_path.parent, True)
+
+    media_types = {"pdf": "application/pdf", "html": "text/html", "markdown": "text/markdown"}
 
     return FileResponse(
-        str(pdf_path),
-        media_type="application/pdf",
-        filename=f"resume_{id}.pdf",
+        str(rendered_path),
+        media_type=media_types[fmt],
+        filename=f"resume_{id}.{EXTENSIONS[fmt]}",
         headers={"X-Resume-ID": id},
     )
 
 
-@resumeRouter.post("/resume/{id}/add/project/{project_id}")
-def add_project(id: str, project_id: int, payload: Optional[ProjectRequest] = None):
+@resumeRouter.post("/resume/{id}/export/{format}")
+def export_resume(id: str, format: str):
+    """Render a resume and save it to the default output directory.
+
+    Renders the resume in the requested format and saves the file to
+    User_config_files/rendered_outputs/.
+
+    Args:
+        id: The resume identifier.
+        format: Output format - one of 'pdf', 'html', or 'markdown'.
+
+    Returns:
+        dict: {"status": "Saved successfully", "path": "<saved file path>"}.
+
+    Raises:
+        HTTPException: 400 if the format is not supported.
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 500 if rendering fails.
+    """
+    fmt = _validate_format(format)
+    doc = _load_resume(id)
+    rendered_path = _render_and_get_path(doc, fmt)
+
+    RENDERED_OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
+    dest = RENDERED_OUTPUTS_DIR / f"resume_{id}.{EXTENSIONS[fmt]}"
+    shutil.copy2(rendered_path, dest)
+    shutil.rmtree(rendered_path.parent, True)
+
+    return {"status": "Saved successfully", "path": str(dest)}
+
+
+@resumeRouter.post("/resume/{id}/export/{format}/custom")
+def export_resume_custom(id: str, format: str, payload: SaveRequest):
+    """Render a resume and save it to a custom location.
+
+    Renders the resume in the requested format and saves the file to
+    the directory specified in the request body.
+
+    Args:
+        id: The resume identifier.
+        format: Output format - one of 'pdf', 'html', or 'markdown'.
+        payload: SaveRequest with the target directory path.
+
+    Returns:
+        dict: {"status": "Saved successfully", "path": "<saved file path>"}.
+
+    Raises:
+        HTTPException: 400 if the format is not supported or directory does not exist.
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 500 if rendering fails.
+    """
+    fmt = _validate_format(format)
+    target_dir = Path(payload.path).expanduser().resolve()
+    if not target_dir.is_dir():
+        raise HTTPException(status_code=400, detail=f"Directory '{payload.path}' does not exist")
+
+    doc = _load_resume(id)
+    rendered_path = _render_and_get_path(doc, fmt)
+
+    dest = target_dir / f"resume_{id}.{EXTENSIONS[fmt]}"
+    shutil.copy2(rendered_path, dest)
+    shutil.rmtree(rendered_path.parent, True)
+
+    return {"status": "Saved successfully", "path": str(dest)}
+
+
+@resumeRouter.post("/resume/{id}/add/project/{project_name}")
+def add_project(id: str, project_name: str, payload: Optional[ProjectRequest] = None):
     """Add a project entry to the resume from an analysed project in the database.
 
-    Fetches the project analysis record by its database row ID, extracts the
+    Fetches the project analysis record by name, extracts the
     resume_item fields, and adds them as a new project on the resume.
     An optional ProjectRequest body can be provided to override any of the
     database values.
 
     Args:
         id: The resume identifier.
-        project_id: The database row ID of the analysed project.
+        project_name: The name of the analysed project in the database.
         payload: Optional ProjectRequest body to override database values.
 
     Returns:
@@ -321,13 +455,22 @@ def add_project(id: str, project_id: int, payload: Optional[ProjectRequest] = No
     """
     doc = _load_resume(id)
 
-    project_data = runtimeAppContext.store.fetch_by_id(project_id)
+    candidates = [project_name]
+    if not project_name.endswith(".json"):
+        candidates.append(f"{project_name}.json")
+
+    project_data = None
+    for candidate in candidates:
+        project_data = runtimeAppContext.store.fetch_by_name(candidate)
+        if project_data is not None:
+            break
+
     if project_data is None:
-        raise HTTPException(status_code=404, detail=f"Project record '{project_id}' not found in database")
+        raise HTTPException(status_code=404, detail=f"Project record '{project_name}' not found in database")
 
     resume_item = project_data.get("resume_item", {}) if isinstance(project_data, dict) else {}
     if not resume_item:
-        raise HTTPException(status_code=400, detail=f"Project record '{project_id}' has no resume_item data")
+        raise HTTPException(status_code=400, detail=f"Project record '{project_name}' has no resume_item data")
 
     proj = Project(
         name=payload.name if payload and payload.name else resume_item.get("project_name", ""),

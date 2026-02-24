@@ -32,14 +32,11 @@ class ConfigLoader:
         """
         This method tries to load the user configuration first
         and if it fails it loads the default configuration instead.
-        
         """
         try:
             return self._load_file(self.user_config_path)
-        except FileNotFoundError:
-            print(f"[INFO] No saved user configuration found. Loading defaults...")
-        except orjson.JSONDecodeError as e:
-            print(f"[WARN] Invalid JSON in {self.user_config_path}: {e}. Using defaults...")
+        except (FileNotFoundError, orjson.JSONDecodeError):
+            pass  # Silent fail - fall back to defaults
 
         try:
             return self._load_file(self.default_config_path)
@@ -51,4 +48,3 @@ class ConfigLoader:
             raise ValueError(
                 f"Default configuration file {self.default_config_path} is invalid: {e}"
             )
-        
