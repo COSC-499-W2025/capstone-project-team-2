@@ -1911,7 +1911,7 @@ Following Week 21's work on multi-format rendering and AI resume generation inte
 
 | Task/Issue | Status |
 |------------|--------|
-| **Missing Resume and Portfolio API endpoints (PR #440)** | ![In Progress](https://img.shields.io/badge/Status-In%20Progress-yellow) |
+| **Missing Resume and Portfolio API endpoints (PR #440)** |  ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 | **Reviewed PR #437 - Dedup pipeline optimization** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 | **Reviewed PR #439 - Dedup cleanup toggle** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 
