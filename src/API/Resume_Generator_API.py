@@ -608,7 +608,7 @@ def remove_education(id: str, institution_name: str):
     """
     doc = _load_resume(id)
     result = doc.remove_education(institution_name)
-    if "not found" in result.lower():
+    if "not found" in result.lower() or "no education to delete" in result.lower():
         raise HTTPException(status_code=404, detail=result)
     return {"status": result}
 
@@ -659,7 +659,7 @@ def remove_experience(id: str, company_name: str):
     """
     doc = _load_resume(id)
     result = doc.remove_experience(company_name)
-    if "not found" in result.lower():
+    if "not found" in result.lower() or "no experience to delete" in result.lower():
         raise HTTPException(status_code=404, detail=result)
     return {"status": result}
 

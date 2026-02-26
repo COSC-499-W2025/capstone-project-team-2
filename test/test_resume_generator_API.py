@@ -377,6 +377,12 @@ class TestEducationEndpoints(_BaseResumeTest):
         self.assertEqual(resp.status_code, 404)
         self.assertIn("not found", resp.json()["detail"])
 
+        # Remove when education list is empty
+        self.mock_doc.remove_education.return_value = "No education to delete"
+        resp = self.client.delete("/resume/test_abc123/education/UBC")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("No education to delete", resp.json()["detail"])
+
     def test_resume_not_found(self):
         """Both add and remove return 404 for missing resume."""
         self._set_not_found()
@@ -426,6 +432,12 @@ class TestExperienceEndpoints(_BaseResumeTest):
         resp = self.client.delete("/resume/test_abc123/experience/Unknown")
         self.assertEqual(resp.status_code, 404)
         self.assertIn("not found", resp.json()["detail"])
+
+        # Remove when experience list is empty
+        self.mock_doc.remove_experience.return_value = "No experience to delete"
+        resp = self.client.delete("/resume/test_abc123/experience/Acme%20Corp")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("No experience to delete", resp.json()["detail"])
 
     def test_resume_not_found(self):
         """Both add and remove return 404 for missing resume."""
