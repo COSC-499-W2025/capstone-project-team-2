@@ -15,6 +15,7 @@ Endpoints:
     GET    /portfolio/{id}                              - Retrieve full portfolio data as JSON
     POST   /portfolio/{id}/edit                         - Modify a field on an existing section item
     POST   /portfolio/{id}/add/project/{project_name}   - Add a project entry
+    DELETE /portfolio/{id}/project/{project_name}        - Remove a project entry
     POST   /portfolio/{id}/render/{format}              - Re-render and return as file response
     POST   /portfolio/{id}/export/{format}                - Render and export to default directory
     POST   /portfolio/{id}/export/{format}/custom         - Render and export to a custom directory
@@ -520,6 +521,27 @@ def export_portfolio_custom(portfolio_id: str, format: str, payload: SaveRequest
     shutil.rmtree(rendered_path.parent, True)
 
     return {"status": "Saved successfully", "path": str(dest)}
+
+
+@portfolioRouter.delete("/portfolio/{portfolio_id}/project/{project_name}")
+def remove_project(portfolio_id: str, project_name: str):
+    """Remove a project entry from an existing portfolio by project name.
+
+    Args:
+        portfolio_id: The portfolio identifier.
+        project_name: The exact project name to remove.
+
+    Returns:
+        dict: {"status": str} confirming the project was removed.
+
+    Raises:
+        HTTPException: 404 if the portfolio or project does not exist.
+    """
+    doc = _load_portfolio(portfolio_id)
+    result = doc.remove_project(project_name)
+    if "not found" in result.lower() or "no projects" in result.lower():
+        raise HTTPException(status_code=404, detail=result)
+    return {"status": result}
 
 
 @portfolioRouter.delete("/portfolio/{portfolio_id}")

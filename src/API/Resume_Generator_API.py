@@ -7,14 +7,19 @@ by a unique ID (name + UUID suffix) returned in the X-Resume-ID header
 upon generation.
 
 Endpoints:
-    POST   /resume/generate                  - Create a new resume
-    GET    /resume/{id}                      - Retrieve full resume data as JSON
-    POST   /resume/{id}/render/{format}      - Re-render and return as file response
-    POST   /resume/{id}/export/{format}        - Render and export to default directory
-    POST   /resume/{id}/export/{format}/custom - Render and export to a custom directory
-    POST   /resume/{id}/edit                 - Modify a field on an existing section item
-    POST   /resume/{id}/add/project/{project_name}  - Add a project entry
-    DELETE /resume/{id}                      - Delete the resume YAML file entirely
+    POST   /resume/generate                          - Create a new resume
+    GET    /resume/{id}                              - Retrieve full resume data as JSON
+    POST   /resume/{id}/render/{format}              - Re-render and return as file response
+    POST   /resume/{id}/export/{format}              - Render and export to default directory
+    POST   /resume/{id}/export/{format}/custom       - Render and export to a custom directory
+    POST   /resume/{id}/edit                         - Modify a field on an existing section item
+    POST   /resume/{id}/add/project/{project_name}   - Add a project entry
+    DELETE /resume/{id}/project/{project_name}        - Remove a project entry
+    POST   /resume/{id}/add/education                - Add an education entry
+    DELETE /resume/{id}/education/{institution_name} - Remove an education entry
+    POST   /resume/{id}/add/experience               - Add an experience entry
+    DELETE /resume/{id}/experience/{company_name}    - Remove an experience entry
+    DELETE /resume/{id}                              - Delete the resume YAML file entirely
 """
 
 from typing import Optional, List, Any
@@ -27,6 +32,8 @@ from pydantic import BaseModel, ConfigDict
 from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
     RenderCVDocument,
     Project,
+    Education,
+    Experience,
 )
 from src.core.app_context import runtimeAppContext
 
@@ -93,6 +100,46 @@ class ProjectRequest(BaseModel):
     location: Optional[str] = None
     summary: Optional[str] = None
     highlights: Optional[List[str]] = None
+
+class EducationRequest(BaseModel):
+    """Payload for adding a new education entry."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "institution": "University of British Columbia",
+        "area": "Computer Science",
+        "degree": "BSc",
+        "start_date": "2021-09",
+        "end_date": "2025-04",
+        "location": "Kelowna, BC",
+        "gpa": "3.8",
+        "highlights": ["Dean's List", "Capstone project on AI resume generation"],
+    }})
+    institution: str
+    area: str
+    degree: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    location: Optional[str] = None
+    gpa: Optional[str] = None
+    highlights: Optional[List[str]] = None
+
+
+class ExperienceRequest(BaseModel):
+    """Payload for adding a new experience entry."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "company": "Acme Corp",
+        "position": "Software Engineer",
+        "start_date": "2023-05",
+        "end_date": "present",
+        "location": "Vancouver, BC",
+        "highlights": ["Built REST APIs with FastAPI", "Reduced latency by 40%"],
+    }})
+    company: str
+    position: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    location: Optional[str] = None
+    highlights: Optional[List[str]] = None
+
 
 class SaveRequest(BaseModel):
     """Payload for saving a rendered file to a custom location."""
@@ -486,6 +533,134 @@ def add_project(id: str, project_name: str, payload: Optional[ProjectRequest] = 
         if isinstance(e, HTTPException):
             raise
         raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
+    return {"status": result}
+
+
+@resumeRouter.delete("/resume/{id}/project/{project_name}")
+def remove_project(id: str, project_name: str):
+    """Remove a project entry from an existing resume by project name.
+
+    Args:
+        id: The resume identifier.
+        project_name: The exact project name to remove.
+
+    Returns:
+        dict: {"status": str} confirming the project was removed.
+
+    Raises:
+        HTTPException: 404 if the resume or project does not exist.
+    """
+    doc = _load_resume(id)
+    result = doc.remove_project(project_name)
+    if "not found" in result.lower() or "no projects" in result.lower():
+        raise HTTPException(status_code=404, detail=result)
+    return {"status": result}
+
+
+@resumeRouter.post("/resume/{id}/add/education")
+def add_education(id: str, payload: EducationRequest):
+    """Add a new education entry to an existing resume.
+
+    Args:
+        id: The resume identifier.
+        payload: Education details including institution, area, degree, dates, location, gpa, and highlights.
+
+    Returns:
+        dict: {"status": str} confirming the education was added.
+
+    Raises:
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 409 if the institution already exists in the resume.
+        HTTPException: 400 if the institution name is empty.
+    """
+    doc = _load_resume(id)
+    edu = Education(
+        institution=payload.institution,
+        area=payload.area,
+        degree=payload.degree,
+        start_date=payload.start_date,
+        end_date=payload.end_date,
+        location=payload.location,
+        gpa=payload.gpa,
+        highlights=payload.highlights,
+    )
+    result = doc.add_education(edu)
+    if "Duplicate" in result:
+        raise HTTPException(status_code=409, detail=result)
+    if result != "Successfully added education":
+        raise HTTPException(status_code=400, detail=result)
+    return {"status": result}
+
+
+@resumeRouter.delete("/resume/{id}/education/{institution_name}")
+def remove_education(id: str, institution_name: str):
+    """Remove an education entry from an existing resume by institution name.
+
+    Args:
+        id: The resume identifier.
+        institution_name: The exact institution name to remove.
+
+    Returns:
+        dict: {"status": str} confirming the education was removed.
+
+    Raises:
+        HTTPException: 404 if the resume or institution does not exist.
+    """
+    doc = _load_resume(id)
+    result = doc.remove_education(institution_name)
+    if "not found" in result.lower() or "no education to delete" in result.lower():
+        raise HTTPException(status_code=404, detail=result)
+    return {"status": result}
+
+
+@resumeRouter.post("/resume/{id}/add/experience")
+def add_experience(id: str, payload: ExperienceRequest):
+    """Add a new work experience entry to an existing resume.
+
+    Args:
+        id: The resume identifier.
+        payload: Experience details including company, position, dates, location, and highlights.
+
+    Returns:
+        dict: {"status": str} confirming the experience was added.
+
+    Raises:
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 400 if the company name is empty or the operation fails.
+    """
+    doc = _load_resume(id)
+    exp = Experience(
+        company=payload.company,
+        position=payload.position,
+        start_date=payload.start_date,
+        end_date=payload.end_date,
+        location=payload.location,
+        highlights=payload.highlights,
+    )
+    result = doc.add_experience(exp)
+    if result != "Successfully added experience":
+        raise HTTPException(status_code=400, detail=result)
+    return {"status": result}
+
+
+@resumeRouter.delete("/resume/{id}/experience/{company_name}")
+def remove_experience(id: str, company_name: str):
+    """Remove a work experience entry from an existing resume by company name.
+
+    Args:
+        id: The resume identifier.
+        company_name: The exact company name to remove.
+
+    Returns:
+        dict: {"status": str} confirming the experience was removed.
+
+    Raises:
+        HTTPException: 404 if the resume or company does not exist.
+    """
+    doc = _load_resume(id)
+    result = doc.remove_experience(company_name)
+    if "not found" in result.lower() or "no experience to delete" in result.lower():
+        raise HTTPException(status_code=404, detail=result)
     return {"status": result}
 
 

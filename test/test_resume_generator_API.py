@@ -234,6 +234,273 @@ class TestErrorHandling(_BaseResumeTest):
             _mock_shutil.rmtree.assert_called_once_with(output_dir, True)
 
 
+class TestGenerateAndEditEdgeCases(_BaseResumeTest):
+    """Edge cases for generate and edit endpoints."""
+
+    def test_generate_invalid_theme_and_default_skips_update(self):
+        """Invalid theme returns 400; default theme 'sb2nov' skips update_theme."""
+        # Invalid theme
+        self.mock_doc.generate.return_value = "Generated"
+        self.mock_doc.update_theme.side_effect = ValueError("Invalid theme 'bad'. Available: classic, sb2nov")
+        resp = self.client.post("/resume/generate", json={"name": "John", "theme": "bad"})
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Invalid theme", resp.json()["detail"])
+
+        # Default theme skips update
+        self.mock_doc.update_theme.side_effect = None
+        self.mock_doc.update_theme.reset_mock()
+        resp = self.client.post("/resume/generate", json={"name": "John", "theme": "sb2nov"})
+        self.assertEqual(resp.status_code, 200)
+        self.mock_doc.update_theme.assert_not_called()
+
+    def test_edit_invalid_contact_field_and_theme_and_check_result(self):
+        """Invalid contact field, invalid theme in edit, and _check_result failure all return 400."""
+        # Invalid contact field
+        resp = self.client.post("/resume/test_abc123/edit", json={
+            "edits": [{"section": "contact", "item_name": "", "field": "fax", "new_value": "555-0000"}]
+        })
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Unknown contact field", resp.json()["detail"])
+
+        # Invalid theme in edit
+        self.mock_doc.update_theme.side_effect = ValueError("Invalid theme 'nope'")
+        resp = self.client.post("/resume/test_abc123/edit", json={
+            "edits": [{"section": "theme", "item_name": "", "field": "", "new_value": "nope"}]
+        })
+        self.assertEqual(resp.status_code, 400)
+
+        # _check_result failure
+        self.mock_doc.update_theme.side_effect = None
+        self.mock_doc.update_summary.return_value = "Failed to update summary"
+        resp = self.client.post("/resume/test_abc123/edit", json={
+            "edits": [{"section": "summary", "item_name": "", "field": "", "new_value": "text"}]
+        })
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Failed to update summary", resp.json()["detail"])
+
+    @patch("src.API.Resume_Generator_API.shutil")
+    def test_default_render_returns_pdf(self, _mock_shutil):
+        """POST /resume/{id}/render (no format) defaults to PDF."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            fake_pdf = Path(tmp_dir) / "resume.pdf"
+            fake_pdf.write_bytes(b"%PDF-1.4 fake")
+            self.mock_doc.render_outputs.return_value = (
+                "successfully rendered",
+                {"pdf": [fake_pdf]},
+            )
+            resp = self.client.post("/resume/test_abc123/render")
+            self.assertEqual(resp.status_code, 200)
+            self.assertEqual(resp.headers["content-type"], "application/pdf")
+            self.assertIn("X-Resume-ID", resp.headers)
+
+    def test_delete_os_error_returns_500(self):
+        """OSError during resume deletion returns 500."""
+        self.mock_doc.yaml_file = MagicMock()
+        self.mock_doc.yaml_file.unlink.side_effect = OSError("Permission denied")
+        resp = self.client.delete("/resume/test_abc123")
+        self.assertEqual(resp.status_code, 500)
+        self.assertIn("Permission denied", resp.json()["detail"])
+
+
+class TestRemoveProject(_BaseResumeTest):
+    """Tests for DELETE /resume/{id}/project/{project_name}."""
+
+    def test_success_and_error_cases(self):
+        """Covers success, project not found, no projects, and resume not found."""
+        # Success
+        self.mock_doc.remove_project.return_value = "Successfully removed project 'MyProject'"
+        resp = self.client.delete("/resume/test_abc123/project/MyProject")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+
+        # Project not found
+        self.mock_doc.remove_project.return_value = "Project 'Unknown' not found"
+        resp = self.client.delete("/resume/test_abc123/project/Unknown")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+        # No projects at all
+        self.mock_doc.remove_project.return_value = "No projects in resume"
+        resp = self.client.delete("/resume/test_abc123/project/SomeProject")
+        self.assertEqual(resp.status_code, 404)
+
+        # Resume itself not found
+        self._set_not_found()
+        resp = self.client.delete("/resume/fake_id/project/MyProject")
+        self.assertEqual(resp.status_code, 404)
+
+
+class TestEducationEndpoints(_BaseResumeTest):
+    """Tests for POST /resume/{id}/add/education and DELETE /resume/{id}/education/{name}."""
+
+    def test_add_and_remove_education(self):
+        """Covers add success, duplicate (409), bad result (400), remove success, and remove not found (404)."""
+        # Add success
+        self.mock_doc.add_education.return_value = "Successfully added education"
+        resp = self.client.post("/resume/test_abc123/add/education", json={
+            "institution": "University of British Columbia",
+            "area": "Computer Science",
+            "degree": "BSc",
+            "start_date": "2021-09",
+            "end_date": "2025-04",
+            "location": "Kelowna, BC",
+            "gpa": "3.8",
+            "highlights": ["Dean's List"],
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["status"], "Successfully added education")
+
+        # Duplicate returns 409
+        self.mock_doc.add_education.return_value = "Duplicate institution 'UBC' already exists"
+        resp = self.client.post("/resume/test_abc123/add/education", json={
+            "institution": "UBC", "area": "CS",
+        })
+        self.assertEqual(resp.status_code, 409)
+        self.assertIn("Duplicate", resp.json()["detail"])
+
+        # Bad result returns 400
+        self.mock_doc.add_education.return_value = "Invalid education entry"
+        resp = self.client.post("/resume/test_abc123/add/education", json={
+            "institution": "UBC", "area": "CS",
+        })
+        self.assertEqual(resp.status_code, 400)
+
+        # Remove success
+        self.mock_doc.remove_education.return_value = "Successfully removed education 'UBC'"
+        resp = self.client.delete("/resume/test_abc123/education/UBC")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+
+        # Remove not found
+        self.mock_doc.remove_education.return_value = "Institution 'Unknown' not found"
+        resp = self.client.delete("/resume/test_abc123/education/Unknown")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+        # Remove when education list is empty
+        self.mock_doc.remove_education.return_value = "No education to delete"
+        resp = self.client.delete("/resume/test_abc123/education/UBC")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("No education to delete", resp.json()["detail"])
+
+    def test_resume_not_found(self):
+        """Both add and remove return 404 for missing resume."""
+        self._set_not_found()
+        resp = self.client.post("/resume/fake_id/add/education", json={
+            "institution": "UBC", "area": "CS",
+        })
+        self.assertEqual(resp.status_code, 404)
+
+        resp = self.client.delete("/resume/fake_id/education/UBC")
+        self.assertEqual(resp.status_code, 404)
+
+
+class TestExperienceEndpoints(_BaseResumeTest):
+    """Tests for POST /resume/{id}/add/experience and DELETE /resume/{id}/experience/{name}."""
+
+    def test_add_and_remove_experience(self):
+        """Covers add success, add failure (400), remove success, and remove not found (404)."""
+        # Add success
+        self.mock_doc.add_experience.return_value = "Successfully added experience"
+        resp = self.client.post("/resume/test_abc123/add/experience", json={
+            "company": "Acme Corp",
+            "position": "Software Engineer",
+            "start_date": "2023-05",
+            "end_date": "present",
+            "location": "Vancouver, BC",
+            "highlights": ["Built REST APIs"],
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["status"], "Successfully added experience")
+
+        # Add failure
+        self.mock_doc.add_experience.return_value = "Company name cannot be empty"
+        resp = self.client.post("/resume/test_abc123/add/experience", json={
+            "company": "", "position": "Dev",
+        })
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Company name", resp.json()["detail"])
+
+        # Remove success
+        self.mock_doc.remove_experience.return_value = "Successfully removed experience 'Acme Corp'"
+        resp = self.client.delete("/resume/test_abc123/experience/Acme%20Corp")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+
+        # Remove not found
+        self.mock_doc.remove_experience.return_value = "Company 'Unknown' not found"
+        resp = self.client.delete("/resume/test_abc123/experience/Unknown")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+        # Remove when experience list is empty
+        self.mock_doc.remove_experience.return_value = "No experience to delete"
+        resp = self.client.delete("/resume/test_abc123/experience/Acme%20Corp")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("No experience to delete", resp.json()["detail"])
+
+    def test_resume_not_found(self):
+        """Both add and remove return 404 for missing resume."""
+        self._set_not_found()
+        resp = self.client.post("/resume/fake_id/add/experience", json={
+            "company": "Acme Corp",
+        })
+        self.assertEqual(resp.status_code, 404)
+
+        resp = self.client.delete("/resume/fake_id/experience/Acme")
+        self.assertEqual(resp.status_code, 404)
+
+
+class TestAddProjectExtended(_BaseResumeTest):
+    """Tests for add-project overrides, _check_result failure, and export not-found."""
+
+    def setUp(self):
+        super().setUp()
+        patcher = patch(CTX_PATCH)
+        self.mock_ctx = patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_payload_overrides_and_check_result_failure(self):
+        """Covers payload overrides succeeding and _check_result rejecting a bad result."""
+        # Payload overrides DB values
+        self.mock_doc.add_project.return_value = "Successfully added project 'CustomName'"
+        self.mock_ctx.store.fetch_by_name.return_value = SAMPLE_DB_RECORD
+        resp = self.client.post(
+            "/resume/test_abc123/add/project/WarframeFinderStreamlit",
+            json={
+                "name": "CustomName",
+                "start_date": "2024-01",
+                "end_date": "2025-06",
+                "location": "Vancouver, BC",
+                "summary": "Custom summary",
+                "highlights": ["Custom highlight"],
+            },
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+
+        # _check_result rejects non-success string
+        self.mock_doc.add_project.return_value = "Failed: duplicate project"
+        resp = self.client.post("/resume/test_abc123/add/project/WarframeFinderStreamlit")
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("duplicate project", resp.json()["detail"])
+
+
+class TestExportResumeErrors(_BaseResumeTest):
+    """Test export endpoints return 404 for missing resumes."""
+
+    def test_export_not_found_cases(self):
+        """Both default and custom export return 404 for missing resumes."""
+        self._set_not_found()
+        resp = self.client.post("/resume/fake_id/export/pdf")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+        resp = self.client.post("/resume/fake_id/export/pdf/custom", json={"path": "/tmp"})
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+
 class TestExportResume(_BaseResumeTest):
     """Tests for POST /resume/{id}/export/{format} and /resume/{id}/export/{format}/custom."""
 
