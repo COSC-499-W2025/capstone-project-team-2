@@ -1925,7 +1925,8 @@ Following Week 21's work on multi-format rendering and AI resume generation inte
 
 ## 🎯 Next Week's Goals
 - Begin to start working on milestone 3 requirements(Frontend)
-- Work on the resume and portfilolo frontend stuff as well
+- Work on the resume and portfilolo frontend 
+- Setting up Frontend systems
 
 ---
 
