@@ -101,32 +101,38 @@ def _path_cache_key(path: Path) -> str:
     return str(path.resolve())
 
 
-def _stat_fingerprint(path: Path) -> Tuple[int, int]:
+def _stat_fingerprint(path: Path) -> Tuple[int, int, int]:
     """Return lightweight file metadata used to detect unchanged files."""
     stat = path.stat()
-    return stat.st_size, stat.st_mtime_ns
+    return stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns
 
 
 def _digest_for_path(path: Path, file_cache: Dict[str, dict]) -> str:
     """
     Return content digest for a file, reusing cached hash when metadata is unchanged.
 
-    The cache uses file size + nanosecond mtime as a cheap pre-check.
+    The cache uses file size + nanosecond mtime/ctime as a cheap pre-check.
     """
     cache_key = _path_cache_key(path)
-    size, mtime_ns = _stat_fingerprint(path)
+    size, mtime_ns, ctime_ns = _stat_fingerprint(path)
     cached = file_cache.get(cache_key)
 
     if (
         isinstance(cached, dict)
         and cached.get("size") == size
         and cached.get("mtime_ns") == mtime_ns
+        and cached.get("ctime_ns") == ctime_ns
         and isinstance(cached.get("hash"), str)
     ):
         return cached["hash"]
 
     digest = _file_hash(path)
-    file_cache[cache_key] = {"size": size, "mtime_ns": mtime_ns, "hash": digest}
+    file_cache[cache_key] = {
+        "size": size,
+        "mtime_ns": mtime_ns,
+        "ctime_ns": ctime_ns,
+        "hash": digest,
+    }
     return digest
 
 

@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -241,3 +242,44 @@ def test_changed_files_are_rehashed(tmp_path, monkeypatch):
     f.write_text("v2-updated")
     deduplicate_project(proj, index_path)
     assert calls["count"] == 2
+
+
+def test_same_size_change_with_preserved_mtime_is_rehashed(tmp_path, monkeypatch):
+    """
+    A same-size content change with restored mtime must still re-hash via ctime and avoid false duplicate removal.
+    """
+    proj1 = tmp_path / "proj1"
+    proj1.mkdir()
+    f1 = proj1 / "a.txt"
+    f1.write_text("same")
+
+    proj2 = tmp_path / "proj2"
+    proj2.mkdir()
+    f2 = proj2 / "b.txt"
+    f2.write_text("same")
+
+    index_path = tmp_path / "dedup_index.json"
+
+    deduplicate_project(proj1, index_path)
+    deduplicate_project(proj2, index_path)
+    assert f2.exists()
+
+    old_stat = f2.stat()
+    f2.write_text("diff")  # same byte length as "same"
+    os.utime(f2, ns=(old_stat.st_atime_ns, old_stat.st_mtime_ns))
+
+    calls = {"count": 0}
+    original = dedup_mod._file_hash
+
+    def counting_hash(path: Path) -> str:
+        calls["count"] += 1
+        return original(path)
+
+    monkeypatch.setattr(dedup_mod, "_file_hash", counting_hash)
+
+    result = deduplicate_project(proj2, index_path, remove_duplicates=True)
+
+    assert calls["count"] == 1
+    assert result.duplicate_files == 0
+    assert result.removed == 0
+    assert f2.exists()
