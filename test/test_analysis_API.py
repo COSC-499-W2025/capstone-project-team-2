@@ -1,8 +1,10 @@
 import pytest
 import os
 import shutil
+from pathlib import Path
 
 from src.API.analysis_API import *
+import src.API.analysis_API as analysis_api_mod
 from src.API.general_API import app
 from src.core.app_context import runtimeAppContext
 import zipfile
@@ -44,6 +46,28 @@ def test_analysis_API_performed_with_upload_file():
     body = response.json()
     assert body["status"] == "Analysis Finished and Saved"
     assert "dedup" in body
+
+
+def test_analysis_API_remove_duplicates_query_passthrough(monkeypatch, tmp_path):
+    """
+    Ensure remove_duplicates query parameter is passed through to analysis_service.
+    """
+    project_dir = tmp_path / "proj"
+    project_dir.mkdir()
+    runtimeAppContext.currently_uploaded_file = project_dir
+
+    captured = {"remove_duplicates": None}
+
+    def fake_analyze(folder, use_ai_analysis=False, project_name=None, remove_duplicates=True):
+        captured["remove_duplicates"] = remove_duplicates
+        return {"dedup": {}, "snapshots": []}
+
+    monkeypatch.setattr(analysis_api_mod, "analyze_project", fake_analyze)
+
+    response = test_client.get("/analyze?remove_duplicates=false")
+    assert response.status_code == 200
+    assert response.json()["status"] == "Analysis Finished and Saved"
+    assert captured["remove_duplicates"] is False
 
 #Somehow we don't get an error raised here. Sam is handling this issue. Test needed for coverage.
 #def test_API_invalid_project():

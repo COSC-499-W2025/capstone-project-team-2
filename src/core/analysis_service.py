@@ -173,13 +173,19 @@ def export_json(project_name: str, analysis: Dict[str, Any]) -> Dict[str, Any]:
     return {"skipped": False, "snapshots": snapshots}
 
 
-def analyze_project(root: Path, use_ai_analysis=False, project_name: str | None = None) -> Dict[str, Any]:
+def analyze_project(
+    root: Path,
+    use_ai_analysis: bool = False,
+    project_name: str | None = None,
+    remove_duplicates: bool = True,
+) -> Dict[str, Any]:
     """
     Analyze a project folder and persist results.
 
     Args:
         root (Path): Project root to scan.
-        use_ai_analysis (bool): If true, uses ollama AI analysis
+        use_ai_analysis (bool): If true, uses ollama AI analysis.
+        remove_duplicates (bool): If true, duplicate files are deleted after being recorded.
 
     Returns:
         None
@@ -295,7 +301,7 @@ def analyze_project(root: Path, use_ai_analysis=False, project_name: str | None 
     dedup_result = deduplicate_project(
         root,
         Path(runtimeAppContext.default_save_dir) / "dedup_index.json",
-        remove_duplicates=True,
+        remove_duplicates=remove_duplicates,
     )
     analysis["dedup"] = {
         "unique_files": dedup_result.unique_files,
