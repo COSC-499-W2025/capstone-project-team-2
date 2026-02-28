@@ -83,3 +83,27 @@ class TestFilePassing:
             multi_project_handler.multi_project_runner(paths)
 
         assert len(success_count) == 2
+
+    def test_concurrent_writes_are_serialized(self):
+        """analyze_project should never be called concurrently across threads"""
+        import threading
+        paths = ["/proj/a", "/proj/b", "/proj/c"]
+        active_count = []
+        max_concurrent = [0]
+        lock = threading.Lock()
+
+        def mock_analyze(folder, use_ai_analysis=False):
+            with lock:
+                active_count.append(1)
+                max_concurrent[0] = max(max_concurrent[0], len(active_count))
+            import time
+            time.sleep(0.05)  # simulate work
+            with lock:
+                active_count.pop()
+            return {"dedup": None, "snapshots": []}
+
+        with patch("src.core.multi_project_handler.extract_if_zip", MagicMock(side_effect=lambda p: p)), \
+            patch("src.core.multi_project_handler.analyze_project", side_effect=mock_analyze):
+            multi_project_handler.multi_project_runner(paths)
+
+        assert max_concurrent[0] == 1, f"Expected max 1 concurrent write, got {max_concurrent[0]}"
