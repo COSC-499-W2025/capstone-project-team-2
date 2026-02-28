@@ -38,7 +38,7 @@ class multi_project_handler:
                     except Exception as e:
                         ordered_results[path] = {"error": str(e)}
                     progress.update(1)
-                   progress.set_postfix_str(Path(path).name)
+                    progress.set_postfix_str(Path(path).name)
 
 
         for path, result in ordered_results.items():
