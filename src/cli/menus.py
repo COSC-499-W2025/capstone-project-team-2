@@ -47,7 +47,7 @@ from src.reporting.Generate_AI_Resume import GenerateProjectResume, GenerateLoca
 from src.reporting.resume_pdf_generator import SimpleResumeGenerator
 from src.cli.document_generator_menu import document_generator_menu
 from src.API.consent_API import *
-from multi_project_handler import multi_project_handler
+from src.cli.multi_project_handler import multi_project_handler
 import os
 
 
@@ -344,14 +344,14 @@ def analyze_project_menu() -> None:
                 paths = []
                 print("Enter project paths one by one (directory or zip). Empty line when done:")
                 while True:
-                    p = input_path("Path (or blank to finish): ")
+                    p = input("Path (or blank to finish): ").strip()
                     if not p:
                         break
                     paths.append(p)
 
-                    if paths:
-                        multi_project_handler.multi_project_runner(paths, use_ai=use_ai)
-                        return
+                if paths:
+                    multi_project_handler.multi_project_runner(paths, use_ai=use_ai)
+                    return
             elif choice == "0":
                 return
             else:
