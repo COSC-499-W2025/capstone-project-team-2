@@ -217,6 +217,66 @@ class TestProjectInsights(unittest.TestCase):
         self.assertEqual(stats_by_name["HighPct"]["contribution_metric"], "commits")
         self.assertEqual(stats_by_name["LowPct"]["contribution_metric"], "commits")
 
+    def test_rank_projects_by_contribution_uses_git_commit_count_overall(self) -> None:
+        """Overall git ranking should use top raw commit count when no contributor is selected."""
+        self._announce("Ranking git projects overall using commit volume.")
+
+        record_project_insight(
+            _analysis_payload("MoreCommits"),
+            storage_path=self.storage,
+            contributors={"Alice": {"commit_count": 25, "percentage": "55.00%"}},
+            insight_id="more-commits",
+        )
+        record_project_insight(
+            _analysis_payload("FewerCommits"),
+            storage_path=self.storage,
+            contributors={"Alice": {"commit_count": 12, "percentage": "90.00%"}},
+            insight_id="fewer-commits",
+        )
+
+        ranked = rank_projects_by_contribution(storage_path=self.storage)
+        self.assertEqual([item.project_name for item in ranked], ["MoreCommits", "FewerCommits"])
+
+    def test_rank_projects_by_contribution_falls_back_to_raw_count_without_percentage(self) -> None:
+        """Contributor-specific ranking should fall back to raw counts when percentage is absent."""
+        self._announce("Ranking contributor-specific projects without percentages.")
+
+        record_project_insight(
+            _analysis_payload("HigherCount"),
+            storage_path=self.storage,
+            contributors={"Alice": {"commit_count": 9}},
+            insight_id="higher-count",
+        )
+        record_project_insight(
+            _analysis_payload("LowerCount"),
+            storage_path=self.storage,
+            contributors={"Alice": {"commit_count": 4}},
+            insight_id="lower-count",
+        )
+
+        ranked = rank_projects_by_contribution(storage_path=self.storage, contributor="Alice")
+        self.assertEqual([item.project_name for item in ranked], ["HigherCount", "LowerCount"])
+
+    def test_rank_projects_by_contribution_breaks_equal_percentages_by_count(self) -> None:
+        """Equal percentages should be ordered by higher raw contribution count."""
+        self._announce("Breaking equal contribution percentages by count.")
+
+        record_project_insight(
+            _analysis_payload("HigherTieBreak"),
+            storage_path=self.storage,
+            contributors={"Alice": {"commit_count": 18, "percentage": "50.00%"}},
+            insight_id="higher-tiebreak",
+        )
+        record_project_insight(
+            _analysis_payload("LowerTieBreak"),
+            storage_path=self.storage,
+            contributors={"Alice": {"commit_count": 6, "percentage": "50.00%"}},
+            insight_id="lower-tiebreak",
+        )
+
+        ranked = rank_projects_by_contribution(storage_path=self.storage, contributor="Alice")
+        self.assertEqual([item.project_name for item in ranked], ["HigherTieBreak", "LowerTieBreak"])
+
     def test_rank_projects_by_contribution_top_n_zero(self) -> None:
         """top_n=0 should yield an empty result instead of all items."""
         self._announce("Verifying top_n=0 returns an empty ranking.")

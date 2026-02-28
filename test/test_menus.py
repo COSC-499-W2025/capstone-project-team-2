@@ -247,6 +247,45 @@ def test_project_insights_menu_ranks_projects(monkeypatch, tmp_path):
     ]
     assert scores[1] > scores[0]
 
+def test_project_insights_menu_ranking_output_hides_rank_score(monkeypatch, tmp_path, capsys):
+    """Ranking output should show contribution rationale without exposing internal rank_score."""
+    storage = tmp_path / "project_insights.json"
+    runtimeAppContext.legacy_save_dir = tmp_path
+
+    class Insight:
+        def __init__(self):
+            self.project_name = "CommitHeavy"
+            self.stats = {"contributors": 2}
+            self.languages = ["Python"]
+            self.frameworks = []
+            self.skills = ["Python"]
+            self.summary = "Project summary"
+            self.analyzed_at = datetime.now(timezone.utc).isoformat()
+            self.contributors = {"Alice": {"contribution_percentage": 80.0}}
+
+        def contribution_score(self, contributor=None):
+            return 80.0
+
+        def contribution_count(self, contributor=None):
+            return 20
+
+        def contribution_metric(self, contributor=None):
+            return "commits"
+
+    insights = [Insight()]
+
+    import src.cli.menu_insights as mi
+    monkeypatch.setattr(mi, "rank_projects_by_contribution", lambda storage_path, contributor=None, top_n=None: insights)
+    monkeypatch.setattr(mi, "list_project_insights", lambda storage_path: insights)
+    monkeypatch.setattr(mi, "list_skill_history", lambda storage_path: [])
+    monkeypatch.setattr(mi, "summaries_for_top_ranked_projects", lambda **kwargs: [])
+    monkeypatch.setattr("builtins.input", _inputs(["3", "Alice", "", "", "", "5", "", "0"]))
+
+    mod.project_insights_menu()
+    out = capsys.readouterr().out
+    assert "rank_score" not in out
+    assert "contribution=80.00% | volume=20 commits" in out
+
 def test_insight_helper_filter_and_score_smoke():
     """Quick sanity checks for filter_insights and compute_composite_score helpers."""
     now = datetime.now(timezone.utc)
