@@ -1874,7 +1874,7 @@ Beyond coding, this week also involved reviewing 4 PRs across the team, covering
 
 Both of my PRs this week also went through change request cycles. PR #415 received requests from two reviewers — Puneet-Maan flagged a 404 issue with the `.json` suffix on project names, and mahigangal requested legacy compatibility routes be added for older clients. PR #419 had a field naming mismatch (`version_count` vs `total_versions`) caught by mahigangal. Addressing these change requests reinforced the value of thorough code review in catching edge cases that aren't always obvious during development.
 
-Overall, this bonus week made meaningful progress in advancing the API layer toward frontend integration readiness.
+Overall, this bonus week made meaningful progress in advancing the API layer toward frontend integration readiness for milestone 2 submission.
 
 ---
 
