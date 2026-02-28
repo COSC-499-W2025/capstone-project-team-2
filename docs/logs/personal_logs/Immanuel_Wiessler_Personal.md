@@ -1877,6 +1877,7 @@ Beyond coding, this week also involved reviewing 4 PRs across the team, covering
 # 📝 Personal Log – Week 22 (02/23/2026 – 03/01/2026)
 
 ## 📊 Peer Evaluation
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/28-02-2026.png)
 
 
 ---
