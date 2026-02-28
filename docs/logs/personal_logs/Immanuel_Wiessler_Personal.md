@@ -1926,7 +1926,7 @@ Following Week 21's work on multi-format rendering and AI resume generation inte
 
 ## ⚠️ Issues/Blockers
 
-- 
+- **PR #440 - Changes requested by Puneet-Maan**: Two edge cases in the Resume API's delete endpoints were flagged where empty lists were returning HTTP 200 instead of 404 — specifically when `remove_education()` returns "No education to delete" and when `remove_experience()` returns "No experience to delete". Two additional test cases were also requested to cover these scenarios. Fixed the status codes and added the tests; Puneet-Maan approved after the changes.
 
 ---
 
