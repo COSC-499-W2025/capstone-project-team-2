@@ -304,6 +304,44 @@ def _add_project_from_analysis(doc: RenderCVDocument) -> None:
         if resume_item.tech_stack:
             summary = f"{summary} Tech stack: {resume_item.tech_stack}"
 
+        # For portfolio documents, enrich highlights with evidence signals from analysis.
+        highlights = list(resume_item.key_responsibilities or [])
+        if doc.doc_type == "portfolio":
+            ev = data.get("resume_item", {}).get("evidence") or {}
+
+            duration = ev.get("duration")
+            if duration and duration != "Unknown":
+                highlights.append(f"Project duration: {duration}.")
+
+            test_count = ev.get("test_file_count", 0)
+            if test_count:
+                highlights.append(f"Includes {test_count} test file(s) demonstrating quality assurance.")
+
+            # Key points from docs are the most meaningful evidence — add them directly.
+            for kp in (ev.get("doc_key_points") or []):
+                highlights.append(kp)
+
+            # Doc types give context about the project's scope.
+            doc_types = ev.get("doc_types_found") or []
+            if doc_types:
+                highlights.append(f"Accompanied by {', '.join(doc_types)} documentation.")
+
+            # Contributor breakdown only if meaningful (more than one person).
+            cb = ev.get("contributor_breakdown") or {}
+            if len(cb) > 1:
+                parts = [f"{name} ({pct})" for name, pct in cb.items()]
+                highlights.append(f"Team contributions: {', '.join(parts)}.")
+
+            # Topics from document_analysis — filter to meaningful ones (longer words, skip single chars).
+            doc_analysis = data.get("document_analysis") or {}
+            topics = []
+            for doc_entry in (doc_analysis.get("documents") or []):
+                for t in (doc_entry.get("topics") or []):
+                    if t not in topics and len(t) > 4:
+                        topics.append(t)
+            if topics:
+                highlights.append(f"Key topics: {', '.join(topics[:5])}.")
+
         start_date = input("Start date (YYYY-MM, or press Enter to skip): ").strip()
         end_date = input("End date (YYYY-MM, or press Enter to skip): ").strip()
 
@@ -312,7 +350,7 @@ def _add_project_from_analysis(doc: RenderCVDocument) -> None:
             start_date=start_date if start_date else None,
             end_date=end_date if end_date else None,
             summary=summary,
-            highlights=resume_item.key_responsibilities or []
+            highlights=highlights
         )
 
         result = doc.add_project(project)

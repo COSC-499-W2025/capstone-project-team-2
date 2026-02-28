@@ -197,21 +197,10 @@ def analyze_project(
         duration = Project_Duration_Estimator(hierarchy).get_duration_human() #Project duration estimate
     except Exception:  #If error, gracefully replace estimation
         duration = "Unknown"
-    #For use when ready
-    #traverser = ProjectTraversalModule(root)
-    #analysis = traverser.build_analysis_with_project()
 
-    resume = generate_resume_item(root, project_name=display_name)
-
+    # Run doc_analysis and contrib_summary once here and pass into generate_resume_item
+    # to avoid scanning the project twice.
     doc_analysis = DocumentAnalyzer(root).analyze()
-    
-    #AI analysis performance through ollama
-    ai_analysis = None
-    if use_ai_analysis == True:
-        ollamaObject = codeAnalysisAI(root)
-        ai_analysis_raw = ollamaObject.run_analysis()
-        scrubber = ai_data_scrubber(ai_analysis_raw)
-        ai_analysis = scrubber.get_scrubbed_dict()
 
     contrib_summary: Dict[str, Any] | None = None
     contributors_data: Dict[str, Any] | None = None
@@ -221,7 +210,26 @@ def analyze_project(
     except Exception as e:
         contrib_summary = None
         contributors_data = None
-        
+
+    resume = generate_resume_item(
+        root,
+        project_name=display_name,
+        doc_analysis=doc_analysis,
+        contrib_summary_data=contrib_summary,
+    )
+
+    # Backfill duration into evidence now that we have it from Project_Duration_Estimator.
+    evidence_block = dict(resume.evidence)
+    evidence_block["duration"] = duration
+
+    #AI analysis performance through ollama
+    ai_analysis = None
+    if use_ai_analysis == True:
+        ollamaObject = codeAnalysisAI(root)
+        ai_analysis_raw = ollamaObject.run_analysis()
+        scrubber = ai_data_scrubber(ai_analysis_raw)
+        ai_analysis = scrubber.get_scrubbed_dict()
+
     analysis: Dict[str, Any] = {
         "project_root": str(root),
         "hierarchy": hierarchy,
@@ -237,6 +245,7 @@ def analyze_project(
             "frameworks": resume.frameworks,
             "skills": resume.skills,
             "framework_sources": resume.framework_sources,
+            "evidence": evidence_block,
         },
         "project_type": {
             "project_type": resume.project_type,
@@ -272,6 +281,7 @@ def analyze_project(
         "resume_item": analysis.get("resume_item", {}),
         "contributors": analysis.get("contributors"),
         "oop_analysis": analysis.get("oop_analysis"),
+        "document_analysis": analysis.get("document_analysis"),
     }
         
     ps = build_portfolio_showcase(portfolio_input, portfolio_yaml)   

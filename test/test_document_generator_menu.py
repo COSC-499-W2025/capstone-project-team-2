@@ -724,6 +724,216 @@ class TestDocumentGeneratorMenu(unittest.TestCase):
         self.assertEqual(updated['end_date'], '2024-12')
         self.assertEqual(updated['highlights'], ['New highlight 1', 'New highlight 2'])
 
+    @patch('src.cli.document_generator_menu.list_saved_projects')
+    @patch('builtins.input')
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_add_project_from_analysis_portfolio_includes_evidence(self, mock_stdout, mock_input, mock_list):
+        """
+        Test that adding a project to a PORTFOLIO document enriches highlights
+        with evidence signals (duration, test files, key points, doc types, topics).
+        """
+        import json
+        import tempfile
 
+        # Build a saved analysis JSON with evidence
+        analysis_data = {
+            "resume_item": {
+                "project_name": "EvidenceProject",
+                "summary": "Built something great",
+                "languages": ["Python"],
+                "frameworks": [],
+                "skills": ["Python"],
+                "framework_sources": {},
+                "evidence": {
+                    "duration": "3 months",
+                    "test_file_count": 4,
+                    "doc_metrics": [],
+                    "doc_key_points": ["In-memory store for simplicity in v1"],
+                    "doc_types_found": ["software/technical"],
+                    "contributor_count": 1,
+                    "contributor_breakdown": {},
+                },
+            },
+            "oop_analysis": {
+                "score": {"oop_score": 0.5, "rating": "medium"},
+                "classes": {"count": 2, "avg_methods_per_class": 3, "with_inheritance": 0},
+                "complexity": {"total_functions": 10, "max_loop_depth": 1},
+                "encapsulation": {"classes_with_private_attrs": 1},
+                "polymorphism": {"classes_overriding_base_methods": 0},
+                "narrative": {},
+            },
+            "document_analysis": {
+                "documents": [
+                    {"topics": ["architecture", "python", "testing"], "summary": ""}
+                ]
+            },
+        }
+
+        # Write to a temp file
+        tmp = tempfile.NamedTemporaryFile(
+            suffix=".json", delete=False, mode="w", encoding="utf-8"
+        )
+        json.dump(analysis_data, tmp)
+        tmp.close()
+        saved_path = Path(tmp.name)
+        saved_path = saved_path.rename(saved_path.parent / "EvidenceProject.json")
+
+        mock_list.return_value = [saved_path]
+
+        # Create a PORTFOLIO doc
+        portfolio_doc = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio_doc.cv_files_dir = Path(self.test_dir)
+        portfolio_doc.name = "Test_User"
+        portfolio_doc.generate(name="Test User")
+        portfolio_doc.load()
+
+        # Select project 1, enter dates
+        mock_input.side_effect = ["1", "2024-01", "2024-12"]
+
+        from src.cli.document_generator_menu import _add_project_from_analysis
+        _add_project_from_analysis(portfolio_doc)
+
+        saved_path.unlink(missing_ok=True)
+
+        output = mock_stdout.getvalue()
+        self.assertIn("[SUCCESS]", output)
+
+        projects = portfolio_doc.data['cv']['sections'].get('projects', [])
+        proj = next((p for p in projects if p['name'] == 'EvidenceProject'), None)
+        self.assertIsNotNone(proj)
+
+        highlights = proj.get('highlights', [])
+        highlights_text = " ".join(highlights)
+
+        # Evidence signals should appear in highlights
+        self.assertIn("3 months", highlights_text)
+        self.assertIn("4 test file", highlights_text)
+        self.assertIn("In-memory store for simplicity in v1", highlights_text)
+        self.assertIn("software/technical", highlights_text)
+        
+    @patch('src.cli.document_generator_menu.list_saved_projects')
+    @patch('builtins.input')
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_add_project_from_analysis_portfolio_skips_unknown_duration_and_zero_tests(
+        self, mock_stdout, mock_input, mock_list
+    ):
+        """
+        Portfolio evidence enrichment should NOT add:
+        - duration when it is "Unknown"
+        - test file highlight when test_file_count == 0
+        """
+        import json
+        import tempfile
+
+        analysis_data = {
+            "resume_item": {
+                "project_name": "EdgeEvidenceProject",
+                "summary": "Summary",
+                "languages": ["Python"],
+                "frameworks": [],
+                "skills": ["Python"],
+                "framework_sources": {},
+                "evidence": {
+                    "duration": "Unknown",
+                    "test_file_count": 0,
+                    "doc_key_points": [],
+                    "doc_types_found": [],
+                    "contributor_breakdown": {},
+                },
+            },
+            "document_analysis": {
+                "documents": [
+                    {"topics": ["arch", "a", "tooling", "tests"], "summary": ""}
+                ]
+            },
+        }
+
+        tmp = tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w", encoding="utf-8")
+        json.dump(analysis_data, tmp)
+        tmp.close()
+        saved_path = Path(tmp.name).rename(Path(tmp.name).parent / "EdgeEvidenceProject.json")
+
+        mock_list.return_value = [saved_path]
+
+        portfolio_doc = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio_doc.cv_files_dir = Path(self.test_dir)
+        portfolio_doc.name = "Test_User"
+        portfolio_doc.generate(name="Test User")
+        portfolio_doc.load()
+
+        mock_input.side_effect = ["1", "2024-01", "2024-12"]
+
+        from src.cli.document_generator_menu import _add_project_from_analysis
+        _add_project_from_analysis(portfolio_doc)
+
+        saved_path.unlink(missing_ok=True)
+
+        projects = portfolio_doc.data['cv']['sections'].get('projects', [])
+        proj = next((p for p in projects if p.get('name') == 'EdgeEvidenceProject'), None)
+        self.assertIsNotNone(proj)
+
+        highlights = proj.get('highlights', [])
+        self.assertFalse(any("Project duration:" in h and "Unknown" in h for h in highlights))
+        self.assertFalse(any("Includes 0 test file" in h for h in highlights))
+
+    @patch('src.cli.document_generator_menu.list_saved_projects')
+    @patch('builtins.input')
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_add_project_from_analysis_portfolio_contributor_breakdown_only_when_multiple(
+        self, mock_stdout, mock_input, mock_list
+    ):
+        """
+        Portfolio evidence enrichment should add contributor breakdown
+        ONLY when there are multiple contributors.
+        """
+        import json
+        import tempfile
+
+        analysis_data = {
+            "resume_item": {
+                "project_name": "ContributorEdgeProject",
+                "summary": "Summary",
+                "languages": ["Python"],
+                "frameworks": [],
+                "skills": ["Python"],
+                "framework_sources": {},
+                "evidence": {
+                    "duration": "2 months",
+                    "test_file_count": 1,
+                    "doc_key_points": [],
+                    "doc_types_found": [],
+                    "contributor_breakdown": {"Alice": "60%", "Bob": "40%"},
+                },
+            },
+            "document_analysis": {"documents": []},
+        }
+
+        tmp = tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w", encoding="utf-8")
+        json.dump(analysis_data, tmp)
+        tmp.close()
+        saved_path = Path(tmp.name).rename(Path(tmp.name).parent / "ContributorEdgeProject.json")
+
+        mock_list.return_value = [saved_path]
+
+        portfolio_doc = RenderCVDocument(doc_type='portfolio', auto_save=False)
+        portfolio_doc.cv_files_dir = Path(self.test_dir)
+        portfolio_doc.name = "Test_User"
+        portfolio_doc.generate(name="Test User")
+        portfolio_doc.load()
+
+        mock_input.side_effect = ["1", "", ""]  # skip dates
+
+        from src.cli.document_generator_menu import _add_project_from_analysis
+        _add_project_from_analysis(portfolio_doc)
+
+        saved_path.unlink(missing_ok=True)
+
+        projects = portfolio_doc.data['cv']['sections'].get('projects', [])
+        proj = next((p for p in projects if p.get('name') == 'ContributorEdgeProject'), None)
+        self.assertIsNotNone(proj)
+
+        highlights = proj.get('highlights', [])
+        self.assertTrue(any(h.startswith("Team contributions:") for h in highlights))
+        self.assertTrue(any("Alice" in h and "Bob" in h for h in highlights))
 if __name__ == '__main__':
     unittest.main()

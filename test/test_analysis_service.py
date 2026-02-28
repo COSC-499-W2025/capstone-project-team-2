@@ -21,6 +21,30 @@ import src.core.analysis_service as mod
 
 from src.core.app_context import runtimeAppContext
 
+def _fake_resume(project_name=None, root=None):
+    """Helper: returns a SimpleNamespace matching the new ResumeItem shape."""
+    return SimpleNamespace(
+        project_name=project_name or (root.name if root else "project"),
+        summary="Built project",
+        highlights=["h1"],
+        project_type="collaborative",
+        detection_mode="local",
+        languages=["Python"],
+        frameworks=[],
+        skills=[],
+        framework_sources={},
+        evidence={
+            "duration": None,
+            "doc_metrics": [],
+            "doc_key_points": [],
+            "doc_types_found": [],
+            "test_file_count": 0,
+            "contributor_count": 0,
+            "contributor_names": [],
+            "contributor_breakdown": {},
+        },
+    )
+
 def test_export_if_zip():
     """
     Checks that extract_if_zip() extracts and returns the directory extracted to
@@ -33,12 +57,6 @@ def test_export_if_zip():
 def test_nonexistent_zip_extraction():
     """
     Check that nonexistent zip files raise an exception.
-
-    Args:
-        None
-
-    Returns:
-        None: Assertions validate exception is raised. 
     """
     try:
         extract_if_zip(Path("/fake/path/to/file.zip"))
@@ -50,12 +68,6 @@ def test_nonexistent_zip_extraction():
 def test_analyse_nonexistant_folder():
     """
     Check that analyzing a non-existent folder raises an exception.
-
-    Args:
-        None
-
-    Returns:
-        None: Assertions validate exception is raised.
     """
     try:
         analyze_project(Path("/fake/project/path"))
@@ -67,15 +79,7 @@ def test_analyse_nonexistant_folder():
 def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypatch):
     """
     Check that export saves files and writes to the DB.
-
-    Args:
-        tmp_path: Pytest fixture providing a temporary directory.
-        monkeypatch: Pytest fixture for patching module attributes.
-
-    Returns:
-        None: Assertions validate save and insert behavior.
     """
-
     captured = {}
 
     class FakeSaver:
@@ -85,8 +89,6 @@ def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypat
             captured["out_dir"] = out_dir
 
     monkeypatch.setattr(mod, "SaveFileAnalysisAsJSON", lambda: FakeSaver())
-    
-    # ADD THIS: Mock the database insert
     monkeypatch.setattr(runtimeAppContext.store, "insert_json", lambda filename, analysis: 1)
 
     analysis = {"ok": True}
@@ -97,12 +99,9 @@ def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypat
     assert captured["analysis"]["ok"] is True
     assert result["skipped"] is False
     assert "snapshots" in result
-    #Can't check if db contains file at current point in time
-    #runtimeAppContext.store.fetch_by_id
 
     monkeypatch.setattr(mod, "SaveFileAnalysisAsJSON", lambda: FakeSaver())
     
-    # Mock DB insert to raise an exception
     def failing_insert(filename, analysis):
         raise Exception("Database connection failed")
     
@@ -117,15 +116,7 @@ def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypat
         
         
 def test_oop_analysis_runs(tmp_path, monkeypatch):
-    """Check that local OOP analysis runs.
-
-    Args:
-        tmp_path: Pytest fixture providing a temporary directory.
-        monkeypatch: Pytest fixture for patching module attributes.
-
-    Returns:
-        None: Assertions validate OOP analysis execution.
-    """
+    """Check that local OOP analysis runs."""
     cfg_dir = tmp_path / "User_config_files"
     cfg_dir.mkdir(parents=True)
     (cfg_dir / "UserConfigs.json").write_text('{"consented": {"external": false}}')
@@ -151,23 +142,22 @@ class TestAnalysisService(unittest.TestCase):
         class FakeExtractor:
             def __init__(self, root):
                 self.root = root
-
             def file_hierarchy(self):
                 return {"type": "DIR", "children": []}
 
         class FakeDurationEstimator:
             def __init__(self, hierarchy):
                 self.hierarchy = hierarchy
-
             def get_duration(self):
                 return 0
+            def get_duration_human(self):
+                return "Unknown"
 
         class FakeDocAnalyzer:
             def __init__(self, root):
                 self.root = root
-
             def analyze(self):
-                return {}
+                return {"documents": []}
 
         captured = {}
 
@@ -180,26 +170,17 @@ class TestAnalysisService(unittest.TestCase):
             with (
                 patch.object(mod, "FileMetadataExtractor", FakeExtractor),
                 patch.object(mod, "Project_Duration_Estimator", FakeDurationEstimator),
+                patch.object(mod, "DocumentAnalyzer", FakeDocAnalyzer),
                 patch.object(
                     mod,
                     "generate_resume_item",
-                    lambda root, project_name: SimpleNamespace(
-                        project_name=project_name,
-                        summary="Built project",
-                        highlights=["h1"],
-                        project_type="collaborative",
-                        detection_mode="local",
-                        languages=["Python"],
-                        frameworks=[],
-                        skills=[],
-                        framework_sources={},
-                    ),
+                    lambda root, project_name=None, doc_analysis=None, contrib_summary_data=None: _fake_resume(project_name=project_name, root=root),
                 ),
-                patch.object(mod, "DocumentAnalyzer", FakeDocAnalyzer),
                 patch.object(mod, "contribution_summary", lambda root: None),
                 patch.object(mod, "load_portfolio_showcase", lambda display_name: None),
                 patch.object(mod, "build_portfolio_showcase", lambda data, yaml: None),
-                patch.object(mod, "export_json", lambda project_name, analysis: None),
+                patch.object(mod, "export_json", lambda project_name, analysis: {"skipped": False, "snapshots": []}),
+                patch.object(mod, "record_project_insight", lambda analysis, contributors=None, snapshot_label=None: None),
                 patch.object(mod, "deduplicate_project", lambda root, index_path, remove_duplicates=True: SimpleNamespace(
                     unique_files=1,
                     duplicate_files=0,
@@ -248,7 +229,7 @@ def test_export_json_appends_snapshots_and_merges_skills(tmp_path, monkeypatch):
     meta = mod.export_json("Demo", second_analysis)
     saved = json.loads((save_dir / "Demo.json").read_text())
 
-    assert meta["snapshots"]  # snapshots returned
+    assert meta["snapshots"]
     assert len(saved.get("snapshots", [])) == 2
     assert set(saved["resume_item"]["skills"]) == {"Python", "Docker"}
     assert set(saved["resume_item"]["frameworks"]) == {"FastAPI", "React"}
@@ -259,7 +240,6 @@ def test_oop_analysis_raises_on_failure(monkeypatch):
     class FailingOrchestrator:
         def __init__(self, root):
             pass
-
         def analyze(self):
             raise RuntimeError("OOP failed")
 
@@ -267,19 +247,10 @@ def test_oop_analysis_raises_on_failure(monkeypatch):
 
     with pytest.raises(RuntimeError):
         mod.oop_analysis(Path("/tmp/project"), ["Python"])
-        
 
 @pytest.mark.skip
 def test_analyze_project_builds_analysis_and_exports(tmp_path, monkeypatch):
-    """Check that analysis builds results and triggers export.
-
-    Args:
-        tmp_path: Pytest fixture providing a temporary directory.
-        monkeypatch: Pytest fixture for patching module attributes.
-
-    Returns:
-        None: Assertions validate export behavior.
-    """
+    """Check that analysis builds results and triggers export."""
     ctx = SimpleNamespace(
         default_save_dir=tmp_path / "saves",
         legacy_save_dir=tmp_path / "legacy",
@@ -289,7 +260,6 @@ def test_analyze_project_builds_analysis_and_exports(tmp_path, monkeypatch):
     class FakeExtractor:
         def __init__(self, root):
             self.root = root
-
         def file_hierarchy(self):
             return {"type": "DIR", "children": []}
 
@@ -297,17 +267,7 @@ def test_analyze_project_builds_analysis_and_exports(tmp_path, monkeypatch):
     monkeypatch.setattr(
         mod,
         "generate_resume_item",
-        lambda root, project_name: SimpleNamespace(
-            project_name=project_name,
-            summary="Built project",
-            highlights=["h1"],
-            project_type="collaborative",
-            detection_mode="local",
-            languages=["Python"],
-            frameworks=["FastAPI"],
-            skills=["Python"],
-            framework_sources={},
-        ),
+        lambda root, project_name=None, doc_analysis=None, contrib_summary_data=None: _fake_resume(project_name=project_name, root=root),
     )
     monkeypatch.setattr(
         mod,
@@ -317,7 +277,7 @@ def test_analyze_project_builds_analysis_and_exports(tmp_path, monkeypatch):
     monkeypatch.setattr(
         mod,
         "record_project_insight",
-        lambda analysis, contributors=None: SimpleNamespace(id=1, project_name=analysis["resume_item"]["project_name"]),
+        lambda analysis, contributors=None, snapshot_label=None: SimpleNamespace(id=1, project_name=analysis["resume_item"]["project_name"]),
     )
     monkeypatch.setattr(mod, "oop_analysis", lambda root, languages_found: {"score": {"oop_score": 0.75}})
 
@@ -333,4 +293,47 @@ def test_analyze_project_builds_analysis_and_exports(tmp_path, monkeypatch):
     mod.analyze_project(tmp_path)
 
     assert captured["project_name"] == tmp_path.name
-    assert captured["ctx"] is ctx
+    
+def test_analyze_project_backfills_duration_into_evidence(monkeypatch, tmp_path):
+    """Duration computed by estimator should be copied into resume_item.evidence['duration']."""    
+    captured = {}
+
+    class FakeExtractor:
+        def __init__(self, root): pass
+        def file_hierarchy(self): return {"type": "DIR", "children": []}
+
+    class FakeDurationEstimator:
+        def __init__(self, hierarchy): pass
+        def get_duration_human(self): return "5 months"
+
+    class FakeDocAnalyzer:
+        def __init__(self, root): pass
+        def analyze(self): return {"documents": []}
+
+    def fake_export(project_name, analysis):
+        captured["analysis"] = analysis
+        return {"skipped": False, "snapshots": []}
+
+    monkeypatch.setattr(mod, "FileMetadataExtractor", FakeExtractor)
+    monkeypatch.setattr(mod, "Project_Duration_Estimator", FakeDurationEstimator)
+    monkeypatch.setattr(mod, "DocumentAnalyzer", FakeDocAnalyzer)
+
+    # resume.evidence.duration starts None
+    resume_obj = _fake_resume(project_name="X", root=tmp_path)
+    monkeypatch.setattr(mod, "generate_resume_item", lambda *args, **kwargs: resume_obj)
+
+    monkeypatch.setattr(mod, "contribution_summary", lambda root: None)
+    monkeypatch.setattr(mod, "load_portfolio_showcase", lambda display_name: None)
+    monkeypatch.setattr(mod, "build_portfolio_showcase", lambda data, yaml: None)
+    monkeypatch.setattr(mod, "record_project_insight", lambda *a, **k: None)
+    monkeypatch.setattr(mod, "deduplicate_project", lambda *a, **k: SimpleNamespace(
+        unique_files=1, duplicate_files=0, duplicates=[], index_size=1, removed=0
+    ))
+    monkeypatch.setattr(mod, "detect_project_stack", lambda root: {"languages": []})
+    monkeypatch.setattr(mod, "oop_analysis", lambda root, langs: None)
+    monkeypatch.setattr(mod, "export_json", fake_export)
+
+    mod.analyze_project(tmp_path)
+
+    evidence = captured["analysis"]["resume_item"]["evidence"]
+    assert evidence["duration"] == "5 months"
