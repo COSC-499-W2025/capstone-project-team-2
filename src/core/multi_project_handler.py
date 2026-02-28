@@ -24,7 +24,7 @@ def single_project_run(args: tuple) -> dict:
 class multi_project_handler:
     @staticmethod
     def multi_project_runner(paths: list, use_ai: bool = False) -> None:
-        workers = min(len(paths), os.cpu_count())
+        workers = min(len(paths), os.cpu_count() or 1)
         ordered_results = {str(p): None for p in paths}
 
         with ThreadPoolExecutor(max_workers=workers) as executor:
