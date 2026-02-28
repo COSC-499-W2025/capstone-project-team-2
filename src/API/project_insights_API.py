@@ -1,0 +1,84 @@
+from sys import prefix
+from fastapi import APIRouter
+from pathlib import Path
+
+from src.reporting.project_insights import (
+    list_project_insights,
+    list_skill_history,
+    rank_projects_by_contribution,
+    summaries_for_top_ranked_projects,
+)
+
+from src.core.app_context import runtimeAppContext
+from src.reporting.representation_preferences import apply_preferences
+from src.analysis.insight_helpers import parse_date, filter_insights
+
+insights_router = APIRouter(prefix="/insights")
+
+@insights_router.get("/projects")
+def return_insight_projects_chronological(language: str | None = None, skill: str | None = None, since_str: str | None = None):
+    storage_path = Path(runtimeAppContext.legacy_save_dir) / "project_insights.json"
+
+    since_dt = parse_date(since_str)
+
+    projects_dicts = None
+    try:
+        preferred = apply_preferences()
+        projects = [
+            p
+            for p in preferred.get("projects", [])
+            if parse_date(p.get("analyzed_at")) is not None
+        ]
+    except FileNotFoundError:
+        projects = list_project_insights(storage_path=storage_path)
+    if projects and isinstance(projects[0], dict):
+        # convert dicts to a simple namespace for reuse
+        projects_dicts = projects
+        normalized = []
+        for p in projects:
+            ns = type("Insight", (), {})()
+            ns.project_name = p.get("project_name", "unknown")
+            ns.analyzed_at = p.get("analyzed_at", "")
+            ns.project_type = p.get("project_type", "unknown")
+            ns.detection_mode = p.get("detection_mode", "")
+            ns.languages = p.get("languages", []) or []
+            ns.frameworks = p.get("frameworks", []) or []
+            ns.summary = p.get("summary", "")
+            normalized.append(ns)
+        projects = normalized
+    projects = filter_insights(
+        projects,
+        language=language,
+        skill=skill,
+        since=since_dt,
+    )
+    #cannot return namespaces or ProjectInsight objects through api calls so we need to convert to dicts
+    filtered_projects = []
+    if projects_dicts:
+        for p in projects:
+            for d in projects_dicts:
+                if d.get("project_name", "unknown") == p.project_name:
+                    filtered_projects.append(d)
+    else:
+        for p in projects:
+            filtered_projects.append(p.to_dict())
+    return filtered_projects
+
+@insights_router.get("/skills")
+def return_insights_skills_chronological(skill: str | None = None, since_str: str | None = None):
+    storage_path = Path(runtimeAppContext.legacy_save_dir) / "project_insights.json"
+
+    since_dt = parse_date(since_str)
+
+    history = list_skill_history(storage_path=storage_path)
+    if since_dt or skill:
+        filtered = []
+        for entry in history:
+            when = parse_date(entry.get("analyzed_at"))
+            if since_dt and when and when < since_dt:
+                continue
+            if skill and all(skill.lower() != s.lower() for s in entry.get("skills", [])):
+                continue
+            filtered.append(entry)
+        history = filtered
+    return history
