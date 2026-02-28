@@ -352,6 +352,8 @@ def analyze_project_menu() -> None:
                 if paths:
                     multi_project_handler.multi_project_runner(paths, use_ai=use_ai)
                     return
+                else:
+                     continue
             elif choice == "0":
                 return
             else:
