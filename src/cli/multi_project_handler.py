@@ -19,20 +19,18 @@ class multi_project_handler:
         with ThreadPoolExecutor(max_workers=workers) as executor:
             futures = {executor.submit(single_project_run, (p, use_ai)): str(p) for p in paths}
 
-            for future in as_completed(futures):
-                path = futures[future]
-                try:
-                    ordered_results[path] = future.result()
-                except Exception as e:
-                    ordered_results[path] = {"error": str(e)}
-                progress.update(1)
-                progress.set_postfix_str(path.split("\\")[-1])
+            with tqdm(total=len(paths), desc="Analyzing projects", unit="project") as progress:
+                for future in as_completed(futures):
+                    path = futures[future]
+                    try:
+                        ordered_results[path] = future.result()
+                    except Exception as e:
+                        ordered_results[path] = {"error": str(e)}
+                    progress.update(1)
+                    progress.set_postfix_str(path.split("\\")[-1])
 
         for path, result in ordered_results.items():
             if result and "error" not in result:
                 print(f"{path}: {result['status']}")
             else:
                 print(f"[ERROR] {path}: {result.get('error')}")
-
-
-
