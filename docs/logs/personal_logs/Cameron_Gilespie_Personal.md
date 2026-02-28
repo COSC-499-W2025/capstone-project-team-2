@@ -1,4 +1,4 @@
-## Dates of Sprint: (02/08/2026 – 02/29/2026)
+## Dates of Sprint: (02/08/2026 – 03/01/2026)
 
 ### Peer Eval Screenshot:
 
