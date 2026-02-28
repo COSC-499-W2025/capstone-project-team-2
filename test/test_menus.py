@@ -187,17 +187,17 @@ def test_project_insights_menu_lists_projects(monkeypatch, tmp_path):
 
 def test_project_insights_menu_ranks_projects(monkeypatch, tmp_path):
     """
-    Insights menu should honor contributor filters and composite scoring.
+    Insights menu should honor contributor filters and contribution-driven scoring.
 
     Verifies:
     - rank_projects_by_contribution is invoked when contributor is provided
-    - Composite ranking prefers more recent, higher-skill items
+    - Higher contribution score ranks first
     """
     storage = tmp_path / "project_insights.json"
     runtimeAppContext.legacy_save_dir=tmp_path
 
     captured_rank = {}
-    # create two insights with different dates and skills to ensure composite sorting works
+    # create two insights with different dates/skills; ranking should still follow contribution score
     now = datetime.now(timezone.utc)
     recent = now.isoformat()
     old = (now - timedelta(days=200)).isoformat()
@@ -240,12 +240,51 @@ def test_project_insights_menu_ranks_projects(monkeypatch, tmp_path):
 
     mod.project_insights_menu()
     assert captured_rank.get("called") is True
-    # Verify composite ranking prefers newer project with more skills
+    # Verify ranking prefers the higher contribution score
     scores = [
         insight_helpers.compute_composite_score(insights[0])[0],
         insight_helpers.compute_composite_score(insights[1])[0],
     ]
     assert scores[1] > scores[0]
+
+def test_project_insights_menu_ranking_output_hides_rank_score(monkeypatch, tmp_path, capsys):
+    """Ranking output should show contribution rationale without exposing internal rank_score."""
+    storage = tmp_path / "project_insights.json"
+    runtimeAppContext.legacy_save_dir = tmp_path
+
+    class Insight:
+        def __init__(self):
+            self.project_name = "CommitHeavy"
+            self.stats = {"contributors": 2}
+            self.languages = ["Python"]
+            self.frameworks = []
+            self.skills = ["Python"]
+            self.summary = "Project summary"
+            self.analyzed_at = datetime.now(timezone.utc).isoformat()
+            self.contributors = {"Alice": {"contribution_percentage": 80.0}}
+
+        def contribution_score(self, contributor=None):
+            return 80.0
+
+        def contribution_count(self, contributor=None):
+            return 20
+
+        def contribution_metric(self, contributor=None):
+            return "commits"
+
+    insights = [Insight()]
+
+    import src.cli.menu_insights as mi
+    monkeypatch.setattr(mi, "rank_projects_by_contribution", lambda storage_path, contributor=None, top_n=None: insights)
+    monkeypatch.setattr(mi, "list_project_insights", lambda storage_path: insights)
+    monkeypatch.setattr(mi, "list_skill_history", lambda storage_path: [])
+    monkeypatch.setattr(mi, "summaries_for_top_ranked_projects", lambda **kwargs: [])
+    monkeypatch.setattr("builtins.input", _inputs(["3", "Alice", "", "", "", "5", "", "0"]))
+
+    mod.project_insights_menu()
+    out = capsys.readouterr().out
+    assert "rank_score" not in out
+    assert "contribution=80.00% | volume=20 commits" in out
 
 def test_insight_helper_filter_and_score_smoke():
     """Quick sanity checks for filter_insights and compute_composite_score helpers."""
@@ -276,7 +315,7 @@ def test_insight_helper_filter_and_score_smoke():
 
     score_recent, _ = insight_helpers.compute_composite_score(recent)
     score_stale, _ = insight_helpers.compute_composite_score(stale)
-    assert score_recent > score_stale
+    assert score_stale > score_recent
 
 @pytest.mark.skip()
 def test_settings_menu_routes_to_user_config(monkeypatch):
