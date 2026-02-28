@@ -16,7 +16,7 @@ def test_return_project_insights_chronological():
     response = testclient.get("/insights/projects")
     dicts = response.json()
     assert response.status_code == 200
-    assert len(dicts) == 8
+    assert len(dicts) == 12
 
 def test_return_skill_insights_chronological():
     root_folder = Path(__file__).absolute().resolve().parents[1]
