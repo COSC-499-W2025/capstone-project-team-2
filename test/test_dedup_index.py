@@ -1,3 +1,5 @@
+import json
+import os
 from pathlib import Path
 
 import pytest
@@ -96,6 +98,39 @@ def test_deduplicate_project_can_remove_duplicates(tmp_path):
     assert not f2.exists()
 
 
+def test_deduplicate_project_removes_deleted_file_from_cache(tmp_path):
+    """
+    When a duplicate file is deleted, its per-path file cache entry should be removed.
+    """
+    proj1 = tmp_path / "proj1"
+    proj1.mkdir()
+    f1 = proj1 / "a.txt"
+    f1.write_text("same")
+
+    proj2 = tmp_path / "proj2"
+    proj2.mkdir()
+    f2 = proj2 / "b.txt"
+    f2.write_text("same")
+
+    index_path = tmp_path / "dedup_index.json"
+
+    deduplicate_project(proj1, index_path)
+    deduplicate_project(proj2, index_path)
+
+    cache_key = dedup_mod._path_cache_key(f2)
+    index_before = json.loads(index_path.read_text(encoding="utf-8"))
+    file_cache_before = index_before.get(dedup_mod.FILE_CACHE_KEY, {})
+    assert cache_key in file_cache_before
+
+    result = deduplicate_project(proj2, index_path, remove_duplicates=True)
+    assert result.removed == 1
+    assert not f2.exists()
+
+    index_after = json.loads(index_path.read_text(encoding="utf-8"))
+    file_cache_after = index_after.get(dedup_mod.FILE_CACHE_KEY, {})
+    assert cache_key not in file_cache_after
+
+
 def test_corrupted_index_logs_warning(tmp_path, caplog):
     """
     A bad JSON index should warn and recover with an empty index.
@@ -152,3 +187,99 @@ def test_lock_contention_times_out_and_warns(tmp_path, monkeypatch, caplog):
     assert result.unique_files == 0
     assert result.duplicate_files == 0
     assert any("Could not acquire dedup index lock" in msg for msg in caplog.messages)
+
+
+def test_unchanged_files_reuse_cached_hash(tmp_path, monkeypatch):
+    """
+    On re-analysis of unchanged files, dedup should reuse cached digest instead of re-hashing.
+    """
+    proj = tmp_path / "proj"
+    proj.mkdir()
+    f = proj / "file.txt"
+    f.write_text("content")
+    index_path = tmp_path / "dedup_index.json"
+
+    calls = {"count": 0}
+    original = dedup_mod._file_hash
+
+    def counting_hash(path: Path) -> str:
+        calls["count"] += 1
+        return original(path)
+
+    monkeypatch.setattr(dedup_mod, "_file_hash", counting_hash)
+
+    deduplicate_project(proj, index_path)
+    assert calls["count"] == 1
+
+    # Same file, unchanged metadata/content -> should reuse cached hash.
+    deduplicate_project(proj, index_path)
+    assert calls["count"] == 1
+
+
+def test_changed_files_are_rehashed(tmp_path, monkeypatch):
+    """
+    If a file changes, dedup should recompute its hash and refresh cache entry.
+    """
+    proj = tmp_path / "proj"
+    proj.mkdir()
+    f = proj / "file.txt"
+    f.write_text("v1")
+    index_path = tmp_path / "dedup_index.json"
+
+    calls = {"count": 0}
+    original = dedup_mod._file_hash
+
+    def counting_hash(path: Path) -> str:
+        calls["count"] += 1
+        return original(path)
+
+    monkeypatch.setattr(dedup_mod, "_file_hash", counting_hash)
+
+    deduplicate_project(proj, index_path)
+    assert calls["count"] == 1
+
+    # Use different byte length so fingerprint changes even if mtime granularity is coarse.
+    f.write_text("v2-updated")
+    deduplicate_project(proj, index_path)
+    assert calls["count"] == 2
+
+
+def test_same_size_change_with_preserved_mtime_is_rehashed(tmp_path, monkeypatch):
+    """
+    A same-size content change with restored mtime must still re-hash via ctime and avoid false duplicate removal.
+    """
+    proj1 = tmp_path / "proj1"
+    proj1.mkdir()
+    f1 = proj1 / "a.txt"
+    f1.write_text("same")
+
+    proj2 = tmp_path / "proj2"
+    proj2.mkdir()
+    f2 = proj2 / "b.txt"
+    f2.write_text("same")
+
+    index_path = tmp_path / "dedup_index.json"
+
+    deduplicate_project(proj1, index_path)
+    deduplicate_project(proj2, index_path)
+    assert f2.exists()
+
+    old_stat = f2.stat()
+    f2.write_text("diff")  # same byte length as "same"
+    os.utime(f2, ns=(old_stat.st_atime_ns, old_stat.st_mtime_ns))
+
+    calls = {"count": 0}
+    original = dedup_mod._file_hash
+
+    def counting_hash(path: Path) -> str:
+        calls["count"] += 1
+        return original(path)
+
+    monkeypatch.setattr(dedup_mod, "_file_hash", counting_hash)
+
+    result = deduplicate_project(proj2, index_path, remove_duplicates=True)
+
+    assert calls["count"] == 1
+    assert result.duplicate_files == 0
+    assert result.removed == 0
+    assert f2.exists()
