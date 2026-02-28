@@ -1870,7 +1870,11 @@ The first major task was integrating the updated AI resume generation (Ver2) int
 
 The second task was adding multi-format rendering support to both the Resume and Portfolio APIs ([PR #415](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/415)). Previously, the APIs only supported PDF output. This PR extended the render endpoints with a `{format}` path parameter to support PDF, HTML, and Markdown output. New export endpoints were also introduced, allowing users to save rendered files to either a default project directory or a custom location. Shared helper functions were added to reduce code duplication across the two APIs, and a missing import in the Portfolio Generator was fixed along the way. Test coverage for this PR was comprehensive — 37 tests and 6 subtests covering all three formats, export paths, and error scenarios.
 
-Beyond coding, this week also involved reviewing 4 PRs across the team, covering error handling improvements, snapshot-aware incremental uploads, and API documentation additions. Overall, this bonus week made meaningful progress in advancing the API layer toward frontend integration readiness.
+Beyond coding, this week also involved reviewing 4 PRs across the team, covering error handling improvements for the save_config and load methods, snapshot-aware incremental uploads, and API documentation and endpoint test coverage.
+
+Both of my PRs this week also went through change request cycles. PR #415 received requests from two reviewers — Puneet-Maan flagged a 404 issue with the `.json` suffix on project names, and mahigangal requested legacy compatibility routes be added for older clients. PR #419 had a field naming mismatch (`version_count` vs `total_versions`) caught by mahigangal. Addressing these change requests reinforced the value of thorough code review in catching edge cases that aren't always obvious during development.
+
+Overall, this bonus week made meaningful progress in advancing the API layer toward frontend integration readiness.
 
 ---
 
@@ -1898,6 +1902,7 @@ Following Week 21's work on multi-format rendering and AI resume generation inte
 - Wrote 16 new consolidated test methods (11 for Resume API, 5 for Portfolio API) covering success/failure scenarios for removal endpoints, payload override validation, format defaulting to PDF, and error handling (404, 409, 500 responses); all 53 tests pass ([PR #440](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/440))
 
 ### Reviewing/Collaboration Tasks
+- Reviewed PR (1st reviewer): [Multi project upload and completion #448](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/448)
 - Reviewed PR (1st reviewer): [Optimize dedup pipeline with metadata precheck and hash cache #437](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/437)
 - Reviewed PR (1st reviewer): [Expose dedup cleanup toggle in GET /analyze and document behavior #439](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/439)
 
@@ -1935,6 +1940,6 @@ Following Week 21's work on multi-format rendering and AI resume generation inte
 
 **Week 22** was centered on completing the CRUD endpoint coverage for the Resume and Portfolio API system ([PR #440](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/440)). The issue ([#441](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/441)) identified that POST endpoints for creating education and experience entries and DELETE endpoints for removing education, experience, and project records were missing from both APIs. Additionally, the Portfolio API was missing default render and export endpoints that the Resume API already had. The PR adds 573 lines of new code across 4 files, with 16 new test methods providing comprehensive coverage of the new endpoints including success paths, error handling, and edge cases. All 53 tests pass locally and the PR is currently awaiting review.
 
-On the review side, two PRs from teammates were reviewed as first reviewer. [PR #437](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/437) optimized the dedup pipeline by introducing a metadata precheck and hash cache to avoid redundant SHA-256 computations during incremental uploads. [PR #439](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/439) exposed a `remove_duplicates` query parameter on the `/analyze` endpoint, giving callers control over whether deduplication performs cleanup or detection only.
+On the review side, three PRs from teammates were reviewed as first reviewer. [PR #448](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/448) added multi-project upload and completion support — I initially requested changes before approving, reflecting a thorough review rather than a rubber-stamp. [PR #437](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/437) optimized the dedup pipeline by introducing a metadata precheck and hash cache to avoid redundant SHA-256 computations during incremental uploads. [PR #439](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/439) exposed a `remove_duplicates` query parameter on the `/analyze` endpoint, giving callers control over whether deduplication performs cleanup or detection only.
 
 ---
