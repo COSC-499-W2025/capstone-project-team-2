@@ -77,47 +77,140 @@ def _write_entries(path: Path, entries: Sequence[JsonEntry]) -> None:
     path.write_text(json.dumps(list(entries), indent=2), encoding="utf-8")
 
 
+def _parse_percentage(value: Any) -> Optional[float]:
+    """
+    Parse a percentage-like value into a float.
+
+    Args:
+        value: Raw percentage value such as ``42.5`` or ``"42.5%"``.
+
+    Returns:
+        Parsed percentage in the range ``0`` to ``100``, or ``None`` when invalid.
+    """
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return max(0.0, min(100.0, float(value)))
+    if isinstance(value, str):
+        cleaned = value.strip().rstrip("%").strip()
+        if not cleaned:
+            return None
+        try:
+            return max(0.0, min(100.0, float(cleaned)))
+        except Exception:
+            return None
+    return None
+
+
+def _extract_contribution_count_and_metric(data: Dict[str, Any]) -> tuple[int, str]:
+    """
+    Normalize contributor counters from git and non-git analyses.
+
+    Args:
+        data: Contributor payload that may contain file, commit, or change counts.
+
+    Returns:
+        Tuple of ``(count, metric_name)`` for ranking and display.
+    """
+    if "file_count" in data:
+        return _safe_int(data.get("file_count")), "files"
+    if "commit_count" in data:
+        return _safe_int(data.get("commit_count")), "commits"
+    if "total_changes" in data:
+        return _safe_int(data.get("total_changes")), "changes"
+
+    files_owned = data.get("files_owned")
+    if isinstance(files_owned, list):
+        return len(files_owned), "files"
+
+    return 0, "items"
+
+
 def _normalize_contributors(contributors: Optional[ContributorData]) -> ContributorData:
-    """Ensure every contributor entry contains a ``file_count`` to help ranking later."""
+    """
+    Normalize contributor fields for consistent ranking.
+
+    Args:
+        contributors: Raw contributor mapping from stored analysis data.
+
+    Returns:
+        Contributor mapping with normalized count, metric, and percentage fields.
+    """
     if not contributors:
         return {}
     out: ContributorData = {}
     for name, data in contributors.items():
         data = dict(data or {})
-        count = data.get("file_count")
-        if count is None:
-            count = len(data.get("files_owned", []))
-        try:
-            data["file_count"] = int(count)
-        except Exception:
-            data["file_count"] = 0
+        count, metric = _extract_contribution_count_and_metric(data)
+        pct = _parse_percentage(data.get("percentage"))
+
+        # Keep legacy key for compatibility with older callers.
+        if "file_count" in data:
+            data["file_count"] = _safe_int(data.get("file_count"))
+        else:
+            files_owned = data.get("files_owned")
+            data["file_count"] = len(files_owned) if isinstance(files_owned, list) else 0
+
+        data["contribution_count"] = count
+        data["contribution_metric"] = metric
+        if pct is not None:
+            data["contribution_percentage"] = pct
         out[name] = data
     return out
 
 
 def _summarize_contributors(contributors: ContributorData) -> Dict[str, Any]:
-    """Build aggregate stats for contributor information."""
+    """
+    Build aggregate contributor statistics for one project.
+
+    Args:
+        contributors: Normalized contributor mapping for the project.
+
+    Returns:
+        Summary dictionary with contributor totals, top contributor data, and metric labels.
+    """
     if not contributors:
         return {
             "contributors": 0,
             "total_file_contributions": 0,
+            "contribution_metric": "items",
             "top_contributor": None,
             "top_contribution_count": 0,
+            "top_contribution_percentage": 0.0,
         }
     total = 0
+    total_file_contributions = 0
     top_name: Optional[str] = None
     top_count = -1
+    top_pct = -1.0
+    metrics_seen: set[str] = set()
     for name, info in contributors.items():
-        c = int(info.get("file_count", 0))
+        c = _safe_int(info.get("contribution_count", info.get("file_count", 0)))
+        file_count = _safe_int(info.get("file_count", 0))
+        metric = str(info.get("contribution_metric", "items") or "items")
+        pct = _parse_percentage(info.get("contribution_percentage", info.get("percentage")))
+
         total += c
+        total_file_contributions += file_count
+        metrics_seen.add(metric)
         if c > top_count:
             top_count = c
             top_name = name
+        if pct is not None and pct > top_pct:
+            top_pct = pct
+
+    if top_pct < 0.0:
+        top_pct = (max(top_count, 0) / total * 100.0) if total > 0 else 0.0
+
+    metric_name = "mixed" if len(metrics_seen) > 1 else (next(iter(metrics_seen)) if metrics_seen else "items")
+
     return {
         "contributors": len(contributors),
-        "total_file_contributions": total,
+        "total_file_contributions": total_file_contributions,
+        "contribution_metric": metric_name,
         "top_contributor": top_name,
         "top_contribution_count": max(top_count, 0),
+        "top_contribution_percentage": round(top_pct, 2),
     }
 
 
@@ -317,28 +410,66 @@ class ProjectInsight:
     thumbnail: Optional[Dict[str, Any]] = None
     snapshot_label: Optional[str] = None
 
-    def contribution_score(self, contributor: Optional[str] = None) -> int:
+    def contribution_score(self, contributor: Optional[str] = None) -> float:
         """
-        Figure out how much "impact" a project has.
+        Return a normalized contribution score used for ranking.
 
-        If you specify a contributor, we use *their* file_count.
-        Otherwise we fall back to the top_contribution_count stored for the project.
+        Preference order:
+          - Contributor-specific ranking: percentage first, then raw count fallback.
+          - Overall ranking: top raw contribution count first, then percentage fallback.
 
         Args:
             contributor: Optional contributor name to focus scoring on.
 
         Returns:
-            Contribution score as an integer.
+            Contribution score as a float.
         """
         if contributor and contributor in self.contributors:
-            try:
-                return int(self.contributors[contributor].get("file_count", 0))
-            except Exception:
-                return 0
-        try:
-            return int(self.stats.get("top_contribution_count", 0))
-        except Exception:
-            return 0
+            info = self.contributors[contributor]
+            pct = _parse_percentage(info.get("contribution_percentage", info.get("percentage")))
+            if pct is not None:
+                return float(pct)
+            return float(_safe_int(info.get("contribution_count", info.get("file_count", 0))))
+
+        top_count = _safe_int(self.stats.get("top_contribution_count", 0))
+        if top_count > 0:
+            return float(top_count)
+
+        pct = _parse_percentage(self.stats.get("top_contribution_percentage"))
+        if pct is not None:
+            return float(pct)
+
+        return 0.0
+
+    def contribution_count(self, contributor: Optional[str] = None) -> int:
+        """
+        Return contribution volume for ranking display.
+
+        Args:
+            contributor: Optional contributor name to focus on.
+
+        Returns:
+            Raw contribution count for the selected contributor or top project contributor.
+        """
+        if contributor and contributor in self.contributors:
+            info = self.contributors[contributor]
+            return _safe_int(info.get("contribution_count", info.get("file_count", 0)))
+        return _safe_int(self.stats.get("top_contribution_count", 0))
+
+    def contribution_metric(self, contributor: Optional[str] = None) -> str:
+        """
+        Return the contribution metric label.
+
+        Args:
+            contributor: Optional contributor name to focus on.
+
+        Returns:
+            Metric label such as ``files``, ``commits``, ``changes``, or ``items``.
+        """
+        if contributor and contributor in self.contributors:
+            info = self.contributors[contributor]
+            return str(info.get("contribution_metric", "items") or "items")
+        return str(self.stats.get("contribution_metric", "items") or "items")
 
     def to_dict(self) -> JsonEntry:
         return asdict(self)
@@ -362,8 +493,10 @@ def _entry_to_dataclass(entry: JsonEntry) -> ProjectInsight:
     contrib_stats = _summarize_contributors(contributors)
     stats.setdefault("contributors", contrib_stats["contributors"])
     stats.setdefault("total_file_contributions", contrib_stats["total_file_contributions"])
+    stats.setdefault("contribution_metric", contrib_stats["contribution_metric"])
     stats.setdefault("top_contributor", contrib_stats["top_contributor"])
     stats.setdefault("top_contribution_count", contrib_stats["top_contribution_count"])
+    stats.setdefault("top_contribution_percentage", contrib_stats["top_contribution_percentage"])
     stats.setdefault("skill_count", len(skills))
 
     analyzed_at = entry.get("analyzed_at", _now_iso())

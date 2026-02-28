@@ -4,7 +4,7 @@ Shared helpers for working with project insights.
 Responsibilities:
 - Parse dates into timezone-aware datetimes
 - Filter insight objects by language, skill, or recency
-- Compute composite scores that combine contributions, recency, and skill breadth
+- Compute contribution-first ranking scores and expose rationale components
 
 These are used by menu_insights and can be reused anywhere we need consistent
 insight filtering and scoring logic.
@@ -55,32 +55,55 @@ def compute_composite_score(
     insight,
     *,
     contributor: str | None = None,
-    recency_weight: float = 10.0,
-    skill_weight: float = 0.5,
+    tie_break_scale: float = 1e-4,
 ) -> tuple[float, dict]:
     """
-    Compute a composite score that favors contribution strength, recency, and skill breadth.
+    Compute a contribution-driven ranking score.
+
+    Primary score is the normalized contribution score from ``insight.contribution_score``.
+    A tiny count-based tie-break keeps ordering stable when percentages are equal.
+
+    Args:
+        insight: Insight-like object that exposes contribution ranking helpers.
+        contributor: Optional contributor name to rank by.
+        tie_break_scale: Small multiplier applied to raw counts when breaking equal percentages.
 
     Returns:
-        (score, parts) where parts contains individual components for display.
+        Tuple of ``(score, parts)`` where ``parts`` contains user-facing rationale fields.
     """
-    base = insight.contribution_score(contributor)
-    skill_bonus = len(insight.skills) * skill_weight
+    base = float(insight.contribution_score(contributor))
 
-    analyzed = parse_date(insight.analyzed_at)
-    recency_bonus = 0.0
-    age_days = None
-    if analyzed:
-        age_days = max(0, (datetime.now(timezone.utc) - analyzed).days)
-        # Linear decay over one year
-        recency_bonus = max(0.0, recency_weight * (1 - min(age_days, 365) / 365))
+    count = 0
+    if hasattr(insight, "contribution_count"):
+        try:
+            count = int(insight.contribution_count(contributor))
+        except Exception:
+            count = 0
 
-    score = base + recency_bonus + skill_bonus
+    metric = "items"
+    if hasattr(insight, "contribution_metric"):
+        try:
+            metric = str(insight.contribution_metric(contributor) or "items")
+        except Exception:
+            metric = "items"
+
+    basis = "count"
+    contributors = getattr(insight, "contributors", {}) or {}
+    if contributor and contributor in contributors:
+        percentage_value = contributors[contributor].get("contribution_percentage")
+        if percentage_value is None:
+            percentage_value = contributors[contributor].get("percentage")
+        basis = "percentage" if percentage_value is not None else "count"
+
+    tie_break = (max(0, count) * tie_break_scale) if basis == "percentage" else 0.0
+    score = base + tie_break
+
     return score, {
-        "base": base,
-        "recency": recency_bonus,
-        "skills": skill_bonus,
-        "age_days": int(age_days) if age_days is not None else None,
+        "basis": basis,
+        "contribution": base,
+        "count": count,
+        "metric": metric,
+        "tie_break": tie_break,
     }
 
 __all__ = ["parse_date", "filter_insights", "compute_composite_score"]

@@ -187,17 +187,17 @@ def test_project_insights_menu_lists_projects(monkeypatch, tmp_path):
 
 def test_project_insights_menu_ranks_projects(monkeypatch, tmp_path):
     """
-    Insights menu should honor contributor filters and composite scoring.
+    Insights menu should honor contributor filters and contribution-driven scoring.
 
     Verifies:
     - rank_projects_by_contribution is invoked when contributor is provided
-    - Composite ranking prefers more recent, higher-skill items
+    - Higher contribution score ranks first
     """
     storage = tmp_path / "project_insights.json"
     runtimeAppContext.legacy_save_dir=tmp_path
 
     captured_rank = {}
-    # create two insights with different dates and skills to ensure composite sorting works
+    # create two insights with different dates/skills; ranking should still follow contribution score
     now = datetime.now(timezone.utc)
     recent = now.isoformat()
     old = (now - timedelta(days=200)).isoformat()
@@ -240,7 +240,7 @@ def test_project_insights_menu_ranks_projects(monkeypatch, tmp_path):
 
     mod.project_insights_menu()
     assert captured_rank.get("called") is True
-    # Verify composite ranking prefers newer project with more skills
+    # Verify ranking prefers the higher contribution score
     scores = [
         insight_helpers.compute_composite_score(insights[0])[0],
         insight_helpers.compute_composite_score(insights[1])[0],
@@ -276,7 +276,7 @@ def test_insight_helper_filter_and_score_smoke():
 
     score_recent, _ = insight_helpers.compute_composite_score(recent)
     score_stale, _ = insight_helpers.compute_composite_score(stale)
-    assert score_recent > score_stale
+    assert score_stale > score_recent
 
 @pytest.mark.skip()
 def test_settings_menu_routes_to_user_config(monkeypatch):

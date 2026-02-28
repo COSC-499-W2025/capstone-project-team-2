@@ -192,6 +192,31 @@ class TestProjectInsights(unittest.TestCase):
         )
         self.assertEqual([item.project_name for item in ranked_user], ["Gamma", "Delta"])
 
+    def test_rank_projects_by_contribution_uses_git_percentage(self) -> None:
+        """Git-based commit data should rank by percentage before raw commit volume."""
+        self._announce("Ranking git projects using contribution percentages.")
+
+        record_project_insight(
+            _analysis_payload("HighPct"),
+            storage_path=self.storage,
+            contributors={"Alice": {"commit_count": 20, "percentage": "80.00%"}},
+            insight_id="high-pct",
+        )
+        record_project_insight(
+            _analysis_payload("LowPct"),
+            storage_path=self.storage,
+            contributors={"Alice": {"commit_count": 60, "percentage": "60.00%"}},
+            insight_id="low-pct",
+        )
+
+        ranked = rank_projects_by_contribution(storage_path=self.storage, contributor="Alice")
+        self.assertEqual([item.project_name for item in ranked], ["HighPct", "LowPct"])
+
+        listed = list_project_insights(self.storage)
+        stats_by_name = {item.project_name: item.stats for item in listed}
+        self.assertEqual(stats_by_name["HighPct"]["contribution_metric"], "commits")
+        self.assertEqual(stats_by_name["LowPct"]["contribution_metric"], "commits")
+
     def test_rank_projects_by_contribution_top_n_zero(self) -> None:
         """top_n=0 should yield an empty result instead of all items."""
         self._announce("Verifying top_n=0 returns an empty ranking.")

@@ -4,7 +4,7 @@ Menu for browsing stored project insights: chronology, skills, rankings, and sum
 Provides an interactive CLI loop that:
 - Lists projects chronologically with stack and summaries
 - Shows skill timelines with optional filtering
-- Ranks projects via composite scoring (contrib + recency + skills)
+- Ranks projects by contribution strength (percentage + volume tie-break)
 - Surfaces top-ranked summaries with rationale
 
 Kept separate from menus.py to keep navigation wiring lean.
@@ -168,16 +168,19 @@ def project_insights_menu() -> None:
                 if not ranked:
                     print("[INFO] No insights recorded yet.")
                 else:
-                    print("\nProject ranking:\n")
+                    print("\nProject ranking (by contribution):\n")
                     for i, item in enumerate(ranked, start=1):
                         score, parts = compute_composite_score(item, contributor=contributor)
-                        reason = (
-                            f"base={parts['base']}, "
-                            f"recency={parts['recency']:.2f}, "
-                            f"skills={parts['skills']:.2f}"
-                        )
+                        contribution_value = parts["contribution"]
+                        basis = parts.get("basis", "count")
+                        metric = parts.get("metric", "items")
+                        count = parts.get("count", 0)
+                        if basis == "percentage":
+                            reason = f"contribution={contribution_value:.2f}% | volume={count} {metric}"
+                        else:
+                            reason = f"contribution={int(round(contribution_value))} {metric}"
                         print(
-                            f"{i}) {item.project_name} | composite={score:.2f} | "
+                            f"{i}) {item.project_name} | "
                             f"contributors={item.stats.get('contributors')} | {reason}"
                         )
                 input("\nPress Enter to continue...")
@@ -223,13 +226,15 @@ def project_insights_menu() -> None:
                     print("\nTop-ranked project summaries:\n")
                     for i, insight in enumerate(summaries, start=1):
                         score, parts = compute_composite_score(insight, contributor=contributor)
-                        rationale = (
-                            f"base={parts['base']}, recency={parts['recency']:.2f}, "
-                            f"skills={parts['skills']:.2f}"
-                        )
-                        print(
-                            f"{i}) {insight.project_name} | composite={score:.2f}"
-                        )
+                        contribution_value = parts["contribution"]
+                        basis = parts.get("basis", "count")
+                        metric = parts.get("metric", "items")
+                        count = parts.get("count", 0)
+                        if basis == "percentage":
+                            rationale = f"contribution={contribution_value:.2f}% | volume={count} {metric}"
+                        else:
+                            rationale = f"contribution={int(round(contribution_value))} {metric}"
+                        print(f"{i}) {insight.project_name}")
                         print(f"    summary: {insight.summary or '—'}")
                         print(f"    rationale: {rationale}")
                 input("\nPress Enter to continue...")
