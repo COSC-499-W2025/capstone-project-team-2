@@ -5,6 +5,8 @@ from src.core.analysis_service import analyze_project, extract_if_zip
 from src.core.app_context import runtimeAppContext
 from src.API.analysis_API import perform_analysis_API
 import os
+import threading
+_write_lock = threading.Lock()
 
 def single_project_run(args: tuple) -> dict:
     path, use_ai = args
@@ -12,7 +14,8 @@ def single_project_run(args: tuple) -> dict:
 
     try:
         folder = extract_if_zip(folder_path) if folder_path.suffix.lower() == ".zip" else folder_path
-        result = analyze_project(folder, use_ai_analysis=use_ai) or {}
+        with _write_lock:
+            result = analyze_project(folder, use_ai_analysis=use_ai) or {}
         return {
             "status": "Analysis Finished and Saved",
             "dedup": result.get("dedup"),
