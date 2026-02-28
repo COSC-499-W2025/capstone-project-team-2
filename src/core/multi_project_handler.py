@@ -22,7 +22,7 @@ def single_project_run(args: tuple) -> dict:
         return {"status": str(e), "dedup": None}
 
 class multi_project_handler:
-
+    @staticmethod
     def multi_project_runner(paths: list, use_ai: bool = False) -> None:
         workers = min(len(paths), os.cpu_count())
         ordered_results = {str(p): None for p in paths}
