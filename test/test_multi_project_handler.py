@@ -85,25 +85,29 @@ class TestFilePassing:
         assert len(success_count) == 2
 
     def test_concurrent_writes_are_serialized(self):
-        """analyze_project should never be called concurrently across threads"""
+        """record_project_insight and export_json should never be called concurrently"""
         import threading
         paths = ["/proj/a", "/proj/b", "/proj/c"]
         active_count = []
         max_concurrent = [0]
         lock = threading.Lock()
 
-        def mock_analyze(folder, use_ai_analysis=False):
+        def mock_export(project_name, analysis):
             with lock:
                 active_count.append(1)
                 max_concurrent[0] = max(max_concurrent[0], len(active_count))
             import time
-            time.sleep(0.05)  # simulate work
+            time.sleep(0.05)
             with lock:
                 active_count.pop()
-            return {"dedup": None, "snapshots": []}
+            return {"skipped": False, "snapshots": []}
 
-        with patch("src.core.multi_project_handler.extract_if_zip", MagicMock(side_effect=lambda p: p)), \
-            patch("src.core.multi_project_handler.analyze_project", side_effect=mock_analyze):
+        with patch("src.core.analysis_service.export_json", side_effect=mock_export), \
+            patch("src.core.multi_project_handler.extract_if_zip", MagicMock(side_effect=lambda p: p)), \
+            patch("src.core.analysis_service.record_project_insight", MagicMock(return_value=None)), \
+            patch("src.core.analysis_service.deduplicate_project", MagicMock(return_value=MagicMock(
+             unique_files=0, duplicate_files=0, duplicates=[], index_size=0, removed=0
+            ))):
             multi_project_handler.multi_project_runner(paths)
 
         assert max_concurrent[0] == 1, f"Expected max 1 concurrent write, got {max_concurrent[0]}"

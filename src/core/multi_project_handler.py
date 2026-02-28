@@ -14,8 +14,7 @@ def single_project_run(args: tuple) -> dict:
 
     try:
         folder = extract_if_zip(folder_path) if folder_path.suffix.lower() == ".zip" else folder_path
-        with _write_lock:
-            result = analyze_project(folder, use_ai_analysis=use_ai) or {}
+        result = analyze_project(folder, use_ai_analysis=use_ai) or {}
         return {
             "status": "Analysis Finished and Saved",
             "dedup": result.get("dedup"),

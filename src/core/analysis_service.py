@@ -2,6 +2,7 @@ import copy
 import datetime
 import json
 import logging
+import threading
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -28,6 +29,8 @@ from src.reporting.portfolio_service import (
     build_portfolio_showcase,
 )
 from src.analysis.file_traverser import ProjectTraversalModule
+
+_write_lock = threading.Lock()
 
 def extract_if_zip(zip_path: Path | UploadFile) -> Path:
     """
@@ -278,16 +281,16 @@ def analyze_project(
      
     #Project insights likely needs to be rebuilt
     snapshot_label = datetime.datetime.now(tz=datetime.timezone.utc).isoformat()
-
-    try:
-        insight = record_project_insight(
-            analysis,
-            contributors=contributors_data,
-            snapshot_label=snapshot_label,
-        )
-    except Exception as e:
-        logging.warning(f"Failed to record project insight (optional): {e}")
-        insight = None 
+    with _write_lock:
+        try:
+            insight = record_project_insight(
+                analysis,
+                contributors=contributors_data,
+                snapshot_label=snapshot_label,
+            )
+        except Exception as e:
+            logging.warning(f"Failed to record project insight (optional): {e}")
+            insight = None 
 
     #Need to remember this exists but also this can't be here
     #portfolio_yaml = load_portfolio_showcase(display_name)
@@ -298,20 +301,20 @@ def analyze_project(
     #    display_portfolio_showcase(ps)
     #    return
 
-    dedup_result = deduplicate_project(
-        root,
-        Path(runtimeAppContext.default_save_dir) / "dedup_index.json",
-        remove_duplicates=remove_duplicates,
-    )
-    analysis["dedup"] = {
-        "unique_files": dedup_result.unique_files,
-        "duplicate_files": dedup_result.duplicate_files,
-        "duplicates": dedup_result.duplicates,
-        "index_size": dedup_result.index_size,
-        "removed": dedup_result.removed,
-    }
+        dedup_result = deduplicate_project(
+            root,
+            Path(runtimeAppContext.default_save_dir) / "dedup_index.json",
+            remove_duplicates=remove_duplicates,
+        )
+        analysis["dedup"] = {
+            "unique_files": dedup_result.unique_files,
+            "duplicate_files": dedup_result.duplicate_files,
+            "duplicates": dedup_result.duplicates,
+            "index_size": dedup_result.index_size,
+            "removed": dedup_result.removed,
+        }
 
-    export_meta = export_json(display_name, convert_datetime_to_string(analysis)) or {}
+        export_meta = export_json(display_name, convert_datetime_to_string(analysis)) or {}
     return {
         "dedup": analysis["dedup"],
         "snapshots": export_meta.get("snapshots", []),
