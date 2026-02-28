@@ -5,6 +5,8 @@
 ## Quick Navigation
 
 ### Term 2
+- [Week 22 (02/23/2026 – 03/01/2026)](#-personal-log--week-22-02232026--03012026)
+- [Week 21 - Bonus Week (02/16/2026 – 02/22/2026)](#-personal-log--week-21---bonus-week-02162026--02222026)
 - [Week 20 (02/09/2026 – 02/15/2026)](#-personal-log--week-20-02092026--02152026)
 - [Week 19 (02/02/2026 – 02/08/2026)](#-personal-log--week-19-02022026--02082026)
 - [Week 18 (01/26/2026 – 02/01/2026)](#-personal-log--week-18-01262026--02012026)
@@ -1795,5 +1797,155 @@ The second task was addressing the default save config issue ([#401](https://git
 The third task was a significant refactor of the AI resume generation system ([#373](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/373)). The previous implementation scanned the filesystem to gather project data for generating resume lines, which was fragile — project files or derived data could be deleted, moved, or renamed, leading to errors and inconsistent AI outputs. The refactored version now uses database-stored Project Insights as the authoritative data source, achieving deterministic outputs, eliminating filesystem dependencies, and providing clear separation between data persistence and AI generation logic.
 
 Overall, this week reinforced the importance of robust data management — both in how we handle file uploads and how we source data for AI features. By grounding our systems in database-stored state rather than filesystem assumptions, we've made the application more reliable and maintainable going forward.
+
+---
+
+
+# 📝 Personal Log – Week 21 - Bonus Week (02/16/2026 – 02/22/2026)
+
+## 📊 Peer Evaluation
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/1-16-2026.png)
+
+---
+---
+
+## 🔗 Connection to Previous Week
+
+Following Week 20's bug fixes and refactoring work, this bonus week focused on adding some additonally endpoints the Resume and portofilo api system and intergration 
+
+---
+
+## 🚀 Work Completed
+
+### Coding Tasks
+- Integrated updated AI resume generation (Ver2) into the document generator pipeline, replacing the older Ver1 with GenerateResumeAI_Ver2 to enable AI-powered resume entry generation from database-stored project data ([PR #419](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/419))
+- Added multi-format rendering support (PDF, HTML, Markdown) to the Resume and Portfolio APIs, including new export endpoints for saving rendered files to default or user-specified locations ([PR #415](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/415))
+
+### Testing/Debugging Tasks
+- Wrote 9 unit tests for the AI resume generation Ver2 integration, covering project addition and modification workflows with optional date entry and preservation of existing project data; all tests passed locally and in Docker ([PR #419](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/419))
+- Wrote 37 tests and 6 subtests for the multi-format rendering endpoints (PDF, HTML, Markdown), covering success paths, export to default and custom locations, and error scenarios for both Resume and Portfolio APIs; all tests passed locally and in Docker ([PR #415](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/415))
+
+### Reviewing/Collaboration Tasks
+- Reviewed PR (2nd reviewer): [Added error handling for save_config method #427](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/427)
+- Reviewed PR (1st reviewer): [Incremental Uploads with Snapshot Aware Insights #422](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/422)
+- Reviewed PR (2nd reviewer): [Fixed error handling in load method to raise appropriate errors to the API #429](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/429)
+- Reviewed PR (1st reviewer): [Add endpoint reference and required endpoint test coverage #435](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/435)
+
+---
+
+## 📌 Associated Tasks from Project Board
+- [Feature Request: Support Multiple Generation Types in APIs (Resume & Portfolio) #414](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/414)
+
+---
+
+## 📈 Progress Update
+
+| Task/Issue | Status |
+|------------|--------|
+| **AI resume generation Ver2 integration** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Multi-format rendering support for Resume and Portfolio APIs** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+
+---
+
+## ⚠️ Issues/Blockers
+
+- **PR #419 - Changes requested by mahigangal**: The code was using `version_count` from the database query, but the database actually returns `total_versions`, causing incorrect version numbers to display in the CLI (usually showing 1). Fixed by updating the code and tests to use `total_versions` — mahigangal approved after the fix.
+- **PR #415 - Changes requested by Puneet-Maan**: The resume endpoint needed to attempt fetching both the raw project name and the `.json` suffixed version to prevent 404 errors for stored projects using the `.json` suffix. Updated the endpoint logic accordingly.
+- **PR #415 - Changes requested by mahigangal**: Legacy compatibility routes needed to be added for the old `/resume/{id}/render` and `/portfolio/{portfolio_id}/render` endpoints (without the `{format}` parameter) so that older clients calling those paths would not receive 404 errors. Added the legacy routes and both reviewers approved.
+
+---
+
+## 🎯 Next Week's Goals
+- Made sure that stuff is ready for milestone 2 submission
+- begin to working/start on frontend intergreation
+- add missing endpoints(delete endpoints for education, experiece, and projects)
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 21 - Bonus Week/Reading Break)
+
+**Week 21 - Bonus Week** was focused on extending the Resume and Portfolio API system with new capabilities and improving overall code quality ahead of the Milestone 2 submission.
+
+The first major task was integrating the updated AI resume generation (Ver2) into the document generator pipeline ([PR #419](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/419)). The previous Ver1 implementation was replaced with GenerateResumeAI_Ver2, which pulls project data directly from the database rather than relying on filesystem scanning. This makes resume generation more reliable and consistent. The update also added support for optional date entry and ensures that existing project information is preserved when modifying entries. 9 unit tests were written to verify the new workflows, all of which passed locally and in Docker.
+
+The second task was adding multi-format rendering support to both the Resume and Portfolio APIs ([PR #415](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/415)). Previously, the APIs only supported PDF output. This PR extended the render endpoints with a `{format}` path parameter to support PDF, HTML, and Markdown output. New export endpoints were also introduced, allowing users to save rendered files to either a default project directory or a custom location. Shared helper functions were added to reduce code duplication across the two APIs, and a missing import in the Portfolio Generator was fixed along the way. Test coverage for this PR was comprehensive — 37 tests and 6 subtests covering all three formats, export paths, and error scenarios.
+
+Beyond coding, this week also involved reviewing 4 PRs across the team, covering error handling improvements for the save_config and load methods, snapshot-aware incremental uploads, and API documentation and endpoint test coverage.
+
+Both of my PRs this week also went through change request cycles. PR #415 received requests from two reviewers — Puneet-Maan flagged a 404 issue with the `.json` suffix on project names, and mahigangal requested legacy compatibility routes be added for older clients. PR #419 had a field naming mismatch (`version_count` vs `total_versions`) caught by mahigangal. Addressing these change requests reinforced the value of thorough code review in catching edge cases that aren't always obvious during development.
+
+Overall, this bonus week made meaningful progress in advancing the API layer toward frontend integration readiness for milestone 2 submission.
+
+---
+
+# 📝 Personal Log – Week 22 (02/23/2026 – 03/01/2026)
+
+## 📊 Peer Evaluation
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/28-02-2026.png)
+
+
+---
+---
+
+## 🔗 Connection to Previous Week
+
+Following Week 21's work on multi-format rendering and AI resume generation integration, this week focused on filling in the remaining CRUD endpoint gaps in the Resume and Portfolio APIs to bring the backend closer to frontend integration readiness.
+
+---
+
+## 🚀 Work Completed
+
+### Coding Tasks
+- Added missing CRUD endpoints to both the Resume and Portfolio APIs, including POST endpoints for creating new education and experience entries and DELETE endpoints for removing education, experience, and project records. Also added default render and export endpoints for the Portfolio API ([PR #440](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/440))
+
+### Testing/Debugging Tasks
+- Wrote 16 new consolidated test methods (11 for Resume API, 5 for Portfolio API) covering success/failure scenarios for removal endpoints, payload override validation, format defaulting to PDF, and error handling (404, 409, 500 responses); all 53 tests pass ([PR #440](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/440))
+
+### Reviewing/Collaboration Tasks
+- Reviewed PR (1st reviewer): [Multi project upload and completion #448](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/448)
+- Reviewed PR (1st reviewer): [Optimize dedup pipeline with metadata precheck and hash cache #437](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/437)
+- Reviewed PR (1st reviewer): [Expose dedup cleanup toggle in GET /analyze and document behavior #439](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/439)
+
+---
+
+## 📌 Associated Tasks from Project Board
+- [Missing Resume and Portfolio API endpoints #441](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/441)
+
+---
+
+## 📈 Progress Update
+
+| Task/Issue | Status |
+|------------|--------|
+| **Missing Resume and Portfolio API endpoints (PR #440)** |  ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed PR #448 - Multi project upload and completion** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed PR #437 - Dedup pipeline optimization** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed PR #439 - Dedup cleanup toggle** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+
+---
+
+## ⚠️ Issues/Blockers
+
+- **PR #440 - Changes requested by Puneet-Maan**: Two edge cases in the Resume API's delete endpoints were flagged where empty lists were returning HTTP 200 instead of 404 — specifically when `remove_education()` returns "No education to delete" and when `remove_experience()` returns "No experience to delete". Two additional test cases were also requested to cover these scenarios. Fixed the status codes and added the tests; Puneet-Maan approved after the changes.
+
+---
+
+## 🎯 Next Week's Goals
+- Begin to start working on milestone 3 requirements(**Frontend**)
+- Work on the resume and portfilolo frontend 
+- Setting up Frontend systems(**Streamlit frontend Setup**)
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 22)
+
+For **Week 22**, my primary focus was completing the CRUD endpoint coverage for the Resume and Portfolio API system ([PR #440](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/440)). During this work, I identified several missing endpoints across both APIs: POST endpoints for creating education and experience entries, and DELETE endpoints for removing education, experience, and project records. I also updated the Portfolio API to include the default render and export endpoints already established in the Resume API. To address these gaps, the PR introduces 573 lines of new code across 4 files, along with 16 new test methods. These tests ensure comprehensive coverage for the new endpoints, validating success paths, error handling, and edge cases. All 53 tests passed locally, and the PR has been successfully merged into the development branch with no further issues
+
+
+On the review side, I reviwed three PRs for my teammates and this
+included the following PRs where I as acted as the first reviwer
+- [PR #448](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/448) added multi-project upload and completion support — I initially requested changes before approving, reflecting a thorough review rather than a 
+- rubber-stamp. [PR #437](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/437) optimized the dedup pipeline by introducing a metadata precheck and hash cache to avoid redundant SHA-256 computations during incremental uploads.
+- [PR #439](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/439) exposed a `remove_duplicates` query parameter on the `/analyze` endpoint, giving callers control over whether deduplication performs cleanup or detection only.
 
 ---
