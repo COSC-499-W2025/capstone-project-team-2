@@ -47,7 +47,7 @@ from src.reporting.Generate_AI_Resume import GenerateProjectResume, GenerateLoca
 from src.reporting.resume_pdf_generator import SimpleResumeGenerator
 from src.cli.document_generator_menu import document_generator_menu
 from src.API.consent_API import *
-from src.cli.multi_project_handler import multi_project_handler
+from src.core.multi_project_handler import multi_project_handler
 import os
 
 
