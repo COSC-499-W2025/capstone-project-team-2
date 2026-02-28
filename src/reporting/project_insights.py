@@ -112,12 +112,15 @@ def _extract_contribution_count_and_metric(data: Dict[str, Any]) -> tuple[int, s
     Returns:
         Tuple of ``(count, metric_name)`` for ranking and display.
     """
-    if "file_count" in data:
-        return _safe_int(data.get("file_count")), "files"
+    if "contribution_count" in data:
+        metric = str(data.get("contribution_metric", "items") or "items")
+        return _safe_int(data.get("contribution_count")), metric
     if "commit_count" in data:
         return _safe_int(data.get("commit_count")), "commits"
     if "total_changes" in data:
         return _safe_int(data.get("total_changes")), "changes"
+    if "file_count" in data:
+        return _safe_int(data.get("file_count")), "files"
 
     files_owned = data.get("files_owned")
     if isinstance(files_owned, list):
@@ -424,7 +427,10 @@ class ProjectInsight:
         Returns:
             Contribution score as a float.
         """
-        if contributor and contributor in self.contributors:
+        if contributor:
+            if contributor not in self.contributors:
+                return 0.0
+
             info = self.contributors[contributor]
             pct = _parse_percentage(info.get("contribution_percentage", info.get("percentage")))
             if pct is not None:
@@ -631,7 +637,10 @@ def rank_projects_by_contribution(
     """
     ranked = sorted(
         list_project_insights(storage_path),
-        key=lambda i: i.contribution_score(contributor),
+        key=lambda i: (
+            i.contribution_score(contributor),
+            i.contribution_count(contributor),
+        ),
         reverse=True,
     )
     if top_n is None:

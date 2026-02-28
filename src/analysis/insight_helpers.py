@@ -93,6 +93,8 @@ def compute_composite_score(
         percentage_value = contributors[contributor].get("contribution_percentage")
         if percentage_value is None:
             percentage_value = contributors[contributor].get("percentage")
+        if percentage_value is None and float(base).is_integer() and 0.0 <= base <= 100.0:
+            percentage_value = float(base)
         basis = "percentage" if percentage_value is not None else "count"
 
     tie_break = (max(0, count) * tie_break_scale) if basis == "percentage" else 0.0
