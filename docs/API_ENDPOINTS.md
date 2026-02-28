@@ -244,6 +244,73 @@ Router prefix: `/representation`
   - `404` resume or project record not found
   - `500` add/save failure
 
+### `DELETE /resume/{id}/project/{project_name}`
+- Purpose: remove a project entry from a resume by exact project name.
+- Path:
+  - `id` = resume identifier
+  - `project_name` = exact project name to remove
+- Returns `200`:
+  - `{"status":"Successfully removed ..."}`
+- Errors:
+  - `404` resume or project not found
+
+### `POST /resume/{id}/add/education`
+- Purpose: add a new education entry to a resume.
+- Path:
+  - `id` = resume identifier
+- JSON body:
+  - `institution` (string, required)
+  - `area` (optional string)
+  - `degree` (optional string)
+  - `start_date` (optional string)
+  - `end_date` (optional string)
+  - `location` (optional string)
+  - `gpa` (optional string)
+  - `highlights` (optional list of strings)
+- Returns `200`:
+  - `{"status":"Successfully added education"}`
+- Errors:
+  - `400` invalid payload or add failure
+  - `404` resume not found
+  - `409` duplicate institution
+
+### `DELETE /resume/{id}/education/{institution_name}`
+- Purpose: remove an education entry from a resume by institution name.
+- Path:
+  - `id` = resume identifier
+  - `institution_name` = exact institution name to remove
+- Returns `200`:
+  - `{"status":"Successfully removed ..."}`
+- Errors:
+  - `404` resume or institution not found
+
+### `POST /resume/{id}/add/experience`
+- Purpose: add a new experience entry to a resume.
+- Path:
+  - `id` = resume identifier
+- JSON body:
+  - `company` (string, required)
+  - `position` (optional string)
+  - `start_date` (optional string)
+  - `end_date` (optional string)
+  - `location` (optional string)
+  - `highlights` (optional list of strings)
+- Returns `200`:
+  - `{"status":"Successfully added experience"}`
+- Errors:
+  - `400` invalid payload or add failure
+  - `404` resume not found
+
+### `DELETE /resume/{id}/experience/{company_name}`
+- Purpose: remove an experience entry from a resume by company name.
+- Path:
+  - `id` = resume identifier
+  - `company_name` = exact company name to remove
+- Returns `200`:
+  - `{"status":"Successfully removed ..."}`
+- Errors:
+  - `404` resume or company not found
+
 ### `DELETE /resume/{id}`
 - Purpose: delete resume YAML file.
 - Returns `200`:
@@ -312,6 +379,16 @@ Router prefix: `/representation`
   - `404` portfolio/project not found, or missing `resume_item`
   - `500` add/save failure
 
+### `DELETE /portfolio/{portfolio_id}/project/{project_name}`
+- Purpose: remove a project entry from a portfolio by exact project name.
+- Path:
+  - `portfolio_id` = portfolio identifier
+  - `project_name` = exact project name to remove
+- Returns `200`:
+  - `{"status":"Successfully removed ..."}`
+- Errors:
+  - `404` portfolio or project not found
+
 ### `POST /portfolio/{portfolio_id}/render`
 - Purpose: render portfolio as PDF.
 - Equivalent to: `POST /portfolio/{portfolio_id}/render/pdf`
@@ -372,9 +449,15 @@ All required endpoints are implemented and tested over HTTP style requests using
 | `GET /resume/{id}` | `GET /resume/{id}` | `test/test_resume_generator_API.py` |
 | `POST /resume/generate` | `POST /resume/generate` | `test/test_resume_generator_API.py` |
 | `POST /resume/{id}/edit` | `POST /resume/{id}/edit` | `test/test_resume_generator_API.py` |
+| `DELETE /resume/{id}/project/{project_name}` | `DELETE /resume/{id}/project/{project_name}` | `test/test_resume_generator_API.py` |
+| `POST /resume/{id}/add/education` | `POST /resume/{id}/add/education` | `test/test_resume_generator_API.py` |
+| `DELETE /resume/{id}/education/{institution_name}` | `DELETE /resume/{id}/education/{institution_name}` | `test/test_resume_generator_API.py` |
+| `POST /resume/{id}/add/experience` | `POST /resume/{id}/add/experience` | `test/test_resume_generator_API.py` |
+| `DELETE /resume/{id}/experience/{company_name}` | `DELETE /resume/{id}/experience/{company_name}` | `test/test_resume_generator_API.py` |
 | `GET /portfolio/{id}` | `GET /portfolio/{portfolio_id}` | `test/test_portfolio_generator_API.py` |
 | `POST /portfolio/generate` | `POST /portfolio/generate` | `test/test_portfolio_generator_API.py` |
 | `POST /portfolio/{id}/edit` | `POST /portfolio/{portfolio_id}/edit` | `test/test_portfolio_generator_API.py` |
+| `DELETE /portfolio/{id}/project/{project_name}` | `DELETE /portfolio/{portfolio_id}/project/{project_name}` | `test/test_portfolio_generator_API.py` |
 
 ## Route Coverage
 
