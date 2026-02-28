@@ -19,7 +19,7 @@ def single_project_run(args: tuple) -> dict:
             "snapshots": result.get("snapshots", []),
         }
     except Exception as e:
-        return {"status": str(e), "dedup": None}
+        return {"error": str(e), "dedup": None}
 
 class multi_project_handler:
     @staticmethod
