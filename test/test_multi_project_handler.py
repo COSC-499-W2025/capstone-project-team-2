@@ -7,37 +7,28 @@ from src.core.multi_project_handler import single_project_run, multi_project_han
 
 class TestFilePassing:
 
-    def test_path_set_on_context(self):
-        """Path should be assigned to runtimeAppContext before API is called"""
-        mock_context = MagicMock()
-        mock_api = MagicMock(return_value={"status": "Analysis Finished and Saved"})
+    def test_zip_path_extracted_first(self):
+        """ZIP paths should be passed to extract_if_zip before analysis"""
+        mock_extract = MagicMock(return_value=Path("/tmp/extracted"))
+        mock_analyze = MagicMock(return_value={"dedup": None, "snapshots": []})
 
-        with patch("src.core.multi_project_handler.runtimeAppContext", mock_context), \
-             patch("src.core.multi_project_handler.perform_analysis_API", mock_api):
-            single_project_run(("/projects/my_app", False))
-
-        assert mock_context.currently_uploaded_file == Path("/projects/my_app")
-
-    def test_string_path_converted_to_path_object(self):
-        """String paths should be converted to Path objects before context assignment"""
-        mock_context = MagicMock()
-
-        with patch("src.core.multi_project_handler.runtimeAppContext", mock_context), \
-             patch("src.core.multi_project_handler.perform_analysis_API", MagicMock(return_value={})):
-            single_project_run(("/string/path", False))
-
-        assert isinstance(mock_context.currently_uploaded_file, Path)
-
-    def test_zip_path_passed_correctly(self):
-        """ZIP file paths should be passed through as-is for the API to handle"""
-        mock_context = MagicMock()
-
-        with patch("src.core.multi_project_handler.runtimeAppContext", mock_context), \
-             patch("src.core.multi_project_handler.perform_analysis_API", MagicMock(return_value={})):
+        with patch("src.core.multi_project_handler.extract_if_zip", mock_extract), \
+             patch("src.core.multi_project_handler.analyze_project", mock_analyze):
             single_project_run(("/projects/archive.zip", False))
 
-        assert mock_context.currently_uploaded_file == Path("/projects/archive.zip")
+        mock_extract.assert_called_once_with(Path("/projects/archive.zip"))
 
+    def test_directory_skips_extraction(self):
+        """Directory paths should skip extract_if_zip entirely"""
+        mock_extract = MagicMock()
+        mock_analyze = MagicMock(return_value={"dedup": None, "snapshots": []})
+
+        with patch("src.core.multi_project_handler.extract_if_zip", mock_extract), \
+             patch("src.core.multi_project_handler.analyze_project", mock_analyze):
+            single_project_run(("/projects/my_app", False))
+
+        mock_extract.assert_not_called()
+        
     def test_all_paths_submitted(self):
         """Every path in the list should be submitted for analysis"""
         paths = ["/proj/a", "/proj/b", "/proj/c"]
