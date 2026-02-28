@@ -47,7 +47,7 @@
 ### Extra Details:
 
 <details>
-For the prior two weeks I have put a larger emphasis on completing work for other classes and my midterms. I didnt contribute any new PR's during reading break, the PR's that I did contribute are from before/ after the break. first one being Timestamp primary key, which is an iteration on a prior PR which altered the primary key of our databse to project name. the second pr done with week multiproject uploads allows for users to upload multiple projects at the same time and our program will analyze them all at once returning several analyzed files at the samme time. this is done through parrallelizing our input code and assisgning worker to proform analysis on each project independently. I have also been working on the team log for this week as the video demo in tandem with samantha
+For the prior two weeks I have put a larger emphasis on completing work for other classes and my midterms. I didnt contribute any new PR's during reading break, the PR's that I did contribute are from before/ after the break. first one being Timestamp primary key, which is an iteration on a prior PR which altered the primary key of our databse to project name. the second pr done with week multiproject uploads allows for users to upload multiple projects at the same time and our program will analyze them all at once returning several analyzed files at the samme time. this is done through parrallelizing our input code and assisgning worker to proform analysis on each project independently. I have also been working on the team log for this week with mahi working on prior weeks, as well as the video demo in tandem with samantha.
 </details>
 
 ## Dates of Sprint: (1/27/2026 – 2/8/2026)
