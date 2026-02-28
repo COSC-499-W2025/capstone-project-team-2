@@ -1,3 +1,55 @@
+## Dates of Sprint: (02/08/2026 – 02/29/2026)
+
+### Peer Eval Screenshot:
+
+<img width="1092" height="626" alt="image" src= "https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Cameron-Personal-Logs/docs/logs/peer_eval_screenshots/PL_Cameron_02_28_26.png" />
+
+
+### Features Worked on this sprint (Provide sufficient detail)
+  * #1: Multi-project uploads
+  * #2: Demo Video
+
+
+
+### Tasks for Prior Week
+  * Timstamp primary key
+
+
+
+
+
+## Associated Tasks from Project Board:
+
+| Description        | Status   |
+| ------------------ | -------- |
+| [Database Versioning]  | [Complete] |
+| [Timstamp primary key]  | [Complete] |
+
+
+## Published PRs (Excluding PL/TLs)
+ * [Multi-project uploads](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/448)
+ * [Timstamp primary key](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/408)
+
+
+
+## Reviewed PRs
+  * [fix ranking and clarity about the metrics#445](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/445)
+  * [433 implement thumbnail management as api endpoints#434](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/434)
+  * [401 default save config issue#402](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/402)
+  * [Fix project re-analysis, versioning, and duplicate detection#400](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/400)
+
+
+
+---
+## Next week goals
+- N/A until team meeting
+
+### Extra Details:
+
+<details>
+For the prior two weeks I have put a larger emphasis on completing work for other classes and my midterms. I didnt contribute any new PR's during reading break, the PR's that I did contribute are from before/ after the break. first one being Timestamp primary key, which is an iteration on a prior PR which altered the primary key of our databse to project name. the second pr done with week multiproject uploads allows for users to upload multiple projects at the same time and our program will analyze them all at once returning several analyzed files at the samme time. this is done through parrallelizing our input code and assisgning worker to proform analysis on each project independently. I have also been working on the team log for this week as the video demo in tandem with samantha
+</details>
+
 ## Dates of Sprint: (1/27/2026 – 2/8/2026)
 
 ### Peer Eval Screenshot:
