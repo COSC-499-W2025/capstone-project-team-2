@@ -34,31 +34,7 @@ def return_insight_projects_chronological(language: str | None = None, skill: st
 
     since_dt = parse_date(since_str)
 
-    projects_dicts = None
-    try:
-        preferred = apply_preferences()
-        projects = [
-            p
-            for p in preferred.get("projects", [])
-            if parse_date(p.get("analyzed_at")) is not None
-        ]
-    except FileNotFoundError:
-        projects = list_project_insights(storage_path=storage_path)
-    if projects and isinstance(projects[0], dict):
-        # convert dicts to a simple namespace for reuse
-        projects_dicts = projects
-        normalized = []
-        for p in projects:
-            ns = type("Insight", (), {})()
-            ns.project_name = p.get("project_name", "unknown")
-            ns.analyzed_at = p.get("analyzed_at", "")
-            ns.project_type = p.get("project_type", "unknown")
-            ns.detection_mode = p.get("detection_mode", "")
-            ns.languages = p.get("languages", []) or []
-            ns.frameworks = p.get("frameworks", []) or []
-            ns.summary = p.get("summary", "")
-            normalized.append(ns)
-        projects = normalized
+    projects = list_project_insights(storage_path=storage_path)
     projects = filter_insights(
         projects,
         language=language,
@@ -67,14 +43,8 @@ def return_insight_projects_chronological(language: str | None = None, skill: st
     )
     #cannot return namespaces or ProjectInsight objects through api calls so we need to convert to dicts
     filtered_projects = []
-    if projects_dicts:
-        for p in projects:
-            for d in projects_dicts:
-                if d.get("project_name", "unknown") == p.project_name:
-                    filtered_projects.append(d)
-    else:
-        for p in projects:
-            filtered_projects.append(p.to_dict())
+    for p in projects:
+        filtered_projects.append(p.to_dict())
     return filtered_projects
 
 @insights_router.get("/skills")
