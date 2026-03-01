@@ -47,6 +47,7 @@ from src.reporting.Generate_AI_Resume import GenerateProjectResume, GenerateLoca
 from src.reporting.resume_pdf_generator import SimpleResumeGenerator
 from src.cli.document_generator_menu import document_generator_menu
 from src.API.consent_API import *
+from src.core.multi_project_handler import multi_project_handler
 import os
 
 
@@ -317,6 +318,7 @@ def analyze_project_menu() -> None:
         print("\nChoose input type:")
         print("  1) Directory")
         print("  2) ZIP file")
+        print("  3) Multi-file upload")
         print("  0) Exit to Main Menu")
 
         choice = input("Select an option: ").strip()
@@ -338,10 +340,24 @@ def analyze_project_menu() -> None:
                     continue
                 runtimeAppContext.currently_uploaded_file = zip_path
                 status = perform_analysis_API(use_ai=use_ai)
+            elif choice == "3":
+                paths = []
+                print("Enter project paths one by one (directory or zip). Empty line when done:")
+                while True:
+                    p = input("Path (or blank to finish): ").strip()
+                    if not p:
+                        break
+                    paths.append(p)
+
+                if paths:
+                    multi_project_handler.multi_project_runner(paths, use_ai=use_ai)
+                    return
+                else:
+                     continue
             elif choice == "0":
                 return
             else:
-                print("Please choose a valid option (0–2).")
+                print("Please choose a valid option (0–3).")
                 continue
                 
             if (status):
