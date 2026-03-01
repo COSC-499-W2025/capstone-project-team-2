@@ -1,5 +1,6 @@
 ### Navigation
 ## Term 2
+- [Week 6-8](#t2-week-6-8-02092026--020282026)
 - [Week 4/5](#t2-week-45-01262026--02082026)
 - [Week 3](#t2-week-3-01192025--01252025)
 - [Week 2](#t2-week-2-01122025--01182025)
@@ -16,6 +17,134 @@
 - [Week 5](#week-5-09292025---10052025)
 - [Week 4](#week-4-09222025---09282025)
 - [Week 3](#week-3-09152025---09212025)
+
+## T2 Week 6-8 (02/09/2026- 02/028/2026)
+### Task Types Worked On (Screenshot from Peer Eval)
+<img width="885" height="645" alt="image" src="https://github.com/user-attachments/assets/0b341711-4dd4-4749-a358-b38dbb66779d" />
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: continued converting refactoring error handling 
+  * #2: created and uploaded testfiles for milestone 2 requirement 33 and 34
+  * #3: added explicit measures of success for resume and portfolio
+ 
+## Associated Tasks from Project Board:
+
+| Task ID | Description                     | Feature                   | Assigned To | Status   |
+| ------- | ------------------------------- | ------------------------- | ----------- | -------- |
+|[#417]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/417)|updated error handling for csharp_analyzer| ssmith86 | complete|
+|[#424]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/424)|updated error handling for javascript oop analyzer| ssmith86 | complete |
+|[#427]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/427)|updated error handling in configuration.py| ssmith86 | complete |
+|[#429]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/429)|updated error handling for user_startup_config.py| ssmith86 | complete |
+|[#444]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/444)|created and uploaded testfiles for milestone 2 requirement 34| ssmith86 | complete |
+|[#452]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/452)|added explicit measures of success for resume and portfolio| ssmith86 | complete |
+|[#453]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/453)|created and uploaded testfiles for milestone 2 requirement 33|ssmith86|complete|
+ 
+### Progress Update (since 01/26/2026) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td> [#417](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/417)
+        </td>
+        <!-- Status -->
+        <td> complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td> [#424](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/424)
+        </td>
+        <!-- Status -->
+        <td> complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td> [#427]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/427)
+        </td>
+        <!-- Status -->
+        <td> complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td> [#429](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/429)
+        </td>
+        <!-- Status -->
+        <td> complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td> [#444](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/444)
+        </td>
+        <!-- Status -->
+        <td> complete
+        </td>
+    </tr>
+     <tr>
+        <!-- Task/Issue # -->
+        <td> [#452](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/452)
+        </td>
+        <!-- Status -->
+        <td> complete
+        </td>
+    </tr>
+     <tr>
+        <!-- Task/Issue # -->
+        <td> [#453](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/453)
+        </td>
+        <!-- Status -->
+        <td> complete
+        </td>
+    </tr>
+    </table>
+
+### Extra Details:
+**Other Coding Tasks**
+- Reviewed the following files to determine if they required error handling (**note: it is just as much work to do review of these as it is to do the ones where I change the error handling because I have to read through the entire file, find the places with existing error handling, understand the code and intention behind the way the error handling was done and make a determination on whether or not it needs to be changed.**)
+     - java_analysis.py
+     - javascript_oop_analyzer.py
+     - class_info.py
+     - CLI_interface_for_file_extraction.py
+     - CLI_Interface_for_user_config.py
+     - document_generator_menu.py
+     - main.py
+     - menu_insights.py
+     - start_stop_app.py
+     - Configuration.py
+     - project_thumbnails.py
+     - user_consent.py
+     - AI_analysis_code.py
+     - ai_data_scrubbing.py
+     - app_context.py
+
+**Other Tasks**
+- Prototyped the frontend user flow
+- Presentation slide and presentation
+
+**Reviewing / Collaboration Tasks**
+-  Reviewed the Following PRs
+     - [#431](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/431)
+     - [#434](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/434)
+     - [#448](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/448)
+     - [#451](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/451)
+     - [#447](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/447)
+     - [#454](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/454)
+     - [#456](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/456)
+      
+**Connection to Previous Week**
+- This task was a continuation on my work from last, which was working on the same thing since we have a significant number of files that need to be gone through.
+- Additionally, we had presentations and the end of milestone 2 and beginning of milestone 3 to consider, so there were some wrap up tasks to finish out milestone 2 and some initiation tasks to begin milestone 3.
+
+**Plan for Next Week**
+- I still have approximately 30 files to check the error handling on
+- after that I plan to start on front end development
 
 ## T2 Week 4/5 (01/26/2026- 02/08/2026)
 
@@ -34,7 +163,6 @@
 |[#382]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/382)| added code so that critical errors bubble up to api in individual_contribution_detection.py | ssmith86 | complete |
 |[#384]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/384)| adjusted errors to raise important ones to api | ssmith86 | complete |
 
- 
 ### Progress Update (since 01/26/2026) 
 <table>
     <tr>
@@ -69,26 +197,40 @@
     </tr>
     </table>
 
-
 ### Extra Details:
 **Coding Tasks**
 - The overall task was fixing the error handling to work with the new api that's being developed
-
+- Reviewed the following files to determine if they required error handling (**note: it is just as much work to do review of these as it is to do the ones where I change the error handling because I have to read through the entire file, find the places with existing error handling, understand the code and intention behind the way the error handling was done and make a determination on whether or not it needs to be changed.**)
+      - base_c_analyzer_utils.py
+      - c_oop_analyzer.py
+      - cpp_analyzer.py
+      - insight_helpers.py
+      - individual_contribution_detection.py
+      - get_contributors_percentage_per_person.py
+      - file_traverser.py
+      - contribution_skill_association.py
+    
 **Other Tasks**
 - Creation of an initial design for the front end GUI
+- team logs
 
 **Reviewing / Collaboration Tasks**
-- reviewed the following PR's: [375]https://github.com/COSC-499-W2025/capstone-project-team-2/pull/375, [388]https://github.com/COSC-499-W2025/capstone-project-team-2/pull/388, [391]https://github.com/COSC-499-W2025/capstone-project-team-2/pull/391
+- reviewed the following PR's:
+        - [#340](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/340)
+        - [#348](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/348)
+        - [#375](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/375)
+        - [#388](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/388)
+        - [#391](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/391)
+        - [#398](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/398)
       
 **Connection to Previous Week**
-- This task was a continuation on my work from last week, which was working on the same thing since we have a significant number of files that need to be gone through
+- This task was a continuation on my work from last week, which was working on the same thing since we have a significant number of files that need to be gone through. 
 
 **Plan for Next Week**
 - Completion of the error handling
 - Beginning of front end development
 
 ## T2 Week 3 (01/19/2025- 01/25/2025)
-
 ### Task Types Worked On (Screenshot from Peer Eval)
 
 <img width="1295" height="741" alt="image" src="https://github.com/user-attachments/assets/34d4f8a3-887d-4b73-83d0-a1e45fa4c500" />
