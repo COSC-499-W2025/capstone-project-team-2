@@ -291,7 +291,8 @@ python -m src.main
 
 The Level 1 **Data Flow Diagram (DFD)** depicts the main system components and the flow of data between **external entities**, **core processes**, and **internal data stores**.
 
-![DFD Level 1](<docs/design/level1 dfd updated.png>)
+<img width="3282" height="521" alt="DFDM2" src="https://github.com/user-attachments/assets/1d6e51fc-fabe-4013-8c3f-c72c7e7c3293" />
+
 
 ### External Entities
 
