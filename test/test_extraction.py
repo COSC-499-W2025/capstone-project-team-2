@@ -80,9 +80,9 @@ class TestExtraction(unittest.TestCase):
 
         """
 
-        extractInfo().extractFiles(Path(self.empty_zip_path), "empty")
-        temp_path = os.path.join(self.temp_dir, Path(self.empty_zip_path).stem)
+        temp_path = extractInfo().extractFiles(Path(self.empty_zip_path), "empty")
         self.assertEqual(os.listdir(temp_path),[])
+        shutil.rmtree(temp_path, ignore_errors=True)
 
 
     def test_extract_all_files(self):
@@ -97,11 +97,11 @@ class TestExtraction(unittest.TestCase):
 
         """
 
-        extractInfo().extractFiles(Path(self.test_zip_file_path), "test")
-        temp_path = os.path.join(self.temp_dir, Path(self.test_zip_file_path).stem)
+        temp_path = extractInfo().extractFiles(Path(self.test_zip_file_path), "test")
         for file in os.listdir(temp_path):
             file_path = os.path.join(temp_path, file)
             self.assertTrue(os.path.exists(file_path))
+        shutil.rmtree(temp_path, ignore_errors=True)
 
     def test_invalid_zip_file(self):
         """
@@ -238,6 +238,7 @@ class TestExtraction(unittest.TestCase):
 
         temp_path = extractInfo().runExtraction(Path(self.empty_zip_path))
         self.assertEqual(os.listdir(temp_path),[])
+        shutil.rmtree(temp_path, ignore_errors=True)
 
     def test_runExtraction_extract_all_files(self):
 
@@ -255,6 +256,7 @@ class TestExtraction(unittest.TestCase):
         for file in os.listdir(temp_path):
             file_path = os.path.join(temp_path, file)
             self.assertTrue(os.path.exists(file_path))
+        shutil.rmtree(temp_path, ignore_errors=True)
 
 
 
