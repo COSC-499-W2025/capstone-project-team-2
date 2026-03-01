@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import UploadFile
 from types import SimpleNamespace
 import os
+from typing import Optional
 
 # Decide DB init behavior: default connect, but auto-skip when running pytest unless overridden.
 _env_skip = os.getenv("SKIP_DB_INIT")
@@ -40,6 +41,7 @@ class AppContext:
     external_consent: bool
     data_consent: bool
     currently_uploaded_file: Path | UploadFile
+    currently_uploaded_project_name: Optional[str] = None
 
     def close(self) -> None:
         """Close the DB connection safely."""
@@ -80,6 +82,7 @@ def create_app_context(external_consent_value=False, data_consent_value=False) -
             external_consent=external_consent_value,
             data_consent=data_consent_value,
             currently_uploaded_file=None,
+            currently_uploaded_project_name=None,
         )
 
     port_number, host_ip = DockerFinder().get_mysql_host_information()
@@ -118,7 +121,8 @@ def create_app_context(external_consent_value=False, data_consent_value=False) -
         default_save_dir=default_save_dir,
         external_consent=external_consent_value,
         data_consent=data_consent_value,
-        currently_uploaded_file=None
+        currently_uploaded_file=None,
+        currently_uploaded_project_name=None,
     )
 
 #global variable so we don't need to pass the app context through the API for calls

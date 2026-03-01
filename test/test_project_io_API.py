@@ -83,6 +83,7 @@ def test_upload_file_API():
         body = response.json()
         assert body["status"] == "ok"
         assert body["filename"] == "api_test.zip"
+        assert body["project_name"] == "api_test"
     finally:
         fh.close()
         if os.path.exists(path):
@@ -97,10 +98,9 @@ def test_upload_file_API_no_zip():
 
     #Calls the API with the file to get a response from the upload, should return a string error
     response = test_client.post("/projects/upload", files={"upload_file": path.open("rb")})
-    assert response.status_code == 200
+    assert response.status_code == 400
     body = response.json()
-    assert body["status"] == "error"
-    assert "zip file" in body["message"]
+    assert "zip file" in body["detail"]
 
 def test_upload_project_CLI_dir():
     """

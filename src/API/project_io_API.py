@@ -4,7 +4,7 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 import uuid
-from fastapi import APIRouter, UploadFile, HTTPException, Query
+from fastapi import APIRouter, UploadFile, HTTPException, Query, status
 import zipfile
 
 from src.storage import saved_projects
@@ -124,14 +124,20 @@ async def upload_project(upload_file: UploadFile) -> dict:
     payload = await upload_file.read()
     await upload_file.close()
     if not payload or not zipfile.is_zipfile(io.BytesIO(payload)):
-        return {"status": "error", "message": "file is not a zip file"}
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="file is not a zip file",
+        )
 
     persisted_zip = _persist_uploaded_zip(upload_file, payload)
+    source_stem = Path(upload_file.filename or "uploaded_project.zip").stem or "uploaded_project"
     runtimeAppContext.currently_uploaded_file = persisted_zip
+    runtimeAppContext.currently_uploaded_project_name = source_stem
     return {
         "status": "ok",
         "filename": upload_file.filename,
         "stored_path": str(persisted_zip),
+        "project_name": source_stem,
     }
 
 def upload_project_path_CLI(upload_file: Path) -> str:
@@ -150,6 +156,9 @@ def upload_project_path_CLI(upload_file: Path) -> str:
     if not (upload_file.is_dir() or zipfile.is_zipfile(str(upload_file))):
         return "Error, path is not a project"
     runtimeAppContext.currently_uploaded_file = upload_file
+    runtimeAppContext.currently_uploaded_project_name = (
+        upload_file.name if upload_file.is_dir() else upload_file.stem
+    )
     return "Upload Success"
 
 @projectsRouter.get("/")
