@@ -237,6 +237,8 @@ Updated the API documentation to include the newly added endpoints using the sam
 - https://github.com/COSC-499-W2025/capstone-project-team-2/pull/447
 - https://github.com/COSC-499-W2025/capstone-project-team-2/pull/448
 - https://github.com/COSC-499-W2025/capstone-project-team-2/pull/450
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/452
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/453
   
 ### Additional Details
 
