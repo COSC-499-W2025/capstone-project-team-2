@@ -1,8 +1,62 @@
 ## Term 2 Links
+- [Week 6 + Week 7 (Reading Break) + Week 8 (09/02/2026 – 01/03/2026)](#week-2026-02-09)
 - [Weeks 4–5 (26/01/2026 – 08/02/2026)](#week-2026-01-26)
 - [Week 3 (19/01/2026 – 25/01/2026)](#week-2026-01-19)
 - [Week 2 (12/01/2026 – 18/01/2026)](#week-2026-01-12)
 - [Week 1 (05/01/2026 – 11/01/2026)](#week-2026-01-05)
+
+# Sprint Log: Week 6 + Week 7 (Reading Break) + Week 8 (09/02/2026 – 01/03/2026) <a id="week-2026-02-09"></a>
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/01-03-2026_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Summary
+### Coding tasks
+- **PR #412 – Fix project identity consistency, safe analysis deletion, and CLI delete transparency:** Improved project identity handling and deletion safety, with clearer CLI delete flow visibility.
+- **PR #422 – Incremental Uploads with Snapshot Aware Insights:** Added incremental upload support and snapshot-aware insights behavior.
+- **PR #437 – Optimize dedup pipeline with metadata precheck and hash cache:** Optimized deduplication performance by introducing metadata prechecks and hash caching.
+- **PR #439 – Expose dedup cleanup toggle in GET /analyze and document behavior API:** Added a dedup cleanup toggle to `GET /analyze` and documented API behavior.
+- **PR #446 – Clean repository (IDE metadata, unused Dockerfile .yml, etc.) Refactoring:** Removed repository clutter and performed cleanup/refactoring for maintainability.
+- **PR #456 – Fix upload, analyze API behavior and temp extraction cleanup API:** Fixed upload/analyze API behavior and improved temporary extraction cleanup logic.
+
+### Testing or debugging tasks
+- Validated project lifecycle behavior across upload, analyze, reanalysis/versioning, and delete flows while implementing identity consistency and safe deletion updates.
+- Debugged dedup edge cases and performance paths, including metadata precheck behavior, hash cache usage, and cleanup-toggle behavior.
+- Verified temporary extraction cleanup and API behavior fixes tied to upload/analyze handling.
+
+### Reviewing or collaboration tasks
+- Reviewed PR #445 (mahigangal): fix ranking and clarity about the metrics.
+- Reviewed PR #444 (ssmith86): milestone2 requirement34.
+- Reviewed PR #440 (ThunderIW): Added missing endpoints to resume and portfolio api.
+- Reviewed PR #435 (mahigangal): add endpoint reference and required endpoint test coverage.
+- Reviewed PR #431 (mahigangal): add coverage for GET `/projects/{id}` and project delete flows.
+- Reviewed PR #424 (ssmith86): added error handling to `__init__` function.
+- Reviewed PR #419 (ThunderIW): generate project summary integration (GEN AI VER_2).
+- Reviewed PR #417 (ssmith86): updated error handling in csharp analyzer and added tests.
+- Reviewed PR #415 (ThunderIW): feature request support multiple generation types in apis resume portfolio and export of doc.
+- Reviewed PR #413 (mahigangal): incorporate a key role of the user in a given project.
+- Reviewed PR #409 (mahigangal): clarity on the factors mentioned in the document analysis.
+- Reviewed PR #408 (Graves067): Timestamp primary key.
+- Reviewed PR #403 (ThunderIW): generate AI resume with DB interaction.
+- Reviewed PR #402 (ThunderIW): default save config issue.
+- Reviewed PR #400 (ThunderIW): Fix project re-analysis, versioning, and duplicate detection.
+
+### Connection to last week
+- Extended Weeks 4-5 dedup and representation focused work into more stable end-to-end API behavior by improving project identity consistency, incremental snapshots, dedup performance, and cleanup controls.
+
+### Plan / goals for next period
+- Start Milestone 3 by introducing a Streamlit frontend integrated with local FastAPI endpoints.
+- Build core multi-page UI flows (home/projects, settings, uploads, project insights, resume/portfolio generation).
+- Add styled HTML/CSS page layouts focused on clear navigation and full feature access.
+
+### Issues / blockers
+- No major blockers noted this period.
+
+## ====================================================
 
 # Sprint Log: Weeks 4–5 (26/01/2026 – 08/02/2026) <a id="week-2026-01-26"></a>
 
