@@ -1,0 +1,177 @@
+[
+  {
+    "id": "2b24e570-e85d-443a-a31c-9bec2af7a35f",
+    "project_name": "TEST",
+    "summary": "Built TEST.",
+    "analyzed_at": "2026-02-27T22:02:29.560707+00:00",
+    "languages": [],
+    "frameworks": [],
+    "skills": [],
+    "project_type": "individual",
+    "detection_mode": "local",
+    "duration_estimate": "Unknown",
+    "hierarchy": {
+      "name": "TEST",
+      "type": "DIR",
+      "children": [
+        {
+          "name": "New Text Document.txt",
+          "type": "txt",
+          "size": 0,
+          "created": null,
+          "modified": null,
+          "author": "Unknown",
+          "children": []
+        },
+        {
+          "name": "New Text Document - Copy.txt",
+          "type": "txt",
+          "size": 0,
+          "created": null,
+          "modified": null,
+          "author": "Unknown",
+          "children": []
+        },
+        {
+          "name": "New Text Document - Copy (2).txt",
+          "type": "txt",
+          "size": 0,
+          "created": null,
+          "modified": null,
+          "author": "Unknown",
+          "children": []
+        }
+      ]
+    },
+    "contributors": {},
+    "stats": {
+      "contributors": 0,
+      "total_file_contributions": 0,
+      "top_contributor": null,
+      "top_contribution_count": 0,
+      "skill_count": 0
+    },
+    "file_analysis": {
+      "file_count": 3,
+      "total_size_bytes": 0,
+      "average_size_bytes": 0,
+      "file_types": {
+        "TXT": 3
+      },
+      "largest_file": {
+        "name": "New Text Document - Copy (2).txt",
+        "type": "TXT",
+        "size_bytes": 0
+      }
+    },
+    "thumbnail": null,
+    "snapshot_label": "2026-02-27T22:02:29.560665+00:00"
+  },
+  {
+    "id": "cfc041a8-af2c-4300-95c3-01c28f0a79e7",
+    "project_name": "TEST_379b6553",
+    "summary": "Built TEST_379b6553.",
+    "analyzed_at": "2026-02-27T22:02:29.577797+00:00",
+    "languages": [],
+    "frameworks": [],
+    "skills": [],
+    "project_type": "individual",
+    "detection_mode": "local",
+    "duration_estimate": "Unknown",
+    "hierarchy": {
+      "name": "TEST_379b6553",
+      "type": "DIR",
+      "children": [
+        {
+          "name": "New Text Document.txt",
+          "type": "txt",
+          "size": 0,
+          "created": null,
+          "modified": null,
+          "author": "Unknown",
+          "children": []
+        },
+        {
+          "name": "New Text Document - Copy.txt",
+          "type": "txt",
+          "size": 0,
+          "created": null,
+          "modified": null,
+          "author": "Unknown",
+          "children": []
+        },
+        {
+          "name": "New Text Document - Copy (2).txt",
+          "type": "txt",
+          "size": 0,
+          "created": null,
+          "modified": null,
+          "author": "Unknown",
+          "children": []
+        }
+      ]
+    },
+    "contributors": {},
+    "stats": {
+      "contributors": 0,
+      "total_file_contributions": 0,
+      "top_contributor": null,
+      "top_contribution_count": 0,
+      "skill_count": 0
+    },
+    "file_analysis": {
+      "file_count": 3,
+      "total_size_bytes": 0,
+      "average_size_bytes": 0,
+      "file_types": {
+        "TXT": 3
+      },
+      "largest_file": {
+        "name": "New Text Document - Copy (2).txt",
+        "type": "TXT",
+        "size_bytes": 0
+      }
+    },
+    "thumbnail": null,
+    "snapshot_label": "2026-02-27T22:02:29.577762+00:00"
+  },
+  {
+    "id": "728dfcca-d735-489f-9ad1-00dd96434dbb",
+    "project_name": "path",
+    "summary": "Developed path.",
+    "analyzed_at": "2026-02-27T22:02:29.584245+00:00",
+    "languages": [],
+    "frameworks": [],
+    "skills": [],
+    "project_type": "unknown",
+    "detection_mode": "local",
+    "duration_estimate": "Unknown",
+    "hierarchy": {
+      "name": "path",
+      "type": "DIR",
+      "children": [
+        {
+          "name": "Not Found",
+          "type": "DIR",
+          "children": []
+        }
+      ]
+    },
+    "contributors": {},
+    "stats": {
+      "contributors": 0,
+      "total_file_contributions": 0,
+      "top_contributor": null,
+      "top_contribution_count": 0,
+      "skill_count": 0
+    },
+    "file_analysis": {
+      "file_count": 0,
+      "total_size_bytes": 0,
+      "average_size_bytes": 0,
+      "file_types": {}
+    },
+    "thumbnail": null,
+    "snapshot_label": "2026-02-27T22:02:29.584212+00:00"
+  }
+]

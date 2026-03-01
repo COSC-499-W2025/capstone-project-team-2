@@ -14,13 +14,11 @@ from pathlib import Path
 
 from src.reporting.project_insights import (
     list_project_insights,
-    list_skill_history,
     rank_projects_by_contribution,
-    summaries_for_top_ranked_projects,
 )
-from src.reporting.representation_preferences import apply_preferences
 from src.analysis.insight_helpers import parse_date, filter_insights, compute_composite_score
 from src.core.app_context import runtimeAppContext
+from src.API.project_insights_API import *
 
 def project_insights_menu() -> None:
     """
@@ -49,17 +47,8 @@ def project_insights_menu() -> None:
                 language = input("Filter by language (optional): ").strip() or None
                 skill = input("Filter by skill (optional): ").strip() or None
                 since_str = input("Only include analyses since (YYYY-MM-DD, optional): ").strip() or None
-                since_dt = parse_date(since_str)
-
-                try:
-                    preferred = apply_preferences()
-                    projects = [
-                        p
-                        for p in preferred.get("projects", [])
-                        if parse_date(p.get("analyzed_at")) is not None
-                    ]
-                except FileNotFoundError:
-                    projects = list_project_insights(storage_path=storage_path)
+                
+                projects = return_insight_projects_chronological(language=language, skill=skill, since_str=since_str)
 
                 if projects and isinstance(projects[0], dict):
                     # convert dicts to a simple namespace for reuse
@@ -75,13 +64,6 @@ def project_insights_menu() -> None:
                         ns.summary = p.get("summary", "")
                         normalized.append(ns)
                     projects = normalized
-
-                projects = filter_insights(
-                    projects,
-                    language=language,
-                    skill=skill,
-                    since=since_dt,
-                )
 
                 if not projects:
                     print("[INFO] No insights recorded yet.")
@@ -102,19 +84,8 @@ def project_insights_menu() -> None:
             elif choice == "2":
                 skill = input("Filter by skill (optional): ").strip() or None
                 since_str = input("Only include analyses since (YYYY-MM-DD, optional): ").strip() or None
-                since_dt = parse_date(since_str)
 
-                history = list_skill_history(storage_path=storage_path)
-                if since_dt or skill:
-                    filtered = []
-                    for entry in history:
-                        when = parse_date(entry.get("analyzed_at"))
-                        if since_dt and when and when < since_dt:
-                            continue
-                        if skill and all(skill.lower() != s.lower() for s in entry.get("skills", [])):
-                            continue
-                        filtered.append(entry)
-                    history = filtered
+                history = return_insights_skills_chronological(skill=skill, since_str=since_str)
 
                 if not history:
                     print("[INFO] No insights recorded yet.")

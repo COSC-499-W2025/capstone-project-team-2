@@ -1,5 +1,6 @@
 """Unit tests for the privacy consent FastAPI endpoint."""
 
+from typing import assert_type
 import unittest
 from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
@@ -105,7 +106,7 @@ class TestConsentAPI(unittest.TestCase):
 
         test_dict = {"test": False}
 
-        update_config_file(test_dict)
+        self.client.post("/config/update", json=test_dict)
 
         assert loc_to_save.exists()
         with loc_to_save.open("r") as op:
@@ -113,7 +114,13 @@ class TestConsentAPI(unittest.TestCase):
 
         assert orjson.loads(open_str) == test_dict
 
-    #TODO load config doesn't work due to default config issue, however the API should work
+    def test_config_load(self):
+        """
+        Ensures that config is loaded successfully using API
+        """
+        response = self.client.get("/config/get")
+        assert response.status_code == 200
+        assert_type(response.json(), dict)
 
 if __name__ == "__main__":
     unittest.main()
