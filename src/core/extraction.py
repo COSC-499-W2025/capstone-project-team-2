@@ -1,6 +1,7 @@
 import shutil
 import zipfile
 import os
+import tempfile
 from pathlib import Path
 from fastapi import UploadFile
 
@@ -29,6 +30,22 @@ class extractInfo:
         '.zip': b'PK\x03\x04',
     }
 
+    @staticmethod
+    def _build_extraction_dir(file_name: str) -> str:
+        """
+        Create a unique extraction directory under the OS temp folder.
+
+        Args:
+            file_name: Base project/archive name used as prefix.
+
+        Returns:
+            str: Absolute extraction directory path.
+        """
+        safe_name = "".join(ch if ch.isalnum() or ch in {"-", "_"} else "_" for ch in file_name)
+        base_tmp = Path(tempfile.gettempdir()) / "devdoc_extracts"
+        base_tmp.mkdir(parents=True, exist_ok=True)
+        return tempfile.mkdtemp(prefix=f"{safe_name}_", dir=str(base_tmp))
+
     def runExtraction(self, zip_file: Path | UploadFile) -> str:
         """
         Method that runs all zip extraction protocols
@@ -42,23 +59,21 @@ class extractInfo:
         if (isinstance(zip_file, Path)):
             file_name: str = zip_file.stem
         else:   #Must be UploadFile if not Path
-            file_name: str = zip_file.filename.split(".")[0] #Should return the file name without the extension
-        self.extractFiles(zip_file, file_name)  
-        temp_path = os.path.join(os.getcwd(), file_name)
+            upload_name = zip_file.filename or "uploaded_project.zip"
+            file_name = Path(upload_name).stem
+        temp_path = self.extractFiles(zip_file, file_name)
         error = self.validateExtractedFiles(temp_path)
         if error != None:
+            shutil.rmtree(temp_path, ignore_errors=True)
             return error
         return temp_path
 
-    def extractFiles(self, zip_file: Path | UploadFile, file_name: str):
+    def extractFiles(self, zip_file: Path | UploadFile, file_name: str) -> str:
         """
-        Extracts the contents of the defined ZIP file/archive
-        into a directory in current working directory named after the zip file.
+        Extract ZIP contents into a unique directory under OS temp storage.
 
-        The method create a folder called 'temp' in the current
-        working directory if it does not exist than from this it
-        performs extraction where the extracted files are placed
-        into the 'temp' folder
+        Returns:
+            str: Absolute path to extracted directory.
         """
 
 
@@ -66,14 +81,15 @@ class extractInfo:
             file = str(zip_file)
         else:   #Must be UplaodFile if not Path
             file = zip_file.file
+            try:
+                file.seek(0)
+            except Exception:
+                pass
 
-
-
-        workingdirectory = os.getcwd()
-        os.makedirs(file_name, exist_ok=True)
-        temp_file_path = os.path.join(workingdirectory, file_name)
+        temp_file_path = self._build_extraction_dir(file_name)
         with zipfile.ZipFile(file, 'r') as zip_ref:
             zip_ref.extractall(temp_file_path)
+        return temp_file_path
 
     def verifyZIP(self, zip_file: Path | UploadFile) -> str | None:
         """
@@ -127,4 +143,3 @@ class extractInfo:
                     except Exception:
                         return self.CORRUPT_FILE_ERROR_TEXT + filepath
         return None
-

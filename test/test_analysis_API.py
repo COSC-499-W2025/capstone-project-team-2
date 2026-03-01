@@ -27,6 +27,7 @@ def test_analysis_API_performed():
     assert body["status"] == "Analysis Finished and Saved"
     assert "dedup" in body
     assert "snapshots" in body
+    assert "project_name" in body
 
 def test_analysis_API_performed_with_upload_file():
     """
@@ -39,6 +40,8 @@ def test_analysis_API_performed_with_upload_file():
     #Calls the API with the file to get a response from the upload, should return code 200
     response = test_client.post("/projects/upload", files=file)
     assert response.status_code == 200
+    upload_body = response.json()
+    assert upload_body["project_name"] == "TEST"
     
     #Calls analysis using the now uploaded project
     response = test_client.get("/analyze")
@@ -46,6 +49,7 @@ def test_analysis_API_performed_with_upload_file():
     body = response.json()
     assert body["status"] == "Analysis Finished and Saved"
     assert "dedup" in body
+    assert body["project_name"] == "TEST"
 
 
 def test_analysis_API_remove_duplicates_query_passthrough(monkeypatch, tmp_path):
@@ -56,10 +60,12 @@ def test_analysis_API_remove_duplicates_query_passthrough(monkeypatch, tmp_path)
     project_dir.mkdir()
     runtimeAppContext.currently_uploaded_file = project_dir
 
-    captured = {"remove_duplicates": None}
+    runtimeAppContext.currently_uploaded_project_name = "stable_project"
+    captured = {"remove_duplicates": None, "project_name": None}
 
     def fake_analyze(folder, use_ai_analysis=False, project_name=None, remove_duplicates=True):
         captured["remove_duplicates"] = remove_duplicates
+        captured["project_name"] = project_name
         return {"dedup": {}, "snapshots": []}
 
     monkeypatch.setattr(analysis_api_mod, "analyze_project", fake_analyze)
@@ -68,6 +74,32 @@ def test_analysis_API_remove_duplicates_query_passthrough(monkeypatch, tmp_path)
     assert response.status_code == 200
     assert response.json()["status"] == "Analysis Finished and Saved"
     assert captured["remove_duplicates"] is False
+    assert captured["project_name"] == "stable_project"
+
+
+def test_analyze_without_uploaded_file_returns_400():
+    """
+    Ensures GET /analyze returns 400 when no upload was set.
+    """
+    runtimeAppContext.currently_uploaded_file = None
+    runtimeAppContext.currently_uploaded_project_name = None
+
+    response = test_client.get("/analyze")
+    assert response.status_code == 400
+    assert "No project has been uploaded yet" in response.json()["detail"]
+
+
+def test_analyze_with_missing_uploaded_path_returns_404(tmp_path):
+    """
+    Ensures GET /analyze returns 404 when uploaded path no longer exists.
+    """
+    missing_path = tmp_path / "missing.zip"
+    runtimeAppContext.currently_uploaded_file = missing_path
+    runtimeAppContext.currently_uploaded_project_name = "missing"
+
+    response = test_client.get("/analyze")
+    assert response.status_code == 404
+    assert "Uploaded path not found" in response.json()["detail"]
 
 #Somehow we don't get an error raised here. Sam is handling this issue. Test needed for coverage.
 #def test_API_invalid_project():

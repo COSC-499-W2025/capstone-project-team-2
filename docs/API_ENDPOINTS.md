@@ -8,8 +8,6 @@ When the app is running:
 - OpenAPI JSON: `/openapi.json`
 
 ## Notes and Quirks
-- `POST /projects/upload` returns HTTP `200` for both success and validation failure. Check `status` in the JSON body (`ok` vs `error`).
-- `GET /analyze/` may return HTTP `200` even when analysis fails, with the error text in `status`.
 - `GET /projects` and `GET /projects/` both work in practice.
 - Requirement wording may use `{id}`; portfolio routes are implemented with `{portfolio_id}`.
 
@@ -24,7 +22,11 @@ When the app is running:
     - `true`: detect duplicates and delete duplicate copies
     - `false`: detect/report duplicates only (no deletion)
 - Returns `200`:
-  - `{"status":"Analysis Finished and Saved","dedup":{...},"snapshots":[...]}`
+  - `{"status":"Analysis Finished and Saved","project_name":"...","dedup":{...},"snapshots":[...]}`
+- Errors:
+  - `400` no uploaded project has been set
+  - `404` uploaded path no longer exists
+  - `500` analysis pipeline failure
 
 ## Projects and Thumbnails
 
@@ -32,9 +34,9 @@ When the app is running:
 - Purpose: upload project ZIP for later analysis.
 - Body: `multipart/form-data`, file field `upload_file`.
 - Returns `200` success:
-  - `{"status":"ok","filename":"my_project.zip","stored_path":"..."}`
-- Returns `200` validation failure:
-  - `{"status":"error","message":"file is not a zip file"}`
+  - `{"status":"ok","filename":"my_project.zip","stored_path":"...","project_name":"my_project"}`
+- Returns `400` validation failure:
+  - `{"detail":"file is not a zip file"}`
 
 ### `GET /projects/`
 - Purpose: list saved project names.

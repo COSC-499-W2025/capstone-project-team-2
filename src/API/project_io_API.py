@@ -4,7 +4,7 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 import uuid
-from fastapi import APIRouter, UploadFile, HTTPException, Query
+from fastapi import APIRouter, UploadFile, HTTPException, Query, status
 import zipfile
 
 from src.storage import saved_projects
@@ -124,14 +124,20 @@ async def upload_project(upload_file: UploadFile) -> dict:
     payload = await upload_file.read()
     await upload_file.close()
     if not payload or not zipfile.is_zipfile(io.BytesIO(payload)):
-        return {"status": "error", "message": "file is not a zip file"}
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="file is not a zip file",
+        )
 
     persisted_zip = _persist_uploaded_zip(upload_file, payload)
+    source_stem = Path(upload_file.filename or "uploaded_project.zip").stem or "uploaded_project"
     runtimeAppContext.currently_uploaded_file = persisted_zip
+    runtimeAppContext.currently_uploaded_project_name = source_stem
     return {
         "status": "ok",
         "filename": upload_file.filename,
         "stored_path": str(persisted_zip),
+        "project_name": source_stem,
     }
 
 def upload_project_path_CLI(upload_file: Path) -> str:
@@ -147,9 +153,24 @@ def upload_project_path_CLI(upload_file: Path) -> str:
         str: ``"Upload Success"`` when valid, otherwise
             ``"Error, path is not a project"``.
     """
-    if not (upload_file.is_dir() or zipfile.is_zipfile(str(upload_file))):
+    candidate_path = Path(upload_file).expanduser()
+    is_project_dir = candidate_path.is_dir()
+    is_zip_file = False
+
+    if not is_project_dir and candidate_path.is_file() and candidate_path.suffix.lower() == ".zip":
+        try:
+            # `is_zipfile` can occasionally return false negatives on some platforms.
+            is_zip_file = zipfile.is_zipfile(candidate_path) or candidate_path.exists()
+        except OSError:
+            is_zip_file = candidate_path.exists()
+
+    if not (is_project_dir or is_zip_file):
         return "Error, path is not a project"
-    runtimeAppContext.currently_uploaded_file = upload_file
+
+    runtimeAppContext.currently_uploaded_file = candidate_path
+    runtimeAppContext.currently_uploaded_project_name = (
+        candidate_path.name if is_project_dir else candidate_path.stem
+    )
     return "Upload Success"
 
 @projectsRouter.get("/")
