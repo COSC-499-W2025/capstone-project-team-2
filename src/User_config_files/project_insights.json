@@ -1,0 +1,1634 @@
+[
+  {
+    "id": "b889aa1d-d8aa-40ee-b5c9-ec62bdab5523",
+    "project_name": "e621ViewerAndDownloader",
+    "summary": "Built e621ViewerAndDownloader with Python; framework Streamlit.",
+    "analyzed_at": "2025-12-06T10:03:33.589460+00:00",
+    "languages": [
+      "Python"
+    ],
+    "frameworks": [
+      "Streamlit"
+    ],
+    "skills": [
+      "Data Visualization",
+      "Python",
+      "Streamlit"
+    ],
+    "project_type": "individual",
+    "detection_mode": "local",
+    "duration_estimate": "713 days, 4:58:31.907155",
+    "hierarchy": {
+      "name": "e621ViewerAndDownloader",
+      "type": "DIR",
+      "children": [
+        {
+          "name": ".env",
+          "type": "FILE",
+          "size": 66,
+          "created": "2023-12-21 17:24:34",
+          "modified": "2023-12-21 19:56:48",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": ".idea",
+          "type": "DIR",
+          "children": [
+            {
+              "name": ".gitignore",
+              "type": "FILE",
+              "size": 184,
+              "created": "2023-12-21 17:10:55",
+              "modified": "2023-12-21 17:10:55",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "AIProject.iml",
+              "type": "iml",
+              "size": 325,
+              "created": "2023-12-21 17:39:32",
+              "modified": "2025-11-10 22:19:48",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "copilot.data.migration.agent.xml",
+              "type": "xml",
+              "size": 195,
+              "created": "2025-11-10 22:14:11",
+              "modified": "2025-11-10 22:14:11",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "copilot.data.migration.ask.xml",
+              "type": "xml",
+              "size": 193,
+              "created": "2025-11-10 22:14:11",
+              "modified": "2025-11-10 22:14:11",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "copilot.data.migration.ask2agent.xml",
+              "type": "xml",
+              "size": 199,
+              "created": "2025-11-10 22:14:11",
+              "modified": "2025-11-10 22:14:11",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "copilot.data.migration.edit.xml",
+              "type": "xml",
+              "size": 194,
+              "created": "2025-11-10 22:14:12",
+              "modified": "2025-11-10 22:14:12",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "inspectionProfiles",
+              "type": "DIR",
+              "children": [
+                {
+                  "name": "profiles_settings.xml",
+                  "type": "xml",
+                  "size": 174,
+                  "created": "2023-12-21 17:10:53",
+                  "modified": "2023-12-21 17:10:53",
+                  "author": "imwie",
+                  "children": []
+                }
+              ]
+            },
+            {
+              "name": "material_theme_project_new.xml",
+              "type": "xml",
+              "size": 426,
+              "created": "2025-11-10 22:14:12",
+              "modified": "2025-11-10 22:15:04",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "misc.xml",
+              "type": "xml",
+              "size": 283,
+              "created": "2023-12-21 17:39:32",
+              "modified": "2025-11-10 22:19:48",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "modules.xml",
+              "type": "xml",
+              "size": 277,
+              "created": "2023-12-21 17:10:52",
+              "modified": "2023-12-21 17:10:52",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "rGraphicsSettings.xml",
+              "type": "xml",
+              "size": 298,
+              "created": "2025-11-13 00:49:51",
+              "modified": "2025-11-13 00:49:51",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "rSettings.xml",
+              "type": "xml",
+              "size": 205,
+              "created": "2025-11-13 00:49:51",
+              "modified": "2025-11-13 00:49:51",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "workspace.xml",
+              "type": "xml",
+              "size": 10900,
+              "created": "2023-12-21 20:13:15",
+              "modified": "2025-11-28 00:37:38",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": ".vscode",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "settings.json",
+              "type": "json",
+              "size": 526,
+              "created": "2023-12-21 17:29:21",
+              "modified": "2023-12-21 17:29:23",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "Data",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "tags.pkl",
+              "type": "pkl",
+              "size": 69672,
+              "created": "2025-11-12 23:23:58",
+              "modified": "2025-11-13 00:26:31",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "tags_plus_Artists.pkl",
+              "type": "pkl",
+              "size": 270501,
+              "created": "2025-11-13 02:42:08",
+              "modified": "2025-11-13 03:10:57",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "e621 Content Viewer and Downloader_resume_line.pdf",
+          "type": "pdf",
+          "size": 2071,
+          "created": "2025-12-03 22:09:21",
+          "modified": "2025-12-03 22:09:21",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": "finder.py",
+          "type": "py",
+          "size": 11397,
+          "created": "2025-11-10 22:17:45",
+          "modified": "2025-11-21 01:27:05",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": "lib",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "Empty",
+              "type": "DIR",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "main.py",
+          "type": "py",
+          "size": 8101,
+          "created": "2023-12-21 17:10:49",
+          "modified": "2025-11-18 03:07:27",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": "Mascot",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "Mascot_1.png",
+              "type": "png",
+              "size": 510838,
+              "created": "2025-11-11 02:41:13",
+              "modified": "2025-11-11 02:41:13",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_10.png",
+              "type": "png",
+              "size": 104411,
+              "created": "2025-11-11 02:41:18",
+              "modified": "2025-11-11 02:41:18",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_11.png",
+              "type": "png",
+              "size": 68884,
+              "created": "2025-11-11 02:41:18",
+              "modified": "2025-11-11 02:41:19",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_12.png",
+              "type": "png",
+              "size": 50426,
+              "created": "2025-11-11 02:41:19",
+              "modified": "2025-11-11 02:41:19",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_13.png",
+              "type": "png",
+              "size": 39942,
+              "created": "2025-11-11 02:41:20",
+              "modified": "2025-11-11 02:41:20",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_14.png",
+              "type": "png",
+              "size": 362780,
+              "created": "2025-11-11 02:41:20",
+              "modified": "2025-11-11 02:41:20",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_15.png",
+              "type": "png",
+              "size": 286633,
+              "created": "2025-11-11 02:41:21",
+              "modified": "2025-11-11 02:41:21",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_16.png",
+              "type": "png",
+              "size": 354629,
+              "created": "2025-11-11 02:41:22",
+              "modified": "2025-11-11 02:41:22",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_17.png",
+              "type": "png",
+              "size": 501850,
+              "created": "2025-11-11 02:41:22",
+              "modified": "2025-11-11 02:41:23",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_18.png",
+              "type": "png",
+              "size": 72487,
+              "created": "2025-11-11 02:41:23",
+              "modified": "2025-11-11 02:41:23",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_19.png",
+              "type": "png",
+              "size": 107283,
+              "created": "2025-11-11 02:41:24",
+              "modified": "2025-11-11 02:41:24",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_2.png",
+              "type": "png",
+              "size": 64524,
+              "created": "2025-11-11 02:41:13",
+              "modified": "2025-11-11 02:41:13",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_4.png",
+              "type": "png",
+              "size": 95909,
+              "created": "2025-11-11 02:41:14",
+              "modified": "2025-11-11 02:41:14",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_5.png",
+              "type": "png",
+              "size": 114897,
+              "created": "2025-11-11 02:41:15",
+              "modified": "2025-11-11 02:41:15",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_6.png",
+              "type": "png",
+              "size": 506931,
+              "created": "2025-11-11 02:41:15",
+              "modified": "2025-11-11 02:41:16",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_7.png",
+              "type": "png",
+              "size": 509838,
+              "created": "2025-11-11 02:41:16",
+              "modified": "2025-11-11 02:41:16",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_9.png",
+              "type": "png",
+              "size": 480038,
+              "created": "2025-11-11 02:41:17",
+              "modified": "2025-11-11 02:41:17",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "pages",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "mascot_viewer.py",
+              "type": "py",
+              "size": 165,
+              "created": "2025-11-11 02:31:00",
+              "modified": "2025-11-13 00:47:09",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "pictures",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "Post_1_5991167.jpg",
+              "type": "jpg",
+              "size": 1245435,
+              "created": "2025-11-21 01:22:10",
+              "modified": "2025-11-21 01:22:11",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Post_2_5990406.jpg",
+              "type": "jpg",
+              "size": 746265,
+              "created": "2025-11-21 01:22:12",
+              "modified": "2025-11-21 01:22:12",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Post_3_5990088.png",
+              "type": "png",
+              "size": 1367209,
+              "created": "2025-11-21 01:22:15",
+              "modified": "2025-11-21 01:22:15",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Post_4_5989757.png",
+              "type": "png",
+              "size": 1546191,
+              "created": "2025-11-21 01:22:19",
+              "modified": "2025-11-21 01:22:19",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Post_5_5987869.jpg",
+              "type": "jpg",
+              "size": 916687,
+              "created": "2025-11-21 01:22:23",
+              "modified": "2025-11-21 01:22:23",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "Portfolio.pdf",
+          "type": "pdf",
+          "size": 3197,
+          "created": "2025-12-03 22:09:21",
+          "modified": "2025-12-03 22:09:21",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": "requirements.txt",
+          "type": "txt",
+          "size": 49,
+          "created": "2025-11-13 03:16:12",
+          "modified": "2025-11-21 01:21:53",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": "test.py",
+          "type": "py",
+          "size": 3158,
+          "created": "2025-11-12 22:53:03",
+          "modified": "2025-11-13 00:54:34",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": "__pycache__",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "finder.cpython-312.pyc",
+              "type": "pyc",
+              "size": 16902,
+              "created": "2025-11-21 01:35:58",
+              "modified": "2025-11-21 01:35:58",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    "contributors": {},
+    "stats": {
+      "contributors": 0,
+      "total_file_contributions": 0,
+      "top_contributor": null,
+      "top_contribution_count": 0,
+      "skill_count": 3
+    },
+    "file_analysis": {
+      "file_count": 47,
+      "total_size_bytes": 10453745,
+      "average_size_bytes": 222420,
+      "file_types": {
+        "PYC": 1,
+        "PY": 4,
+        "TXT": 1,
+        "PDF": 2,
+        "JPG": 3,
+        "PNG": 19,
+        "PKL": 2,
+        "JSON": 1,
+        "XML": 11,
+        "IML": 1,
+        "FILE": 2
+      },
+      "largest_file": {
+        "name": "Post_4_5989757.png",
+        "type": "PNG",
+        "size_bytes": 1546191
+      },
+      "newest_file": {
+        "name": "Portfolio.pdf",
+        "type": "PDF",
+        "modified": "2025-12-03 22:09:21"
+      }
+    }
+  },
+  {
+    "id": "8d9df3f3-3efb-41ea-8100-f6785e4d3fb1",
+    "project_name": "e621ViewerAndDownloader",
+    "summary": "Built e621ViewerAndDownloader with Python; framework Streamlit.",
+    "analyzed_at": "2025-12-06T10:06:10.002276+00:00",
+    "languages": [
+      "Python"
+    ],
+    "frameworks": [
+      "Streamlit"
+    ],
+    "skills": [
+      "Data Visualization",
+      "Python",
+      "Streamlit"
+    ],
+    "project_type": "individual",
+    "detection_mode": "local",
+    "duration_estimate": "713 days, 4:58:31.907155",
+    "hierarchy": {
+      "name": "e621ViewerAndDownloader",
+      "type": "DIR",
+      "children": [
+        {
+          "name": ".env",
+          "type": "FILE",
+          "size": 66,
+          "created": "2023-12-21 17:24:34",
+          "modified": "2023-12-21 19:56:48",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": ".idea",
+          "type": "DIR",
+          "children": [
+            {
+              "name": ".gitignore",
+              "type": "FILE",
+              "size": 184,
+              "created": "2023-12-21 17:10:55",
+              "modified": "2023-12-21 17:10:55",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "AIProject.iml",
+              "type": "iml",
+              "size": 325,
+              "created": "2023-12-21 17:39:32",
+              "modified": "2025-11-10 22:19:48",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "copilot.data.migration.agent.xml",
+              "type": "xml",
+              "size": 195,
+              "created": "2025-11-10 22:14:11",
+              "modified": "2025-11-10 22:14:11",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "copilot.data.migration.ask.xml",
+              "type": "xml",
+              "size": 193,
+              "created": "2025-11-10 22:14:11",
+              "modified": "2025-11-10 22:14:11",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "copilot.data.migration.ask2agent.xml",
+              "type": "xml",
+              "size": 199,
+              "created": "2025-11-10 22:14:11",
+              "modified": "2025-11-10 22:14:11",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "copilot.data.migration.edit.xml",
+              "type": "xml",
+              "size": 194,
+              "created": "2025-11-10 22:14:12",
+              "modified": "2025-11-10 22:14:12",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "inspectionProfiles",
+              "type": "DIR",
+              "children": [
+                {
+                  "name": "profiles_settings.xml",
+                  "type": "xml",
+                  "size": 174,
+                  "created": "2023-12-21 17:10:53",
+                  "modified": "2023-12-21 17:10:53",
+                  "author": "imwie",
+                  "children": []
+                }
+              ]
+            },
+            {
+              "name": "material_theme_project_new.xml",
+              "type": "xml",
+              "size": 426,
+              "created": "2025-11-10 22:14:12",
+              "modified": "2025-11-10 22:15:04",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "misc.xml",
+              "type": "xml",
+              "size": 283,
+              "created": "2023-12-21 17:39:32",
+              "modified": "2025-11-10 22:19:48",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "modules.xml",
+              "type": "xml",
+              "size": 277,
+              "created": "2023-12-21 17:10:52",
+              "modified": "2023-12-21 17:10:52",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "rGraphicsSettings.xml",
+              "type": "xml",
+              "size": 298,
+              "created": "2025-11-13 00:49:51",
+              "modified": "2025-11-13 00:49:51",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "rSettings.xml",
+              "type": "xml",
+              "size": 205,
+              "created": "2025-11-13 00:49:51",
+              "modified": "2025-11-13 00:49:51",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "workspace.xml",
+              "type": "xml",
+              "size": 10900,
+              "created": "2023-12-21 20:13:15",
+              "modified": "2025-11-28 00:37:38",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": ".vscode",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "settings.json",
+              "type": "json",
+              "size": 526,
+              "created": "2023-12-21 17:29:21",
+              "modified": "2023-12-21 17:29:23",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "Data",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "tags.pkl",
+              "type": "pkl",
+              "size": 69672,
+              "created": "2025-11-12 23:23:58",
+              "modified": "2025-11-13 00:26:31",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "tags_plus_Artists.pkl",
+              "type": "pkl",
+              "size": 270501,
+              "created": "2025-11-13 02:42:08",
+              "modified": "2025-11-13 03:10:57",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "e621 Content Viewer and Downloader_resume_line.pdf",
+          "type": "pdf",
+          "size": 2071,
+          "created": "2025-12-03 22:09:21",
+          "modified": "2025-12-03 22:09:21",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": "finder.py",
+          "type": "py",
+          "size": 11397,
+          "created": "2025-11-10 22:17:45",
+          "modified": "2025-11-21 01:27:05",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": "lib",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "Empty",
+              "type": "DIR",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "main.py",
+          "type": "py",
+          "size": 8101,
+          "created": "2023-12-21 17:10:49",
+          "modified": "2025-11-18 03:07:27",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": "Mascot",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "Mascot_1.png",
+              "type": "png",
+              "size": 510838,
+              "created": "2025-11-11 02:41:13",
+              "modified": "2025-11-11 02:41:13",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_10.png",
+              "type": "png",
+              "size": 104411,
+              "created": "2025-11-11 02:41:18",
+              "modified": "2025-11-11 02:41:18",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_11.png",
+              "type": "png",
+              "size": 68884,
+              "created": "2025-11-11 02:41:18",
+              "modified": "2025-11-11 02:41:19",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_12.png",
+              "type": "png",
+              "size": 50426,
+              "created": "2025-11-11 02:41:19",
+              "modified": "2025-11-11 02:41:19",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_13.png",
+              "type": "png",
+              "size": 39942,
+              "created": "2025-11-11 02:41:20",
+              "modified": "2025-11-11 02:41:20",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_14.png",
+              "type": "png",
+              "size": 362780,
+              "created": "2025-11-11 02:41:20",
+              "modified": "2025-11-11 02:41:20",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_15.png",
+              "type": "png",
+              "size": 286633,
+              "created": "2025-11-11 02:41:21",
+              "modified": "2025-11-11 02:41:21",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_16.png",
+              "type": "png",
+              "size": 354629,
+              "created": "2025-11-11 02:41:22",
+              "modified": "2025-11-11 02:41:22",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_17.png",
+              "type": "png",
+              "size": 501850,
+              "created": "2025-11-11 02:41:22",
+              "modified": "2025-11-11 02:41:23",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_18.png",
+              "type": "png",
+              "size": 72487,
+              "created": "2025-11-11 02:41:23",
+              "modified": "2025-11-11 02:41:23",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_19.png",
+              "type": "png",
+              "size": 107283,
+              "created": "2025-11-11 02:41:24",
+              "modified": "2025-11-11 02:41:24",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_2.png",
+              "type": "png",
+              "size": 64524,
+              "created": "2025-11-11 02:41:13",
+              "modified": "2025-11-11 02:41:13",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_4.png",
+              "type": "png",
+              "size": 95909,
+              "created": "2025-11-11 02:41:14",
+              "modified": "2025-11-11 02:41:14",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_5.png",
+              "type": "png",
+              "size": 114897,
+              "created": "2025-11-11 02:41:15",
+              "modified": "2025-11-11 02:41:15",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_6.png",
+              "type": "png",
+              "size": 506931,
+              "created": "2025-11-11 02:41:15",
+              "modified": "2025-11-11 02:41:16",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_7.png",
+              "type": "png",
+              "size": 509838,
+              "created": "2025-11-11 02:41:16",
+              "modified": "2025-11-11 02:41:16",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_9.png",
+              "type": "png",
+              "size": 480038,
+              "created": "2025-11-11 02:41:17",
+              "modified": "2025-11-11 02:41:17",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "pages",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "mascot_viewer.py",
+              "type": "py",
+              "size": 165,
+              "created": "2025-11-11 02:31:00",
+              "modified": "2025-11-13 00:47:09",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "pictures",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "Post_1_5991167.jpg",
+              "type": "jpg",
+              "size": 1245435,
+              "created": "2025-11-21 01:22:10",
+              "modified": "2025-11-21 01:22:11",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Post_2_5990406.jpg",
+              "type": "jpg",
+              "size": 746265,
+              "created": "2025-11-21 01:22:12",
+              "modified": "2025-11-21 01:22:12",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Post_3_5990088.png",
+              "type": "png",
+              "size": 1367209,
+              "created": "2025-11-21 01:22:15",
+              "modified": "2025-11-21 01:22:15",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Post_4_5989757.png",
+              "type": "png",
+              "size": 1546191,
+              "created": "2025-11-21 01:22:19",
+              "modified": "2025-11-21 01:22:19",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Post_5_5987869.jpg",
+              "type": "jpg",
+              "size": 916687,
+              "created": "2025-11-21 01:22:23",
+              "modified": "2025-11-21 01:22:23",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "Portfolio.pdf",
+          "type": "pdf",
+          "size": 3197,
+          "created": "2025-12-03 22:09:21",
+          "modified": "2025-12-03 22:09:21",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": "requirements.txt",
+          "type": "txt",
+          "size": 49,
+          "created": "2025-11-13 03:16:12",
+          "modified": "2025-11-21 01:21:53",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": "test.py",
+          "type": "py",
+          "size": 3158,
+          "created": "2025-11-12 22:53:03",
+          "modified": "2025-11-13 00:54:34",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": "__pycache__",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "finder.cpython-312.pyc",
+              "type": "pyc",
+              "size": 16902,
+              "created": "2025-11-21 01:35:58",
+              "modified": "2025-11-21 01:35:58",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    "contributors": {},
+    "stats": {
+      "contributors": 0,
+      "total_file_contributions": 0,
+      "top_contributor": null,
+      "top_contribution_count": 0,
+      "skill_count": 3
+    },
+    "file_analysis": {
+      "file_count": 47,
+      "total_size_bytes": 10453745,
+      "average_size_bytes": 222420,
+      "file_types": {
+        "PYC": 1,
+        "PY": 4,
+        "TXT": 1,
+        "PDF": 2,
+        "JPG": 3,
+        "PNG": 19,
+        "PKL": 2,
+        "JSON": 1,
+        "XML": 11,
+        "IML": 1,
+        "FILE": 2
+      },
+      "largest_file": {
+        "name": "Post_4_5989757.png",
+        "type": "PNG",
+        "size_bytes": 1546191
+      },
+      "newest_file": {
+        "name": "Portfolio.pdf",
+        "type": "PDF",
+        "modified": "2025-12-03 22:09:21"
+      }
+    }
+  },
+  {
+    "id": "81f5e27a-0c23-4385-a9d9-26d795926696",
+    "project_name": "e621ViewerAndDownloader",
+    "summary": "Built e621ViewerAndDownloader with Python; framework Streamlit.",
+    "analyzed_at": "2025-12-06T10:18:03.891576+00:00",
+    "languages": [
+      "Python"
+    ],
+    "frameworks": [
+      "Streamlit"
+    ],
+    "skills": [
+      "Data Visualization",
+      "Python",
+      "Streamlit"
+    ],
+    "project_type": "individual",
+    "detection_mode": "local",
+    "duration_estimate": "713 days, 4:58:31.907155",
+    "hierarchy": {
+      "name": "e621ViewerAndDownloader",
+      "type": "DIR",
+      "children": [
+        {
+          "name": ".env",
+          "type": "FILE",
+          "size": 66,
+          "created": "2023-12-21 17:24:34",
+          "modified": "2023-12-21 19:56:48",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": ".idea",
+          "type": "DIR",
+          "children": [
+            {
+              "name": ".gitignore",
+              "type": "FILE",
+              "size": 184,
+              "created": "2023-12-21 17:10:55",
+              "modified": "2023-12-21 17:10:55",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "AIProject.iml",
+              "type": "iml",
+              "size": 325,
+              "created": "2023-12-21 17:39:32",
+              "modified": "2025-11-10 22:19:48",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "copilot.data.migration.agent.xml",
+              "type": "xml",
+              "size": 195,
+              "created": "2025-11-10 22:14:11",
+              "modified": "2025-11-10 22:14:11",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "copilot.data.migration.ask.xml",
+              "type": "xml",
+              "size": 193,
+              "created": "2025-11-10 22:14:11",
+              "modified": "2025-11-10 22:14:11",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "copilot.data.migration.ask2agent.xml",
+              "type": "xml",
+              "size": 199,
+              "created": "2025-11-10 22:14:11",
+              "modified": "2025-11-10 22:14:11",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "copilot.data.migration.edit.xml",
+              "type": "xml",
+              "size": 194,
+              "created": "2025-11-10 22:14:12",
+              "modified": "2025-11-10 22:14:12",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "inspectionProfiles",
+              "type": "DIR",
+              "children": [
+                {
+                  "name": "profiles_settings.xml",
+                  "type": "xml",
+                  "size": 174,
+                  "created": "2023-12-21 17:10:53",
+                  "modified": "2023-12-21 17:10:53",
+                  "author": "imwie",
+                  "children": []
+                }
+              ]
+            },
+            {
+              "name": "material_theme_project_new.xml",
+              "type": "xml",
+              "size": 426,
+              "created": "2025-11-10 22:14:12",
+              "modified": "2025-11-10 22:15:04",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "misc.xml",
+              "type": "xml",
+              "size": 283,
+              "created": "2023-12-21 17:39:32",
+              "modified": "2025-11-10 22:19:48",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "modules.xml",
+              "type": "xml",
+              "size": 277,
+              "created": "2023-12-21 17:10:52",
+              "modified": "2023-12-21 17:10:52",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "rGraphicsSettings.xml",
+              "type": "xml",
+              "size": 298,
+              "created": "2025-11-13 00:49:51",
+              "modified": "2025-11-13 00:49:51",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "rSettings.xml",
+              "type": "xml",
+              "size": 205,
+              "created": "2025-11-13 00:49:51",
+              "modified": "2025-11-13 00:49:51",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "workspace.xml",
+              "type": "xml",
+              "size": 10900,
+              "created": "2023-12-21 20:13:15",
+              "modified": "2025-11-28 00:37:38",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": ".vscode",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "settings.json",
+              "type": "json",
+              "size": 526,
+              "created": "2023-12-21 17:29:21",
+              "modified": "2023-12-21 17:29:23",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "Data",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "tags.pkl",
+              "type": "pkl",
+              "size": 69672,
+              "created": "2025-11-12 23:23:58",
+              "modified": "2025-11-13 00:26:31",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "tags_plus_Artists.pkl",
+              "type": "pkl",
+              "size": 270501,
+              "created": "2025-11-13 02:42:08",
+              "modified": "2025-11-13 03:10:57",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "e621 Content Viewer and Downloader_resume_line.pdf",
+          "type": "pdf",
+          "size": 2071,
+          "created": "2025-12-03 22:09:21",
+          "modified": "2025-12-03 22:09:21",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": "finder.py",
+          "type": "py",
+          "size": 11397,
+          "created": "2025-11-10 22:17:45",
+          "modified": "2025-11-21 01:27:05",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": "lib",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "Empty",
+              "type": "DIR",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "main.py",
+          "type": "py",
+          "size": 8101,
+          "created": "2023-12-21 17:10:49",
+          "modified": "2025-11-18 03:07:27",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": "Mascot",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "Mascot_1.png",
+              "type": "png",
+              "size": 510838,
+              "created": "2025-11-11 02:41:13",
+              "modified": "2025-11-11 02:41:13",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_10.png",
+              "type": "png",
+              "size": 104411,
+              "created": "2025-11-11 02:41:18",
+              "modified": "2025-11-11 02:41:18",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_11.png",
+              "type": "png",
+              "size": 68884,
+              "created": "2025-11-11 02:41:18",
+              "modified": "2025-11-11 02:41:19",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_12.png",
+              "type": "png",
+              "size": 50426,
+              "created": "2025-11-11 02:41:19",
+              "modified": "2025-11-11 02:41:19",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_13.png",
+              "type": "png",
+              "size": 39942,
+              "created": "2025-11-11 02:41:20",
+              "modified": "2025-11-11 02:41:20",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_14.png",
+              "type": "png",
+              "size": 362780,
+              "created": "2025-11-11 02:41:20",
+              "modified": "2025-11-11 02:41:20",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_15.png",
+              "type": "png",
+              "size": 286633,
+              "created": "2025-11-11 02:41:21",
+              "modified": "2025-11-11 02:41:21",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_16.png",
+              "type": "png",
+              "size": 354629,
+              "created": "2025-11-11 02:41:22",
+              "modified": "2025-11-11 02:41:22",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_17.png",
+              "type": "png",
+              "size": 501850,
+              "created": "2025-11-11 02:41:22",
+              "modified": "2025-11-11 02:41:23",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_18.png",
+              "type": "png",
+              "size": 72487,
+              "created": "2025-11-11 02:41:23",
+              "modified": "2025-11-11 02:41:23",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_19.png",
+              "type": "png",
+              "size": 107283,
+              "created": "2025-11-11 02:41:24",
+              "modified": "2025-11-11 02:41:24",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_2.png",
+              "type": "png",
+              "size": 64524,
+              "created": "2025-11-11 02:41:13",
+              "modified": "2025-11-11 02:41:13",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_4.png",
+              "type": "png",
+              "size": 95909,
+              "created": "2025-11-11 02:41:14",
+              "modified": "2025-11-11 02:41:14",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_5.png",
+              "type": "png",
+              "size": 114897,
+              "created": "2025-11-11 02:41:15",
+              "modified": "2025-11-11 02:41:15",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_6.png",
+              "type": "png",
+              "size": 506931,
+              "created": "2025-11-11 02:41:15",
+              "modified": "2025-11-11 02:41:16",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_7.png",
+              "type": "png",
+              "size": 509838,
+              "created": "2025-11-11 02:41:16",
+              "modified": "2025-11-11 02:41:16",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Mascot_9.png",
+              "type": "png",
+              "size": 480038,
+              "created": "2025-11-11 02:41:17",
+              "modified": "2025-11-11 02:41:17",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "pages",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "mascot_viewer.py",
+              "type": "py",
+              "size": 165,
+              "created": "2025-11-11 02:31:00",
+              "modified": "2025-11-13 00:47:09",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "pictures",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "Post_1_5991167.jpg",
+              "type": "jpg",
+              "size": 1245435,
+              "created": "2025-11-21 01:22:10",
+              "modified": "2025-11-21 01:22:11",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Post_2_5990406.jpg",
+              "type": "jpg",
+              "size": 746265,
+              "created": "2025-11-21 01:22:12",
+              "modified": "2025-11-21 01:22:12",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Post_3_5990088.png",
+              "type": "png",
+              "size": 1367209,
+              "created": "2025-11-21 01:22:15",
+              "modified": "2025-11-21 01:22:15",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Post_4_5989757.png",
+              "type": "png",
+              "size": 1546191,
+              "created": "2025-11-21 01:22:19",
+              "modified": "2025-11-21 01:22:19",
+              "author": "imwie",
+              "children": []
+            },
+            {
+              "name": "Post_5_5987869.jpg",
+              "type": "jpg",
+              "size": 916687,
+              "created": "2025-11-21 01:22:23",
+              "modified": "2025-11-21 01:22:23",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "Portfolio.pdf",
+          "type": "pdf",
+          "size": 3197,
+          "created": "2025-12-03 22:09:21",
+          "modified": "2025-12-03 22:09:21",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": "requirements.txt",
+          "type": "txt",
+          "size": 49,
+          "created": "2025-11-13 03:16:12",
+          "modified": "2025-11-21 01:21:53",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": "test.py",
+          "type": "py",
+          "size": 3158,
+          "created": "2025-11-12 22:53:03",
+          "modified": "2025-11-13 00:54:34",
+          "author": "imwie",
+          "children": []
+        },
+        {
+          "name": "__pycache__",
+          "type": "DIR",
+          "children": [
+            {
+              "name": "finder.cpython-312.pyc",
+              "type": "pyc",
+              "size": 16902,
+              "created": "2025-11-21 01:35:58",
+              "modified": "2025-11-21 01:35:58",
+              "author": "imwie",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    "contributors": {},
+    "stats": {
+      "contributors": 0,
+      "total_file_contributions": 0,
+      "top_contributor": null,
+      "top_contribution_count": 0,
+      "skill_count": 3
+    },
+    "file_analysis": {
+      "file_count": 47,
+      "total_size_bytes": 10453745,
+      "average_size_bytes": 222420,
+      "file_types": {
+        "PYC": 1,
+        "PY": 4,
+        "TXT": 1,
+        "PDF": 2,
+        "JPG": 3,
+        "PNG": 19,
+        "PKL": 2,
+        "JSON": 1,
+        "XML": 11,
+        "IML": 1,
+        "FILE": 2
+      },
+      "largest_file": {
+        "name": "Post_4_5989757.png",
+        "type": "PNG",
+        "size_bytes": 1546191
+      },
+      "newest_file": {
+        "name": "Portfolio.pdf",
+        "type": "PDF",
+        "modified": "2025-12-03 22:09:21"
+      }
+    }
+  }
+]
