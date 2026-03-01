@@ -83,7 +83,8 @@ The platforms target users are **graduating students** and **early career profes
 
 This system architecture illustrates the structural design of the application, showing how the frontend, backend, database, and external services interact. It emphasizes modularity, scalability, and maintainability through a three-layered design.
 
-<img width="2000" height="1600" alt="Copy of Copy of CAPSTONE 499 System design Team2 -Page-1 drawio" src="https://github.com/user-attachments/assets/bf6d49ac-18c0-4691-b845-ab9ccff00b70" />
+
+<img width="1581" height="1209" alt="System_Architecture_Milestone2" src="https://github.com/user-attachments/assets/0d792c43-a4b3-48bf-baf0-20f565b3bcfe" />
 
 
 
