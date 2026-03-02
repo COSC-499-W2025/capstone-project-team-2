@@ -566,6 +566,40 @@ def remove_project(portfolio_id: str, project_name: str):
     return {"status": result}
 
 
+
+
+@portfolioRouter.post("/portfolio/{portfolio_id}/add/skill")
+def add_skill(portfolio_id: str, payload:skillRequest):
+    """Add a new skill category entry to an existing portfolio.
+
+        Args:
+            portfolio_id: The portfolio identifier.
+            payload: SkillRequest with a label (category name) and details (comma-separated skills).
+
+        Returns:
+            dict: {"status": str} confirming the skill was added.
+
+        Raises:
+            HTTPException: 404 if the portfolio does not exist.
+            HTTPException: 409 if a skill with the same label already exists.
+            HTTPException: 400 if the label is empty or the operation fails.
+        """
+    doc = _load_portfolio(portfolio_id)
+    result = doc.add_skill(payload.label, payload.details)
+    
+    if "Duplicate" in result:
+        raise HTTPException(status_code=409, detail=result)
+    if result != "Successfully added skills":
+        raise HTTPException(status_code=400, detail=result)
+    return {"status": result}
+
+
+
+
+@portfolioRouter.post("/portfolio/{portfolio_id}/skill/{label}/append")
+
+
+
 @portfolioRouter.delete("/portfolio/{portfolio_id}")
 def delete_portfolio(portfolio_id: str):
     """Delete a portfolio YAML file entirely from the system.
