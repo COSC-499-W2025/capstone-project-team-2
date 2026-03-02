@@ -598,14 +598,15 @@ def add_skill(portfolio_id: str, payload:skillRequest):
 
 @portfolioRouter.post("/portfolio/{portfolio_id}/skill/{label}/append")
 def append_skill(portfolio_id:str,label:str,payload:AppendSkillRequest):
-    """Remove a skill category from an existing portfolio by label.
+    """Append a skill to an existing skill category in a portfolio.
 
        Args:
            portfolio_id: The portfolio identifier.
-           label: The exact skill category label to remove (e.g., 'Languages').
+           label: The exact skill category label to append to (e.g., 'Languages').
+           payload: The skill data to append.
 
        Returns:
-           dict: {"status": str} confirming the skill was removed.
+           dict: {"status": str} confirming the skill was appended.
 
        Raises:
            HTTPException: 404 if the portfolio or skill label does not exist.
@@ -623,6 +624,27 @@ def append_skill(portfolio_id:str,label:str,payload:AppendSkillRequest):
 
 
 
+
+
+@portfolioRouter.delete("/portfolio/{portfolio_id}/skill/{label}")
+def remove_skill(portfolio_id: str, label: str):
+    """Remove an entire skill category from an existing portfolio by label.
+
+       Args:
+           portfolio_id: The portfolio identifier.
+           label: The exact skill category label to remove (e.g., 'Languages').
+
+       Returns:
+           dict: {"status": str} confirming the skill category was removed.
+
+       Raises:
+           HTTPException: 404 if the portfolio or skill label does not exist.
+       """
+    doc = _load_portfolio(portfolio_id)
+    result = doc.remove_skill(label)
+    if "not found" in result.lower() or "no skills" in result.lower():
+        raise HTTPException(status_code=404, detail=result)
+    return {"status": result}
 
 
 @portfolioRouter.delete("/portfolio/{portfolio_id}")
