@@ -739,6 +739,29 @@ def append_skill(id: str, label: str, payload: SkillRequest):
     result = _check_result(doc.modify_skill(label, new_details))
     return {"status": result, "details": new_details}
 
+@resumeRouter.delete("/resume/{id}/skill/{label}")
+def remove_skill(id:str, label: str):
+    """Remove a skill category from an existing resume by label.
+
+        Args:
+            id: The resume identifier.
+            label: The exact skill category label to remove (e.g., 'Languages').
+
+        Returns:
+            dict: {"status": str} confirming the skill was removed.
+
+        Raises:
+            HTTPException: 404 if the resume or skill label does not exist.
+        """
+
+    doc=_load_resume(id)
+    result= doc.remove_skill(label)
+    if "not found" in result.lower() or "no skills" in result.lower():
+        raise HTTPException(status_code=404, detail=result)
+    return {"status": result}
+
+
+
 
 @resumeRouter.delete("/resume/{id}")
 def delete_resume(id: str):
