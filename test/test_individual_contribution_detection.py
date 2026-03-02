@@ -4,10 +4,11 @@ from pathlib import Path
 import sys
 from unittest.mock import patch, MagicMock
 from git import Actor, Repo
+import pytest
 
 # Add the src directory to the Python path
 sys.path.append(str(Path(__file__).parent.parent))
-import src.individual_contribution_detection as contribution_detection
+import src.analysis.individual_contribution_detection as contribution_detection
 
 def make_fake_extractor(mapping: dict, project_root: Path) -> MagicMock:
     """
@@ -31,8 +32,55 @@ def make_fake_extractor(mapping: dict, project_root: Path) -> MagicMock:
     fake.get_author.side_effect = get_author
     return fake
 
+@patch('src.analysis.individual_contribution_detection.detect_project_type',
+       return_value={"project_type": "collaborative", "mode": "git"})
+def test_git_tracked_listing_failure_bubbles_to_api(mock_detect):
+    repo = Repo.init(Path(tempfile.mkdtemp()))
+    root = Path(repo.working_tree_dir)
+
+    from git.cmd import Git
+
+    original_execute = Git.execute  # keep real implementation
+
+    def boom_only_for_ls_files(self, command, *args, **kwargs):
+        # command is often a list/tuple like: ['git', 'ls-files', ...]
+        cmd_str = " ".join(command) if isinstance(command, (list, tuple)) else str(command)
+        if "ls-files" in cmd_str:
+            raise Exception("ls_files broken")
+        return original_execute(self, command, *args, **kwargs)
+
+    with patch.object(Git, "execute", boom_only_for_ls_files):
+        with pytest.raises(RuntimeError) as excinfo:
+            contribution_detection.detect_individual_contributions_git(root, repo=repo)
+
+    assert "Failed to list tracked files" in str(excinfo.value)
+
+
+
+def test_entrypoint_repo_open_unexpected_error_bubbles():
+    # project_type_detection says "git", but Repo(root) raises something unexpected
+    root = Path(tempfile.mkdtemp())
+
+    with patch('src.analysis.individual_contribution_detection.detect_project_type',
+               return_value={"project_type": "collaborative", "mode": "git"}):
+        with patch('src.analysis.individual_contribution_detection.Repo',
+                   side_effect=PermissionError("no access")):
+            with pytest.raises(RuntimeError) as excinfo:
+                contribution_detection.detect_individual_contributions(root)
+
+    assert "Git contribution detection failed" in str(excinfo.value) or "Failed to open git repository" in str(excinfo.value)
+
 
 class TestIndividualContributionDetection(unittest.TestCase):
+    
+    """
+    Unit tests for individual contribution detection logic.
+
+    These tests validate both local (non-Git) and Git-based contribution
+    detection, including canonical name resolution, unattributed file handling,
+    filename-based inference, and contributor merging rules.
+    """
+    
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.project_root = Path(self.temp_dir.name)
@@ -46,7 +94,7 @@ class TestIndividualContributionDetection(unittest.TestCase):
         path.write_text(content, encoding="utf-8")
         return path
 
-    @patch('src.individual_contribution_detection.detect_project_type',
+    @patch('src.analysis.individual_contribution_detection.detect_project_type',
            return_value={"project_type": "individual", "mode": "local"})
     
     def test_non_collaborative_project_raises_error(self, _):
@@ -93,8 +141,8 @@ class TestIndividualContributionDetection(unittest.TestCase):
         self.assertEqual(result["Alice"]["file_count"], 1)
         self.assertEqual(result["Bob"]["file_count"], 1)
 
-    @patch('src.individual_contribution_detection.detect_project_type')
-    @patch('src.individual_contribution_detection.FileMetadataExtractor')
+    @patch('src.analysis.individual_contribution_detection.detect_project_type')
+    @patch('src.analysis.individual_contribution_detection.FileMetadataExtractor')
     
     def test_entrypoint_uses_local_detector_with_patched_extractor(self, mock_extractor_cls, mock_detect):
         """
@@ -165,7 +213,7 @@ class TestIndividualContributionDetection(unittest.TestCase):
         self.assertIn("orphan.py", result["<unattributed>"]["files_owned"])
         self.assertEqual(result["<unattributed>"]["file_count"], 1)
         
-    @patch('src.individual_contribution_detection.detect_project_type')
+    @patch('src.analysis.individual_contribution_detection.detect_project_type')
     def test_git_multiple_distinct_authors(self, mock_detect):
         """
         Two different authors (different emails & different names) should be separate contributors.
@@ -197,7 +245,7 @@ class TestIndividualContributionDetection(unittest.TestCase):
         self.assertEqual(found_files, 2)
 
 
-    @patch('src.individual_contribution_detection.detect_project_type')
+    @patch('src.analysis.individual_contribution_detection.detect_project_type')
     def test_git_untracked_file_becomes_unattributed(self, mock_detect):
         """
         A file that exists but was never committed should be reported as <unattributed>.
@@ -222,7 +270,7 @@ class TestIndividualContributionDetection(unittest.TestCase):
         self.assertIn("untracked_file.py", contributors["<unattributed>"]["files_owned"])
 
 
-    @patch('src.individual_contribution_detection.detect_project_type')
+    @patch('src.analysis.individual_contribution_detection.detect_project_type')
     def test_git_subdirectory_files_tracked(self, mock_detect):
         """
         Files inside nested subdirectories should be attributed correctly.
@@ -246,7 +294,7 @@ class TestIndividualContributionDetection(unittest.TestCase):
         self.assertIn("src/utils/helpers.py", contributors[canon]["files_owned"])
 
 
-    @patch('src.individual_contribution_detection.detect_project_type')
+    @patch('src.analysis.individual_contribution_detection.detect_project_type')
     def test_git_same_email_base_with_decorators_merged(self, mock_detect):
         """
         Email decorators (+ aliases like chris+one, chris+two) should be stripped,
@@ -278,7 +326,7 @@ class TestIndividualContributionDetection(unittest.TestCase):
         self.assertIn("x2.py", contributors[canon]["files_owned"])
 
 
-    @patch('src.individual_contribution_detection.detect_project_type')
+    @patch('src.analysis.individual_contribution_detection.detect_project_type')
     def test_git_merge_via_contributors_file(self, mock_detect):
         """
         If CONTRIBUTORS lists a canonical name, commits by different emails/names should map to that contributor.

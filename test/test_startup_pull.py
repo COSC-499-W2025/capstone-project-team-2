@@ -5,7 +5,7 @@ import unittest
 import json
 from pathlib import Path
 import orjson 
-from src.user_startup_config import ConfigLoader
+from src.config.user_startup_config import ConfigLoader
 
 
 class TestStartupConfigPull(unittest.TestCase):
@@ -58,7 +58,9 @@ class TestStartupConfigPull(unittest.TestCase):
         """
         temp_root = Path(self.temp_dir)
         user_path = temp_root / "UserConfigs.json"
-        default_path = temp_root / "default_user_configuration.json"
+        templates_dir = temp_root / "Templates"
+        templates_dir.mkdir(parents=True, exist_ok=True)
+        default_path = templates_dir / "default_user_configuration.json"
 
         class UserConfig:
             def __init__(self, defaults=None):
@@ -205,6 +207,38 @@ class TestStartupConfigPull(unittest.TestCase):
 
         # Falls back to defaults
         self.assertEqual(result, defaults)
+        
+    def test_raises_error_when_default_config_missing(self):
+        """
+        If both user config and default config are missing, should raise FileNotFoundError.
+        """
+        loader = ConfigLoader()
+        # Point to non-existent paths
+        loader.user_config_path = Path(self.temp_dir) / "nonexistent_user.json"
+        loader.default_config_path = Path(self.temp_dir) / "nonexistent_default.json"
+        
+        with self.assertRaises(FileNotFoundError) as context:
+            loader.load()
+        
+        self.assertIn("Default config not found", str(context.exception))
+
+    def test_raises_error_when_default_config_invalid(self):
+        """
+        If user config is missing and default config is invalid JSON, should raise ValueError.
+        """
+        loader = ConfigLoader()
+        loader.user_config_path = Path(self.temp_dir) / "nonexistent_user.json"
+        
+        # Create invalid default config
+        invalid_default = Path(self.temp_dir) / "invalid_default.json"
+        invalid_default.write_text('{"invalid": json,}', encoding="utf-8")
+        loader.default_config_path = invalid_default
+        
+        with self.assertRaises(ValueError) as context:
+            loader.load()
+        
+        self.assertIn("invalid", str(context.exception).lower())
+
 
     def tearDown(self):
         """

@@ -19,7 +19,7 @@ from pathlib import Path
 from datetime import datetime
 from subprocess import run, PIPE
 
-from src.resume_exporter import export_resume_items
+from src.reporting.resume_exporter import export_resume_items
 
 
 def _is_iso8601_with_tz(value: str) -> bool:
@@ -104,7 +104,7 @@ class TestResumeExporterJSONValidation(unittest.TestCase):
         """Ensure CLI invocation writes valid JSON file."""
         print("[Resume JSON Test] Verifying CLI export functionality...", flush=True)
 
-        cmd = [sys.executable, "-m", "src.resume_exporter", str(self.root), "-o", str(self.output_path)]
+        cmd = [sys.executable, "-m", "src.reporting.resume_exporter", str(self.root), "-o", str(self.output_path)]
         proc = run(cmd, stdout=PIPE, stderr=PIPE, text=True)
 
         self.assertEqual(proc.returncode, 0, f"CLI failed: {proc.stderr}")

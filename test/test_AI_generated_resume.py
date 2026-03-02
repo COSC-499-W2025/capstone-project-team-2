@@ -11,8 +11,8 @@ warnings.filterwarnings(
 )
 import unittest
 import pytest
-from src.Generate_AI_Resume import GenerateProjectResume
-from src.Generate_AI_Resume import OOPPrinciple,ResumeItem
+from src.reporting.Generate_AI_Resume import GenerateProjectResume
+from src.reporting.Generate_AI_Resume import OOPPrinciple,ResumeItem
 from pathlib import Path
 
 

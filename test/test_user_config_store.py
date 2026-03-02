@@ -4,7 +4,7 @@ import shutil
 import unittest
 import json
 from pathlib import Path
-from src.Configuration import configuration_for_users
+from src.config.Configuration import configuration_for_users
 
 
 class TestUserConfigStore(unittest.TestCase):
@@ -78,6 +78,7 @@ class TestUserConfigStore(unittest.TestCase):
 
 
         self.assertTrue(os.path.exists(self.test_temp_file_path))
+        
 
     def test_invalid_valid_json(self):
 
@@ -133,4 +134,14 @@ class TestUserConfigStore(unittest.TestCase):
         os.chdir(self.original_cwd)
         if os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir)
-
+            
+    def test_save_config_raises_on_failure(self):
+        """
+        Check that save_config raises IOError when write fails.
+        This test verifies the following:
+        - That save_config raises IOError when the path is invalid
+        :return: pass or fail
+        """
+        self.instance.loc_to_save = Path("/nonexistent/directory/file.json")
+        with self.assertRaises(IOError):
+            self.instance.save_config()
