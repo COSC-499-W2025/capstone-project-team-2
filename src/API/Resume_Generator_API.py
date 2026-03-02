@@ -19,6 +19,9 @@ Endpoints:
     DELETE /resume/{id}/education/{institution_name} - Remove an education entry
     POST   /resume/{id}/add/experience               - Add an experience entry
     DELETE /resume/{id}/experience/{company_name}    - Remove an experience entry
+    POST   /resume/{id}/add/skill                    - Add a new skill category
+    POST   /resume/{id}/skill/{label}                - Append items to an existing skill category
+    DELETE /resume/{id}/skill/{label}                - Remove a skill category
     DELETE /resume/{id}                              - Delete the resume YAML file entirely
 """
 
@@ -157,6 +160,7 @@ class AppendSkillRequest(BaseModel):
         "details":"Rust, TypeScript"
     }}
     )
+    details: str
 
 class SaveRequest(BaseModel):
     """Payload for saving a rendered file to a custom location."""
@@ -709,7 +713,7 @@ def add_skill(id: str, payload: SkillRequest):
 
 
 @resumeRouter.post("/resume/{id}/skill/{label}")
-def append_skill(id: str, label: str, payload: SkillRequest):
+def append_skill(id: str, label: str, payload: AppendSkillRequest):
     """Append items to an existing skill category on a resume.
 
         Finds the skill category by label and appends the new comma-separated
