@@ -586,7 +586,7 @@ def add_skill(portfolio_id: str, payload:skillRequest):
         """
     doc = _load_portfolio(portfolio_id)
     result = doc.add_skill(payload.label, payload.details)
-    
+
     if "Duplicate" in result:
         raise HTTPException(status_code=409, detail=result)
     if result != "Successfully added skills":
@@ -597,6 +597,31 @@ def add_skill(portfolio_id: str, payload:skillRequest):
 
 
 @portfolioRouter.post("/portfolio/{portfolio_id}/skill/{label}/append")
+def append_skill(portfolio_id:str,label:str,payload:AppendSkillRequest):
+    """Remove a skill category from an existing portfolio by label.
+
+       Args:
+           portfolio_id: The portfolio identifier.
+           label: The exact skill category label to remove (e.g., 'Languages').
+
+       Returns:
+           dict: {"status": str} confirming the skill was removed.
+
+       Raises:
+           HTTPException: 404 if the portfolio or skill label does not exist.
+       """
+
+    doc = _load_portfolio(portfolio_id)
+    existing_skills = next(skill for skill in doc.get_skills() if skill.get("label") == label)
+    if existing_skills:
+        raise HTTPException(status_code=404, detail=f"Skill '{label}' not found")
+
+    current_skills = existing_skills.get("details","").strip().rsplit(",")
+    new_details_to_add=f"{current_skills}, {payload.details.strip()}" if current_skills else payload.details.strip()
+    result = _check_result(doc.modify_skill(label, new_details_to_add))
+    return {"staus": result,"details": new_details_to_add}
+
+
 
 
 
