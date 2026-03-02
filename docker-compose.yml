@@ -9,34 +9,6 @@ services:
     networks:
       - app_network
 
-
-# test runner on compose/start
-  test:
-    build: .
-    container_name: test_runner
-    working_dir: /app
-    command: python -m pytest -q --disable-warnings --maxfail=1
-    volumes:
-      - .:/app
-      - ./test/tiny_scripts:/app/test/tiny_scripts
-      - ./test/fixtures:/app/test/fixtures
-      - ./test/data:/app/test/data
-    environment:
-      - OLLAMA_HOST=http://ollama2:11434
-      - DB_HOST=app_database
-      - DB_PORT=3306
-    depends_on:
-      app_database:
-        condition: service_healthy
-      ollama2:
-        condition: service_started
-    networks:
-      - app_network
-    restart: "no"
-
-
-      # waits for the tests to resolve
-
   app:
     build: .
     container_name: desktop_app # container name
