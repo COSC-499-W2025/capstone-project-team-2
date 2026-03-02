@@ -81,7 +81,7 @@ The platforms target users are **graduating students** and **early career profes
   <img src="https://img.shields.io/badge/▶️%20Watch%20Demo-Click%20Here-red?style=for-the-badge&logo=youtube" alt="Watch Demo 2">
 </a>
 
-> *A complete walkthrough demonstrating New Features, System Architecture, API Implementation, and Frontend goals.*
+> *A complete walkthrough demonstrating New Features, System Architecture, API Implementation, and Frontend goals for Milestone 2.*
 
 
 
