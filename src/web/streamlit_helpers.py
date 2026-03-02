@@ -228,6 +228,7 @@ def modify_entries_section(doc_id, rd, section, item_key, field_options, endpoin
 
 def download_section(doc_id, endpoint_prefix, dl_key):
     fmt = st.selectbox("Format", FORMATS, key=f"{dl_key}_fmt")
+    custom_name = st.text_input("Filename (without extension)", value=endpoint_prefix, key=f"{dl_key}_name")
     if st.button("Render & Prepare Download", type="primary", icon=":material/construction:", key=f"{dl_key}_btn"):
         with st.spinner("Rendering...", show_time=True):
             res = requests.post(f"{API_BASE}/{endpoint_prefix}/{doc_id}/render/{fmt}", timeout=60)
@@ -238,8 +239,9 @@ def download_section(doc_id, endpoint_prefix, dl_key):
             st.error(api_error(res))
     if st.session_state.get(f"{dl_key}_bytes") and st.session_state.get(f"{dl_key}_rendered") == fmt:
         ext = FILE_EXTS[fmt]
-        st.download_button(f"Download {endpoint_prefix}.{ext}", data=st.session_state[f"{dl_key}_bytes"],
-                           file_name=f"{endpoint_prefix}.{ext}", mime=MIME_TYPES[fmt],
+        filename = f"{(custom_name.strip() or endpoint_prefix).replace(' ', '_')}.{ext}"
+        st.download_button(f"Download {filename}", data=st.session_state[f"{dl_key}_bytes"],
+                           file_name=filename, mime=MIME_TYPES[fmt],
                            type="primary", icon=":material/download:")
 
 
