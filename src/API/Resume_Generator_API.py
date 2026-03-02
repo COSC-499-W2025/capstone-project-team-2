@@ -680,6 +680,65 @@ def remove_experience(id: str, company_name: str):
         raise HTTPException(status_code=404, detail=result)
     return {"status": result}
 
+@resumeRouter.post("/resume/{id}/add/skill")
+def add_skill(id: str, payload: SkillRequest):
+    """Add a new skill to an existing resume.
+
+    Args:
+        id: The resume identifier.
+        payload: SkillRequest with a label (category name) and details (comma-separated skills).
+
+    Returns:
+        dict: {"status": str} confirming the skill was added.
+
+    Raises:
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 409 if a skill with the same label already exists.
+        HTTPException: 400 if the label is empty or the operation fails.
+
+    """
+    doc = _load_resume(id)
+    skill = Skill(label=payload.label, details=payload.details)
+    result = doc.add_skill(skill)
+    if "Duplicate" in result:
+        raise HTTPException(status_code=409, detail=result)
+    if result != "Successfully added skill":
+        raise HTTPException(status_code=400, detail=result)
+
+    return {"status": result}
+
+
+@resumeRouter.post("/resume/{id}/skill/{label}")
+def append_skill(id: str, label: str, payload: SkillRequest):
+    """Append items to an existing skill category on a resume.
+
+        Finds the skill category by label and appends the new comma-separated
+        items to the existing details, rather than replacing them entirely.
+
+        Args:
+            id: The resume identifier.
+            label: The exact skill category label to update (e.g., 'Languages').
+            payload: AppendSkillRequest with the details to append.
+
+        Returns:
+            dict: {"status": str, "details": "<full updated details string>"}.
+
+        Raises:
+            HTTPException: 404 if the resume or skill label does not exist.
+            HTTPException: 400 if the append operation fails.
+        """
+
+
+    doc = _load_resume(id)
+    existing = next((s for s in doc.get_skills() if s.get("label") == label), None)
+    if existing is None:
+        raise HTTPException(status_code=404, detail=f"Skill '{label}' not found")
+
+    current = existing.get("details", "").strip().rstrip(",")
+    new_details = f"{current}, {payload.details.strip()}" if current else payload.details.strip()
+    result = _check_result(doc.modify_skill(label, new_details))
+    return {"status": result, "details": new_details}
+
 
 @resumeRouter.delete("/resume/{id}")
 def delete_resume(id: str):
