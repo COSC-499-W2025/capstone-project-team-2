@@ -299,7 +299,6 @@ The Level 1 **Data Flow Diagram (DFD)** depicts the main system components and t
 | Entity              | Description |
 |---------------------|-------------|
 | **Project Owner**   | Grants consent, uploads zipped folders, provides filters, and retrieves résumé or portfolio-ready outputs. *(Milestone 1–3)* |
-| **Maintainer/Admin**| Performs administrative actions like backups and deletions. *(Milestone 2–3)* |
 | **Local File System** | Supplies input folders/files and stores output artifacts like reports, dashboards, and backups. *(Milestone 1–3)* |
 | **External Service** | Services such as LLMs used to enhance insights, with user consent. *(Milestone 1)* |
 
