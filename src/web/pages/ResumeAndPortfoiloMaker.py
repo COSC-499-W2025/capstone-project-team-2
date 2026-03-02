@@ -74,7 +74,7 @@ def _post_edit(endpoint_prefix, doc_id, edits, invalidate_fn, success_msg):
     res = requests.post(f"{API_BASE}/{endpoint_prefix}/{doc_id}/edit", json={"edits": edits}, timeout=15)
     if res.ok:
         invalidate_fn()
-        st.success(success_msg)
+        st.session_state["_flash_success"] = success_msg
         st.rerun()
     else:
         st.error(_api_error(res))
@@ -238,6 +238,23 @@ def _download_section(doc_id, endpoint_prefix, dl_key):
                            type="primary", icon=":material/download:")
 
 
+def _delete_doc_section(existing, endpoint_prefix, key):
+    if not existing:
+        st.warning(f"No saved {endpoint_prefix}s found.")
+    else:
+        selected = st.selectbox(f"Select {endpoint_prefix} to delete", existing,
+                                format_func=lambda x: x.rsplit("_", 1)[0].replace("_", " "),
+                                key=f"{key}_select")
+        if st.button(f"Delete {endpoint_prefix.capitalize()}", type="primary",
+                     icon=":material/delete:", key=f"{key}_btn"):
+            res = requests.delete(f"{API_BASE}/{endpoint_prefix}/{selected}", timeout=10)
+            if res.ok:
+                st.success(f"Deleted **{selected.rsplit('_', 1)[0].replace('_', ' ')}**.")
+                st.rerun()
+            else:
+                st.error(_api_error(res))
+
+
 def _edit_connections_section(doc_id, pd_, endpoint_prefix, invalidate_fn):
     conn_names = [c.get("network", "") for c in (pd_.get("connections") or []) if c.get("network")]
     action = st.segmented_control("Connections", ["➕ Add Connection", "🗑️ Remove Connection"],
@@ -299,21 +316,7 @@ def resume_tab():
                     st.rerun()
 
         elif mode == "🗑️ Delete Resume":
-            if not existing:
-                st.warning("⚠️ No saved resumes were found. Please create one first.")
-            else:
-                selected_del = st.selectbox("Select resume to delete", existing,
-                                            format_func=lambda x: x.rsplit("_", 1)[0].replace("_", " "),
-                                            key="resume_del_select")
-                if st.button("🗑️ Delete Resume", type="primary", icon=":material/delete:", key="resume_del_btn"):
-                    res = requests.delete(f"{API_BASE}/resume/{selected_del}", timeout=10)
-                    if res.ok:
-                        st.session_state.pop("projects_cache", None)
-                        time.sleep(1.5)
-                        st.success(f"Deleted **{selected_del.rsplit('_', 1)[0].replace('_', ' ')}**.")
-                        st.rerun()
-                    else:
-                        st.error(_api_error(res))
+            _delete_doc_section(existing, "resume", "resume_del")
 
     else:
         resume_id = st.session_state.resume_id
@@ -332,6 +335,11 @@ def resume_tab():
         if rd is None:
             return
 
+        if msg := st.session_state.pop("_flash_success", None):
+            flash = st.empty()
+            flash.success(msg)
+            time.sleep(2)
+            flash.empty()
         section = st.segmented_control("Section", ["✏️ Edit", "📊 Projects", "⬇️ Download"],
                                        label_visibility="hidden", key="resume_section")
         invalidate = lambda: st.session_state.update({"resume_data": None})
@@ -368,8 +376,7 @@ def resume_tab():
         elif section == "⬇️ Download":
             _download_section(resume_id, "resume", "resume_dl")
 
-        with st.expander("View current resume data"):
-            st.json(rd)
+
 
 
 def portfolio_tab():
@@ -378,10 +385,12 @@ def portfolio_tab():
 
     if not st.session_state.portfolio_id:
         existing = _list_docs("Portfolio_CV")
-        mode = st.segmented_control("Mode", ["➕ Create Portfolio", "📂 Load Portfolio"],
+        with st.expander(f"📄 {len(existing)} portfolio(s) found", expanded=False):
+            for i, name in enumerate(existing, start=1):
+                st.caption(f"{i}. {name.rsplit('_', 1)[0].replace('_', ' ')}")
+        mode = st.segmented_control("Mode", ["➕ Create Portfolio", "📂 Load Portfolio", "🗑️ Delete Portfolio"],
                                     label_visibility="hidden", default="➕ Create Portfolio", key="portfolio_mode")
         if mode == "➕ Create Portfolio":
-            st.caption(f"📄 {len(existing)} portfolio(s) found: " + ", ".join(f"**{e}**" for e in existing) if existing else "📄 No portfolios created yet.")
             with st.form("portfolio_create_form"):
                 name  = st.text_input("Full name", placeholder="e.g., Jane Doe")
                 theme = st.selectbox("Theme", THEMES, key="portfolio_gen_theme")
@@ -405,6 +414,8 @@ def portfolio_tab():
                     st.session_state.portfolio_id = selected
                     st.session_state.portfolio_data = None
                     st.rerun()
+        elif mode == "🗑️ Delete Portfolio":
+            _delete_doc_section(existing, "portfolio", "portfolio_del")
     else:
         portfolio_id = st.session_state.portfolio_id
         col1, col2 = st.columns([5, 1])
@@ -422,6 +433,11 @@ def portfolio_tab():
         if pd_ is None:
             return
 
+        if msg := st.session_state.pop("_flash_success", None):
+            flash = st.empty()
+            flash.success(msg)
+            time.sleep(2)
+            flash.empty()
         section = st.segmented_control("Section", ["✏️ Edit", "📊 Projects", "⬇️ Download"],
                                        label_visibility="hidden", key="portfolio_section")
         invalidate = lambda: st.session_state.update({"portfolio_data": None})
@@ -448,8 +464,7 @@ def portfolio_tab():
         elif section == "⬇️ Download":
             _download_section(portfolio_id, "portfolio", "portfolio_dl")
 
-        with st.expander("View current portfolio data"):
-            st.json(pd_)
+
 
 
 st.title("📄 Resume & Portfolio Maker")
