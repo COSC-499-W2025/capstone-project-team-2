@@ -37,6 +37,7 @@ from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
     Project,
     Education,
     Experience,
+    Skills,
 )
 from src.core.app_context import runtimeAppContext
 
@@ -702,7 +703,7 @@ def add_skill(id: str, payload: SkillRequest):
 
     """
     doc = _load_resume(id)
-    skill = Skill(label=payload.label, details=payload.details)
+    skill = Skills(label=payload.label, details=payload.details)
     result = doc.add_skill(skill)
     if "Duplicate" in result:
         raise HTTPException(status_code=409, detail=result)
