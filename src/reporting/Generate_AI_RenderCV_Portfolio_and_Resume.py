@@ -1,3 +1,4 @@
+import re
 import subprocess
 import shutil
 import sys
@@ -362,7 +363,8 @@ class RenderCVDocument:
         self.sections=self.data['cv']['sections']
         self.current_projects=self.sections.get('projects', [])
         self.current_connections=self.data['cv'].get('social_networks', [])
-        self.data['cv']['name'] = str(self.name).replace("_", " ")
+        display_name = re.sub(r'_[0-9a-f]{8}$', '', str(self.name))
+        self.data['cv']['name'] = display_name.replace("_", " ")
 
         # Shared sections for both resume and portfolio
         self.current_skills = self.sections.get('skills', [])
@@ -462,7 +464,8 @@ class RenderCVDocument:
         selected_formats = self._normalize_formats(formats)
         output_dir = self._get_output_dir()
         yaml_parent = self.yaml_file.resolve().parent
-        output_base = f"{self.name}_CV"
+        cv_name = self.data.get('cv', {}).get('name', '').strip().replace(" ", "_")
+        output_base = f"{cv_name}_CV" if cv_name else f"{self.name}_CV"
         doc_type_label = "Resume" if self.doc_type == 'resume' else "Portfolio"
 
         if output_dir.exists():
