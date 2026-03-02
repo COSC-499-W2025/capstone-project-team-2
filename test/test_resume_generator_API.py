@@ -163,6 +163,60 @@ class TestAddProjectFromDB(_BaseResumeTest):
         self.assertIn("disk full", resp.json()["detail"])
 
 
+class TestAddProjectManual(_BaseResumeTest):
+    """Tests for POST /resume/{id}/add/project/manual."""
+
+    def test_success_all_fields(self):
+        """All fields provided returns 200 with success status."""
+        self.mock_doc.add_project.return_value = "Successfully added project 'My Side Project'"
+        resp = self.client.post("/resume/test_abc123/add/project/manual", json={
+            "name": "My Side Project",
+            "start_date": "2024-01",
+            "end_date": "2025-03",
+            "location": "Vancouver, BC",
+            "summary": "A personal project to explore Rust.",
+            "highlights": ["Built async runtime", "Achieved 10k RPS"],
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+        self.mock_doc.add_project.assert_called_once()
+
+    def test_success_name_only(self):
+        """Only required `name` field; all optional fields default to None."""
+        self.mock_doc.add_project.return_value = "Successfully added project 'Minimal'"
+        resp = self.client.post("/resume/test_abc123/add/project/manual", json={"name": "Minimal"})
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+
+    def test_missing_name_returns_422(self):
+        """Request without required `name` field returns 422 validation error."""
+        resp = self.client.post("/resume/test_abc123/add/project/manual", json={
+            "summary": "No name provided",
+        })
+        self.assertEqual(resp.status_code, 422)
+
+    def test_check_result_failure_returns_400(self):
+        """Non-success result string from add_project returns 400."""
+        self.mock_doc.add_project.return_value = "Failed: duplicate project name"
+        resp = self.client.post("/resume/test_abc123/add/project/manual", json={"name": "Duplicate"})
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("duplicate project name", resp.json()["detail"])
+
+    def test_unexpected_error_returns_500(self):
+        """RuntimeError during add_project returns 500."""
+        self.mock_doc.add_project.side_effect = RuntimeError("disk full")
+        resp = self.client.post("/resume/test_abc123/add/project/manual", json={"name": "My Project"})
+        self.assertEqual(resp.status_code, 500)
+        self.assertIn("disk full", resp.json()["detail"])
+
+    def test_resume_not_found_returns_404(self):
+        """Missing resume returns 404."""
+        self._set_not_found()
+        resp = self.client.post("/resume/fake_id/add/project/manual", json={"name": "My Project"})
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+
 class TestErrorHandling(_BaseResumeTest):
     """Consolidated error/edge-case tests across all endpoints."""
 
