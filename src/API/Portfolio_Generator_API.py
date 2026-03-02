@@ -14,7 +14,8 @@ Endpoints:
     POST   /portfolio/generate                              - Create a new portfolio YAML document
     GET    /portfolio/{id}                                - Retrieve full portfolio data as JSON
     POST   /portfolio/{id}/edit                           - Modify a field on an existing section item
-    POST   /portfolio/{id}/add/project/{project_name}     - Add a project entry
+    POST   /portfolio/{id}/add/project/manual              - Add a project entry with manual data (no DB lookup)
+    POST   /portfolio/{id}/add/project/{project_name}     - Add a project entry from the database
     DELETE /portfolio/{id}/project/{project_name}          - Remove a project entry
     POST   /portfolio/{id}/add/skill                      - Add a new skill category
     POST   /portfolio/{id}/skill/{label}/append           - Append items to an existing skill category
@@ -113,6 +114,24 @@ class ProjectRoleOverrideRequest(BaseModel):
         "role": "Backend Developer",
     }})
     role: str = Field(default="Backend Developer", max_length=200)
+
+class ManualProjectRequest(BaseModel):
+    """Payload for adding a project directly without a database entry."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "name": "My Side Project",
+        "start_date": "2024-01",
+        "end_date": "2025-03",
+        "location": "Vancouver, BC",
+        "summary": "A personal project built to explore Rust async runtimes.",
+        "highlights": ["Implemented async runtime", "Achieved 10k RPS under load"],
+    }})
+    name: str
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    location: Optional[str] = None
+    summary: Optional[str] = None
+    highlights: Optional[list[str]] = None
+
 
 class  skillRequest(BaseModel):
     """Payload for adding a new a skill"""
@@ -383,6 +402,44 @@ def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
                                 )
         results.append(result)
     return {"results": results}
+
+
+@portfolioRouter.post("/portfolio/{portfolio_id}/add/project/manual")
+def add_project_manual(portfolio_id: str, payload: ManualProjectRequest):
+    """Add a project entry to the portfolio with fully manual data.
+
+    Unlike POST /portfolio/{id}/add/project/{project_name}, this endpoint does not
+    require the project to exist in the database. All project fields are supplied
+    directly in the request body.
+
+    Args:
+        portfolio_id: The portfolio identifier.
+        payload: ManualProjectRequest with all project fields provided directly.
+
+    Returns:
+        dict: {"status": str} confirming the project was added.
+
+    Raises:
+        HTTPException: 404 if the portfolio does not exist.
+        HTTPException: 400 if adding the project fails.
+        HTTPException: 500 if an unexpected error occurs.
+    """
+    doc = _load_portfolio(portfolio_id)
+    proj = Project(
+        name=payload.name,
+        start_date=payload.start_date,
+        end_date=payload.end_date,
+        location=payload.location,
+        summary=payload.summary,
+        highlights=payload.highlights,
+    )
+    try:
+        result = _check_result(doc.add_project(proj))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
+    return {"status": result}
 
 
 @portfolioRouter.post("/portfolio/{portfolio_id}/add/project/{project_name}")

@@ -13,7 +13,8 @@ Endpoints:
     POST   /resume/{id}/export/{format}              - Render and export to default directory
     POST   /resume/{id}/export/{format}/custom       - Render and export to a custom directory
     POST   /resume/{id}/edit                         - Modify a field on an existing section item
-    POST   /resume/{id}/add/project/{project_name}   - Add a project entry
+    POST   /resume/{id}/add/project/manual            - Add a project entry with manual data (no DB lookup)
+    POST   /resume/{id}/add/project/{project_name}   - Add a project entry from the database
     DELETE /resume/{id}/project/{project_name}        - Remove a project entry
     POST   /resume/{id}/add/education                - Add an education entry
     DELETE /resume/{id}/education/{institution_name} - Remove an education entry
@@ -104,6 +105,24 @@ class ProjectRequest(BaseModel):
     location: Optional[str] = None
     summary: Optional[str] = None
     highlights: Optional[List[str]] = None
+
+class ManualProjectRequest(BaseModel):
+    """Payload for adding a project directly without a database entry."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "name": "My Side Project",
+        "start_date": "2024-01",
+        "end_date": "2025-03",
+        "location": "Vancouver, BC",
+        "summary": "A personal project built to explore Rust async runtimes.",
+        "highlights": ["Implemented async runtime", "Achieved 10k RPS under load"],
+    }})
+    name: str
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    location: Optional[str] = None
+    summary: Optional[str] = None
+    highlights: Optional[List[str]] = None
+
 
 class EducationRequest(BaseModel):
     """Payload for adding a new education entry."""
@@ -498,6 +517,44 @@ def export_resume_custom(id: str, format: str, payload: SaveRequest):
     shutil.rmtree(rendered_path.parent, True)
 
     return {"status": "Saved successfully", "path": str(dest)}
+
+
+@resumeRouter.post("/resume/{id}/add/project/manual")
+def add_project_manual(id: str, payload: ManualProjectRequest):
+    """Add a project entry to the resume with fully manual data.
+
+    Unlike POST /resume/{id}/add/project/{project_name}, this endpoint does not
+    require the project to exist in the database. All project fields are supplied
+    directly in the request body.
+
+    Args:
+        id: The resume identifier.
+        payload: ManualProjectRequest with all project fields provided directly.
+
+    Returns:
+        dict: {"status": str} confirming the project was added.
+
+    Raises:
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 400 if adding the project fails.
+        HTTPException: 500 if an unexpected error occurs.
+    """
+    doc = _load_resume(id)
+    proj = Project(
+        name=payload.name,
+        start_date=payload.start_date,
+        end_date=payload.end_date,
+        location=payload.location,
+        summary=payload.summary,
+        highlights=payload.highlights,
+    )
+    try:
+        result = _check_result(doc.add_project(proj))
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise
+        raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
+    return {"status": result}
 
 
 @resumeRouter.post("/resume/{id}/add/project/{project_name}")
