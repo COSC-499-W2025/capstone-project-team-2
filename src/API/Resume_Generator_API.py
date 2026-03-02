@@ -234,6 +234,7 @@ def generate_resume(payload: GenerateResumeRequest):
                             detail=f"Resume '{payload.name}' already exists. Set overwrite=true to replace it.",
                             )
     doc.load(name=full_name)
+    doc.update_contact(name=payload.name)
 
     if payload.theme and payload.theme != 'sb2nov':
         try:
