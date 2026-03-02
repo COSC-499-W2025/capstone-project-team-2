@@ -140,6 +140,23 @@ class ExperienceRequest(BaseModel):
     location: Optional[str] = None
     highlights: Optional[List[str]] = None
 
+class SkillRequest(BaseModel):
+    """Payload for adding a new skill entry."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "label" :"Languages",
+        "details": "Python, Java, C++, JavaScript, SQL, HTML, CSS" }
+
+    })
+    label: str
+    details: str
+
+
+class AppendSkillRequest(BaseModel):
+    """Payload for appending items to an existing skill entry."""
+    model_config = ConfigDict(json_schema_extra={"example":{
+        "details":"Rust, TypeScript"
+    }}
+    )
 
 class SaveRequest(BaseModel):
     """Payload for saving a rendered file to a custom location."""
