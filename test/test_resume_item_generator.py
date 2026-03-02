@@ -152,7 +152,44 @@ class TestResumeItemGenerator(unittest.TestCase):
         # Should not crash and should return a valid ResumeItem summary/highlights.
         self.assertIsInstance(resume_item.summary, str)
         self.assertTrue(len(resume_item.highlights) >= 1)
+        
+    def test_evidence_counts_test_files(self) -> None:
+        self._announce("Counting test files for evidence block.")
+        self._write("tests/test_api.py", "def test_x(): pass")
+        self._write("src/foo_test.py", "def test_y(): pass")
+        self._write("bar_test.java", "class BarTest {}")
+        self._write("ui/button.test.js", "it('x', ()=>{})")
+        self._write("ui/button.spec.ts", "it('x', ()=>{})")
+        self._write("not_a_test.txt", "nope")
 
+        resume_item = generate_resume_item(self.project_root, project_name="TestCounter")
+
+        self.assertGreaterEqual(resume_item.evidence["test_file_count"], 5)
+        
+    def test_evidence_doc_metrics_and_key_points_are_deduped_and_capped(self) -> None:
+        self._announce("Injecting doc_analysis to cover metrics/key_points branches.")
+        doc_analysis = {
+            "documents": [{
+                "metrics": ["m1","m2","m2","m3","m4","m5","m6","m7"],
+                "key_points": [
+                    "short",  # should be ignored (< 20 chars)
+                    "This is a sufficiently long key point to keep.",
+                    "This is a sufficiently long key point to keep.",  # dedupe
+                    "Another sufficiently long key point to keep.",
+                    "Third sufficiently long key point to keep.",
+                    "Fourth sufficiently long key point to drop due to cap.",
+                ],
+                "doc_type": {"label": "software/technical", "confidence": "high"},
+            }]
+        }
+
+        resume_item = generate_resume_item(self.project_root, project_name="DocSignals", doc_analysis=doc_analysis)
+        ev = resume_item.evidence
+
+        self.assertEqual(ev["doc_metrics"], ["m1","m2","m3","m4","m5","m6"])  # capped at 6
+        self.assertEqual(len(ev["doc_key_points"]), 3)  # capped at 3
+        self.assertTrue(all(len(kp) > 20 for kp in ev["doc_key_points"]))
+        self.assertIn("software/technical", ev["doc_types_found"])
 
 if __name__ == "__main__":
     unittest.main()

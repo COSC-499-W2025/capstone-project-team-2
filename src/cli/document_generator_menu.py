@@ -11,6 +11,7 @@ delegates to the underlying RenderCVDocument service.
 
 import json
 import os
+import re
 import shutil
 from pathlib import Path
 from typing import Optional, List
@@ -250,6 +251,190 @@ def _document_edit_menu(doc: RenderCVDocument) -> None:
             print(f"Please choose a valid option (0-{max_opt}).")
 
 
+def _build_summary(resume_item, evidence: dict, doc_type: str, data: dict | None = None) -> str:
+    """
+    Compose a richer project summary for the document from the already-generated
+    ResumeItem fields, the evidence block, and the full saved analysis data.
+
+    For resumes: one-sentence line + impact statement (kept concise).
+    For portfolios: full detailed narrative + impact + contributor context +
+    OOP narrative + doc-type signals — aimed at a paragraph-length overview.
+
+    Args:
+        resume_item: ResumeItem produced by GenerateLocalResume.generate().
+        evidence: Evidence dict from data["resume_item"]["evidence"].
+        doc_type: "resume" or "portfolio".
+        data: Full saved analysis JSON dict (optional). Used for portfolio
+              to pull oop_analysis narrative and document_analysis signals
+              that are stored at the top level rather than in evidence.
+
+    Returns:
+        A multi-sentence summary string ready to set on the Project dataclass.
+    """
+    parts = []
+
+    # Resume: one sentence + impact only — keep it to ~2 lines
+    if doc_type != "portfolio":
+        if resume_item.one_sentence_summary:
+            parts.append(resume_item.one_sentence_summary)
+        if resume_item.impact:
+            parts.append(resume_item.impact)
+        return " ".join(parts)
+
+    # Portfolio base: detailed summary (base summary + OOP class narrative)
+    if resume_item.detailed_summary and resume_item.detailed_summary != "No detailed analysis available.":
+        parts.append(resume_item.detailed_summary)
+    elif resume_item.one_sentence_summary:
+        parts.append(resume_item.one_sentence_summary)
+
+    # Append the impact statement
+    if resume_item.impact:
+        parts.append(resume_item.impact)
+
+    # --- Portfolio: build a richer paragraph-length narrative ---
+    analysis = data or {}
+
+    # 1. OOP narrative paragraphs (data_structures and complexity add real depth)
+    oop = analysis.get("oop_analysis") or {}
+    narrative = oop.get("narrative") or {}
+    for section in ("data_structures", "complexity"):
+        text = narrative.get(section, "").strip()
+        if text and text not in " ".join(parts):
+            parts.append(text)
+
+    # 2. Contributor context — who built it and how collaborative was it
+    contributors = analysis.get("contributors") or {}
+    contributor_count = len(contributors)
+    contributor_names = sorted(contributors.keys())
+    if contributor_count > 1:
+        names_str = ", ".join(contributor_names[:3])
+        suffix = " and others" if contributor_count > 3 else ""
+        parts.append(
+            f"Built collaboratively by {contributor_count} contributors: {names_str}{suffix}."
+        )
+    elif contributor_count == 1:
+        parts.append(f"Sole contributor: {contributor_names[0]}.")
+
+    # 3. Document signals from document_analysis (stored at top level in the JSON)
+    doc_analysis = analysis.get("document_analysis") or {}
+    _valuable_types = {"research paper", "report", "proposal", "manual/guide", "specification"}
+    found_types: list = []
+    doc_key_points: list = []
+    _sentence_verbs = {
+        "built", "created", "designed", "implemented", "analyzed",
+        "evaluated", "proposed", "achieved", "demonstrated", "showed",
+        "reduced", "improved", "increased", "developed", "authored",
+    }
+    for doc in (doc_analysis.get("documents") or []):
+        doc_type_info = doc.get("doc_type") or {}
+        label = doc_type_info.get("label", "")
+        confidence = doc_type_info.get("confidence", "")
+        if label in _valuable_types and confidence in ("medium", "high") and label not in found_types:
+            found_types.append(label)
+        for kp in (doc.get("key_points") or []):
+            kp_clean = kp.strip()
+            kp_lower = kp_clean.lower()
+            if (
+                kp_clean not in doc_key_points
+                and len(kp_clean) >= 40
+                and any(v in kp_lower for v in _sentence_verbs)
+                and kp_clean.rstrip().endswith(".", )
+            ):
+                doc_key_points.append(kp_clean)
+
+    if len(found_types) == 1:
+        parts.append(f"Accompanied by a {found_types[0]}.")
+    if doc_key_points:
+        parts.append(f"Key finding: {doc_key_points[0]}")
+
+    # 4. Tech stack last as supplementary context
+    if resume_item.tech_stack and resume_item.tech_stack != "Not detected":
+        parts.append(f"Tech stack: {resume_item.tech_stack}.")
+
+    return " ".join(parts)
+
+
+def _build_evidence_bullets(evidence: dict, doc_type: str) -> list:
+    """
+    Convert the evidence block saved by generate_resume_item() into
+    human-readable highlight bullets.
+
+    For resumes, only high-signal items (test coverage, duration) are included
+    to keep bullets concise. For portfolios, the full set of evidence signals
+    is surfaced so reviewers can see concrete proof of project substance.
+
+    Args:
+        evidence: The evidence dict from the saved analysis JSON
+                  (data["resume_item"]["evidence"]).
+        doc_type: "resume" or "portfolio".
+
+    Returns:
+        List of bullet strings to append to the project's highlights.
+    """
+    bullets = []
+    if not evidence:
+        return bullets
+
+    # Test file count — relevant for both doc types
+    test_count = evidence.get("test_file_count", 0)
+    if test_count:
+        bullets.append(f"Includes {test_count} test file(s) demonstrating commitment to code quality.")
+
+    # Duration — relevant for both doc types
+    duration = evidence.get("duration")
+    if duration and duration != "unavailable" and duration != "—":
+        bullets.append(f"Estimated project duration: {duration}.")
+
+    # The signals below are richer context — surface them for portfolios only
+    if doc_type == "portfolio":
+        # Metrics extracted from project documents (e.g. benchmarks, evaluation scores).
+        # Filter out bare numbers/percentages with no surrounding label — they are
+        # meaningless without context (e.g. "31%; 12%" tells the reader nothing).
+        doc_metrics = evidence.get("doc_metrics") or []
+        meaningful_metrics = [
+            m for m in doc_metrics
+            if not re.fullmatch(r"[\d,.\s]+\s*%?", m.strip()) and len(m.strip()) > 5
+        ]
+        if meaningful_metrics:
+            metrics_str = "; ".join(meaningful_metrics[:4])
+            bullets.append(f"Documented metrics: {metrics_str}.")
+
+        # Key points from project documentation.
+        # Only include if it reads like a proper sentence (has a verb and ends with
+        # punctuation), not a raw code/module descriptor line.
+        doc_key_points = evidence.get("doc_key_points") or []
+        _sentence_verbs = {
+            "built", "created", "designed", "implemented", "analyzed",
+            "evaluated", "proposed", "achieved", "demonstrated", "showed",
+            "reduced", "improved", "increased", "developed", "authored",
+        }
+        for kp in doc_key_points[:1]:
+            kp_lower = kp.lower()
+            looks_like_sentence = (
+                any(v in kp_lower for v in _sentence_verbs)
+                and kp.rstrip().endswith(("." , "!", "?"))
+                and len(kp) >= 40
+            )
+            if looks_like_sentence:
+                bullets.append(f"Key finding: {kp}")
+
+        # Document types — only surface when there is a single clear type,
+        # listing many types ("specification, report, research paper") is noise.
+        doc_types = evidence.get("doc_types_found") or []
+        _valuable_types = {"research paper", "report", "proposal", "manual/guide", "specification"}
+        valuable_doc_types = [t for t in doc_types if t in _valuable_types]
+        if len(valuable_doc_types) == 1:
+            bullets.append(f"Project includes a {valuable_doc_types[0]}.")
+
+        # Contributor breakdown as evidence of collaboration
+        breakdown = evidence.get("contributor_breakdown") or {}
+        if breakdown:
+            contrib_parts = [f"{name} ({pct})" for name, pct in list(breakdown.items())[:3]]
+            bullets.append(f"Contributor breakdown: {', '.join(contrib_parts)}.")
+
+    return bullets
+
+
 def _add_project_from_analysis(doc: RenderCVDocument) -> None:
     """
     Add a project to the document from a saved local analysis.
@@ -299,20 +484,27 @@ def _add_project_from_analysis(doc: RenderCVDocument) -> None:
     project_name = chosen_path.stem
     try:
         resume_item = GenerateLocalResume(data, project_name).generate()
+        evidence = (data.get("resume_item") or {}).get("evidence") or {}
 
-        summary = resume_item.one_sentence_summary
-        if resume_item.tech_stack:
-            summary = f"{summary} Tech stack: {resume_item.tech_stack}"
+        summary = _build_summary(resume_item, evidence, doc.doc_type, data=data)
 
         start_date = input("Start date (YYYY-MM, or press Enter to skip): ").strip()
         end_date = input("End date (YYYY-MM, or press Enter to skip): ").strip()
+
+        # Start with the responsibilities generated by GenerateLocalResume
+        highlights = list(resume_item.key_responsibilities or [])
+
+        # Pull evidence signals saved by generate_resume_item() during analysis
+        # and append them as additional highlight bullets.
+        evidence_bullets = _build_evidence_bullets(evidence, doc.doc_type)
+        highlights.extend(evidence_bullets)
 
         project = Project(
             name=resume_item.project_title,
             start_date=start_date if start_date else None,
             end_date=end_date if end_date else None,
             summary=summary,
-            highlights=resume_item.key_responsibilities or []
+            highlights=highlights,
         )
 
         result = doc.add_project(project)

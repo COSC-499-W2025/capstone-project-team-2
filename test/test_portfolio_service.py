@@ -19,6 +19,7 @@ from src.reporting.portfolio_service import (
     load_portfolio_showcase,
     save_project_role_override,
 )
+
 class TestBuildPortfolioShowcase(unittest.TestCase):
     """Test suite for build_portfolio_showcase function."""
 
@@ -29,6 +30,15 @@ class TestBuildPortfolioShowcase(unittest.TestCase):
                 'project_name': 'Full Stack App',
                 'summary': 'A complete application',
                 'skills': ['Python', 'JavaScript'],
+                'evidence': {
+                    'duration': '3 months',
+                    'test_file_count': 5,
+                    'doc_metrics': [],
+                    'doc_key_points': ['Key finding about architecture'],
+                    'doc_types_found': ['software/technical'],
+                    'contributor_count': 2,
+                    'contributor_breakdown': {'Alice': '60%', 'Bob': '40%'},
+                },
             },
             'oop_analysis': {
                 'score': {
@@ -62,22 +72,68 @@ class TestBuildPortfolioShowcase(unittest.TestCase):
         result = build_portfolio_showcase(analysis)
 
         self.assertIsInstance(result, PortfolioShowcase)
-
         self.assertEqual(result.title, 'Full Stack App')
-        self.assertEqual(result.overview, 'A complete application')
         self.assertEqual(result.skills, ['Python', 'JavaScript'])
 
-        self.assertIn("50 classes across multiple languages", result.technical_highlights[0])
+        # Overview should include base summary + duration
+        self.assertIn('A complete application', result.overview)
+        self.assertIn('3 months', result.overview)
+
+        # Design quality populated from OOP
         self.assertEqual(result.design_quality['oop_rating'], 'GOOD')
         self.assertEqual(result.design_quality['oop_comment'], 'Well-structured')
         self.assertEqual(result.design_quality['max_loop_depth'], 3)
 
+        # Evidence populated from OOP + evidence block
         self.assertEqual(result.evidence['files_analyzed'], 75)
         self.assertEqual(result.evidence['total_functions'], 200)
         self.assertEqual(result.evidence['collection_literals'], 210)
+        self.assertEqual(result.evidence['test_files'], 5)
+        self.assertEqual(result.evidence['project_duration'], '3 months')
+        self.assertIn('contributor_breakdown', result.evidence)
 
         self.assertIn('Alice', result.contributors)
         self.assertIn('Bob', result.contributors)
+
+    def test_build_portfolio_showcase_no_evidence(self):
+        """Test that missing evidence block degrades gracefully."""
+        analysis = {
+            'resume_item': {
+                'project_name': 'Minimal Project',
+                'summary': 'Simple project',
+                'skills': [],
+            },
+        }
+        result = build_portfolio_showcase(analysis)
+        self.assertIsInstance(result, PortfolioShowcase)
+        self.assertEqual(result.title, 'Minimal Project')
+        self.assertEqual(result.overview, 'Simple project')
+        # Evidence should be empty dict (all conditions failed)
+        self.assertIsInstance(result.evidence, dict)
+
+    def test_overview_includes_contributor_count(self):
+        """Team context appears in overview when contributor_count > 1."""
+        analysis = {
+            'resume_item': {
+                'project_name': 'Team Project',
+                'summary': 'Built by a team.',
+                'skills': [],
+                'evidence': {
+                    'duration': '6 months',
+                    'contributor_count': 3,
+                    'doc_metrics': [],
+                    'doc_key_points': [],
+                    'doc_types_found': [],
+                    'contributor_breakdown': {},
+                    'test_file_count': 0,
+                },
+            },
+        }
+        result = build_portfolio_showcase(analysis)
+        self.assertIn('3 contributors', result.overview)
+        self.assertIn('6 months', result.overview)
+
+
 class TestDisplayPortfolioShowcase(unittest.TestCase):
     """Test suite for display_portfolio_showcase function."""
 

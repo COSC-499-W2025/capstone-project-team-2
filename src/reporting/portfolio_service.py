@@ -49,6 +49,86 @@ def build_portfolio_showcase(
     complexity = oop.get("complexity", {})
     data_structs = oop.get("data_structures", {})
 
+    # Pull evidence stored on resume_item by analyze_project.
+    ev = resume_item.get("evidence") or {}
+    duration = ev.get("duration")
+    contributor_count = ev.get("contributor_count", 0)
+    contributor_breakdown = ev.get("contributor_breakdown") or {}
+    doc_metrics = ev.get("doc_metrics") or []
+    doc_key_points = ev.get("doc_key_points") or []
+    doc_types_found = ev.get("doc_types_found") or []
+    test_file_count = ev.get("test_file_count") or 0
+
+    # Pull richer signals directly from document_analysis for topics and summaries.
+    doc_analysis = analysis.get("document_analysis") or {}
+    documents = doc_analysis.get("documents") or []
+    doc_topics: List[str] = []
+    doc_summaries: List[str] = []
+    for doc in documents:
+        for t in (doc.get("topics") or []):
+            if t not in doc_topics:
+                doc_topics.append(t)
+        s = (doc.get("summary") or "").strip()
+        if s and len(s) > 30 and s not in doc_summaries:
+            doc_summaries.append(s)
+
+    # Overview: resume summary (terse) + duration/team context + doc-extracted summary.
+    base_summary = resume_item.get("summary", "")
+    overview_parts = [base_summary] if base_summary else []
+    if duration and duration != "Unknown":
+        if contributor_count > 1:
+            overview_parts.append(
+                f"Developed over {duration} as part of a team of {contributor_count} contributors."
+            )
+        else:
+            overview_parts.append(f"Developed over {duration}.")
+    if doc_summaries:
+        overview_parts.append(doc_summaries[0])
+    elif doc_key_points:
+        overview_parts.append(doc_key_points[0])
+    default_overview = " ".join(overview_parts)
+
+    # Technical highlights: OOP narrative prose first, then counts and score.
+    oop_narrative = ev.get("oop_narrative") or ""
+    default_highlights: List[str] = []
+    if oop_narrative:
+        default_highlights.append(oop_narrative)
+    if classes.get("count", 0):
+        default_highlights.append(
+            f"{classes['count']} class(es) with an average of "
+            f"{classes.get('avg_methods_per_class', 0)} methods per class."
+        )
+    default_highlights.append(
+        f"OOP score: {score.get('oop_score', 'N/A')} ({score.get('rating', '')})"
+    )
+
+    # Evidence: all quantifiable signals. More thorough than the resume.
+    built_evidence: Dict[str, Any] = {}
+    if oop.get("files_analyzed") is not None:
+        built_evidence["files_analyzed"] = oop["files_analyzed"]
+    if complexity.get("total_functions") is not None:
+        built_evidence["total_functions"] = complexity["total_functions"]
+    collection_literals = sum(
+        data_structs.get(k, 0)
+        for k in ("list_literals", "dict_literals", "set_literals", "tuple_literals")
+    )
+    if collection_literals:
+        built_evidence["collection_literals"] = collection_literals
+    if test_file_count:
+        built_evidence["test_files"] = test_file_count
+    if duration and duration != "Unknown":
+        built_evidence["project_duration"] = duration
+    if doc_metrics:
+        built_evidence["extracted_metrics"] = doc_metrics
+    if doc_key_points:
+        built_evidence["key_achievements"] = doc_key_points
+    if doc_types_found:
+        built_evidence["document_types"] = doc_types_found
+    if doc_topics:
+        built_evidence["topics"] = doc_topics[:6]
+    if contributor_breakdown:
+        built_evidence["contributor_breakdown"] = contributor_breakdown
+
     return PortfolioShowcase(
         title=overrides.get("project", {}).get(
             "title", resume_item.get("project_name", "Portfolio Project")
@@ -56,18 +136,10 @@ def build_portfolio_showcase(
 
         role=overrides.get("project", {}).get("role"),
 
-        overview=overrides.get("portfolio", {}).get(
-            "overview",
-            resume_item.get("summary", "")
-        ),
+        overview=overrides.get("portfolio", {}).get("overview", default_overview),
 
         technical_highlights=overrides.get("portfolio", {}).get(
-            "highlights",
-            [
-                f"{classes.get('count', 0)} classes across multiple languages",
-                f"Average {classes.get('avg_methods_per_class', 0)} methods per class",
-                f"OOP score: {score.get('oop_score', 'N/A')} ({score.get('rating', '')})",
-            ],
+            "highlights", default_highlights
         ),
 
         design_quality={
@@ -77,19 +149,7 @@ def build_portfolio_showcase(
             "max_loop_depth": complexity.get("max_loop_depth"),
         },
 
-        evidence={
-            "files_analyzed": oop.get("files_analyzed"),
-            "total_functions": complexity.get("total_functions"),
-            "collection_literals": sum(
-                data_structs.get(k, 0)
-                for k in [
-                    "list_literals",
-                    "dict_literals",
-                    "set_literals",
-                    "tuple_literals",
-                ]
-            ),
-        },
+        evidence=built_evidence,
 
         skills=resume_item.get("skills", []),
         contributors=list((analysis.get("contributors") or {}).keys()),
