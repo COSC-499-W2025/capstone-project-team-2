@@ -74,10 +74,16 @@ The platforms target users are **graduating students** and **early career profes
 ## 🎬 Video Demo
 
 <a href="https://youtu.be/zAoHiW9vn-U">
-  <img src="https://img.shields.io/badge/▶️%20Watch%20Demo-Click%20Here-red?style=for-the-badge&logo=youtube" alt="Watch Demo">
+  <img src="https://img.shields.io/badge/▶️%20Watch%20Demo-Click%20Here-red?style=for-the-badge&logo=youtube" alt="Watch Demo 1">
 </a>
 
 > *A complete walkthrough demonstrating project setup, features, and usage.*
+
+<a href="https://www.youtube.com/watch?v=xQ7I56scSu0">
+  <img src="https://img.shields.io/badge/▶️%20Watch%20Demo-Click%20Here-red?style=for-the-badge&logo=youtube" alt="Watch Demo 2">
+</a>
+
+> *A complete walkthrough demonstrating New Features, System Architecture, API Implementation, and Frontend goals for Milestone 2.*
 
 
 
@@ -85,7 +91,8 @@ The platforms target users are **graduating students** and **early career profes
 
 This system architecture illustrates the structural design of the application, showing how the frontend, backend, database, and external services interact. It emphasizes modularity, scalability, and maintainability through a three-layered design.
 
-<img width="2000" height="1600" alt="Copy of Copy of CAPSTONE 499 System design Team2 -Page-1 drawio" src="https://github.com/user-attachments/assets/bf6d49ac-18c0-4691-b845-ab9ccff00b70" />
+
+<img width="1581" height="1209" alt="System_Architecture_Milestone2" src="https://github.com/user-attachments/assets/0d792c43-a4b3-48bf-baf0-20f565b3bcfe" />
 
 
 
@@ -255,11 +262,6 @@ pip install -r src/requirements.txt
 
 3. **Run the application:**
 ```bash
-python src/main.py
-```
-   
-   Or alternatively:
-```bash
 python -m src.main
 ```
 
@@ -277,7 +279,7 @@ If you run the FastAPI app, interactive docs are also available at:
 
 ## Key Components
 
-- **Frontend (Presentation Layer)**: Built using **Streamlit** or **FreeSimpleGUI**, offering an intuitive menu-driven interface for users to navigate and interact with the application. Key features include:
+- **Frontend (Presentation Layer)**: Built using **Streamlit**, offering an intuitive menu-driven interface for users to navigate and interact with the application. Key features include:
   - **Interactive menus**: For project analysis, viewing saved projects, portfolio generation, and configuration management.
   - **User consent workflow**: Guides users through the process of providing consent and configuring permissions for external services permissions
   - **Portfolio generation**: Enables users to generate a portfolio-ready resume or portfolio 
@@ -309,14 +311,14 @@ If you run the FastAPI app, interactive docs are also available at:
 
 The Level 1 **Data Flow Diagram (DFD)** depicts the main system components and the flow of data between **external entities**, **core processes**, and **internal data stores**.
 
-![DFD Level 1](<docs/design/level1 dfd updated.png>)
+<img width="3282" height="521" alt="DFDM2" src="https://github.com/user-attachments/assets/1d6e51fc-fabe-4013-8c3f-c72c7e7c3293" />
+
 
 ### External Entities
 
 | Entity              | Description |
 |---------------------|-------------|
 | **Project Owner**   | Grants consent, uploads zipped folders, provides filters, and retrieves résumé or portfolio-ready outputs. *(Milestone 1–3)* |
-| **Maintainer/Admin**| Performs administrative actions like backups and deletions. *(Milestone 2–3)* |
 | **Local File System** | Supplies input folders/files and stores output artifacts like reports, dashboards, and backups. *(Milestone 1–3)* |
 | **External Service** | Services such as LLMs used to enhance insights, with user consent. *(Milestone 1)* |
 
