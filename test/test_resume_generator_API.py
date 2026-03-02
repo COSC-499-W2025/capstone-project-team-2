@@ -547,5 +547,100 @@ class TestExportResume(_BaseResumeTest):
         self.assertIn("Unsupported format", resp.json()["detail"])
 
 
+class TestSkillEndpoints(_BaseResumeTest):
+    """Tests for POST /resume/{id}/add/skill, POST /resume/{id}/skill/{label}, DELETE /resume/{id}/skill/{label}."""
+
+    def test_add_skill(self):
+        """Covers success, duplicate (409), failure (400), and resume not found (404)."""
+        # Success
+        self.mock_doc.add_skill.return_value = "Successfully added skill"
+        resp = self.client.post("/resume/test_abc123/add/skill", json={
+            "label": "Languages",
+            "details": "Python, Java, C++",
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["status"], "Successfully added skill")
+
+        # Duplicate label returns 409
+        self.mock_doc.add_skill.return_value = "Duplicate label 'Languages' already exists"
+        resp = self.client.post("/resume/test_abc123/add/skill", json={
+            "label": "Languages",
+            "details": "Python",
+        })
+        self.assertEqual(resp.status_code, 409)
+        self.assertIn("Duplicate", resp.json()["detail"])
+
+        # Generic failure returns 400
+        self.mock_doc.add_skill.return_value = "Label cannot be empty"
+        resp = self.client.post("/resume/test_abc123/add/skill", json={
+            "label": "Languages",
+            "details": "Python",
+        })
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Label cannot be empty", resp.json()["detail"])
+
+        # Resume not found
+        self._set_not_found()
+        resp = self.client.post("/resume/fake_id/add/skill", json={
+            "label": "Languages",
+            "details": "Python",
+        })
+        self.assertEqual(resp.status_code, 404)
+
+    def test_append_skill(self):
+        """Covers append success (merges details), skill not found (404), and resume not found (404)."""
+        # Success — appends to existing details
+        self.mock_doc.get_skills.return_value = [
+            {"label": "Languages", "details": "Python, Java"}
+        ]
+        self.mock_doc.modify_skill.return_value = "Successfully modified skill"
+        resp = self.client.post("/resume/test_abc123/skill/Languages", json={
+            "details": "C++",
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["details"], "Python, Java, C++")
+        self.assertIn("Successfully", resp.json()["status"])
+        self.mock_doc.modify_skill.assert_called_once_with("Languages", "Python, Java, C++")
+
+        # Skill label not found returns 404
+        self.mock_doc.get_skills.return_value = []
+        resp = self.client.post("/resume/test_abc123/skill/Unknown", json={
+            "details": "Rust",
+        })
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+        # Resume not found
+        self._set_not_found()
+        resp = self.client.post("/resume/fake_id/skill/Languages", json={
+            "details": "Rust",
+        })
+        self.assertEqual(resp.status_code, 404)
+
+    def test_remove_skill(self):
+        """Covers remove success, label not found (404), no skills (404), and resume not found (404)."""
+        # Success
+        self.mock_doc.remove_skill.return_value = "Successfully removed skill 'Languages'"
+        resp = self.client.delete("/resume/test_abc123/skill/Languages")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+
+        # Label not found returns 404
+        self.mock_doc.remove_skill.return_value = "Skill 'Unknown' not found"
+        resp = self.client.delete("/resume/test_abc123/skill/Unknown")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+        # No skills on the resume returns 404
+        self.mock_doc.remove_skill.return_value = "No skills in resume"
+        resp = self.client.delete("/resume/test_abc123/skill/Languages")
+        self.assertEqual(resp.status_code, 404)
+
+        # Resume not found
+        self._set_not_found()
+        resp = self.client.delete("/resume/fake_id/skill/Languages")
+        self.assertEqual(resp.status_code, 404)
+
+
 if __name__ == "__main__":
     unittest.main()
