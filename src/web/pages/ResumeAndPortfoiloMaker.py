@@ -279,6 +279,118 @@ def _edit_connections_section(doc_id, pd_, endpoint_prefix, invalidate_fn):
                                invalidate_fn, f"Removed **{to_remove}**.")
 
 
+def _add_education_section(doc_id, invalidate_fn):
+    today = pendulum.today().date()
+    with st.form("add_education_form", clear_on_submit=True):
+        c1, c2 = st.columns(2)
+        with c1:
+            institution = st.text_input("Institution *", placeholder="e.g., University of British Columbia")
+            area = st.text_input("Area of Study *", placeholder="e.g., Computer Science")
+            degree = st.text_input("Degree", placeholder="e.g., BSc")
+            gpa = st.text_input("GPA", placeholder="e.g., 3.8")
+        with c2:
+            start = st.date_input("Start date", value=None, key="edu_add_start")
+            end = st.date_input("End date", value=None, help="Select today for 'present'", key="edu_add_end")
+            location = st.text_input("Location", placeholder="e.g., Kelowna, BC")
+        highlights = st.text_area("Highlights (one per line)", height=100, key="edu_add_highlights")
+        if st.form_submit_button("Add Education", type="primary", icon=":material/add:"):
+            if not institution.strip() or not area.strip():
+                st.warning("Institution and Area are required.", icon=":material/warning:")
+            else:
+                payload = {"institution": institution.strip(), "area": area.strip()}
+                if degree.strip():
+                    payload["degree"] = degree.strip()
+                if gpa.strip():
+                    payload["gpa"] = gpa.strip()
+                if location.strip():
+                    payload["location"] = location.strip()
+                if start:
+                    payload["start_date"] = start.strftime("%Y-%m")
+                if end:
+                    payload["end_date"] = "present" if end == today else end.strftime("%Y-%m")
+                hl = [h.strip() for h in highlights.splitlines() if h.strip()]
+                if hl:
+                    payload["highlights"] = hl
+                res = requests.post(f"{API_BASE}/resume/{doc_id}/add/education", json=payload, timeout=15)
+                if res.ok:
+                    invalidate_fn()
+                    st.session_state["_flash_success"] = "Education entry added."
+                    st.rerun()
+                else:
+                    st.error(_api_error(res))
+
+
+def _remove_education_section(doc_id, rd, invalidate_fn):
+    entries = rd.get("education") or []
+    if not entries:
+        st.info("No education entries to remove.")
+        return
+    names = [e.get("institution", "") for e in entries if e.get("institution")]
+    selected = st.selectbox("Select education to remove", names, key="edu_remove_sel")
+    if st.button(f"Remove {selected}", type="primary", icon=":material/delete:", key="edu_remove_btn"):
+        res = requests.delete(f"{API_BASE}/resume/{doc_id}/education/{selected}", timeout=10)
+        if res.ok:
+            invalidate_fn()
+            st.session_state["_flash_success"] = f"Removed **{selected}**."
+            st.rerun()
+        else:
+            st.error(_api_error(res))
+
+
+def _add_experience_section(doc_id, invalidate_fn):
+    today = pendulum.today().date()
+    with st.form("add_experience_form", clear_on_submit=True):
+        c1, c2 = st.columns(2)
+        with c1:
+            company = st.text_input("Company *", placeholder="e.g., Acme Corp")
+            position = st.text_input("Position", placeholder="e.g., Software Engineer")
+        with c2:
+            start = st.date_input("Start date", value=None, key="exp_add_start")
+            end = st.date_input("End date", value=None, help="Select today for 'present'", key="exp_add_end")
+        location = st.text_input("Location", placeholder="e.g., Vancouver, BC")
+        highlights = st.text_area("Highlights (one per line)", height=100, key="exp_add_highlights")
+        if st.form_submit_button("Add Experience", type="primary", icon=":material/add:"):
+            if not company.strip():
+                st.warning("Company is required.", icon=":material/warning:")
+            else:
+                payload = {"company": company.strip()}
+                if position.strip():
+                    payload["position"] = position.strip()
+                if location.strip():
+                    payload["location"] = location.strip()
+                if start:
+                    payload["start_date"] = start.strftime("%Y-%m")
+                if end:
+                    payload["end_date"] = "present" if end == today else end.strftime("%Y-%m")
+                hl = [h.strip() for h in highlights.splitlines() if h.strip()]
+                if hl:
+                    payload["highlights"] = hl
+                res = requests.post(f"{API_BASE}/resume/{doc_id}/add/experience", json=payload, timeout=15)
+                if res.ok:
+                    invalidate_fn()
+                    st.session_state["_flash_success"] = "Experience entry added."
+                    st.rerun()
+                else:
+                    st.error(_api_error(res))
+
+
+def _remove_experience_section(doc_id, rd, invalidate_fn):
+    entries = rd.get("experience") or []
+    if not entries:
+        st.info("No experience entries to remove.")
+        return
+    names = [e.get("company", "") for e in entries if e.get("company")]
+    selected = st.selectbox("Select experience to remove", names, key="exp_remove_sel")
+    if st.button(f"Remove {selected}", type="primary", icon=":material/delete:", key="exp_remove_btn"):
+        res = requests.delete(f"{API_BASE}/resume/{doc_id}/experience/{selected}", timeout=10)
+        if res.ok:
+            invalidate_fn()
+            st.session_state["_flash_success"] = f"Removed **{selected}**."
+            st.rerun()
+        else:
+            st.error(_api_error(res))
+
+
 def resume_tab():
     st.session_state.setdefault("resume_id", "")
     st.session_state.setdefault("resume_data", None)
@@ -355,15 +467,27 @@ def resume_tab():
             elif category == "Theme":
                 _edit_theme_section(resume_id, rd, "resume", invalidate)
             elif category == "Education":
-                st.caption("ℹ️ Add/remove entries by editing the YAML directly. Here you can modify existing entries.")
-                _modify_entries_section(resume_id, rd, "education", "institution",
-                                        ["institution", "area", "degree", "start_date", "end_date", "location", "gpa", "highlights"],
-                                        "resume", invalidate)
+                edu_action = st.segmented_control("Action", ["➕ Add Education", "✏️ Modify Education", "🗑️ Remove Education"],
+                                                  label_visibility="hidden", key="resume_edu_action")
+                if edu_action == "➕ Add Education":
+                    _add_education_section(resume_id, invalidate)
+                elif edu_action == "✏️ Modify Education":
+                    _modify_entries_section(resume_id, rd, "education", "institution",
+                                            ["institution", "area", "degree", "start_date", "end_date", "location", "gpa", "highlights"],
+                                            "resume", invalidate)
+                elif edu_action == "🗑️ Remove Education":
+                    _remove_education_section(resume_id, rd, invalidate)
             elif category == "Experience":
-                st.caption("ℹ️ Add/remove entries by editing the YAML directly. Here you can modify existing entries.")
-                _modify_entries_section(resume_id, rd, "experience", "company",
-                                        ["company", "position", "start_date", "end_date", "location", "summary", "highlights"],
-                                        "resume", invalidate)
+                exp_action = st.segmented_control("Action", ["➕ Add Experience", "✏️ Modify Experience", "🗑️ Remove Experience"],
+                                                  label_visibility="hidden", key="resume_exp_action")
+                if exp_action == "➕ Add Experience":
+                    _add_experience_section(resume_id, invalidate)
+                elif exp_action == "✏️ Modify Experience":
+                    _modify_entries_section(resume_id, rd, "experience", "company",
+                                            ["company", "position", "start_date", "end_date", "location", "summary", "highlights"],
+                                            "resume", invalidate)
+                elif exp_action == "🗑️ Remove Experience":
+                    _remove_experience_section(resume_id, rd, invalidate)
         elif section == "📊 Projects":
             action = st.segmented_control("Action", ["➕ Add Project", "✏️ Modify Project"],
                                           label_visibility="hidden", key="resume_proj_action")
