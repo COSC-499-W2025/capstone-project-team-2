@@ -111,6 +111,28 @@ class ProjectRoleOverrideRequest(BaseModel):
     }})
     role: str = Field(default="Backend Developer", max_length=200)
 
+class  skillRequest(BaseModel):
+    """Payload for adding a new a skill"""
+    model_config = ConfigDict(json_schema_extra={
+        "example":{
+            "label":"Languages",
+            "details": "Python, Java, C++"
+        }
+    })
+    label: str
+    details: str
+
+class AppendSkillRequest(BaseModel):
+    """Payload for appending items to an existing skill category"""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "details": "Rust, TypeScript",
+    }})
+    details: str
+
+
+
+
+
 class SaveRequest(BaseModel):
     """Payload for saving a rendered file to a custom location."""
     model_config = ConfigDict(json_schema_extra={"example": {
