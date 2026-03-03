@@ -22,7 +22,7 @@ Endpoints:
     DELETE /portfolio/{id}                              - Delete the portfolio YAML file entirely
 """
 
-from typing import Optional,List
+from typing import Any, Optional, List
 from pathlib import Path
 import uuid
 import shutil
@@ -68,7 +68,7 @@ class editItem(BaseModel):
     section: str
     item_name: str
     field: str
-    new_value: str
+    new_value: Any
 
 
 class EditProjectRequest(BaseModel):
