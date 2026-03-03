@@ -208,7 +208,7 @@ def modify_entries_section(doc_id, rd, section, item_key, field_options, endpoin
         with st.form(f"mod_{section}_form_{endpoint_prefix}", clear_on_submit=False):
             if attribute == "highlights":
                 raw = st.text_area("New highlights (one per line)", value="\n".join(current_value or []))
-                new_value = "\n".join([h.strip() for h in raw.splitlines() if h.strip()])
+                new_value = [h.strip() for h in raw.splitlines() if h.strip()]
             elif attribute in ("summary",):
                 new_value = st.text_area(f"New {attribute}", value=str(current_value or ""), height=120)
             elif attribute in ("start_date", "end_date"):
@@ -235,6 +235,7 @@ def download_section(doc_id, endpoint_prefix, dl_key):
         if res.ok:
             st.session_state[f"{dl_key}_bytes"] = res.content
             st.session_state[f"{dl_key}_rendered"] = fmt
+            st.session_state[f"{dl_key}_time"] = pendulum.now().format("YYYY-MM-DD HH:mm:ss")
         else:
             st.error(api_error(res))
     if st.session_state.get(f"{dl_key}_bytes") and st.session_state.get(f"{dl_key}_rendered") == fmt:
@@ -243,6 +244,17 @@ def download_section(doc_id, endpoint_prefix, dl_key):
         st.download_button(f"Download {filename}", data=st.session_state[f"{dl_key}_bytes"],
                            file_name=filename, mime=MIME_TYPES[fmt],
                            type="primary", icon=":material/download:")
+        # Preview section
+        data = st.session_state[f"{dl_key}_bytes"]
+        with st.expander("Preview", expanded=True):
+            if fmt == "pdf":
+                st.pdf(data, height=600)
+            elif fmt == "html":
+                st.html(data.decode("utf-8", errors="replace"))
+            elif fmt == "markdown":
+                st.markdown(data.decode("utf-8", errors="replace"))
+    if st.session_state.get(f"{dl_key}_time"):
+        st.caption(f"Last rendered: {st.session_state[f'{dl_key}_time']}")
 
 
 def delete_doc_section(existing, endpoint_prefix, key):
