@@ -27,7 +27,14 @@ _API_ID_RE = re.compile(r'_[0-9a-f]{8}$')
 
 
 def list_docs(suffix: str) -> list:
-    """Return names of API-generated documents (those with a UUID suffix)."""
+    """Scan the CV files directory for API-generated YAML documents matching a given suffix.
+
+    Args:
+        suffix: The document type suffix to filter by (e.g. "Resume_CV" or "Portfolio_CV")
+
+    Returns:
+        list: Sorted list of document ID strings (name + UUID) that match the suffix
+    """
     return sorted(
         stem for p in CV_FILES_DIR.glob(f"*_{suffix}.yaml")
         if _API_ID_RE.search(stem := p.name.removesuffix(f"_{suffix}.yaml"))
@@ -35,6 +42,14 @@ def list_docs(suffix: str) -> list:
 
 
 def api_error(res) -> str:
+    """Extract a human-readable error message from a failed API response.
+
+    Args:
+        res: The requests.Response object from a failed API call
+
+    Returns:
+        str: The error detail from the JSON body, or the raw response text as fallback
+    """
     try:
         return res.json().get("detail", res.text)
     except Exception:
@@ -42,6 +57,16 @@ def api_error(res) -> str:
 
 
 def fetch_doc(cache_key, doc_id, url_prefix):
+    """Fetch a document from the API and cache it in Streamlit session state.
+
+    Args:
+        cache_key: The session state key to store/retrieve the cached document
+        doc_id: The document identifier (name + UUID suffix)
+        url_prefix: The API route prefix (e.g. "resume" or "portfolio")
+
+    Returns:
+        dict: The document data as a JSON dict, or None if the request failed
+    """
     if st.session_state.get(cache_key) is None:
         try:
             resp = requests.get(f"{API_BASE}/{url_prefix}/{doc_id}", timeout=10)
@@ -56,6 +81,11 @@ def fetch_doc(cache_key, doc_id, url_prefix):
 
 
 def fetch_projects():
+    """Fetch the list of analysed project names from the API, cached in session state.
+
+    Returns:
+        list: List of project name strings available in the database
+    """
     if st.session_state.get("projects_cache") is None:
         try:
             st.session_state.projects_cache = requests.get(f"{API_BASE}/projects/", timeout=10).json()
@@ -65,6 +95,14 @@ def fetch_projects():
 
 
 def fetch_project_info(project_name):
+    """Fetch detailed project analysis info from the API, cached per project name.
+
+    Args:
+        project_name: The name of the project to look up
+
+    Returns:
+        dict: The project analysis data, or an empty dict if not found or on error
+    """
     cache = st.session_state.setdefault("project_info_cache", {})
     if project_name not in cache:
         try:
@@ -76,6 +114,18 @@ def fetch_project_info(project_name):
 
 
 def post_edit(endpoint_prefix, doc_id, edits, invalidate_fn, success_msg):
+    """Send a batch edit request to the API and handle success/error UI feedback.
+
+    Args:
+        endpoint_prefix: The API route prefix (e.g. "resume" or "portfolio")
+        doc_id: The document identifier (name + UUID suffix)
+        edits: List of edit dicts, each with section, item_name, field, and new_value
+        invalidate_fn: Callback to clear the cached document data after a successful edit
+        success_msg: Message to display in a flash banner on success
+
+    Returns:
+        None: Triggers st.rerun() on success or displays an error on failure
+    """
     res = requests.post(f"{API_BASE}/{endpoint_prefix}/{doc_id}/edit", json={"edits": edits}, timeout=15)
     if res.ok:
         invalidate_fn()
@@ -86,6 +136,17 @@ def post_edit(endpoint_prefix, doc_id, edits, invalidate_fn, success_msg):
 
 
 def edit_contact_section(doc_id, rd, endpoint_prefix, invalidate_fn):
+    """Render a contact info editor showing current values and a form to update them.
+
+    Args:
+        doc_id: The document identifier (name + UUID suffix)
+        rd: The full document data dict (must contain a "contact" key)
+        endpoint_prefix: The API route prefix (e.g. "resume" or "portfolio")
+        invalidate_fn: Callback to clear cached document data after a successful edit
+
+    Returns:
+        None: Renders Streamlit UI components directly
+    """
     contact = rd.get("contact") or {}
     with st.container(border=True):
         st.markdown("**Current contact info:**")
@@ -118,6 +179,17 @@ def edit_contact_section(doc_id, rd, endpoint_prefix, invalidate_fn):
 
 
 def edit_summary_section(doc_id, rd, endpoint_prefix, invalidate_fn):
+    """Render a summary editor showing the current summary and a form to replace it.
+
+    Args:
+        doc_id: The document identifier (name + UUID suffix)
+        rd: The full document data dict (must contain a "summary" key)
+        endpoint_prefix: The API route prefix (e.g. "resume" or "portfolio")
+        invalidate_fn: Callback to clear cached document data after a successful edit
+
+    Returns:
+        None: Renders Streamlit UI components directly
+    """
     current = rd.get("summary") or ""
     with st.container(border=True):
         st.markdown("**Current summary:**")
@@ -132,6 +204,17 @@ def edit_summary_section(doc_id, rd, endpoint_prefix, invalidate_fn):
 
 
 def edit_theme_section(doc_id, rd, endpoint_prefix, invalidate_fn):
+    """Render a theme selector showing the current theme and a button to change it.
+
+    Args:
+        doc_id: The document identifier (name + UUID suffix)
+        rd: The full document data dict (must contain a "theme" key)
+        endpoint_prefix: The API route prefix (e.g. "resume" or "portfolio")
+        invalidate_fn: Callback to clear cached document data after a successful edit
+
+    Returns:
+        None: Renders Streamlit UI components directly
+    """
     current_theme = rd.get("theme") or "sb2nov"
     with st.container(border=True):
         st.markdown(f"Current theme: **{current_theme}**")
@@ -145,6 +228,19 @@ def edit_theme_section(doc_id, rd, endpoint_prefix, invalidate_fn):
 
 
 def add_project_section(doc_id, endpoint_prefix, invalidate_fn):
+    """Render a form to add an analysed project from the database to the document.
+
+    Fetches available projects, displays the selected project's resume_item data,
+    and allows the user to override summary, highlights, and dates before adding.
+
+    Args:
+        doc_id: The document identifier (name + UUID suffix)
+        endpoint_prefix: The API route prefix (e.g. "resume" or "portfolio")
+        invalidate_fn: Callback to clear cached document data after a successful add
+
+    Returns:
+        None: Renders Streamlit UI components directly
+    """
     today = pendulum.today().date()
     projects = fetch_projects()
     if not projects:
@@ -186,6 +282,23 @@ def add_project_section(doc_id, endpoint_prefix, invalidate_fn):
 
 
 def modify_entries_section(doc_id, rd, section, item_key, field_options, endpoint_prefix, invalidate_fn):
+    """Render a generic entry modifier for any list-based document section.
+
+    Displays a selector for the entry and field to modify, shows the current value,
+    and provides an appropriate input widget (text, date, or highlights) to update it.
+
+    Args:
+        doc_id: The document identifier (name + UUID suffix)
+        rd: The full document data dict
+        section: The section key in the document (e.g. "education", "experience", "projects")
+        item_key: The field used to identify entries (e.g. "institution", "company", "name")
+        field_options: List of field names the user can choose to modify
+        endpoint_prefix: The API route prefix (e.g. "resume" or "portfolio")
+        invalidate_fn: Callback to clear cached document data after a successful edit
+
+    Returns:
+        None: Renders Streamlit UI components directly
+    """
     today = pendulum.today().date()
     entries = rd.get(section) or []
     if not entries:
@@ -227,6 +340,19 @@ def modify_entries_section(doc_id, rd, section, item_key, field_options, endpoin
 
 
 def download_section(doc_id, endpoint_prefix, dl_key):
+    """Render a download section with format selection, custom filename, render button, and preview.
+
+    Allows the user to choose an output format, set a custom filename, render the document
+    via the API, preview the result (PDF/HTML/Markdown), and download the rendered file.
+
+    Args:
+        doc_id: The document identifier (name + UUID suffix)
+        endpoint_prefix: The API route prefix (e.g. "resume" or "portfolio")
+        dl_key: A unique key prefix for session state storage of rendered bytes and metadata
+
+    Returns:
+        None: Renders Streamlit UI components directly
+    """
     fmt = st.selectbox("Format", FORMATS, key=f"{dl_key}_fmt")
     custom_name = st.text_input("Filename (without extension)", value=endpoint_prefix, key=f"{dl_key}_name")
     if st.button("Render & Prepare Download", type="primary", icon=":material/construction:", key=f"{dl_key}_btn"):
@@ -258,6 +384,16 @@ def download_section(doc_id, endpoint_prefix, dl_key):
 
 
 def delete_doc_section(existing, endpoint_prefix, key):
+    """Render a document deletion UI with a selector and delete button.
+
+    Args:
+        existing: List of document ID strings available for deletion
+        endpoint_prefix: The API route prefix (e.g. "resume" or "portfolio")
+        key: A unique key prefix for Streamlit widget keys
+
+    Returns:
+        None: Renders Streamlit UI components directly
+    """
     if not existing:
         st.warning(f"No saved {endpoint_prefix}s found.")
     else:
@@ -275,6 +411,17 @@ def delete_doc_section(existing, endpoint_prefix, key):
 
 
 def edit_connections_section(doc_id, pd_, endpoint_prefix, invalidate_fn):
+    """Render a connections editor for adding or removing social network links.
+
+    Args:
+        doc_id: The document identifier (name + UUID suffix)
+        pd_: The full document data dict (must contain a "connections" key)
+        endpoint_prefix: The API route prefix (e.g. "resume" or "portfolio")
+        invalidate_fn: Callback to clear cached document data after a successful edit
+
+    Returns:
+        None: Renders Streamlit UI components directly
+    """
     conn_names = [c.get("network", "") for c in (pd_.get("connections") or []) if c.get("network")]
     action = st.segmented_control("Connections", ["➕ Add Connection", "🗑️ Remove Connection"],
                                   label_visibility="hidden", key="conn_action")
@@ -299,6 +446,15 @@ def edit_connections_section(doc_id, pd_, endpoint_prefix, invalidate_fn):
 
 
 def add_education_section(doc_id, invalidate_fn):
+    """Render a form to add a new education entry to a resume via the API.
+
+    Args:
+        doc_id: The resume identifier (name + UUID suffix)
+        invalidate_fn: Callback to clear cached document data after a successful add
+
+    Returns:
+        None: Renders Streamlit UI components directly
+    """
     today = pendulum.today().date()
     with st.form("add_education_form", clear_on_submit=True):
         c1, c2 = st.columns(2)
@@ -340,6 +496,16 @@ def add_education_section(doc_id, invalidate_fn):
 
 
 def remove_education_section(doc_id, rd, invalidate_fn):
+    """Render a UI to select and remove an education entry from a resume.
+
+    Args:
+        doc_id: The resume identifier (name + UUID suffix)
+        rd: The full resume data dict (must contain an "education" key)
+        invalidate_fn: Callback to clear cached document data after a successful removal
+
+    Returns:
+        None: Renders Streamlit UI components directly
+    """
     entries = rd.get("education") or []
     if not entries:
         st.info("No education entries to remove.")
@@ -357,6 +523,15 @@ def remove_education_section(doc_id, rd, invalidate_fn):
 
 
 def add_experience_section(doc_id, invalidate_fn):
+    """Render a form to add a new work experience entry to a resume via the API.
+
+    Args:
+        doc_id: The resume identifier (name + UUID suffix)
+        invalidate_fn: Callback to clear cached document data after a successful add
+
+    Returns:
+        None: Renders Streamlit UI components directly
+    """
     today = pendulum.today().date()
     with st.form("add_experience_form", clear_on_submit=True):
         c1, c2 = st.columns(2)
@@ -394,6 +569,16 @@ def add_experience_section(doc_id, invalidate_fn):
 
 
 def remove_experience_section(doc_id, rd, invalidate_fn):
+    """Render a UI to select and remove a work experience entry from a resume.
+
+    Args:
+        doc_id: The resume identifier (name + UUID suffix)
+        rd: The full resume data dict (must contain an "experience" key)
+        invalidate_fn: Callback to clear cached document data after a successful removal
+
+    Returns:
+        None: Renders Streamlit UI components directly
+    """
     entries = rd.get("experience") or []
     if not entries:
         st.info("No experience entries to remove.")

@@ -17,6 +17,15 @@ from src.web.streamlit_helpers import (
 
 
 def resume_tab():
+    """Render the Resume tab with create, load, delete, edit, projects, and download workflows.
+
+    Manages session state for the active resume ID and data. When no resume is active,
+    shows options to create, load, or delete. When a resume is active, shows section
+    editors for contact, summary, theme, education, experience, projects, and download.
+
+    Returns:
+        None: Renders Streamlit UI components directly
+    """
     st.session_state.setdefault("resume_id", "")
     st.session_state.setdefault("resume_data", None)
 
@@ -126,6 +135,15 @@ def resume_tab():
 
 
 def portfolio_tab():
+    """Render the Portfolio tab with create, load, delete, edit, projects, and download workflows.
+
+    Manages session state for the active portfolio ID and data. When no portfolio is active,
+    shows options to create, load, or delete. When a portfolio is active, shows section
+    editors for contact, summary, theme, connections, projects, and download.
+
+    Returns:
+        None: Renders Streamlit UI components directly
+    """
     st.session_state.setdefault("portfolio_id", "")
     st.session_state.setdefault("portfolio_data", None)
 
