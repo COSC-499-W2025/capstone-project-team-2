@@ -25,6 +25,10 @@ FILE_EXTS = {"pdf": "pdf", "html": "html", "markdown": "md"}
 
 _API_ID_RE = re.compile(r'_[0-9a-f]{8}$')
 
+def _fmt_location(loc: str) -> str:
+    """Normalize a location string: ensure a space after every comma."""
+    return re.sub(r',\s*', ', ', loc.strip())
+
 
 def list_docs(suffix: str) -> list:
     """Scan the CV files directory for API-generated YAML documents matching a given suffix.
@@ -173,7 +177,8 @@ def edit_contact_section(doc_id, rd, endpoint_prefix, invalidate_fn):
             edits = [
                 {"section": "contact", "item_name": "", "field": f, "new_value": v}
                 for f, v in {"name": r_name, "email": r_email, "phone": r_phone,
-                             "location": r_location, "website": r_website}.items() if v
+                             "location": _fmt_location(r_location) if r_location else r_location,
+                             "website": r_website}.items() if v
             ]
             post_edit(endpoint_prefix, doc_id, edits, invalidate_fn, "Contact info updated.")
 
@@ -478,7 +483,7 @@ def add_education_section(doc_id, invalidate_fn):
                 if gpa.strip():
                     payload["gpa"] = gpa.strip()
                 if location.strip():
-                    payload["location"] = location.strip()
+                    payload["location"] = _fmt_location(location)
                 if start:
                     payload["start_date"] = start.strftime("%Y-%m")
                 if end:
@@ -551,7 +556,7 @@ def add_experience_section(doc_id, invalidate_fn):
                 if position.strip():
                     payload["position"] = position.strip()
                 if location.strip():
-                    payload["location"] = location.strip()
+                    payload["location"] = _fmt_location(location)
                 if start:
                     payload["start_date"] = start.strftime("%Y-%m")
                 if end:
