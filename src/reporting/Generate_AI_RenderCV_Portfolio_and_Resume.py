@@ -472,6 +472,10 @@ class RenderCVDocument:
             shutil.rmtree(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
+        # Sync in-memory data (cv.name has UUID stripped) to disk before running
+        # RenderCV so the output filename matches what render_outputs() expects.
+        self.save()
+
         cmd = [sys.executable, "-m", "rendercv", "render", str(self.yaml_file)]
         format_flags = {
             "pdf": "--dont-generate-pdf",
