@@ -1956,7 +1956,6 @@ included the following PRs where I as acted as the first reviwer
 
 
 ---
----
 
 ## 🔗 Connection to Previous Week
 
@@ -2003,14 +2002,18 @@ Following Week 22's work on completing the CRUD endpoint coverage for the Resume
 ## 🎯 Next Week's Goals
 - Continue building out the Streamlit frontend for resume and portfolio management
 - Integrate remaining API endpoints with the frontend UI
-- Address any review feedback on PRs #465 and #466
+- Working on improvement the Frontend
 
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 23)
 
-For **Week 23**, my focus was split between backend API completion and frontend development. On the backend side, [PR #465](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/465) added the final missing CRUD endpoints for skill management across both the Resume and Portfolio APIs, including endpoints to add new skill categories, append details to existing skills, and remove skills, as well as a manual project entry endpoint. A symmetric API design was maintained across both APIs for consistency. The PR also includes 24 new test cases covering success, validation, and error scenarios.
 
-On the frontend side, [PR #466](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/466) introduced the first iteration of the Streamlit-based resume and portfolio UI. This includes a primary application file (~228 lines) with separate tabs for Resume and Portfolio management, and a reusable helpers module (~490 lines) with form layouts, API call wrappers, and preview functionality. The UI supports creating, loading, editing, and deleting documents, as well as downloading rendered outputs in PDF, HTML, and Markdown formats. Backend fixes for UUID handling and render path issues were also included.
+For **Week 23**, I focused on two aspects: frontend and backend development. On the backend, my first task was adding the missing API CRUD operations
+[PR #465](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/465) for which was a skill magement system across both Resume and Portfolio APIs
+ensure that users can add, delete, and modify the skill sections of the resume or portfilolo, another API CRUD operation I added was the ability to manually add new projects to the system if the user so desire, The APIs were desgined in a way to maintained consistent. Finally, I also added 24 new test cases covering success, validation, and error scenarios.
+
+On the frontend side being my second task , [PR #466](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/466) introduced the general setup for our frontend system, which uses Streamlit, and the first frontend component, the **Resume and Portfolio UI**, which consists of separate tabs for Resume and Portfolio management. In addition, I introduced a separate file of reusable helper modules containingcontaining form layouts, API call wrappers, and Preview functionality. In summary, the Resume and Portfolio UI supports the For CRUD operations(Creating, loading, editing, and deleting), as well as downloading render outputs in the available formats(PDF, HTML, Markdown)
+
 
 ---
