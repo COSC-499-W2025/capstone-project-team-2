@@ -3,8 +3,8 @@
 ---
 
 ## Quick Navigation
-
 ### Term 2
+- [Week 23 (03/02/2026 – 03/08/2026)](#-personal-log--week-23-03022026--03082026)
 - [Week 22 (02/23/2026 – 03/01/2026)](#-personal-log--week-22-02232026--03012026)
 - [Week 21 - Bonus Week (02/16/2026 – 02/22/2026)](#-personal-log--week-21---bonus-week-02162026--02222026)
 - [Week 20 (02/09/2026 – 02/15/2026)](#-personal-log--week-20-02092026--02152026)
@@ -1947,5 +1947,70 @@ included the following PRs where I as acted as the first reviwer
 - [PR #448](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/448) added multi-project upload and completion support — I initially requested changes before approving, reflecting a thorough review rather than a 
 - rubber-stamp. [PR #437](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/437) optimized the dedup pipeline by introducing a metadata precheck and hash cache to avoid redundant SHA-256 computations during incremental uploads.
 - [PR #439](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/439) exposed a `remove_duplicates` query parameter on the `/analyze` endpoint, giving callers control over whether deduplication performs cleanup or detection only.
+
+---
+
+# 📝 Personal Log – Week 23 (03/02/2026 – 03/08/2026)
+
+## 📊 Peer Evaluation
+
+
+---
+---
+
+## 🔗 Connection to Previous Week
+
+Following Week 22's work on completing the CRUD endpoint coverage for the Resume and Portfolio APIs, this week focused on adding skill management endpoints and building the Streamlit frontend for resume and portfolio generation.
+
+---
+
+## 🚀 Work Completed
+
+### Coding Tasks
+- Added complete CRUD endpoints for skill management (add, append, remove) and a manual project entry endpoint to both the Resume and Portfolio Generator APIs, including new Pydantic request models ([PR #465](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/465))
+- Built a Streamlit frontend for resume and portfolio generation with full CRUD functionality, including interactive UI components for document creation, editing, rendering, and downloading. Also fixed UUID leak in contact name and corrected render output path handling in the backend ([PR #466](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/466))
+
+### Testing/Debugging Tasks
+- Wrote 24 new test cases across both Resume and Portfolio API test files covering success scenarios, validation errors, and edge cases for skill and manual project endpoints; all tests pass locally and in Docker ([PR #465](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/465))
+- Performed manual testing of the Streamlit frontend across desktop and mobile interfaces to verify all CRUD operations, preview rendering, and document download functionality ([PR #466](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/466))
+
+### Reviewing/Collaboration Tasks
+- N/A
+
+---
+
+## 📌 Associated Tasks from Project Board
+- [Add last two missing endpoints to resume and portfolio CRUD operation for skills #463](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/463)
+- [Streamlit starter code resume and portfolio UI #464](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/464)
+
+---
+
+## 📈 Progress Update
+
+| Task/Issue | Status |
+|------------|--------|
+| **Skill CRUD & Manual Project Endpoints (PR #465)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Streamlit Resume and Portfolio UI Part 1 (PR #466)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+
+---
+
+## ⚠️ Issues/Blockers
+
+- No major blockers this week.
+
+---
+
+## 🎯 Next Week's Goals
+- Continue building out the Streamlit frontend for resume and portfolio management
+- Integrate remaining API endpoints with the frontend UI
+- Address any review feedback on PRs #465 and #466
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 23)
+
+For **Week 23**, my focus was split between backend API completion and frontend development. On the backend side, [PR #465](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/465) added the final missing CRUD endpoints for skill management across both the Resume and Portfolio APIs, including endpoints to add new skill categories, append details to existing skills, and remove skills, as well as a manual project entry endpoint. A symmetric API design was maintained across both APIs for consistency. The PR also includes 24 new test cases covering success, validation, and error scenarios.
+
+On the frontend side, [PR #466](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/466) introduced the first iteration of the Streamlit-based resume and portfolio UI. This includes a primary application file (~228 lines) with separate tabs for Resume and Portfolio management, and a reusable helpers module (~490 lines) with form layouts, API call wrappers, and preview functionality. The UI supports creating, loading, editing, and deleting documents, as well as downloading rendered outputs in PDF, HTML, and Markdown formats. Backend fixes for UUID handling and render path issues were also included.
 
 ---
