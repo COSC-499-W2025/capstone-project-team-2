@@ -357,13 +357,13 @@ def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
 
         elif section == "connections":
             if edit.field == "delete":
-                result = doc.remove_connection(edit.item_name)
+                result = _check_result(doc.remove_connection(edit.item_name))
             elif edit.item_name and not any(
                 c.get("network") == edit.item_name for c in (doc.get_connections() or [])
             ):
-                result = doc.add_connection(Connections(network=edit.item_name, username=str(edit.new_value)))
+                result = _check_result(doc.add_connection(Connections(network=edit.item_name, username=str(edit.new_value))))
             else:
-                result = doc.modify_connection(edit.item_name, str(edit.new_value))
+                result = _check_result(doc.modify_connection(edit.item_name, str(edit.new_value)))
 
         else:
             raise HTTPException(status_code=400,

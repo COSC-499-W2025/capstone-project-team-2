@@ -426,9 +426,9 @@ def edit_connections_section(doc_id, pd_, endpoint_prefix, invalidate_fn):
     connections = pd_.get("connections") or []
     conn_names = [c.get("network", "") for c in connections if c.get("network")]
     action = st.segmented_control("Connections", ["➕ Add Connection", "✏️ Edit Connection", "🗑️ Remove Connection"],
-                                  label_visibility="hidden", key="conn_action")
+                                  label_visibility="hidden", key=f"conn_action_{endpoint_prefix}")
     if action == "➕ Add Connection":
-        with st.form("add_connection_form", clear_on_submit=True):
+        with st.form(f"add_connection_form_{endpoint_prefix}", clear_on_submit=True):
             network  = st.selectbox("Network", SOCIAL_NETWORKS)
             username = st.text_input("Username / handle")
             if st.form_submit_button("Add Connection", type="primary", icon=":material/add:"):
@@ -439,9 +439,9 @@ def edit_connections_section(doc_id, pd_, endpoint_prefix, invalidate_fn):
         if not conn_names:
             st.info("No connections to edit.")
         else:
-            selected = st.selectbox("Select connection to edit", conn_names, key="conn_edit_sel")
+            selected = st.selectbox("Select connection to edit", conn_names, key=f"conn_edit_sel_{endpoint_prefix}")
             current_username = next((c.get("username", "") for c in connections if c.get("network") == selected), "")
-            with st.form("edit_connection_form", clear_on_submit=False):
+            with st.form(f"edit_connection_form_{endpoint_prefix}", clear_on_submit=False):
                 st.caption(f"Current username: **{current_username or '—'}**")
                 new_username = st.text_input("New username / handle", value=current_username)
                 if st.form_submit_button("Update Connection", type="primary", icon=":material/save:"):
@@ -453,8 +453,8 @@ def edit_connections_section(doc_id, pd_, endpoint_prefix, invalidate_fn):
             st.info("No connections to remove.")
         else:
             with st.container(border=True):
-                to_remove = st.selectbox("Select connection to remove", conn_names, key="conn_remove_sel")
-                if st.button(f"Remove {to_remove}", type="primary", icon=":material/delete:", key="conn_remove_btn"):
+                to_remove = st.selectbox("Select connection to remove", conn_names, key=f"conn_remove_sel_{endpoint_prefix}")
+                if st.button(f"Remove {to_remove}", type="primary", icon=":material/delete:", key=f"conn_remove_btn_{endpoint_prefix}"):
                     post_edit(endpoint_prefix, doc_id,
                               [{"section": "connections", "item_name": to_remove, "field": "delete", "new_value": ""}],
                               invalidate_fn, f"Removed **{to_remove}**.")
