@@ -572,7 +572,7 @@ class RenderCVDocument:
         fields = {'email': email, 'phone': phone, 'location': location, 'website': website, 'name': name}
         for field_name,value in fields.items():
             if value and str(value).strip():
-                cv[field_name] = value
+                cv[field_name] = str(value).strip()
         self._auto_save_if_enabled()
         return self
 
@@ -839,6 +839,10 @@ class RenderCVDocument:
             self.data['cv']['social_networks'] = []
             self.current_connections = self.data['cv']['social_networks']
 
+        connection_info.network = connection_info.network.strip()
+        if connection_info.username:
+            connection_info.username = connection_info.username.strip()
+
         existing = [c['network'] for c in self.current_connections]
         if connection_info.network in existing:
             return f"Connection '{connection_info.network}' already exists"
@@ -863,7 +867,7 @@ class RenderCVDocument:
         if connection is None:
             return f"Connection '{network_name}' not found"
 
-        connection["username"] = new_username
+        connection["username"] = new_username.strip()
         self._auto_save_if_enabled()
         return f"Successfully updated: {network_name}"
 
