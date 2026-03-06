@@ -209,7 +209,11 @@ Router prefix: `/insights`
 - JSON body:
   - `{"edits":[{"section":"...","item_name":"...","field":"...","new_value":...}]}`
 - Valid sections:
-  - `experience`, `education`, `projects`, `skills`, `summary`, `contact`, `theme`
+  - `experience`, `education`, `projects`, `skills`, `summary`, `contact`, `theme`, `connections`
+- Section-specific notes for `connections`:
+  - Delete: `{"section":"connections","item_name":"GitHub","field":"delete","new_value":""}`
+  - Add: `{"section":"connections","item_name":"GitHub","field":"","new_value":"username"}` (only if network doesn't already exist)
+  - Modify: `{"section":"connections","item_name":"GitHub","field":"","new_value":"new_username"}` (updates existing network)
 - Returns `200`:
   - `{"results":[...]}`
 - Errors:
@@ -434,7 +438,11 @@ Router prefix: `/insights`
 - JSON body:
   - `{"edits":[{"section":"...","item_name":"...","field":"...","new_value":"..."}]}`
 - Valid sections:
-  - `projects`, `skills`, `summary`, `contact`, `theme`
+  - `projects`, `skills`, `summary`, `contact`, `theme`, `connections`
+- Section-specific notes for `connections`:
+  - Delete: `{"section":"connections","item_name":"GitHub","field":"delete","new_value":""}`
+  - Add: `{"section":"connections","item_name":"GitHub","field":"","new_value":"username"}` (only if network doesn't already exist)
+  - Modify: `{"section":"connections","item_name":"GitHub","field":"","new_value":"new_username"}` (updates existing network)
 - Returns `200`:
   - `{"results":[...]}`
 - Errors:
