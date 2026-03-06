@@ -1968,6 +1968,7 @@ Following Week 22's work on completing the CRUD endpoint coverage for the Resume
 ### Coding Tasks
 - Added complete CRUD endpoints for skill management (add, append, remove) and a manual project entry endpoint to both the Resume and Portfolio Generator APIs, including new Pydantic request models ([PR #465](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/465))
 - Built a Streamlit frontend for resume and portfolio generation with full CRUD functionality, including interactive UI components for document creation, editing, rendering, and downloading. Also fixed UUID leak in contact name and corrected render output path handling in the backend ([PR #466](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/466))
+- Updated API endpoint documentation to cover all newly added routes including insights, manual project entry, and skill management endpoints ([PR #472](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/472))
 
 ### Testing/Debugging Tasks
 - Wrote 24 new test cases across both Resume and Portfolio API test files covering success scenarios, validation errors, and edge cases for skill and manual project endpoints; all tests pass locally and in Docker ([PR #465](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/465))
@@ -1981,6 +1982,7 @@ Following Week 22's work on completing the CRUD endpoint coverage for the Resume
 ## 📌 Associated Tasks from Project Board
 - [Add last two missing endpoints to resume and portfolio CRUD operation for skills #463](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/463)
 - [Streamlit starter code resume and portfolio UI #464](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/464)
+- [Update API_ENDPOINTS.md in regards to new API added in PR #463](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/472)
 
 ---
 
@@ -1990,12 +1992,13 @@ Following Week 22's work on completing the CRUD endpoint coverage for the Resume
 |------------|--------|
 | **Skill CRUD & Manual Project Endpoints (PR #465)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 | **Streamlit Resume and Portfolio UI Part 1 (PR #466)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **API Endpoint Documentation Update (PR #472)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 
 ---
 
 ## ⚠️ Issues/Blockers
 
-- No major blockers this week.
+- [PR #472](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/472) received a change request and needs revisions before merging.
 
 ---
 
