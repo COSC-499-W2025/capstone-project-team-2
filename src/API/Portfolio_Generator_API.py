@@ -645,7 +645,7 @@ def add_skill(portfolio_id: str, payload:skillRequest):
             HTTPException: 400 if the label is empty or the operation fails.
         """
     doc = _load_portfolio(portfolio_id)
-    result = doc.add_skill(payload.label, payload.details)
+    result = doc.add_skills(payload.label, payload.details)
 
     if "Duplicate" in result:
         raise HTTPException(status_code=409, detail=result)

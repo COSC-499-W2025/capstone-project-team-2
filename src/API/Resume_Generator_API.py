@@ -761,10 +761,10 @@ def add_skill(id: str, payload: SkillRequest):
     """
     doc = _load_resume(id)
     skill = Skills(label=payload.label, details=payload.details)
-    result = doc.add_skill(skill)
+    result = doc.add_skills(skill)
     if "Duplicate" in result:
         raise HTTPException(status_code=409, detail=result)
-    if result != "Successfully added skill":
+    if result != "Successfully added skills":
         raise HTTPException(status_code=400, detail=result)
 
     return {"status": result}
