@@ -354,7 +354,7 @@ Router prefix: `/insights`
   - `label` (string, required) — category name (e.g., "Languages")
   - `details` (string, required) — comma-separated skills (e.g., "Python, Java, C++")
 - Returns `200`:
-  - `{"status":"Successfully added skill"}`
+  - `{"status":"Successfully added skills"}`
 - Errors:
   - `400` empty label or add failure
   - `404` resume not found
