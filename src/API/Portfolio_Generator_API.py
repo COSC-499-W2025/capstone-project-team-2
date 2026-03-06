@@ -80,6 +80,7 @@ class EditProjectRequest(BaseModel):
             {"section": "summary", "item_name": "", "field": "", "new_value": "Full-stack developer passionate about open source."},
             {"section": "projects", "item_name": "MyProject", "field": "summary", "new_value": "Developed a portfolio site with FastAPI."},
             {"section": "theme", "item_name": "", "field": "", "new_value": "classic"},
+            {"section": "connections", "item_name": "LinkedIn", "field": "username", "new_value": "jane-doe"},
         ]
     }})
     edits: list[editItem]

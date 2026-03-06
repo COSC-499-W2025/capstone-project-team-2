@@ -81,6 +81,7 @@ class EditResumeRequest(BaseModel):
             {"section": "experience", "item_name": "Software Engineer", "field": "company", "new_value": "Acme Corp"},
             {"section": "projects", "item_name": "MyProject", "field": "summary", "new_value": "Built a REST API with FastAPI."},
             {"section": "theme", "item_name": "", "field": "", "new_value": "classic"},
+            {"section": "connections", "item_name": "LinkedIn", "field": "username", "new_value": "john-doe"},
         ]
     }})
     edits: List[EditItem]
