@@ -412,7 +412,7 @@ def delete_doc_section(existing, endpoint_prefix, key):
 
 
 def edit_connections_section(doc_id, pd_, endpoint_prefix, invalidate_fn):
-    """Render a connections editor for adding or removing social network links.
+    """Render a connections editor for adding, editing, or removing social network links.
 
     Args:
         doc_id: The document identifier (name + UUID suffix)
@@ -423,8 +423,9 @@ def edit_connections_section(doc_id, pd_, endpoint_prefix, invalidate_fn):
     Returns:
         None: Renders Streamlit UI components directly
     """
-    conn_names = [c.get("network", "") for c in (pd_.get("connections") or []) if c.get("network")]
-    action = st.segmented_control("Connections", ["➕ Add Connection", "🗑️ Remove Connection"],
+    connections = pd_.get("connections") or []
+    conn_names = [c.get("network", "") for c in connections if c.get("network")]
+    action = st.segmented_control("Connections", ["➕ Add Connection", "✏️ Edit Connection", "🗑️ Remove Connection"],
                                   label_visibility="hidden", key="conn_action")
     if action == "➕ Add Connection":
         with st.form("add_connection_form", clear_on_submit=True):
@@ -434,6 +435,19 @@ def edit_connections_section(doc_id, pd_, endpoint_prefix, invalidate_fn):
                 post_edit(endpoint_prefix, doc_id,
                           [{"section": "connections", "item_name": network, "field": "username", "new_value": username}],
                           invalidate_fn, f"Added **{network}** connection.")
+    elif action == "✏️ Edit Connection":
+        if not conn_names:
+            st.info("No connections to edit.")
+        else:
+            selected = st.selectbox("Select connection to edit", conn_names, key="conn_edit_sel")
+            current_username = next((c.get("username", "") for c in connections if c.get("network") == selected), "")
+            with st.form("edit_connection_form", clear_on_submit=False):
+                st.caption(f"Current username: **{current_username or '—'}**")
+                new_username = st.text_input("New username / handle", value=current_username)
+                if st.form_submit_button("Update Connection", type="primary", icon=":material/save:"):
+                    post_edit(endpoint_prefix, doc_id,
+                              [{"section": "connections", "item_name": selected, "field": "username", "new_value": new_username}],
+                              invalidate_fn, f"Updated **{selected}** connection.")
     elif action == "🗑️ Remove Connection":
         if not conn_names:
             st.info("No connections to remove.")
