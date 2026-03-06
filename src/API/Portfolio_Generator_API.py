@@ -30,7 +30,7 @@ from fastapi import APIRouter, HTTPException,BackgroundTasks
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field
 from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
-    RenderCVDocument,Project
+    RenderCVDocument,Project,Connections
 )
 from src.reporting.portfolio_service import (
     load_portfolio_showcase,
@@ -328,6 +328,7 @@ def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
         - theme: Only `new_value` is used; valid themes are 'sb2nov', 'classic', 'moderncv', 'engineeringresumes'.
         - skills: Use `item_name` to identify the skill to rename; `new_value` is the new skill name.
         - projects: Use `item_name` for the project name, `field` for the attribute to change.
+        - connections: Use `item_name` for network name, `field="username"` to add/modify, `field="delete"` to remove.
     """
     doc=_load_portfolio(portfolio_id)
     results=[]
@@ -353,9 +354,19 @@ def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
         elif section == "projects":
             result=doc.modify_project(edit.item_name, edit.field, edit.new_value)
 
+        elif section == "connections":
+            if edit.field == "delete":
+                result = doc.remove_connection(edit.item_name)
+            elif edit.item_name and not any(
+                c.get("network") == edit.item_name for c in (doc.get_connections() or [])
+            ):
+                result = doc.add_connection(Connections(network=edit.item_name, username=str(edit.new_value)))
+            else:
+                result = doc.modify_connection(edit.item_name, str(edit.new_value))
+
         else:
             raise HTTPException(status_code=400,
-                                detail=f"Unknown section '{section}'. Valid: projects, skills, summary, contact, theme",
+                                detail=f"Unknown section '{section}'. Valid: projects, skills, summary, contact, theme, connections",
                                 )
         results.append(result)
     return {"results": results}

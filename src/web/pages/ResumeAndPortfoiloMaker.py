@@ -91,7 +91,7 @@ def resume_tab():
 
         if section == "✏️ Edit":
             category = st.selectbox("Select category",
-                                    ["Contact Info", "Summary", "Theme", "Education", "Experience"],
+                                    ["Contact Info", "Summary", "Theme", "Education", "Experience", "Connections"],
                                     key="resume_edit_cat")
             if category == "Contact Info":
                 edit_contact_section(resume_id, rd, "resume", invalidate)
@@ -121,6 +121,8 @@ def resume_tab():
                                           "resume", invalidate)
                 elif exp_action == "🗑️ Remove Experience":
                     remove_experience_section(resume_id, rd, invalidate)
+            elif category == "Connections":
+                edit_connections_section(resume_id, rd, "resume", invalidate)
         elif section == "📊 Projects":
             action = st.segmented_control("Action", ["➕ Add Project", "✏️ Modify Project"],
                                           label_visibility="hidden", key="resume_proj_action")

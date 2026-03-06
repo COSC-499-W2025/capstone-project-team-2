@@ -200,6 +200,38 @@ class TestErrorHandling(_BaseResumeTest):
         self.assertEqual(resp.status_code, 400)
         self.assertIn("Unknown section", resp.json()["detail"])
 
+    def test_add_connection(self):
+        """Adding a new connection via edit calls add_connection."""
+        self.mock_doc.get_connections.return_value = []
+        self.mock_doc.add_connection.return_value = "Successfully added: GitHub"
+
+        resp = self.client.post("/resume/test_abc123/edit", json={
+            "edits": [{"section": "connections", "item_name": "GitHub", "field": "username", "new_value": "jdoe"}]
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.mock_doc.add_connection.assert_called_once()
+
+    def test_modify_connection(self):
+        """Modifying an existing connection via edit calls modify_connection."""
+        self.mock_doc.get_connections.return_value = [{"network": "GitHub", "username": "old"}]
+        self.mock_doc.modify_connection.return_value = "Successfully updated: GitHub"
+
+        resp = self.client.post("/resume/test_abc123/edit", json={
+            "edits": [{"section": "connections", "item_name": "GitHub", "field": "username", "new_value": "newuser"}]
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.mock_doc.modify_connection.assert_called_once_with("GitHub", "newuser")
+
+    def test_remove_connection(self):
+        """Removing a connection via edit with field='delete' calls remove_connection."""
+        self.mock_doc.remove_connection.return_value = "Successfully deleted: GitHub"
+
+        resp = self.client.post("/resume/test_abc123/edit", json={
+            "edits": [{"section": "connections", "item_name": "GitHub", "field": "delete", "new_value": ""}]
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.mock_doc.remove_connection.assert_called_once_with("GitHub")
+
     def test_render_failure(self):
         """Render returning empty paths returns 500."""
         self.mock_doc.render_outputs.return_value = ("Render failed", {"pdf": []})
