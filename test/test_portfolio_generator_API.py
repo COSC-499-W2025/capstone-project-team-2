@@ -524,6 +524,10 @@ class TestSkillEndpoints(_BasePortfolioTest):
         })
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()["status"], "Successfully added skills")
+        call_args = self.mock_doc.add_skills.call_args
+        skill_arg = call_args[0][0]
+        self.assertEqual(skill_arg.label, "Languages")
+        self.assertEqual(skill_arg.details, "Python, Java, C++")
 
         # Duplicate label returns 409
         self.mock_doc.add_skills.return_value = "Duplicate label 'Languages' already exists"

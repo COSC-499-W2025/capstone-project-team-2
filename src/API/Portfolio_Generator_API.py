@@ -34,7 +34,7 @@ from fastapi import APIRouter, HTTPException,BackgroundTasks
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field
 from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
-    RenderCVDocument,Project
+    RenderCVDocument,Project,Skills
 )
 from src.reporting.portfolio_service import (
     load_portfolio_showcase,
@@ -645,7 +645,8 @@ def add_skill(portfolio_id: str, payload:skillRequest):
             HTTPException: 400 if the label is empty or the operation fails.
         """
     doc = _load_portfolio(portfolio_id)
-    result = doc.add_skills(payload.label, payload.details)
+    skill = Skills(label=payload.label, details=payload.details)
+    result = doc.add_skills(skill)
 
     if "Duplicate" in result:
         raise HTTPException(status_code=409, detail=result)
