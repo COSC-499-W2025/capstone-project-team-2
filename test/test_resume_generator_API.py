@@ -607,16 +607,16 @@ class TestSkillEndpoints(_BaseResumeTest):
     def test_add_skill(self):
         """Covers success, duplicate (409), failure (400), and resume not found (404)."""
         # Success
-        self.mock_doc.add_skill.return_value = "Successfully added skill"
+        self.mock_doc.add_skills.return_value = "Successfully added skills"
         resp = self.client.post("/resume/test_abc123/add/skill", json={
             "label": "Languages",
             "details": "Python, Java, C++",
         })
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.json()["status"], "Successfully added skill")
+        self.assertEqual(resp.json()["status"], "Successfully added skills")
 
         # Duplicate label returns 409
-        self.mock_doc.add_skill.return_value = "Duplicate label 'Languages' already exists"
+        self.mock_doc.add_skills.return_value = "Duplicate label 'Languages' already exists"
         resp = self.client.post("/resume/test_abc123/add/skill", json={
             "label": "Languages",
             "details": "Python",
@@ -625,7 +625,7 @@ class TestSkillEndpoints(_BaseResumeTest):
         self.assertIn("Duplicate", resp.json()["detail"])
 
         # Generic failure returns 400
-        self.mock_doc.add_skill.return_value = "Label cannot be empty"
+        self.mock_doc.add_skills.return_value = "Label cannot be empty"
         resp = self.client.post("/resume/test_abc123/add/skill", json={
             "label": "Languages",
             "details": "Python",
