@@ -19,8 +19,6 @@ from src.analyzers.multilang_orchestrator import MultiLangOrchestrator
 from src.reporting.resume_item_generator import generate_resume_item
 from src.storage.file_data_saving import SaveFileAnalysisAsJSON
 from src.storage.dedup_index import deduplicate_project
-from src.core.ai_data_scrubbing import ai_data_scrubber
-from src.core.AI_analysis_code import codeAnalysisAI
 from src.utils.utility_methods import convert_datetime_to_string
 from src.core.document_analysis import DocumentAnalyzer
 from src.core.project_stack_detection import detect_project_stack
@@ -187,7 +185,7 @@ def analyze_project(
 
     Args:
         root (Path): Project root to scan.
-        use_ai_analysis (bool): If true, uses ollama AI analysis.
+        use_ai_analysis (bool): If true, uses ollama AI analysis. (Deprecated)
         remove_duplicates (bool): If true, duplicate files are deleted after being recorded.
 
     Returns:
@@ -225,14 +223,6 @@ def analyze_project(
     evidence_block = dict(resume.evidence)
     evidence_block["duration"] = duration
 
-    #AI analysis performance through ollama
-    ai_analysis = None
-    if use_ai_analysis == True:
-        ollamaObject = codeAnalysisAI(root)
-        ai_analysis_raw = ollamaObject.run_analysis()
-        scrubber = ai_data_scrubber(ai_analysis_raw)
-        ai_analysis = scrubber.get_scrubbed_dict()
-
     analysis: Dict[str, Any] = {
         "project_root": str(root),
         "hierarchy": hierarchy,
@@ -255,9 +245,6 @@ def analyze_project(
             "mode": resume.detection_mode,
         },
     }
-
-    if ai_analysis:
-        analysis["ai_analysis"] = ai_analysis
 
     if contrib_summary is not None:
         analysis["contribution_summary"] = contrib_summary
@@ -301,15 +288,6 @@ def analyze_project(
         except Exception as e:
             logging.warning(f"Failed to record project insight (optional): {e}")
             insight = None 
-
-    #Need to remember this exists but also this can't be here
-    #portfolio_yaml = load_portfolio_showcase(display_name)
-    #analysis["portfolio_showcase"] = build_portfolio_showcase(analysis, portfolio_yaml)
-    #
-    #if portfolio_mode:
-    #    ps = analysis["portfolio_showcase"]
-    #    display_portfolio_showcase(ps)
-    #    return
 
         dedup_result = deduplicate_project(
             root,

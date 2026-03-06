@@ -1,35 +1,22 @@
 services:
-  ollama2:
-    image: ollama/ollama:latest
-    container_name: ollama2
-    volumes:
-      - ollama_data:/root/.ollama
-    ports:
-      - "11434:11434"
-    networks:
-      - app_network
-
 
 # test runner on compose/start
   test:
     build: .
     container_name: test_runner
     working_dir: /app
-    command: python -m pytest -q --disable-warnings --maxfail=1
+    command: python -m pytest -q --disable-warnings
     volumes:
       - .:/app
       - ./test/tiny_scripts:/app/test/tiny_scripts
       - ./test/fixtures:/app/test/fixtures
       - ./test/data:/app/test/data
     environment:
-      - OLLAMA_HOST=http://ollama2:11434
       - DB_HOST=app_database
       - DB_PORT=3306
     depends_on:
       app_database:
         condition: service_healthy
-      ollama2:
-        condition: service_started
     networks:
       - app_network
     restart: "no"
@@ -53,7 +40,6 @@ services:
       - DB_USER=appuser
       - DB_PASSWORD=apppassword
       - DB_NAME=appdb
-      - OLLAMA_HOST=http://ollama2:11434
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix  # For GUI on Linux/Mac
       - .:/app
@@ -90,8 +76,6 @@ services:
 
 volumes:
   mysql_data:
-    driver: local
-  ollama_data:
     driver: local
 
 networks:
