@@ -209,11 +209,7 @@ Router prefix: `/insights`
 - JSON body:
   - `{"edits":[{"section":"...","item_name":"...","field":"...","new_value":...}]}`
 - Valid sections:
-  - `experience`, `education`, `projects`, `skills`, `summary`, `contact`, `theme`, `connections`
-- Section-specific notes for `connections`:
-  - Delete: `{"section":"connections","item_name":"GitHub","field":"delete","new_value":""}`
-  - Add: `{"section":"connections","item_name":"GitHub","field":"","new_value":"username"}` (only if network doesn't already exist)
-  - Modify: `{"section":"connections","item_name":"GitHub","field":"","new_value":"new_username"}` (updates existing network)
+  - `experience`, `education`, `projects`, `skills`, `summary`, `contact`, `theme`
 - Returns `200`:
   - `{"results":[...]}`
 - Errors:
@@ -358,13 +354,13 @@ Router prefix: `/insights`
   - `label` (string, required) — category name (e.g., "Languages")
   - `details` (string, required) — comma-separated skills (e.g., "Python, Java, C++")
 - Returns `200`:
-  - `{"status":"Successfully added skills"}`
+  - `{"status":"Successfully added skill"}`
 - Errors:
   - `400` empty label or add failure
   - `404` resume not found
   - `409` skill with same label already exists
 
-### `POST /resume/{id}/skill/{label}`
+### `POST /resume/{id}/skill/{label}/append`
 - Purpose: append items to an existing skill category on a resume.
 - Path:
   - `id` = resume identifier
@@ -438,11 +434,7 @@ Router prefix: `/insights`
 - JSON body:
   - `{"edits":[{"section":"...","item_name":"...","field":"...","new_value":"..."}]}`
 - Valid sections:
-  - `projects`, `skills`, `summary`, `contact`, `theme`, `connections`
-- Section-specific notes for `connections`:
-  - Delete: `{"section":"connections","item_name":"GitHub","field":"delete","new_value":""}`
-  - Add: `{"section":"connections","item_name":"GitHub","field":"","new_value":"username"}` (only if network doesn't already exist)
-  - Modify: `{"section":"connections","item_name":"GitHub","field":"","new_value":"new_username"}` (updates existing network)
+  - `projects`, `skills`, `summary`, `contact`, `theme`
 - Returns `200`:
   - `{"results":[...]}`
 - Errors:
