@@ -61,7 +61,7 @@ class HelperFunct:
                 "VALUES (?, ?, ?, ?) "
                 "ON CONFLICT(Pname) DO UPDATE SET "
                 "content = excluded.content, file_blob = excluded.file_blob, current_version = excluded.current_version",
-                (filename, json.dumps(data), raw_bytes, new_version, new_version)
+                (filename, json.dumps(data), raw_bytes, new_version)  # 4 values ✅
             )
 
             cursor.execute(
