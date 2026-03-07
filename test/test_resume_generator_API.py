@@ -602,7 +602,7 @@ class TestExportResume(_BaseResumeTest):
 
 
 class TestSkillEndpoints(_BaseResumeTest):
-    """Tests for POST /resume/{id}/add/skill, POST /resume/{id}/skill/{label}, DELETE /resume/{id}/skill/{label}."""
+    """Tests for POST /resume/{id}/add/skill, POST /resume/{id}/skill/{label}/append, DELETE /resume/{id}/skill/{label}."""
 
     def test_add_skill(self):
         """Covers success, duplicate (409), failure (400), and resume not found (404)."""
@@ -648,7 +648,7 @@ class TestSkillEndpoints(_BaseResumeTest):
             {"label": "Languages", "details": "Python, Java"}
         ]
         self.mock_doc.modify_skill.return_value = "Successfully modified skill"
-        resp = self.client.post("/resume/test_abc123/skill/Languages", json={
+        resp = self.client.post("/resume/test_abc123/skill/Languages/append", json={
             "details": "C++",
         })
         self.assertEqual(resp.status_code, 200)
@@ -658,7 +658,7 @@ class TestSkillEndpoints(_BaseResumeTest):
 
         # Skill label not found returns 404
         self.mock_doc.get_skills.return_value = []
-        resp = self.client.post("/resume/test_abc123/skill/Unknown", json={
+        resp = self.client.post("/resume/test_abc123/skill/Unknown/append", json={
             "details": "Rust",
         })
         self.assertEqual(resp.status_code, 404)
@@ -666,7 +666,7 @@ class TestSkillEndpoints(_BaseResumeTest):
 
         # Resume not found
         self._set_not_found()
-        resp = self.client.post("/resume/fake_id/skill/Languages", json={
+        resp = self.client.post("/resume/fake_id/skill/Languages/append", json={
             "details": "Rust",
         })
         self.assertEqual(resp.status_code, 404)

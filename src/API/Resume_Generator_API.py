@@ -21,7 +21,7 @@ Endpoints:
     POST   /resume/{id}/add/experience               - Add an experience entry
     DELETE /resume/{id}/experience/{company_name}    - Remove an experience entry
     POST   /resume/{id}/add/skill                    - Add a new skill category
-    POST   /resume/{id}/skill/{label}                - Append items to an existing skill category
+    POST   /resume/{id}/skill/{label}/append         - Append items to an existing skill category
     DELETE /resume/{id}/skill/{label}                - Remove a skill category
     DELETE /resume/{id}                              - Delete the resume YAML file entirely
 """
@@ -770,7 +770,7 @@ def add_skill(id: str, payload: SkillRequest):
     return {"status": result}
 
 
-@resumeRouter.post("/resume/{id}/skill/{label}")
+@resumeRouter.post("/resume/{id}/skill/{label}/append")
 def append_skill(id: str, label: str, payload: AppendSkillRequest):
     """Append items to an existing skill category on a resume.
 
