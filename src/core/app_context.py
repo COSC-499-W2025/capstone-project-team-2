@@ -96,6 +96,8 @@ def create_app_context(external_consent_value=False, data_consent_value=False) -
     try:
         conn = sqlite3.connect(str(db_path), check_same_thread=False)
         conn.execute("PRAGMA foreign_keys = ON")
+        if schema_path.exists():
+            conn.executescript(schema_path.read_text())
         print("✅ Connected to SQLite successfully!")
     except Exception as e:
         raise Exception(f"❌ Could not connect to SQLite: {e}")
