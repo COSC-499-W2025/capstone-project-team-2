@@ -11,7 +11,7 @@ class TestSQLiteSetup(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-cls.conn = sqlite3.connect(":memory:")
+        cls.conn = sqlite3.connect(":memory:")
         cls.conn.execute("PRAGMA foreign_keys = ON")
         schema_path = os.path.join(os.path.dirname(__file__), "..", "database.sql")
         with open(schema_path) as f:
