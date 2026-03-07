@@ -46,10 +46,14 @@ class TestHelperFunct(unittest.TestCase):
         Returns:
             None: Initializes shared database resources for the test class.
         """
-        db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "appdb.db"))
-        cls.conn = sqlite3.connect(db_path, check_same_thread=False)
-        cls.conn.execute("PRAGMA foreign_keys = ON")
-        cls.conn.row_factory = sqlite3.Row
+       cls.conn = sqlite3.connect(":memory:")
+      schema_path = os.path.join(os.path.dirname(__file__), "..", "database.sql")
+      with open(schema_path) as  f:
+          cls.conn.executescript(f.read())
+       cls.conn.row_factory = sqlite3.Row
+       cls.store = HelperFunct(cls.conn)
+          
+      
         cls.store = HelperFunct(cls.conn)
 
     @classmethod
