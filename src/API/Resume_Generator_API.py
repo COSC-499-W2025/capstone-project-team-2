@@ -13,12 +13,16 @@ Endpoints:
     POST   /resume/{id}/export/{format}              - Render and export to default directory
     POST   /resume/{id}/export/{format}/custom       - Render and export to a custom directory
     POST   /resume/{id}/edit                         - Modify a field on an existing section item
-    POST   /resume/{id}/add/project/{project_name}   - Add a project entry
+    POST   /resume/{id}/add/project/manual            - Add a project entry with manual data (no DB lookup)
+    POST   /resume/{id}/add/project/{project_name}   - Add a project entry from the database
     DELETE /resume/{id}/project/{project_name}        - Remove a project entry
     POST   /resume/{id}/add/education                - Add an education entry
     DELETE /resume/{id}/education/{institution_name} - Remove an education entry
     POST   /resume/{id}/add/experience               - Add an experience entry
     DELETE /resume/{id}/experience/{company_name}    - Remove an experience entry
+    POST   /resume/{id}/add/skill                    - Add a new skill category
+    POST   /resume/{id}/skill/{label}/append         - Append items to an existing skill category
+    DELETE /resume/{id}/skill/{label}                - Remove a skill category
     DELETE /resume/{id}                              - Delete the resume YAML file entirely
 """
 
@@ -34,6 +38,7 @@ from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
     Project,
     Education,
     Experience,
+    Skills,
     Connections,
 )
 from src.core.app_context import runtimeAppContext
@@ -103,6 +108,24 @@ class ProjectRequest(BaseModel):
     summary: Optional[str] = None
     highlights: Optional[List[str]] = None
 
+class ManualProjectRequest(BaseModel):
+    """Payload for adding a project directly without a database entry."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "name": "My Side Project",
+        "start_date": "2024-01",
+        "end_date": "2025-03",
+        "location": "Vancouver, BC",
+        "summary": "A personal project built to explore Rust async runtimes.",
+        "highlights": ["Implemented async runtime", "Achieved 10k RPS under load"],
+    }})
+    name: str
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    location: Optional[str] = None
+    summary: Optional[str] = None
+    highlights: Optional[List[str]] = None
+
+
 class EducationRequest(BaseModel):
     """Payload for adding a new education entry."""
     model_config = ConfigDict(json_schema_extra={"example": {
@@ -142,6 +165,24 @@ class ExperienceRequest(BaseModel):
     location: Optional[str] = None
     highlights: Optional[List[str]] = None
 
+class SkillRequest(BaseModel):
+    """Payload for adding a new skill entry."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "label" :"Languages",
+        "details": "Python, Java, C++, JavaScript, SQL, HTML, CSS" }
+
+    })
+    label: str
+    details: str
+
+
+class AppendSkillRequest(BaseModel):
+    """Payload for appending items to an existing skill entry."""
+    model_config = ConfigDict(json_schema_extra={"example":{
+        "details":"Rust, TypeScript"
+    }}
+    )
+    details: str
 
 class SaveRequest(BaseModel):
     """Payload for saving a rendered file to a custom location."""
@@ -492,6 +533,44 @@ def export_resume_custom(id: str, format: str, payload: SaveRequest):
     return {"status": "Saved successfully", "path": str(dest)}
 
 
+@resumeRouter.post("/resume/{id}/add/project/manual")
+def add_project_manual(id: str, payload: ManualProjectRequest):
+    """Add a project entry to the resume with fully manual data.
+
+    Unlike POST /resume/{id}/add/project/{project_name}, this endpoint does not
+    require the project to exist in the database. All project fields are supplied
+    directly in the request body.
+
+    Args:
+        id: The resume identifier.
+        payload: ManualProjectRequest with all project fields provided directly.
+
+    Returns:
+        dict: {"status": str} confirming the project was added.
+
+    Raises:
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 400 if adding the project fails.
+        HTTPException: 500 if an unexpected error occurs.
+    """
+    doc = _load_resume(id)
+    proj = Project(
+        name=payload.name,
+        start_date=payload.start_date,
+        end_date=payload.end_date,
+        location=payload.location,
+        summary=payload.summary,
+        highlights=payload.highlights,
+    )
+    try:
+        result = _check_result(doc.add_project(proj))
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise
+        raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
+    return {"status": result}
+
+
 @resumeRouter.post("/resume/{id}/add/project/{project_name}")
 def add_project(id: str, project_name: str, payload: Optional[ProjectRequest] = None):
     """Add a project entry to the resume from an analysed project in the database.
@@ -676,6 +755,88 @@ def remove_experience(id: str, company_name: str):
     if "not found" in result.lower() or "no experience to delete" in result.lower():
         raise HTTPException(status_code=404, detail=result)
     return {"status": result}
+
+@resumeRouter.post("/resume/{id}/add/skill")
+def add_skill(id: str, payload: SkillRequest):
+    """Add a new skill to an existing resume.
+
+    Args:
+        id: The resume identifier.
+        payload: SkillRequest with a label (category name) and details (comma-separated skills).
+
+    Returns:
+        dict: {"status": str} confirming the skill was added.
+
+    Raises:
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 409 if a skill with the same label already exists.
+        HTTPException: 400 if the label is empty or the operation fails.
+
+    """
+    doc = _load_resume(id)
+    skill = Skills(label=payload.label, details=payload.details)
+    result = doc.add_skills(skill)
+    if "Duplicate" in result:
+        raise HTTPException(status_code=409, detail=result)
+    if result != "Successfully added skills":
+        raise HTTPException(status_code=400, detail=result)
+
+    return {"status": result}
+
+
+@resumeRouter.post("/resume/{id}/skill/{label}/append")
+def append_skill(id: str, label: str, payload: AppendSkillRequest):
+    """Append items to an existing skill category on a resume.
+
+        Finds the skill category by label and appends the new comma-separated
+        items to the existing details, rather than replacing them entirely.
+
+        Args:
+            id: The resume identifier.
+            label: The exact skill category label to update (e.g., 'Languages').
+            payload: AppendSkillRequest with the details to append.
+
+        Returns:
+            dict: {"status": str, "details": "<full updated details string>"}.
+
+        Raises:
+            HTTPException: 404 if the resume or skill label does not exist.
+            HTTPException: 400 if the append operation fails.
+        """
+
+
+    doc = _load_resume(id)
+    existing = next((s for s in doc.get_skills() if s.get("label") == label), None)
+    if existing is None:
+        raise HTTPException(status_code=404, detail=f"Skill '{label}' not found")
+
+    current = existing.get("details", "").strip().rstrip(",")
+    new_details = f"{current}, {payload.details.strip()}" if current else payload.details.strip()
+    result = _check_result(doc.modify_skill(label, new_details))
+    return {"status": result, "details": new_details}
+
+@resumeRouter.delete("/resume/{id}/skill/{label}")
+def remove_skill(id:str, label: str):
+    """Remove a skill category from an existing resume by label.
+
+        Args:
+            id: The resume identifier.
+            label: The exact skill category label to remove (e.g., 'Languages').
+
+        Returns:
+            dict: {"status": str} confirming the skill was removed.
+
+        Raises:
+            HTTPException: 404 if the resume or skill label does not exist.
+        """
+
+    doc=_load_resume(id)
+    result= doc.remove_skill(label)
+    if "not found" in result.lower() or "no skills" in result.lower():
+        raise HTTPException(status_code=404, detail=result)
+    return {"status": result}
+
+
 
 
 @resumeRouter.delete("/resume/{id}")

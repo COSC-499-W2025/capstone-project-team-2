@@ -11,15 +11,19 @@ experience sections. They focus on projects, skills, summary, contact,
 and connections.
 
 Endpoints:
-    POST   /portfolio/generate                          - Create a new portfolio YAML document
-    GET    /portfolio/{id}                              - Retrieve full portfolio data as JSON
-    POST   /portfolio/{id}/edit                         - Modify a field on an existing section item
-    POST   /portfolio/{id}/add/project/{project_name}   - Add a project entry
-    DELETE /portfolio/{id}/project/{project_name}        - Remove a project entry
-    POST   /portfolio/{id}/render/{format}              - Re-render and return as file response
+    POST   /portfolio/generate                              - Create a new portfolio YAML document
+    GET    /portfolio/{id}                                - Retrieve full portfolio data as JSON
+    POST   /portfolio/{id}/edit                           - Modify a field on an existing section item
+    POST   /portfolio/{id}/add/project/manual              - Add a project entry with manual data (no DB lookup)
+    POST   /portfolio/{id}/add/project/{project_name}     - Add a project entry from the database
+    DELETE /portfolio/{id}/project/{project_name}          - Remove a project entry
+    POST   /portfolio/{id}/add/skill                      - Add a new skill category
+    POST   /portfolio/{id}/skill/{label}/append           - Append items to an existing skill category
+    DELETE /portfolio/{id}/skill/{label}                  - Remove a skill category
+    POST   /portfolio/{id}/render/{format}                - Re-render and return as file response
     POST   /portfolio/{id}/export/{format}                - Render and export to default directory
     POST   /portfolio/{id}/export/{format}/custom         - Render and export to a custom directory
-    DELETE /portfolio/{id}                              - Delete the portfolio YAML file entirely
+    DELETE /portfolio/{id}                                - Delete the portfolio YAML file entirely
 """
 
 from typing import Any, Optional, List
@@ -30,7 +34,7 @@ from fastapi import APIRouter, HTTPException,BackgroundTasks
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field
 from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
-    RenderCVDocument,Project,Connections
+    RenderCVDocument,Project,Skills,Connections
 )
 from src.reporting.portfolio_service import (
     load_portfolio_showcase,
@@ -111,6 +115,46 @@ class ProjectRoleOverrideRequest(BaseModel):
         "role": "Backend Developer",
     }})
     role: str = Field(default="Backend Developer", max_length=200)
+
+class ManualProjectRequest(BaseModel):
+    """Payload for adding a project directly without a database entry."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "name": "My Side Project",
+        "start_date": "2024-01",
+        "end_date": "2025-03",
+        "location": "Vancouver, BC",
+        "summary": "A personal project built to explore Rust async runtimes.",
+        "highlights": ["Implemented async runtime", "Achieved 10k RPS under load"],
+    }})
+    name: str
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    location: Optional[str] = None
+    summary: Optional[str] = None
+    highlights: Optional[list[str]] = None
+
+
+class  skillRequest(BaseModel):
+    """Payload for adding a new a skill"""
+    model_config = ConfigDict(json_schema_extra={
+        "example":{
+            "label":"Languages",
+            "details": "Python, Java, C++"
+        }
+    })
+    label: str
+    details: str
+
+class AppendSkillRequest(BaseModel):
+    """Payload for appending items to an existing skill category"""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "details": "Rust, TypeScript",
+    }})
+    details: str
+
+
+
+
 
 class SaveRequest(BaseModel):
     """Payload for saving a rendered file to a custom location."""
@@ -373,6 +417,44 @@ def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
     return {"results": results}
 
 
+@portfolioRouter.post("/portfolio/{portfolio_id}/add/project/manual")
+def add_project_manual(portfolio_id: str, payload: ManualProjectRequest):
+    """Add a project entry to the portfolio with fully manual data.
+
+    Unlike POST /portfolio/{id}/add/project/{project_name}, this endpoint does not
+    require the project to exist in the database. All project fields are supplied
+    directly in the request body.
+
+    Args:
+        portfolio_id: The portfolio identifier.
+        payload: ManualProjectRequest with all project fields provided directly.
+
+    Returns:
+        dict: {"status": str} confirming the project was added.
+
+    Raises:
+        HTTPException: 404 if the portfolio does not exist.
+        HTTPException: 400 if adding the project fails.
+        HTTPException: 500 if an unexpected error occurs.
+    """
+    doc = _load_portfolio(portfolio_id)
+    proj = Project(
+        name=payload.name,
+        start_date=payload.start_date,
+        end_date=payload.end_date,
+        location=payload.location,
+        summary=payload.summary,
+        highlights=payload.highlights,
+    )
+    try:
+        result = _check_result(doc.add_project(proj))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
+    return {"status": result}
+
+
 @portfolioRouter.post("/portfolio/{portfolio_id}/add/project/{project_name}")
 def add_project(portfolio_id: str, project_name: str, payload: Optional[ProjectRequest] = None):
     """Add a project from the database to a portfolio.
@@ -553,6 +635,88 @@ def remove_project(portfolio_id: str, project_name: str):
     doc = _load_portfolio(portfolio_id)
     result = doc.remove_project(project_name)
     if "not found" in result.lower() or "no projects" in result.lower():
+        raise HTTPException(status_code=404, detail=result)
+    return {"status": result}
+
+
+
+
+@portfolioRouter.post("/portfolio/{portfolio_id}/add/skill")
+def add_skill(portfolio_id: str, payload:skillRequest):
+    """Add a new skill category entry to an existing portfolio.
+
+        Args:
+            portfolio_id: The portfolio identifier.
+            payload: SkillRequest with a label (category name) and details (comma-separated skills).
+
+        Returns:
+            dict: {"status": str} confirming the skill was added.
+
+        Raises:
+            HTTPException: 404 if the portfolio does not exist.
+            HTTPException: 409 if a skill with the same label already exists.
+            HTTPException: 400 if the label is empty or the operation fails.
+        """
+    doc = _load_portfolio(portfolio_id)
+    skill = Skills(label=payload.label, details=payload.details)
+    result = doc.add_skills(skill)
+
+    if "Duplicate" in result:
+        raise HTTPException(status_code=409, detail=result)
+    if result != "Successfully added skills":
+        raise HTTPException(status_code=400, detail=result)
+    return {"status": result}
+
+
+
+
+@portfolioRouter.post("/portfolio/{portfolio_id}/skill/{label}/append")
+def append_skill(portfolio_id:str,label:str,payload:AppendSkillRequest):
+    """Append a skill to an existing skill category in a portfolio.
+
+       Args:
+           portfolio_id: The portfolio identifier.
+           label: The exact skill category label to append to (e.g., 'Languages').
+           payload: The skill data to append.
+
+       Returns:
+           dict: {"status": str} confirming the skill was appended.
+
+       Raises:
+           HTTPException: 404 if the portfolio or skill label does not exist.
+       """
+
+    doc = _load_portfolio(portfolio_id)
+    existing_skills = next((skill for skill in doc.get_skills() if skill.get("label") == label), None)
+    if existing_skills is None:
+        raise HTTPException(status_code=404, detail=f"Skill '{label}' not found")
+
+    current = existing_skills.get("details", "").strip().rstrip(",")
+    new_details = f"{current}, {payload.details.strip()}" if current else payload.details.strip()
+    result = _check_result(doc.modify_skill(label, new_details))
+    return {"status": result, "details": new_details}
+
+
+
+
+
+@portfolioRouter.delete("/portfolio/{portfolio_id}/skill/{label}")
+def remove_skill(portfolio_id: str, label: str):
+    """Remove an entire skill category from an existing portfolio by label.
+
+       Args:
+           portfolio_id: The portfolio identifier.
+           label: The exact skill category label to remove (e.g., 'Languages').
+
+       Returns:
+           dict: {"status": str} confirming the skill category was removed.
+
+       Raises:
+           HTTPException: 404 if the portfolio or skill label does not exist.
+       """
+    doc = _load_portfolio(portfolio_id)
+    result = doc.remove_skill(label)
+    if "not found" in result.lower() or "no skills" in result.lower():
         raise HTTPException(status_code=404, detail=result)
     return {"status": result}
 
