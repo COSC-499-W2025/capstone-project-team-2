@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import UploadFile
 from types import SimpleNamespace
 import os
+import sqlite3
 from typing import Optional
 
 # Decide DB init behavior: default connect, but auto-skip when running pytest unless overridden.
@@ -26,7 +27,7 @@ class AppContext:
     Shared application handles for database access, default storage paths, and global settings variables.
 
     Attributes:
-        conn (mysql.connector.MySQLConnection): Live MySQL connection.
+        conn (sqlite3.Connection): Live SQLite connection.
         store (HelperFunct): Helper wrapper for DB operations.
         legacy_save_dir (Path): Legacy config/insight base directory.
         default_save_dir (Path): Default nested directory for new insights.
@@ -34,7 +35,7 @@ class AppContext:
         currently_uploaded_file (Path | UploadFile): file currently uploaded, can be a file-like object or a file path
     """
 
-    conn: mysql.connector.MySQLConnection
+    conn: sqlite3.Connection
     store: HelperFunct
     legacy_save_dir: Path
     default_save_dir: Path
