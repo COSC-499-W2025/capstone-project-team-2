@@ -83,6 +83,16 @@ def create_app_context(external_consent_value=False, data_consent_value=False) -
         )
 
     db_path = root_folder / "appdb.db"
+    schema_path = root_folder / "database.sql"
+
+    if not db_path.exists():
+        with open(schema_path, "r") as f:
+            sql = f.read()
+        temp_conn = sqlite3.connect(str(db_path))
+        temp_conn.executescript(sql)
+        temp_conn.close()
+        print("✅ Database initialized from database.sql")
+        
     try:
         conn = sqlite3.connect(str(db_path), check_same_thread=False)
         conn.execute("PRAGMA foreign_keys = ON")
