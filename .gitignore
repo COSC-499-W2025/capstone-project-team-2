@@ -3,6 +3,7 @@
 .venv
 .env
 nul
+.db
 
 # User-local configuration & generated files
 User_config_files/
