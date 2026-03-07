@@ -1975,7 +1975,7 @@ Following Week 22's work on completing the CRUD endpoint coverage for the Resume
 - Performed manual testing of the Streamlit frontend across desktop and mobile interfaces to verify all CRUD operations, preview rendering, and document download functionality ([PR #466](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/466))
 
 ### Reviewing/Collaboration Tasks
-- N/A
+- Reviewed [PR #474](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/474) as the first reviewer — PR removes Ollama from the codebase and Docker configuration, including deleting Ollama-related test files and stripping Ollama calls from the analysis service
 
 ---
 
@@ -1993,6 +1993,7 @@ Following Week 22's work on completing the CRUD endpoint coverage for the Resume
 | **Skill CRUD & Manual Project Endpoints (PR #465)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 | **Streamlit Resume and Portfolio UI Part 1 (PR #466)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 | **API Endpoint Documentation Update (PR #472)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Remove Ollama PR (PR #474)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 
 ---
 
