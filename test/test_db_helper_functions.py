@@ -54,7 +54,6 @@ class TestHelperFunct(unittest.TestCase):
         cls.store = HelperFunct(cls.conn)
           
       
-        cls.store = HelperFunct(cls.conn)
 
     @classmethod
     def tearDownClass(cls):
