@@ -3,8 +3,8 @@
 ---
 
 ## Quick Navigation
-
 ### Term 2
+- [Week 23 (03/02/2026 – 03/08/2026)](#-personal-log--week-23-03022026--03082026)
 - [Week 22 (02/23/2026 – 03/01/2026)](#-personal-log--week-22-02232026--03012026)
 - [Week 21 - Bonus Week (02/16/2026 – 02/22/2026)](#-personal-log--week-21---bonus-week-02162026--02222026)
 - [Week 20 (02/09/2026 – 02/15/2026)](#-personal-log--week-20-02092026--02152026)
@@ -1947,5 +1947,81 @@ included the following PRs where I as acted as the first reviwer
 - [PR #448](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/448) added multi-project upload and completion support — I initially requested changes before approving, reflecting a thorough review rather than a 
 - rubber-stamp. [PR #437](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/437) optimized the dedup pipeline by introducing a metadata precheck and hash cache to avoid redundant SHA-256 computations during incremental uploads.
 - [PR #439](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/439) exposed a `remove_duplicates` query parameter on the `/analyze` endpoint, giving callers control over whether deduplication performs cleanup or detection only.
+
+---
+
+# 📝 Personal Log – Week 23 (03/02/2026 – 03/08/2026)
+
+## 📊 Peer Evaluation
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/03-06-2026.png)
+
+
+
+---
+
+## 🔗 Connection to Previous Week
+
+Following Week 22's work on completing the CRUD endpoint coverage for the Resume and Portfolio APIs, this week focused on adding skill management endpoints and building the Streamlit frontend for resume and portfolio generation.
+
+---
+
+## 🚀 Work Completed
+
+### Coding Tasks
+- Added complete CRUD endpoints for skill management (add, append, remove) and a manual project entry endpoint to both the Resume and Portfolio Generator APIs, including new Pydantic request models ([PR #465](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/465))
+- Built a Streamlit frontend for resume and portfolio generation with full CRUD functionality, including interactive UI components for document creation, editing, rendering, and downloading. Also fixed UUID leak in contact name and corrected render output path handling in the backend ([PR #466](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/466))
+- Updated API endpoint documentation to cover all newly added routes including insights, manual project entry, and skill management endpoints ([PR #472](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/472))
+
+### Testing/Debugging Tasks
+- Wrote 24 new test cases across both Resume and Portfolio API test files covering success scenarios, validation errors, and edge cases for skill and manual project endpoints; all tests pass locally and in Docker ([PR #465](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/465))
+- Performed manual testing of the Streamlit frontend across desktop and mobile interfaces to verify all CRUD operations, preview rendering, and document download functionality ([PR #466](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/466))
+
+### Reviewing/Collaboration Tasks
+- Reviewed PR (1st reviewer): [Removing Ollama #474](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/474)
+- Reviewed PR (1st reviewer): [MySQL to SQLite #478](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/478)
+
+---
+
+## 📌 Associated Tasks from Project Board
+- [Add last two missing endpoints to resume and portfolio CRUD operation for skills #463](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/463)
+- [Streamlit starter code resume and portfolio UI #464](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/464)
+- [Update API_ENDPOINTS.md in regards to new API added in PR #463](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/472)
+
+---
+
+## 📈 Progress Update
+
+| Task/Issue | Status |
+|------------|--------|
+| **Skill CRUD & Manual Project Endpoints (PR #465)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Streamlit Resume and Portfolio UI Part 1 (PR #466)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **API Endpoint Documentation Update (PR #472)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Remove Ollama PR (PR #474)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed MySQL to SQLite Migration PR (PR #478)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+
+---
+
+## ⚠️ Issues/Blockers
+
+- [PR #472](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/472) received a change request and needs revisions before merging.
+
+---
+
+## 🎯 Next Week's Goals
+- Continue building out the Streamlit frontend for resume and portfolio management
+- Integrate remaining API endpoints with the frontend UI
+- Working on improvement the Frontend
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 23)
+
+
+For **Week 23**, I focused on two aspects: frontend and backend development. On the backend, my first task was adding the missing API CRUD operations
+[PR #465](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/465) for which was a skill magement system across both Resume and Portfolio APIs
+ensure that users can add, delete, and modify the skill sections of the resume or portfilolo, another API CRUD operation I added was the ability to manually add new projects to the system if the user so desire, The APIs were desgined in a way to maintained consistent. Finally, I also added 24 new test cases covering success, validation, and error scenarios.
+
+On the frontend side being my second task , [PR #466](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/466) introduced the general setup for our frontend system, which uses Streamlit, and the first frontend component, the **Resume and Portfolio UI**, which consists of separate tabs for Resume and Portfolio management. In addition, I introduced a separate file of reusable helper modules containingcontaining form layouts, API call wrappers, and Preview functionality. In summary, the Resume and Portfolio UI supports the For CRUD operations(Creating, loading, editing, and deleting), as well as downloading render outputs in the available formats(PDF, HTML, Markdown)
+
 
 ---
