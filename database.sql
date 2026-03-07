@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS project_versions (
     UNIQUE (project_name, project_uploaded_at, version_number)
 );
 
-CREATE TRIGGER update_project_data_timestamp
+CREATE TRIGGER IF NOT EXISTS update_project_data_timestamp
 AFTER UPDATE ON project_data
 FOR EACH ROW
 BEGIN
