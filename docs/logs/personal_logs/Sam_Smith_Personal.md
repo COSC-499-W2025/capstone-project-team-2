@@ -159,6 +159,8 @@
 
 | Task ID | Description                     | Feature                   | Assigned To | Status   |
 | ------- | ------------------------------- | ------------------------- | ----------- | -------- |
+|[#340]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/340)|created and uploaded peer testing files | ssmith86|complete|
+|[#348]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/348)|converted print statements for analysis_service.py|ssmith86|complete
 |[#379]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/379)| adjusted errors to raise important ones to api | ssmith86 | complete|
 |[#382]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/382)| added code so that critical errors bubble up to api in individual_contribution_detection.py | ssmith86 | complete |
 |[#384]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/384)| adjusted errors to raise important ones to api | ssmith86 | complete |
@@ -216,8 +218,6 @@
 
 **Reviewing / Collaboration Tasks**
 - reviewed the following PR's:
-        - [#340](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/340)
-        - [#348](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/348)
         - [#375](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/375)
         - [#388](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/388)
         - [#391](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/391)
