@@ -34,6 +34,7 @@ from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
     Project,
     Education,
     Experience,
+    Connections,
 )
 from src.core.app_context import runtimeAppContext
 
@@ -80,6 +81,7 @@ class EditResumeRequest(BaseModel):
             {"section": "experience", "item_name": "Software Engineer", "field": "company", "new_value": "Acme Corp"},
             {"section": "projects", "item_name": "MyProject", "field": "summary", "new_value": "Built a REST API with FastAPI."},
             {"section": "theme", "item_name": "", "field": "", "new_value": "classic"},
+            {"section": "connections", "item_name": "LinkedIn", "field": "username", "new_value": "john-doe"},
         ]
     }})
     edits: List[EditItem]
@@ -234,6 +236,7 @@ def generate_resume(payload: GenerateResumeRequest):
                             detail=f"Resume '{payload.name}' already exists. Set overwrite=true to replace it.",
                             )
     doc.load(name=full_name)
+    doc.update_contact(name=payload.name)
 
     if payload.theme and payload.theme != 'sb2nov':
         try:
@@ -325,6 +328,7 @@ def edit_resume(id: str, payload: EditResumeRequest):
         - experience: Use `item_name` for the job title, `field` for the attribute to change.
         - education: Use `item_name` for the degree name, `field` for the attribute to change.
         - projects: Use `item_name` for the project name, `field` for the attribute to change.
+        - connections: Use `item_name` for network name, `field="username"` to add/modify, `field="delete"` to remove.
     """
     doc = _load_resume(id)
     modify_map = {
@@ -361,9 +365,19 @@ def edit_resume(id: str, payload: EditResumeRequest):
         elif section in modify_map:
             result = _check_result(modify_map[section](edit.item_name, edit.field, edit.new_value))
 
+        elif section == "connections":
+            if edit.field == "delete":
+                result = _check_result(doc.remove_connection(edit.item_name))
+            elif edit.item_name and not any(
+                c.get("network") == edit.item_name for c in (doc.get_connections() or [])
+            ):
+                result = _check_result(doc.add_connection(Connections(network=edit.item_name, username=str(edit.new_value))))
+            else:
+                result = _check_result(doc.modify_connection(edit.item_name, str(edit.new_value)))
+
         else:
             raise HTTPException(status_code=400,
-                                detail=f"Unknown section '{section}'. Valid: experience, education, projects, skills, summary, contact, theme",
+                                detail=f"Unknown section '{section}'. Valid: experience, education, projects, skills, summary, contact, theme, connections",
             )
         results.append(result)
 

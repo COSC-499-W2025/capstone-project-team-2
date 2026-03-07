@@ -22,7 +22,7 @@ Endpoints:
     DELETE /portfolio/{id}                              - Delete the portfolio YAML file entirely
 """
 
-from typing import Optional,List
+from typing import Any, Optional, List
 from pathlib import Path
 import uuid
 import shutil
@@ -30,7 +30,7 @@ from fastapi import APIRouter, HTTPException,BackgroundTasks
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field
 from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
-    RenderCVDocument,Project
+    RenderCVDocument,Project,Connections
 )
 from src.reporting.portfolio_service import (
     load_portfolio_showcase,
@@ -68,7 +68,7 @@ class editItem(BaseModel):
     section: str
     item_name: str
     field: str
-    new_value: str
+    new_value: Any
 
 
 class EditProjectRequest(BaseModel):
@@ -80,6 +80,7 @@ class EditProjectRequest(BaseModel):
             {"section": "summary", "item_name": "", "field": "", "new_value": "Full-stack developer passionate about open source."},
             {"section": "projects", "item_name": "MyProject", "field": "summary", "new_value": "Developed a portfolio site with FastAPI."},
             {"section": "theme", "item_name": "", "field": "", "new_value": "classic"},
+            {"section": "connections", "item_name": "LinkedIn", "field": "username", "new_value": "jane-doe"},
         ]
     }})
     edits: list[editItem]
@@ -247,6 +248,7 @@ def generate_portfolio(payload: GeneratePortfolioRequest):
         raise HTTPException(status_code=409,detail=f"Portfolio {full_name} already exists. Set overwrite=true to replace it")
 
     doc.load(name=full_name)
+    doc.update_contact(name=payload.name)
     if payload.theme and payload.theme !='sb2nov':
         try:
             doc.update_theme(payload.theme)
@@ -327,6 +329,7 @@ def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
         - theme: Only `new_value` is used; valid themes are 'sb2nov', 'classic', 'moderncv', 'engineeringresumes'.
         - skills: Use `item_name` to identify the skill to rename; `new_value` is the new skill name.
         - projects: Use `item_name` for the project name, `field` for the attribute to change.
+        - connections: Use `item_name` for network name, `field="username"` to add/modify, `field="delete"` to remove.
     """
     doc=_load_portfolio(portfolio_id)
     results=[]
@@ -352,9 +355,19 @@ def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
         elif section == "projects":
             result=doc.modify_project(edit.item_name, edit.field, edit.new_value)
 
+        elif section == "connections":
+            if edit.field == "delete":
+                result = _check_result(doc.remove_connection(edit.item_name))
+            elif edit.item_name and not any(
+                c.get("network") == edit.item_name for c in (doc.get_connections() or [])
+            ):
+                result = _check_result(doc.add_connection(Connections(network=edit.item_name, username=str(edit.new_value))))
+            else:
+                result = _check_result(doc.modify_connection(edit.item_name, str(edit.new_value)))
+
         else:
             raise HTTPException(status_code=400,
-                                detail=f"Unknown section '{section}'. Valid: projects, skills, summary, contact, theme",
+                                detail=f"Unknown section '{section}'. Valid: projects, skills, summary, contact, theme, connections",
                                 )
         results.append(result)
     return {"results": results}
