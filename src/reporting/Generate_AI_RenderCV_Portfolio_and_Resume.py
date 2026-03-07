@@ -1,3 +1,4 @@
+import re
 import subprocess
 import shutil
 import sys
@@ -362,7 +363,8 @@ class RenderCVDocument:
         self.sections=self.data['cv']['sections']
         self.current_projects=self.sections.get('projects', [])
         self.current_connections=self.data['cv'].get('social_networks', [])
-        self.data['cv']['name'] = str(self.name).replace("_", " ")
+        display_name = re.sub(r'_[0-9a-f]{8}$', '', str(self.name))
+        self.data['cv']['name'] = display_name.replace("_", " ")
 
         # Shared sections for both resume and portfolio
         self.current_skills = self.sections.get('skills', [])
@@ -462,12 +464,17 @@ class RenderCVDocument:
         selected_formats = self._normalize_formats(formats)
         output_dir = self._get_output_dir()
         yaml_parent = self.yaml_file.resolve().parent
-        output_base = f"{self.name}_CV"
+        cv_name = self.data.get('cv', {}).get('name', '').strip().replace(" ", "_")
+        output_base = f"{cv_name}_CV" if cv_name else f"{self.name}_CV"
         doc_type_label = "Resume" if self.doc_type == 'resume' else "Portfolio"
 
         if output_dir.exists():
             shutil.rmtree(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Sync in-memory data (cv.name has UUID stripped) to disk before running
+        # RenderCV so the output filename matches what render_outputs() expects.
+        self.save()
 
         cmd = [sys.executable, "-m", "rendercv", "render", str(self.yaml_file)]
         format_flags = {
@@ -565,7 +572,7 @@ class RenderCVDocument:
         fields = {'email': email, 'phone': phone, 'location': location, 'website': website, 'name': name}
         for field_name,value in fields.items():
             if value and str(value).strip():
-                cv[field_name] = value
+                cv[field_name] = str(value).strip()
         self._auto_save_if_enabled()
         return self
 
@@ -832,6 +839,10 @@ class RenderCVDocument:
             self.data['cv']['social_networks'] = []
             self.current_connections = self.data['cv']['social_networks']
 
+        connection_info.network = connection_info.network.strip()
+        if connection_info.username:
+            connection_info.username = connection_info.username.strip()
+
         existing = [c['network'] for c in self.current_connections]
         if connection_info.network in existing:
             return f"Connection '{connection_info.network}' already exists"
@@ -856,7 +867,7 @@ class RenderCVDocument:
         if connection is None:
             return f"Connection '{network_name}' not found"
 
-        connection["username"] = new_username
+        connection["username"] = new_username.strip()
         self._auto_save_if_enabled()
         return f"Successfully updated: {network_name}"
 
