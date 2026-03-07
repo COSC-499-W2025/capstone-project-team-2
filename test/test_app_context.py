@@ -18,6 +18,9 @@ class FakeConnection:
     def execute(self, *args, **kwargs):
         pass
 
+    def executescript(self, *args, **kwargs):
+        pass
+
     def close(self):
         self.closed = True
 
@@ -33,8 +36,6 @@ def test_create_app_context_success(monkeypatch):
     """
     # Force DB init path for this test even if the suite sets SKIP_DB_INIT=1.
     monkeypatch.setenv("SKIP_DB_INIT", "0")
-    def executescript(self, *args, **kwargs):
-        pass
 
     fake_conn = FakeConnection()
     monkeypatch.setattr(mod.sqlite3, "connect", lambda *args, **kwargs: fake_conn)
