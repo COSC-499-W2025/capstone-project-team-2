@@ -164,6 +164,25 @@ Router prefix: `/representation`
   - `404` no insights available
   - `500` preference application failure
 
+## Insights
+
+Router prefix: `/insights`
+
+### `GET /insights/projects`
+- Purpose: chronologically list all analyzed projects, with optional filters.
+- Query:
+  - `language` (optional string) — filter by programming language
+  - `skill` (optional string) — filter by skill
+  - `since_str` (optional string) — only projects analyzed after this date
+- Returns `200`: list of project insight dictionaries in chronological order.
+
+### `GET /insights/skills`
+- Purpose: chronologically list all skills and the projects they appear in, with optional filters.
+- Query:
+  - `skill` (optional string) — filter by skill name
+  - `since_str` (optional string) — only entries analyzed after this date
+- Returns `200`: list of skill-history dictionaries in chronological order.
+
 ## Resume
 
 ### `POST /resume/generate`
@@ -234,6 +253,22 @@ Router prefix: `/representation`
   - `400` unsupported format or invalid directory
   - `404` resume not found
   - `500` render failure
+
+### `POST /resume/{id}/add/project/manual`
+- Purpose: add a project entry with fully manual data (no database lookup).
+- JSON body:
+  - `name` (string, required)
+  - `start_date` (optional string)
+  - `end_date` (optional string)
+  - `location` (optional string)
+  - `summary` (optional string)
+  - `highlights` (optional list of strings)
+- Returns `200`:
+  - `{"status":"..."}`
+- Errors:
+  - `400` add failure
+  - `404` resume not found
+  - `500` unexpected error
 
 ### `POST /resume/{id}/add/project/{project_name}`
 - Purpose: add analyzed project to resume projects.
@@ -313,6 +348,41 @@ Router prefix: `/representation`
 - Errors:
   - `404` resume or company not found
 
+### `POST /resume/{id}/add/skill`
+- Purpose: add a new skill category to a resume.
+- JSON body:
+  - `label` (string, required) — category name (e.g., "Languages")
+  - `details` (string, required) — comma-separated skills (e.g., "Python, Java, C++")
+- Returns `200`:
+  - `{"status":"Successfully added skill"}`
+- Errors:
+  - `400` empty label or add failure
+  - `404` resume not found
+  - `409` skill with same label already exists
+
+### `POST /resume/{id}/skill/{label}/append`
+- Purpose: append items to an existing skill category on a resume.
+- Path:
+  - `id` = resume identifier
+  - `label` = exact skill category label (e.g., "Languages")
+- JSON body:
+  - `details` (string, required) — comma-separated items to append
+- Returns `200`:
+  - `{"status":"...","details":"<full updated details string>"}`
+- Errors:
+  - `400` append failure
+  - `404` resume or skill label not found
+
+### `DELETE /resume/{id}/skill/{label}`
+- Purpose: remove an entire skill category from a resume by label.
+- Path:
+  - `id` = resume identifier
+  - `label` = exact skill category label to remove
+- Returns `200`:
+  - `{"status":"..."}`
+- Errors:
+  - `404` resume or skill label not found
+
 ### `DELETE /resume/{id}`
 - Purpose: delete resume YAML file.
 - Returns `200`:
@@ -370,6 +440,22 @@ Router prefix: `/representation`
 - Errors:
   - `400` invalid section/theme
   - `404` portfolio not found
+
+### `POST /portfolio/{portfolio_id}/add/project/manual`
+- Purpose: add a project entry with fully manual data (no database lookup).
+- JSON body:
+  - `name` (string, required)
+  - `start_date` (optional string)
+  - `end_date` (optional string)
+  - `location` (optional string)
+  - `summary` (optional string)
+  - `highlights` (optional list of strings)
+- Returns `200`:
+  - `{"status":"..."}`
+- Errors:
+  - `400` add failure
+  - `404` portfolio not found
+  - `500` unexpected error
 
 ### `POST /portfolio/{portfolio_id}/add/project/{project_name}`
 - Purpose: add analyzed project to portfolio projects.
@@ -429,6 +515,40 @@ Router prefix: `/representation`
   - `404` portfolio not found
   - `500` render failure
 
+### `POST /portfolio/{portfolio_id}/add/skill`
+- Purpose: add a new skill category to a portfolio.
+- JSON body:
+  - `label` (string, required) — category name (e.g., "Languages")
+  - `details` (string, required) — comma-separated skills (e.g., "Python, Java, C++")
+- Returns `200`:
+  - `{"status":"Successfully added skills"}`
+- Errors:
+  - `400` empty label or add failure
+  - `404` portfolio not found
+  - `409` skill with same label already exists
+
+### `POST /portfolio/{portfolio_id}/skill/{label}/append`
+- Purpose: append items to an existing skill category on a portfolio.
+- Path:
+  - `portfolio_id` = portfolio identifier
+  - `label` = exact skill category label (e.g., "Languages")
+- JSON body:
+  - `details` (string, required) — comma-separated items to append
+- Returns `200`:
+  - `{"status":"...","details":"<full updated details string>"}`
+- Errors:
+  - `404` portfolio or skill label not found
+
+### `DELETE /portfolio/{portfolio_id}/skill/{label}`
+- Purpose: remove an entire skill category from a portfolio by label.
+- Path:
+  - `portfolio_id` = portfolio identifier
+  - `label` = exact skill category label to remove
+- Returns `200`:
+  - `{"status":"..."}`
+- Errors:
+  - `404` portfolio or skill label not found
+
 ### `DELETE /portfolio/{portfolio_id}`
 - Purpose: delete portfolio YAML file.
 - Returns `200`:
@@ -471,3 +591,4 @@ The endpoint list above covers all route decorators in:
 - `src/API/representation_API.py`
 - `src/API/Resume_Generator_API.py`
 - `src/API/Portfolio_Generator_API.py`
+- `src/API/project_insights_API.py`
