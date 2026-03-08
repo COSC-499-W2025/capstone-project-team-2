@@ -4,6 +4,8 @@
 .env
 nul
 *.db
+*.db-wal
+*.db-shm
 
 # User-local configuration & generated files
 User_config_files/

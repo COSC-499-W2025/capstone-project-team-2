@@ -23,6 +23,7 @@ class HelperFunct:
         if connection is None:
             raise RuntimeError("ProjectDataStore was given an invalid SQLite connection.")
         self.conn = connection
+        self._lock = threading.Lock()
         self.conn.row_factory = sqlite3.Row
 
 
