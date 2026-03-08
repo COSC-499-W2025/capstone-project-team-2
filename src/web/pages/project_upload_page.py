@@ -3,7 +3,10 @@ import requests
 import zipfile
 import io
 from pathlib import Path
+import sys
 
+# Add project root to path so we can import src.web.streamlit_helpers
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from src.web.streamlit_helpers import API_BASE
 
 st.title("Upload a Project")
