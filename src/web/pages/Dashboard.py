@@ -10,6 +10,7 @@ This page is intentionally data-first:
 from __future__ import annotations
 
 import json
+import sys
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -18,6 +19,8 @@ from typing import Any, Dict, Iterable, List, Tuple
 import pandas as pd
 import requests
 import streamlit as st
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from src.web.mode import render_mode_sidebar
 from src.web.streamlit_helpers import API_BASE
@@ -259,7 +262,8 @@ def render_page() -> None:
     # Headline metrics for quick portfolio health checks.
     project_count = len(projects)
     unique_skills = sorted({s for p in projects for s in (p.get("skills") or [])})
-    latest_dt = max((_parse_dt(p.get("analyzed_at")) for p in projects), default=None)
+    parsed_dts = [dt for p in projects if (dt := _parse_dt(p.get("analyzed_at"))) is not None]
+    latest_dt = max(parsed_dts) if parsed_dts else None
 
     m1, m2, m3 = st.columns(3)
     m1.metric("Projects", f"{project_count}")
