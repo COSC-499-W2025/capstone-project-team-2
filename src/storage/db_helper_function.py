@@ -1,5 +1,6 @@
 import json
 import sqlite3
+import threading
 from typing import Dict, List, Union
 
 
@@ -40,47 +41,47 @@ class HelperFunct:
                 - The project name (filename) of the inserted/updated record
                 - True if this was an update (project existed), False if new insert
         """
+        with self._lock:
+            if raw_bytes is None:
+                raw_bytes = json.dumps(data).encode("utf-8")
 
-        if raw_bytes is None:
-            raw_bytes = json.dumps(data).encode("utf-8")
+            cursor = self.conn.cursor()
+            try:
 
-        cursor = self.conn.cursor()
-        try:
+                cursor.execute("SELECT 1 FROM project_data WHERE Pname = ?", (filename,))
+                was_update = cursor.fetchone() is not None
 
-            cursor.execute("SELECT 1 FROM project_data WHERE Pname = ?", (filename,))
-            was_update = cursor.fetchone() is not None
+                cursor.execute(
+                    "SELECT COALESCE(MAX(version_number), 0) FROM project_versions WHERE project_name = ?",
+                    (filename,)
+                )
+                new_version = cursor.fetchone()[0] + 1
 
-            cursor.execute(
-                "SELECT COALESCE(MAX(version_number), 0) FROM project_versions WHERE project_name = ?",
-                (filename,)
-            )
-            new_version = cursor.fetchone()[0] + 1
+                cursor.execute(
+                    "INSERT INTO project_data (Pname, content, file_blob, current_version) "
+                    "VALUES (?, ?, ?, ?) "
+                    "ON CONFLICT(Pname) DO UPDATE SET "
+                    "content = excluded.content, file_blob = excluded.file_blob, current_version = excluded.current_version",
+                    (filename, json.dumps(data), raw_bytes, new_version)  # 4 values ✅
+                )
 
-            cursor.execute(
-                "INSERT INTO project_data (Pname, content, file_blob, current_version) "
-                "VALUES (?, ?, ?, ?) "
-                "ON CONFLICT(Pname) DO UPDATE SET "
-                "content = excluded.content, file_blob = excluded.file_blob, current_version = excluded.current_version",
-                (filename, json.dumps(data), raw_bytes, new_version)  # 4 values ✅
-            )
+                cursor.execute(
+                    "SELECT uploaded_at FROM project_data WHERE Pname = ?",
+                    (filename,)
+                )
+                uploaded_at = cursor.fetchone()[0]
 
-            cursor.execute(
-                "SELECT uploaded_at FROM project_data WHERE Pname = ?",
-                (filename,)
-            )
-            uploaded_at = cursor.fetchone()[0]
+                cursor.execute(
+                    "INSERT INTO project_versions "
+                    "(project_name, project_uploaded_at, version_number, content, file_blob) "
+                    "VALUES (?, ?, ?, ?, ?)",
+                    (filename, uploaded_at, new_version, json.dumps(data), raw_bytes)
+                )
 
-            cursor.execute(
-                "INSERT INTO project_versions "
-                "(project_name, project_uploaded_at, version_number, content, file_blob) "
-                "VALUES (?, ?, ?, ?, ?)",
-                (filename, uploaded_at, new_version, json.dumps(data), raw_bytes)
-            )
-
-            self.conn.commit()
-            return filename, was_update
-        finally:
-            cursor.close()
+                self.conn.commit()
+                return filename, was_update
+            finally:
+                cursor.close()
 
 
             # returns the contents of the json file by name
@@ -164,38 +165,40 @@ class HelperFunct:
                 content = json.loads(input.decode("utf-8"))
             else:
                 raise ValueError("input must be a dict or bytes")
+            
+            with self._lock:
 
-            cursor = self.conn.cursor()
-            try:
-                # Get current version
-                cursor.execute(
-                    "SELECT current_version, uploaded_at FROM project_data WHERE Pname = ?", 
-                    (project_name,)
-                )
-                row = cursor.fetchone()
-                if not row:
-                    return False
+                cursor = self.conn.cursor()
+                try:
+                    # Get current version
+                    cursor.execute(
+                        "SELECT current_version, uploaded_at FROM project_data WHERE Pname = ?", 
+                        (project_name,)
+                    )
+                    row = cursor.fetchone()
+                    if not row:
+                        return False
         
-                new_version = row[0] + 1
-                uploaded_at = row[1]
+                    new_version = row[0] + 1
+                    uploaded_at = row[1]
 
-                # Update project_data
-                cursor.execute(
-                    "UPDATE project_data SET content=?, file_blob=?, current_version=? WHERE Pname=?",
-                    (json.dumps(content), blob, new_version, project_name)
-                    )
+                    # Update project_data
+                    cursor.execute(
+                        "UPDATE project_data SET content=?, file_blob=?, current_version=? WHERE Pname=?",
+                        (json.dumps(content), blob, new_version, project_name)
+                        )
 
-                # Save new version
-                cursor.execute(
-                    "INSERT INTO project_versions (project_name, project_uploaded_at,version_number, content, file_blob) "
-                    "VALUES (?, ?, ?, ?, ?)",
-                    (project_name, uploaded_at, new_version, json.dumps(content), blob)
-                    )
+                    # Save new version
+                    cursor.execute(
+                        "INSERT INTO project_versions (project_name, project_uploaded_at,version_number, content, file_blob) "
+                        "VALUES (?, ?, ?, ?, ?)",
+                        (project_name, uploaded_at, new_version, json.dumps(content), blob)
+                        )
 
-                self.conn.commit()
-                return True
-            finally:
-                cursor.close()
+                    self.conn.commit()
+                    return True
+                finally:
+                    cursor.close()
 
         
     def count_file_references(self, filename: str) -> int:
@@ -230,13 +233,14 @@ class HelperFunct:
         Returns:
             bool: True if the record was successfully deleted, False otherwise.
         """
-        cursor = self.conn.cursor()
-        try:
-            cursor.execute("DELETE FROM project_data WHERE Pname = ?", (project_name,))
-            self.conn.commit()
-            return cursor.rowcount > 0
-        finally:
-            cursor.close()
+        with self._lock:
+            cursor = self.conn.cursor()
+            try:
+                cursor.execute("DELETE FROM project_data WHERE Pname = ?", (project_name,))
+                self.conn.commit()
+                return cursor.rowcount > 0
+            finally:
+                cursor.close()
 
     def get_version_list(self, project_name: str) -> List[Dict]:
         """
@@ -395,40 +399,41 @@ class HelperFunct:
         Returns:
             int: Number of versions deleted.
         """
-        cursor = self.conn.cursor()
-        try:
-            cursor.execute(
-                "SELECT uploaded_at FROM project_data WHERE Pname = ?",
-                (project_name,)
-            )
-            row = cursor.fetchone()
-            if not row:
-                return 0
-            uploaded_at = row[0]
+        with self._lock:
+            cursor = self.conn.cursor()
+            try:
+                cursor.execute(
+                    "SELECT uploaded_at FROM project_data WHERE Pname = ?",
+                    (project_name,)
+                )
+                row = cursor.fetchone()
+                if not row:
+                    return 0
+                uploaded_at = row[0]
 
-            # Get version numbers to keep
-            cursor.execute("""
-                SELECT version_number
-                FROM project_versions
-                WHERE project_name = ? AND project_uploaded_at = ?
-                ORDER BY version_number DESC
-                LIMIT ?
-            """, (project_name, uploaded_at, keep_last_n))
+                # Get version numbers to keep
+                cursor.execute("""
+                    SELECT version_number
+                    FROM project_versions
+                    WHERE project_name = ? AND project_uploaded_at = ?
+                    ORDER BY version_number DESC
+                    LIMIT ?
+                """, (project_name, uploaded_at, keep_last_n))
 
-            keep_versions = [r[0] for r in cursor.fetchall()]
+                keep_versions = [r[0] for r in cursor.fetchall()]
 
-            if not keep_versions:
-                return 0
+                if not keep_versions:
+                    return 0
 
-            placeholders = ",".join("?" * len(keep_versions))
-            cursor.execute(f"""
-                DELETE FROM project_versions
-                WHERE project_name = ?
-                AND project_uploaded_at = ?
-                AND version_number NOT IN ({placeholders})
-            """, (project_name, uploaded_at, *keep_versions))
+                placeholders = ",".join("?" * len(keep_versions))
+                cursor.execute(f"""
+                    DELETE FROM project_versions
+                    WHERE project_name = ?
+                    AND project_uploaded_at = ?
+                    AND version_number NOT IN ({placeholders})
+                """, (project_name, uploaded_at, *keep_versions))
 
-            self.conn.commit()
-            return cursor.rowcount
-        finally:
-            cursor.close()
+                self.conn.commit()
+                return cursor.rowcount
+            finally:
+                cursor.close()
