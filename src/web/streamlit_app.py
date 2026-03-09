@@ -1,6 +1,11 @@
 """Main Streamlit shell for Milestone 3 workflows."""
 
+import sys
+from pathlib import Path
+
 import streamlit as st
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.web.mode import render_mode_sidebar
 
