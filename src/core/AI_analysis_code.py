@@ -5,11 +5,6 @@ import orjson
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
-from src.core.Docker_finder import DockerFinder
-
-
-
-base_url=DockerFinder().get_ollama_host_Information()
 
 class codeAnalysisAI():
     """

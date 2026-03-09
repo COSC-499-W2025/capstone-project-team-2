@@ -12,12 +12,14 @@ import src.core.app_context as mod
 
 
 class FakeConnection:
-    def __init__(self, connected=True):
-        self.connected = connected
+    def __init__(self):
         self.closed = False
 
-    def is_connected(self):
-        return self.connected
+    def execute(self, *args, **kwargs):
+        pass
+
+    def executescript(self, *args, **kwargs):
+        pass
 
     def close(self):
         self.closed = True
@@ -34,10 +36,9 @@ def test_create_app_context_success(monkeypatch):
     """
     # Force DB init path for this test even if the suite sets SKIP_DB_INIT=1.
     monkeypatch.setenv("SKIP_DB_INIT", "0")
-    monkeypatch.setattr(mod.DockerFinder, "get_mysql_host_information", lambda self: (3306, "127.0.0.1"))
 
     fake_conn = FakeConnection()
-    monkeypatch.setattr(mod.mysql.connector, "connect", lambda **kwargs: fake_conn)
+    monkeypatch.setattr(mod.sqlite3, "connect", lambda *args, **kwargs: fake_conn)
 
     captured = {}
 
@@ -69,12 +70,11 @@ def test_create_app_context_failure_after_retries(monkeypatch):
     """
     # Force DB init path for this test even if the suite sets SKIP_DB_INIT=1.
     monkeypatch.setenv("SKIP_DB_INIT", "0")
-    monkeypatch.setattr(mod.DockerFinder, "get_mysql_host_information", lambda self: (3306, "127.0.0.1"))
 
-    def fail_connect(**kwargs):
-        raise mod.Error("not ready")
+    def fail_connect(*args, **kwargs):
+        raise Exception("cannot open database")
 
-    monkeypatch.setattr(mod.mysql.connector, "connect", fail_connect)
+    monkeypatch.setattr(mod.sqlite3, "connect", fail_connect)
 
     with pytest.raises(Exception):
         mod.create_app_context()

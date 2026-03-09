@@ -60,7 +60,7 @@ The platforms target users are **graduating students** and **early career profes
 - 🎨 **User Interface** — Streamlined UI with intuitive navigation
 - 📄 **Documentation** — Comprehensive WBS, DFDs, and architecture diagrams
 - 🔄 **CI/CD Pipelines** — Automated deployment workflows
-- 🗄️ **Database** — MySQL integration with Docker containerization
+- 🗄️ **Database** — SQLite integration embeded in the local file system
 - 🤖 **AI Integration** — Ollama (local LLM) and Google Gemini for code analysis
 - 🔍 **Local Analysis** — Offline code analysis without AI dependencies
 - 📝 **Resume Generator** — PDF resume and portfolio generation (AI-powered or offline)
@@ -149,18 +149,6 @@ Please look at our [video](https://youtu.be/zAoHiW9vn-U) demo otherwise follow t
    ```bash
    docker-compose up -d app_database
    ```
-
-7. **Verify all containers are running:**
-   ```bash
-   docker ps
-   ```
-   Expected output:
-   ```
-   CONTAINER ID   IMAGE                  COMMAND                  CREATED          STATUS                    PORTS                               NAMES
-   42a2e9017194   ollama/ollama:latest   "/bin/ollama serve"      17 minutes ago   Up 17 minutes             0.0.0.0:11434->11434/tcp            ollama2
-   9c42d7048399   mysql:8.0.44           "docker-entrypoint.s…"   17 minutes ago   Up 17 minutes (healthy)   33060/tcp, 0.0.0.0:3308->3306/tcp   app_database
-   ```
-
 ---
 
 
@@ -290,9 +278,8 @@ If you run the FastAPI app, interactive docs are also available at:
   - **Stack Detection**: Automatically identifies programming languages, frameworks, and skills through scanning dependency files (`requirements.txt`, `package.json`, `composer.json`) and source file extensions
 
 - **Database (Storage Layer)**: 
-  - The application uses **MySQL** as its primary database for persistent storage and data management.
+  - The application uses **SQLite** as its primary database for persistent storage and data management.
   - **Project Data Storage**: Stores analyzed project metadata, JSON analysis reports, and file blobs for later retrieval.
-  - **Containerized Deployment**: MySQL runs within a Docker container (`app_database`), with connection details dynamically set and found in the `DockerFinder` utility.
 
 - **External Services Integration**:
   - **Google Gemini API**: Powers AI-generated resume summaries and project descriptions (requires `GOOGLE_API_KEY`)
