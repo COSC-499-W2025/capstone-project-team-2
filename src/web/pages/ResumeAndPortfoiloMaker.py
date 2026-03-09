@@ -10,7 +10,7 @@ from src.web.mode import render_mode_sidebar
 from src.web.streamlit_helpers import (
     API_BASE, THEMES, api_error, list_docs, fetch_doc,
     edit_contact_section, edit_summary_section, edit_theme_section,
-    add_project_section, modify_entries_section, download_section,
+    add_project_section, remove_project_by_name, modify_entries_section, download_section,
     delete_doc_section, edit_connections_section,
     add_education_section, remove_education_section,
     add_experience_section, remove_experience_section,
@@ -212,7 +212,7 @@ def resume_tab():
             elif category == "Connections":
                 edit_connections_section(resume_id, rd, "resume", invalidate)
         elif section == "📊 Projects":
-            action = st.segmented_control("Action", ["➕ Add Project", "✏️ Modify Project"],
+            action = st.segmented_control("Action", ["➕ Add Project", "✏️ Modify Project",  "🗑️ Remove Project"],
                                           label_visibility="hidden", key="resume_proj_action")
             if action == "➕ Add Project":
                 add_project_section(resume_id, "resume", invalidate)
@@ -220,6 +220,9 @@ def resume_tab():
                 modify_entries_section(resume_id, rd, "projects", "name",
                                       ["summary", "highlights", "start_date", "end_date", "location", "name"],
                                       "resume", invalidate)
+            elif action  =="🗑️ Remove Project":
+                remove_project_by_name(resume_id, rd, invalidate)
+
         elif section == "⬇️ Download":
             download_section(resume_id, "resume", "resume_dl")
 
