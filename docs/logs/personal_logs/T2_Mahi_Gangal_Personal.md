@@ -5,7 +5,7 @@
 - [Week 3 (Jan 19 - Jan 25)](#week-3-jan-19jan-25)
 - [Week 4-5 (Jan 26 – Feb 8)](#week-4-5-jan-26feb-8)
 - [Week 6-8 (Feb 9 - March 1)](#week-6-8-feb-9march-1)
-- [Week 9 (March 2 - March 8)](#week-9-march-2march-8)
+- [Week 9 (March 2 - March 8)](#week-9-march-2---march-8)
 
 ## Week 2 (Jan 12 - Jan 18)
 
