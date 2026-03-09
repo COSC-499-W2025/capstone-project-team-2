@@ -1,9 +1,45 @@
 ## Term 2 Links
+- [Week 9 (02/03/2026 – 08/03/2026)](#week-2026-03-02)
 - [Week 6 + Week 7 (Reading Break) + Week 8 (09/02/2026 – 01/03/2026)](#week-2026-02-09)
 - [Weeks 4–5 (26/01/2026 – 08/02/2026)](#week-2026-01-26)
 - [Week 3 (19/01/2026 – 25/01/2026)](#week-2026-01-19)
 - [Week 2 (12/01/2026 – 18/01/2026)](#week-2026-01-12)
 - [Week 1 (05/01/2026 – 11/01/2026)](#week-2026-01-05)
+
+# Sprint Log: Week 9 (02/03/2026 – 08/03/2026) <a id="week-2026-03-02"></a>
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/08-03-2026_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Summary
+### Coding tasks
+- **PR #483 – Streamlit dashboard + public/private behavior:** Implemented Streamlit dashboard flow updates, including mode behavior for public/private handling.
+
+### Testing or debugging tasks
+- Performed manual checks for multipage navigation, mode toggle behavior, and public/private mode behavior.
+- Ran static compile checks:
+  - `python3 -m py_compile src/web/streamlit_app.py src/web/mode.py src/web/pages/Dashboard.py src/web/pages/ResumeAndPortfoiloMaker.py`
+
+### Reviewing or collaboration tasks
+- Prepared the team weekly log for this cycle (T2 Weekly #9).
+- Reviewed PR #481 (ssmith86): Upload frontend CLI/UI integration.
+- Reviewed PR #478 (Graves067): MySQL to SQLite refactoring.
+
+### Connection to last week
+- Continued Milestone 3 frontend direction by contributing dashboard and mode behavior work in Streamlit, aligned with the prior plan to build multi-page UI flows.
+
+### Plan / goals for next period
+- Continue frontend development and UI polish in Streamlit for resume/portfolio workflows.
+- Support integration stability between Streamlit pages and FastAPI endpoints.
+
+### Issues / blockers
+- No major blockers noted this period.
+
+## ====================================================
 
 # Sprint Log: Week 6 + Week 7 (Reading Break) + Week 8 (09/02/2026 – 01/03/2026) <a id="week-2026-02-09"></a>
 
