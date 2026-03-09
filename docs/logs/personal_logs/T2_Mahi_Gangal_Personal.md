@@ -5,6 +5,7 @@
 - [Week 3 (Jan 19 - Jan 25)](#week-3-jan-19jan-25)
 - [Week 4-5 (Jan 26 – Feb 8)](#week-4-5-jan-26feb-8)
 - [Week 6-8 (Feb 9 - March 1)](#week-6-8-feb-9march-1)
+- [Week 9 (March 2 - March 8)](#week-9-march-2march-8)
 
 ## Week 2 (Jan 12 - Jan 18)
 
@@ -243,6 +244,42 @@ Updated the API documentation to include the newly added endpoints using the sam
 ### Additional Details
 
 In Week 6, I focused on improving usability and milestone-related functionality by making Saved Projects CLI output clearer when documents could not be meaningfully classified, and by adding support for user-defined project roles in portfolio showcase data. Week 7 was reading break, but I used it as a bonus week to strengthen backend reliability by expanding API test coverage for project lookup and delete flows and by implementing thumbnail upload, retrieval, and deletion support through FastAPI endpoints. I also added API documentation covering the milestone-related endpoints and their expected behaviour. In Week 8, I improved project ranking so it better reflects actual user contribution signals rather than recency-based heuristics, and I updated the API documentation to include the remaining new endpoints. I also contributed to the Milestone 2 presentation and the Video Demo. The main challenges during these weeks involved safely handling project deletion edge cases, integrating thumbnail workflows into the existing API structure, and normalizing contribution data across local and Git-backed projects. These issues were resolved through additional testing, clearer contribution metrics, and documentation updates. Next week, I plan to address any follow-up issues from milestone feedback, continue improving API consistency, and work on front-end issues.
+
+## Week 9 (March 2 - March 8)
+
+### Peer Eval Screenshot: 
+
+<img width="1105" height="631" alt="MG week " src="https://github.com/user-attachments/assets/95269867-303c-4e23-abe9-1ec6d752194c" />
+
+### Tasks Worked On
+- Implemented frontend for user configuration consent for external tools.
+- Verified automated tests after integration.
+- Reviewed teammates’ PRs and provided feedback on correctness, edge cases, and test coverage.
+
+### Individual Contributions 
+
+- **[PR #488 – Frontend for user configuration consent for external tools](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/488)**
+
+Added User Configuration frontend flow using existing APIs. Implemented required external-tools consent and optional name/theme updates.
+Refactored API/payload logic into helper functions to keep UI code minimal and testable.
+
+### Tests Implemented
+- **[PR #488 – Frontend for user configuration consent for external tools](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/488)**
+1. test_user_configuration_helpers.py: Unit tests for helper logic with mocked HTTP calls and edge cases
+2. test_user_configuration_integration.py: Real API integration tests through TestClient(app) validating: consent update flow, optional profile update flow, invalid consent rejection and config persistence to UserConfigs.json
+
+### PRs Reviewed
+
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/465
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/466
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/472
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/476
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/481
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/486
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/489
+
+### Additional Details
+This week’s work focused on Milestone 3 frontend delivery and quality validation. I implemented the User Configuration frontend for external-tools consent, including required consent handling and optional name/theme updates, while keeping the implementation aligned with existing API patterns and page structure. I also refactored the page logic into reusable helpers to improve maintainability and enable stronger testing. To validate the feature, I added both unit tests and real API integration tests, covering success paths, edge cases, rejection behavior, and config persistence. In parallel, I reviewed multiple team PRs and provided feedback on runtime risks, behavior consistency, and test coverage. A key challenge was balancing minimal frontend changes with robust test coverage and ensuring behavior stayed consistent with existing consent/config flows. Next week, I plan to continue supporting frontend stabilization, address review feedback, and help finalize remaining Milestone 3 integration and polish tasks. Also, meet with the team to discuss about Peer testing. 
 
 
 
