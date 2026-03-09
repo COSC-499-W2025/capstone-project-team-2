@@ -229,10 +229,11 @@ def edit_theme_section(doc_id, rd, endpoint_prefix, invalidate_fn):
 
 
 def add_project_section(doc_id, endpoint_prefix, invalidate_fn):
-    """Render a form to add an analysed project from the database to the document.
+    """Render a form to add a project to the document, with a toggle for AI analysis.
 
-    Fetches available projects, displays the selected project's resume_item data,
+    When AI analysis is enabled, fetches available analysed projects from the database
     and allows the user to override summary, highlights, and dates before adding.
+    When disabled, the user fills in all project fields manually.
 
     Args:
         doc_id: The document identifier (name + UUID suffix)
@@ -243,43 +244,109 @@ def add_project_section(doc_id, endpoint_prefix, invalidate_fn):
         None: Renders Streamlit UI components directly
     """
     today = pendulum.today().date()
-    projects = fetch_projects()
-    if not projects:
-        st.info("No saved project analyses found.")
-        return
-    selected = st.selectbox("Select project to add", projects, key=f"proj_sel_{endpoint_prefix}")
-    resume_item = (fetch_project_info(selected).get("analysis") or {}).get("resume_item") or {}
-    if resume_item:
-        with st.expander("Current project info", expanded=True):
-            if resume_item.get("summary"):
-                st.markdown(f"**Summary:** {resume_item['summary']}")
-            if resume_item.get("highlights"):
-                st.markdown("**Highlights:**")
-                for h in resume_item["highlights"]:
-                    st.markdown(f"- {h}")
-    with st.form(f"add_proj_{endpoint_prefix}", clear_on_submit=True):
-        ov_summary    = st.text_area("Override summary (optional)", height=80)
-        ov_highlights = st.text_area("Override highlights (optional, one per line)", height=80)
-        c1, c2 = st.columns(2)
-        with c1:
-            ov_start = st.date_input("Start date", value=None, help="Leave blank to use project default", key=f"add_start_{endpoint_prefix}")
-        with c2:
-            ov_end = st.date_input("End date", value=None, help="Select today to use 'present'", key=f"add_end_{endpoint_prefix}")
-        if st.form_submit_button("Add Project", type="primary", icon=":material/add:"):
-            highlights = [h.strip() for h in ov_highlights.splitlines() if h.strip()]
-            start_str = ov_start.strftime("%Y-%m") if ov_start else ""
-            end_str = "present" if ov_end == today else (ov_end.strftime("%Y-%m") if ov_end else "")
-            payload = {k: v for k, v in {"summary": ov_summary, "start_date": start_str, "end_date": end_str}.items() if v}
-            if highlights:
-                payload["highlights"] = highlights
-            res = requests.post(f"{API_BASE}/{endpoint_prefix}/{doc_id}/add/project/{selected}", json=payload or None, timeout=15)
+    mode = st.segmented_control("Source", ["🤖 AI Analysis", "📂 From Analyzed Project", "✍️ Manual"],
+                                label_visibility="hidden", key=f"proj_add_mode_{endpoint_prefix}")
+
+    if mode == "🤖 AI Analysis":
+        projects = fetch_projects()
+        if not projects:
+            st.info("No saved project analyses found.")
+            return
+        selected = st.selectbox("Select project to add", projects, key=f"proj_ai_sel_{endpoint_prefix}")
+        resume_item = (fetch_project_info(selected).get("analysis") or {}).get("resume_item") or {}
+        if resume_item:
+            with st.expander("Current project info (from database)", expanded=True):
+                if resume_item.get("summary"):
+                    st.markdown(f"**Summary:** {resume_item['summary']}")
+                if resume_item.get("highlights"):
+                    st.markdown("**Highlights:**")
+                    for h in resume_item["highlights"]:
+                        st.markdown(f"- {h}")
+        st.caption("AI analysis will use Gemini to generate a polished resume entry from the project data.")
+        if st.button("Generate & Add with AI", type="primary", icon=":material/auto_awesome:", key=f"proj_ai_btn_{endpoint_prefix}"):
+            with st.spinner("Generating AI resume entry..."):
+                res = requests.post(f"{API_BASE}/{endpoint_prefix}/{doc_id}/add/project/{selected}/ai", timeout=60)
             if res.ok:
                 invalidate_fn()
                 st.session_state.pop("projects_cache", None)
-                st.success(res.json().get("status", "Project added."))
+                st.session_state["_flash_success"] = res.json().get("status", "Project added with AI analysis.")
                 st.rerun()
             else:
                 st.error(api_error(res))
+
+    elif mode == "📂 From Analyzed Project":
+        projects = fetch_projects()
+        if not projects:
+            st.info("No saved project analyses found.")
+            return
+        selected = st.selectbox("Select project to add", projects, key=f"proj_sel_{endpoint_prefix}")
+        resume_item = (fetch_project_info(selected).get("analysis") or {}).get("resume_item") or {}
+        if resume_item:
+            with st.expander("Current project info", expanded=True):
+                if resume_item.get("summary"):
+                    st.markdown(f"**Summary:** {resume_item['summary']}")
+                if resume_item.get("highlights"):
+                    st.markdown("**Highlights:**")
+                    for h in resume_item["highlights"]:
+                        st.markdown(f"- {h}")
+        with st.form(f"add_proj_{endpoint_prefix}", clear_on_submit=True):
+            ov_summary    = st.text_area("Override summary (optional)", height=80)
+            ov_highlights = st.text_area("Override highlights (optional, one per line)", height=80)
+            c1, c2 = st.columns(2)
+            with c1:
+                ov_start = st.date_input("Start date", value=None, help="Leave blank to use project default", key=f"add_start_{endpoint_prefix}")
+            with c2:
+                ov_end = st.date_input("End date", value=None, help="Select today to use 'present'", key=f"add_end_{endpoint_prefix}")
+            if st.form_submit_button("Add Project", type="primary", icon=":material/add:"):
+                highlights = [h.strip() for h in ov_highlights.splitlines() if h.strip()]
+                start_str = ov_start.strftime("%Y-%m") if ov_start else ""
+                end_str = "present" if ov_end == today else (ov_end.strftime("%Y-%m") if ov_end else "")
+                payload = {k: v for k, v in {"summary": ov_summary, "start_date": start_str, "end_date": end_str}.items() if v}
+                if highlights:
+                    payload["highlights"] = highlights
+                res = requests.post(f"{API_BASE}/{endpoint_prefix}/{doc_id}/add/project/{selected}", json=payload or None, timeout=15)
+                if res.ok:
+                    invalidate_fn()
+                    st.session_state.pop("projects_cache", None)
+                    st.session_state["_flash_success"] = res.json().get("status", "Project added.")
+                    st.rerun()
+                else:
+                    st.error(api_error(res))
+
+    elif mode == "✍️ Manual":
+        with st.form(f"add_proj_manual_{endpoint_prefix}", clear_on_submit=True):
+            name = st.text_input("Project Name *", placeholder="e.g., My Capstone Project")
+            summary = st.text_area("Summary", height=80, placeholder="Brief description of the project")
+            highlights = st.text_area("Highlights (one per line)", height=80)
+            c1, c2 = st.columns(2)
+            with c1:
+                start = st.date_input("Start date", value=None, key=f"manual_start_{endpoint_prefix}")
+                location = st.text_input("Location", placeholder="e.g., Vancouver, BC")
+            with c2:
+                end = st.date_input("End date", value=None, help="Select today for 'present'", key=f"manual_end_{endpoint_prefix}")
+            if st.form_submit_button("Add Project", type="primary", icon=":material/add:"):
+                if not name.strip():
+                    st.warning("Project name is required.", icon=":material/warning:")
+                else:
+                    payload = {"name": name.strip()}
+                    if summary.strip():
+                        payload["summary"] = summary.strip()
+                    if location.strip():
+                        payload["location"] = location.strip()
+                    hl = [h.strip() for h in highlights.splitlines() if h.strip()]
+                    if hl:
+                        payload["highlights"] = hl
+                    if start:
+                        payload["start_date"] = start.strftime("%Y-%m")
+                    if end:
+                        payload["end_date"] = "present" if end == today else end.strftime("%Y-%m")
+                    res = requests.post(f"{API_BASE}/{endpoint_prefix}/{doc_id}/add/project/manual", json=payload, timeout=15)
+                    if res.ok:
+                        invalidate_fn()
+                        st.session_state["_flash_success"] = "Project added."
+                        st.rerun()
+                    else:
+                        st.error(api_error(res))
 
 
 def modify_entries_section(doc_id, rd, section, item_key, field_options, endpoint_prefix, invalidate_fn):
