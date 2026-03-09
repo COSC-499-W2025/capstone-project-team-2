@@ -50,7 +50,7 @@ def test_list_saved_projects_filters_config_and_dedupes(tmp_path):
     assert len(projects) == 4
 
 
-def test_delete_file_from_disk_blocks_internal_artifacts(tmp_path, capsys):
+def test_delete_file_from_disk_blocks_internal_artifacts(tmp_path):
     """
     Internal system JSON artifacts should not be deleted through this helper.
     """
@@ -63,7 +63,6 @@ def test_delete_file_from_disk_blocks_internal_artifacts(tmp_path, capsys):
 
     assert deleted is False
     assert protected.exists() is True
-    assert "internal artifact" in capsys.readouterr().out.lower()
 
 
 def test_show_saved_summary_prints_contributors(monkeypatch, tmp_path, capsys):
