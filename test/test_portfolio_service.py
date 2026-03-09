@@ -208,6 +208,41 @@ class TestPortfolioRoleOverrides(unittest.TestCase):
                 self.assertEqual(loaded["project"]["role"], "Backend Developer")
                 self.assertEqual(loaded["project"]["title"], "My Project")
                 self.assertEqual(loaded["portfolio"]["overview"], "Existing overview")
+                
+    def test_load_portfolio_showcase_raises_on_corrupt_yaml(self):
+        """Test that corrupted YAML raises ValueError."""
+        with TemporaryDirectory() as tmp_dir:
+            override_path = Path(tmp_dir) / "Corrupt_Project.yaml"
+            # Write invalid YAML (unclosed bracket)
+            override_path.write_text(
+                "project:\n"
+                "  title: [unclosed bracket\n",
+                encoding="utf-8",
+            )
+
+            with patch(
+                "src.reporting.portfolio_service._portfolio_override_path",
+                return_value=override_path,
+            ):
+                with self.assertRaises(ValueError) as context:
+                    load_portfolio_showcase("Corrupt Project")
+                
+                self.assertIn("Could not parse portfolio overrides", str(context.exception))    
+
+    def test_save_project_role_override_raises_on_write_failure(self):
+        """Test that write failure raises OSError."""
+        with TemporaryDirectory() as tmp_dir:
+            override_path = Path(tmp_dir) / "nonexistent_dir" / "Project.yaml"
+            # Don't create the parent directory - write should fail
+
+            with patch(
+                "src.reporting.portfolio_service._portfolio_override_path",
+                return_value=override_path,
+            ):
+                with self.assertRaises(OSError) as context:
+                    save_project_role_override("Project", "Developer")
+                
+                self.assertIn("Could not save portfolio overrides", str(context.exception))
 
 if __name__ == '__main__':
     unittest.main()

@@ -143,6 +143,38 @@ class TestEditPortfolio(_BasePortfolioTest):
         self.assertEqual(resp.status_code, 400)
         self.assertIn("Invalid theme", resp.json()["detail"])
 
+    def test_add_connection(self):
+        """Adding a new connection via edit calls add_connection."""
+        self.mock_doc.get_connections.return_value = []
+        self.mock_doc.add_connection.return_value = "Successfully added: GitHub"
+
+        resp = self._post_edit([
+            {"section": "connections", "item_name": "GitHub", "field": "username", "new_value": "jdoe"}
+        ])
+        self.assertEqual(resp.status_code, 200)
+        self.mock_doc.add_connection.assert_called_once()
+
+    def test_modify_connection(self):
+        """Modifying an existing connection via edit calls modify_connection."""
+        self.mock_doc.get_connections.return_value = [{"network": "GitHub", "username": "old"}]
+        self.mock_doc.modify_connection.return_value = "Successfully updated: GitHub"
+
+        resp = self._post_edit([
+            {"section": "connections", "item_name": "GitHub", "field": "username", "new_value": "newuser"}
+        ])
+        self.assertEqual(resp.status_code, 200)
+        self.mock_doc.modify_connection.assert_called_once_with("GitHub", "newuser")
+
+    def test_remove_connection(self):
+        """Removing a connection via edit with field='delete' calls remove_connection."""
+        self.mock_doc.remove_connection.return_value = "Successfully deleted: GitHub"
+
+        resp = self._post_edit([
+            {"section": "connections", "item_name": "GitHub", "field": "delete", "new_value": ""}
+        ])
+        self.assertEqual(resp.status_code, 200)
+        self.mock_doc.remove_connection.assert_called_once_with("GitHub")
+
     def test_unknown_section_returns_400(self):
         resp = self._post_edit([{"section": "invalid", "item_name": "x", "field": "y", "new_value": "z"}])
         self.assertEqual(resp.status_code, 400)
@@ -194,6 +226,60 @@ class TestAddProject(_BasePortfolioTest):
         resp = self.client.post("/portfolio/test_abc123/add/project/WarframeFinderStreamlit")
         self.assertEqual(resp.status_code, 500)
         self.assertIn("disk full", resp.json()["detail"])
+
+
+class TestAddProjectManual(_BasePortfolioTest):
+    """Tests for POST /portfolio/{id}/add/project/manual."""
+
+    def test_success_all_fields(self):
+        """All fields provided returns 200 with success status."""
+        self.mock_doc.add_project.return_value = "Successfully added project 'My Side Project'"
+        resp = self.client.post("/portfolio/test_abc123/add/project/manual", json={
+            "name": "My Side Project",
+            "start_date": "2024-01",
+            "end_date": "2025-03",
+            "location": "Vancouver, BC",
+            "summary": "A personal project to explore Rust.",
+            "highlights": ["Built async runtime", "Achieved 10k RPS"],
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+        self.mock_doc.add_project.assert_called_once()
+
+    def test_success_name_only(self):
+        """Only required `name` field; all optional fields default to None."""
+        self.mock_doc.add_project.return_value = "Successfully added project 'Minimal'"
+        resp = self.client.post("/portfolio/test_abc123/add/project/manual", json={"name": "Minimal"})
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+
+    def test_missing_name_returns_422(self):
+        """Request without required `name` field returns 422 validation error."""
+        resp = self.client.post("/portfolio/test_abc123/add/project/manual", json={
+            "summary": "No name provided",
+        })
+        self.assertEqual(resp.status_code, 422)
+
+    def test_check_result_failure_returns_400(self):
+        """Non-success result string from add_project returns 400."""
+        self.mock_doc.add_project.return_value = "Failed: duplicate project name"
+        resp = self.client.post("/portfolio/test_abc123/add/project/manual", json={"name": "Duplicate"})
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("duplicate project name", resp.json()["detail"])
+
+    def test_unexpected_error_returns_500(self):
+        """RuntimeError during add_project returns 500."""
+        self.mock_doc.add_project.side_effect = RuntimeError("disk full")
+        resp = self.client.post("/portfolio/test_abc123/add/project/manual", json={"name": "My Project"})
+        self.assertEqual(resp.status_code, 500)
+        self.assertIn("disk full", resp.json()["detail"])
+
+    def test_portfolio_not_found_returns_404(self):
+        """Missing portfolio returns 404."""
+        self._set_not_found()
+        resp = self.client.post("/portfolio/fake_id/add/project/manual", json={"name": "My Project"})
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
 
 
 class TestRenderPortfolio(_BasePortfolioTest):
@@ -455,6 +541,105 @@ class TestExportPortfolio(_BasePortfolioTest):
         resp = self.client.post("/portfolio/test_abc123/export/docx")
         self.assertEqual(resp.status_code, 400)
         self.assertIn("Unsupported format", resp.json()["detail"])
+
+
+class TestSkillEndpoints(_BasePortfolioTest):
+    """Tests for POST /portfolio/{id}/add/skill, POST /portfolio/{id}/skill/{label}/append, DELETE /portfolio/{id}/skill/{label}."""
+
+    def test_add_skill(self):
+        """Covers success, duplicate (409), failure (400), and portfolio not found (404)."""
+        # Success
+        self.mock_doc.add_skills.return_value = "Successfully added skills"
+        resp = self.client.post("/portfolio/test_abc123/add/skill", json={
+            "label": "Languages",
+            "details": "Python, Java, C++",
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["status"], "Successfully added skills")
+        call_args = self.mock_doc.add_skills.call_args
+        skill_arg = call_args[0][0]
+        self.assertEqual(skill_arg.label, "Languages")
+        self.assertEqual(skill_arg.details, "Python, Java, C++")
+
+        # Duplicate label returns 409
+        self.mock_doc.add_skills.return_value = "Duplicate label 'Languages' already exists"
+        resp = self.client.post("/portfolio/test_abc123/add/skill", json={
+            "label": "Languages",
+            "details": "Python",
+        })
+        self.assertEqual(resp.status_code, 409)
+        self.assertIn("Duplicate", resp.json()["detail"])
+
+        # Generic failure returns 400
+        self.mock_doc.add_skills.return_value = "Label cannot be empty"
+        resp = self.client.post("/portfolio/test_abc123/add/skill", json={
+            "label": "Languages",
+            "details": "Python",
+        })
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Label cannot be empty", resp.json()["detail"])
+
+        # Portfolio not found
+        self._set_not_found()
+        resp = self.client.post("/portfolio/fake_id/add/skill", json={
+            "label": "Languages",
+            "details": "Python",
+        })
+        self.assertEqual(resp.status_code, 404)
+
+    def test_append_skill(self):
+        """Covers append success (merges details), skill not found (404), and portfolio not found (404)."""
+        # Success — appends to existing details
+        self.mock_doc.get_skills.return_value = [
+            {"label": "Languages", "details": "Python, Java"}
+        ]
+        self.mock_doc.modify_skill.return_value = "Successfully modified skill"
+        resp = self.client.post("/portfolio/test_abc123/skill/Languages/append", json={
+            "details": "C++",
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["details"], "Python, Java, C++")
+        self.assertIn("Successfully", resp.json()["status"])
+        self.mock_doc.modify_skill.assert_called_once_with("Languages", "Python, Java, C++")
+
+        # Skill label not found returns 404
+        self.mock_doc.get_skills.return_value = []
+        resp = self.client.post("/portfolio/test_abc123/skill/Unknown/append", json={
+            "details": "Rust",
+        })
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+        # Portfolio not found
+        self._set_not_found()
+        resp = self.client.post("/portfolio/fake_id/skill/Languages/append", json={
+            "details": "Rust",
+        })
+        self.assertEqual(resp.status_code, 404)
+
+    def test_remove_skill(self):
+        """Covers remove success, label not found (404), no skills (404), and portfolio not found (404)."""
+        # Success
+        self.mock_doc.remove_skill.return_value = "Successfully removed skill 'Languages'"
+        resp = self.client.delete("/portfolio/test_abc123/skill/Languages")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+
+        # Label not found returns 404
+        self.mock_doc.remove_skill.return_value = "Skill 'Unknown' not found"
+        resp = self.client.delete("/portfolio/test_abc123/skill/Unknown")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+        # No skills on the portfolio returns 404
+        self.mock_doc.remove_skill.return_value = "No skills in portfolio"
+        resp = self.client.delete("/portfolio/test_abc123/skill/Languages")
+        self.assertEqual(resp.status_code, 404)
+
+        # Portfolio not found
+        self._set_not_found()
+        resp = self.client.delete("/portfolio/fake_id/skill/Languages")
+        self.assertEqual(resp.status_code, 404)
 
 
 if __name__ == "__main__":

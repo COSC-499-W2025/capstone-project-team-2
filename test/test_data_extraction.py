@@ -107,46 +107,31 @@ class TestDataExtract(unittest.TestCase):
     def test_file_hierarchy_nonexistent_path(self):
         """
         Verify that attempting to generate a hierarchy for a non-existent path
-        results in an appropriate error message being printed.
-
-        Args:
-            None: This test does not take any parameters.
-
-        Returns:
-            None: Assertions are used to validate expected behavior.
+        raises FileNotFoundError.
         """
-        # creates a bad dummy path
         test_path = Path("does_not_exist")
         extractor = FileMetadataExtractor(test_path)
 
-        with patch("sys.stdout", new=StringIO()) as test_out:
+        with self.assertRaises(FileNotFoundError) as context:
             extractor.file_hierarchy()
-            output = test_out.getvalue()
-
-        self.assertIn("Error: Filepath not found", output)
+        
+        self.assertIn("not found", str(context.exception).lower())
 
     def test_file_hierarchy_not_a_directory(self):
         """
         Verify that attempting to generate a hierarchy for a path that exists
-        but is not a directory results in an appropriate error message.
-
-        Args:
-            None: This test does not take any parameters.
-
-        Returns:
-            None: Assertions are used to validate expected behavior.
+        but is not a directory raises ValueError.
         """
         temp_file = Path("not_a_dir.txt")
         temp_file.write_text("data")
-        
 
         try:
             extractor = FileMetadataExtractor(temp_file)
-            with patch("sys.stdout", new=StringIO()) as test_out:
+            
+            with self.assertRaises(ValueError) as context:
                 extractor.file_hierarchy()
-                output = test_out.getvalue()
-
-            self.assertIn("Error: File is not a directory", output)
+            
+            self.assertIn("not a directory", str(context.exception).lower())
         finally:
             if temp_file.exists():
                 temp_file.unlink()

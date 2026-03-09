@@ -29,9 +29,6 @@ services:
     container_name: desktop_app # container name
     working_dir: /app
     command: python -m src.cli.main
-    depends_on:
-      app_database:
-        condition: service_healthy # health check before app starts
       
     environment:
       - DISPLAY=${DISPLAY}
@@ -47,32 +44,6 @@ services:
       - app_network
     stdin_open: true
     tty: true
-
-
-# lines below are for the database assosiated with the project
-  app_database:
-    image: mysql:8.0.44
-    container_name: app_database
-    restart: unless-stopped
-    environment: # below are credentials which can be edited, refer to main.py
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_USER: appuser
-      MYSQL_PASSWORD: apppassword
-      MYSQL_DATABASE: appdb
-    command: --default-authentication-plugin=caching_sha2_password
-    ports:
-      - "3308:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ./database.sql:/docker-entrypoint-initdb.d/database.sql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "app_database", "-u", "appuser", "-papppassword"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - app_network
-
 
 volumes:
   mysql_data:

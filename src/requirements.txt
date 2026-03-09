@@ -2,7 +2,6 @@ FreeSimpleGUI
 matplotlib
 click
 gitpython
-mysql-connector-python
 orjson
 PyGithub
 docker
