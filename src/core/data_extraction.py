@@ -91,7 +91,6 @@ class FileMetadataExtractor:
 
 
     def file_hierarchy(self, dir_path: Path | None = None):
-
         """
         Validate the root directory path and generate a file hierarchy
         representation if the path exists and is a directory.
@@ -101,18 +100,19 @@ class FileMetadataExtractor:
             If None, the instance root directory is used.
 
         Returns:
-            dict: A dictionary representing the directory hierarchy, including
-            error placeholders if the path is invalid or inaccessible.
+            dict: A dictionary representing the directory hierarchy.
+            
+        Raises:
+            FileNotFoundError: If the directory path does not exist.
+            ValueError: If the path is not a directory.
         """
 
         if not self.dir_path.exists():
-            print("Error: Filepath not found")
-            return {"name": self.dir_path.name, "type": "DIR", "children": [{"name": "Not Found", "type": "DIR", "children": []}]}
+            raise FileNotFoundError(f"Directory not found: {self.dir_path}")
         if not self.dir_path.is_dir():
-            print("Error: File is not a directory")
-            return {"name": self.dir_path.name, "type": "DIR", "children": [{"name": "Not a Directory", "type": "DIR", "children": []}]}
+            raise ValueError(f"Path is not a directory: {self.dir_path}")
 
-        return self.tree(self.dir_path)
+        return self.tree(self.dir_path) 
 
 
     def tree(self, dir_path: Path):

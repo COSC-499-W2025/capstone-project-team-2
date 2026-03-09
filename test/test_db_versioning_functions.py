@@ -2,12 +2,10 @@ import unittest
 import json
 import sys
 import os
-import mysql.connector
-from dotenv import load_dotenv
+import sqlite3
 
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-load_dotenv()
 
 from src.storage.db_helper_function import HelperFunct
 
@@ -20,13 +18,14 @@ class TestVersioningHelper(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.conn = mysql.connector.connect(
-            host= os.environ.get("DB_HOST", "localhost"),
-            port= int(os.environ.get("DB_PORT", 3308)),
-            database="appdb",
-            user="appuser",
-            password="apppassword"
-        )
+        cls.conn= sqlite3.connect(":memory:")
+        cls.conn.execute("PRAGMA foreign_keys = ON")
+        schema_path = os.path.join(os.path.dirname(__file__), "..", "database.sql")
+        with open(schema_path) as f:
+            cls.conn.executescript(f.read())
+        cls.conn.row_factory = sqlite3.Row
+  
+
         cls.store = HelperFunct(cls.conn)
 
     def setUp(self):

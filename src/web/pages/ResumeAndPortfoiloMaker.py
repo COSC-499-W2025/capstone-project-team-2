@@ -7,6 +7,7 @@ from pathlib import Path
 # Add project root to path so we can import src.web.streamlit_helpers
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from src.web.theme import apply_theme_from_config
+from src.web.mode import render_mode_sidebar
 from src.web.streamlit_helpers import (
     API_BASE, THEMES, api_error, list_docs, fetch_doc,
     edit_contact_section, edit_summary_section, edit_theme_section,
@@ -17,6 +18,93 @@ from src.web.streamlit_helpers import (
 )
 
 apply_theme_from_config()
+
+
+def _render_readonly_doc_view(doc_id: str, doc: dict, endpoint_prefix: str, dl_key: str) -> None:
+    """Render a read-only document preview with optional download.
+
+    This is used in Public mode so users can inspect generated artifacts without
+    exposing any edit/create/delete controls.
+    """
+    st.info(f"Viewing {endpoint_prefix}: `{doc_id}`")
+    st.caption(f"Theme: {doc.get('theme', 'unknown')}")
+
+    contact = doc.get("contact") or {}
+    with st.expander("Contact", expanded=True):
+        st.write(
+            {
+                "name": contact.get("name", ""),
+                "email": contact.get("email", ""),
+                "phone": contact.get("phone", ""),
+                "location": contact.get("location", ""),
+                "website": contact.get("website", ""),
+            }
+        )
+
+    with st.expander("Summary", expanded=True):
+        st.write(doc.get("summary") or "No summary available.")
+
+    connections = doc.get("connections") or []
+    if connections:
+        with st.expander("Connections", expanded=False):
+            for c in connections:
+                network = c.get("network", "")
+                username = c.get("username", "")
+                st.write(f"- {network}: {username}")
+
+    for section_name in ("education", "experience", "projects", "skills"):
+        section_data = doc.get(section_name) or []
+        if not section_data:
+            continue
+        with st.expander(section_name.capitalize(), expanded=False):
+            st.write(section_data)
+
+    st.markdown("### Download")
+    download_section(doc_id, endpoint_prefix, dl_key)
+
+
+def _public_document_tab(*, suffix: str, endpoint_prefix: str, id_key: str, data_key: str, dl_key: str) -> None:
+    """Render read-only selector/view for public mode.
+
+    State keys are passed in so resume and portfolio tabs can reuse this
+    implementation without clobbering each other's session state.
+    """
+    st.session_state.setdefault(id_key, "")
+    st.session_state.setdefault(data_key, None)
+    existing = list_docs(suffix)
+
+    if not existing:
+        st.warning(f"No saved {endpoint_prefix}s found.")
+        return
+
+    # Public mode supports selection + viewing only.
+    selected = st.selectbox(
+        f"Select {endpoint_prefix}",
+        existing,
+        format_func=lambda x: x.rsplit("_", 1)[0].replace("_", " "),
+        key=f"public_{endpoint_prefix}_select",
+    )
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        if st.button(f"Load {endpoint_prefix.title()}", type="primary", key=f"public_{endpoint_prefix}_load"):
+            st.session_state[id_key] = selected
+            st.session_state[data_key] = None
+            st.rerun()
+    with col2:
+        if st.session_state.get(id_key) and st.button("Close", key=f"public_{endpoint_prefix}_close"):
+            st.session_state[id_key] = ""
+            st.session_state[data_key] = None
+            st.rerun()
+
+    active_id = st.session_state.get(id_key)
+    if not active_id:
+        return
+
+    # Pull fresh data on-demand for the selected document.
+    doc = fetch_doc(data_key, active_id, endpoint_prefix)
+    if doc is None:
+        return
+    _render_readonly_doc_view(active_id, doc, endpoint_prefix, dl_key)
 
 
 def resume_tab():
@@ -240,3 +328,38 @@ with tab_resume:
     resume_tab()
 with tab_portfolio:
     portfolio_tab()
+def render_page():
+    """Render the resume and portfolio workspace page."""
+    mode = render_mode_sidebar()
+    st.title("📄 Resume & Portfolio Maker")
+    if mode == "Public":
+        # Public = read-only previews + export/download only.
+        st.info("Public mode: read-only preview and download only.")
+        tab_resume, tab_portfolio = st.tabs(["Resume", "Portfolio"])
+        with tab_resume:
+            _public_document_tab(
+                suffix="Resume_CV",
+                endpoint_prefix="resume",
+                id_key="public_resume_id",
+                data_key="public_resume_data",
+                dl_key="public_resume_dl",
+            )
+        with tab_portfolio:
+            _public_document_tab(
+                suffix="Portfolio_CV",
+                endpoint_prefix="portfolio",
+                id_key="public_portfolio_id",
+                data_key="public_portfolio_data",
+                dl_key="public_portfolio_dl",
+            )
+        return
+    # Private = full CRUD/editing workflows.
+    tab_resume, tab_portfolio = st.tabs(["Resume", "Portfolio"])
+    with tab_resume:
+        resume_tab()
+    with tab_portfolio:
+        portfolio_tab()
+
+
+if __name__ == "__main__":
+    render_page()
