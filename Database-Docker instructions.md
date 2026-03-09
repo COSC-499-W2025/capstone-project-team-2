@@ -3,8 +3,6 @@ Database/docker instructions
  for docker set up run:
 
 docker-compose build --no-cache
-docker-compose up -d
-docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b
 docker-compose up
 
 
@@ -55,11 +53,3 @@ Describe project data
 | content     | json         | NO   |     | NULL              |                   |
 | uploaded_at | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED |
 +-------------+--------------+------+-----+-------------------+-------------------+
- 
-TO RUN SET UP:
-
-run these 3 commands in terminal:
-
-docker compose down -v
-docker compose build --no-cache
-docker compose up
