@@ -14,6 +14,7 @@ from src.web.streamlit_helpers import (
     delete_doc_section, edit_connections_section,
     add_education_section, remove_education_section,
     add_experience_section, remove_experience_section,
+    add_skill_section, modify_skill_section, remove_skill_section,
 )
 
 
@@ -179,7 +180,7 @@ def resume_tab():
 
         if section == "✏️ Edit":
             category = st.selectbox("Select category",
-                                    ["Contact Info", "Summary", "Theme", "Education", "Experience", "Connections"],
+                                    ["Contact Info", "Summary", "Theme", "Education", "Experience","Skills", "Connections"],
                                     key="resume_edit_cat")
             if category == "Contact Info":
                 edit_contact_section(resume_id, rd, "resume", invalidate)
@@ -209,6 +210,15 @@ def resume_tab():
                                           "resume", invalidate)
                 elif exp_action == "🗑️ Remove Experience":
                     remove_experience_section(resume_id, rd, invalidate)
+            elif category == "Skills":
+                skill_action = st.segmented_control("Action", ["➕ Add Skill", "✏️ Modify Skill", "🗑️ Remove Skill"],
+                                                     label_visibility="hidden", key="resume_skill_action")
+                if skill_action == "➕ Add Skill":
+                    add_skill_section(resume_id, invalidate)
+                elif skill_action == "✏️ Modify Skill":
+                    modify_skill_section(resume_id, rd, "resume", invalidate)
+                elif skill_action == "🗑️ Remove Skill":
+                    remove_skill_section(resume_id, rd, invalidate)
             elif category == "Connections":
                 edit_connections_section(resume_id, rd, "resume", invalidate)
         elif section == "📊 Projects":
