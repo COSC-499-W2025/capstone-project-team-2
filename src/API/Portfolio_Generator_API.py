@@ -510,6 +510,60 @@ def add_project(portfolio_id: str, project_name: str, payload: Optional[ProjectR
         raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
     return {"status": result}
 
+
+@portfolioRouter.post("/portfolio/{portfolio_id}/add/project/{project_name}/ai")
+def add_project_ai(portfolio_id: str, project_name: str):
+    """Add a project to the portfolio using AI-generated content from database data.
+
+    Fetches the project analysis from the database, sends it to Gemini via
+    GenerateResumeAI_Ver2, and adds the AI-polished entry to the portfolio.
+
+    Args:
+        portfolio_id: The portfolio identifier.
+        project_name: The name of the project in the database.
+
+    Returns:
+        dict: {"status": str} confirming the project was added.
+
+    Raises:
+        HTTPException: 404 if the portfolio or project does not exist.
+        HTTPException: 400 if AI generation fails or returns no data.
+        HTTPException: 500 if an unexpected error occurs.
+    """
+    from src.reporting.Generate_Resume_AI_Ver2 import GenerateResumeAI_Ver2
+
+    doc = _load_portfolio(portfolio_id)
+
+    generator = GenerateResumeAI_Ver2(project_name)
+    if not generator.project_exists:
+        raise HTTPException(status_code=404, detail=f"Project '{project_name}' not found in database")
+
+    try:
+        ai_entry = generator.generate_AI_Resume_entry()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI generation failed: {e}")
+
+    if ai_entry is None:
+        raise HTTPException(status_code=400, detail=f"AI generation returned no data for '{project_name}'")
+
+    summary = ai_entry.one_sentence_summary
+    if ai_entry.tech_stack:
+        summary = f"{summary} Tech stack: {ai_entry.tech_stack}"
+
+    proj = Project(
+        name=ai_entry.project_title,
+        summary=summary,
+        highlights=ai_entry.key_responsibilities,
+    )
+    try:
+        result = _check_result(doc.add_project(proj))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
+    return {"status": result}
+
+
 @portfolioRouter.post("/portfolio/{portfolio_id}/render")
 def render_portfolio_default(portfolio_id: str, background_tasks: BackgroundTasks):
     """Backward-compatible route that renders a portfolio as PDF (default format)."""
