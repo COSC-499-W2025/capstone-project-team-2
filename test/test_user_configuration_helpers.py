@@ -127,7 +127,7 @@ class TestUserConfigurationHelpers(unittest.TestCase):
             base_config=base,
             external_choice="Do not allow",
             full_name="   ",
-            selected_theme="No change",
+            selected_theme="dark",
             on_error=MagicMock(),
         )
 
@@ -147,7 +147,7 @@ class TestUserConfigurationHelpers(unittest.TestCase):
             base_config={"ID": 1},
             external_choice="Allow",
             full_name="Madonna",
-            selected_theme="No change",
+            selected_theme="dark",
             on_error=MagicMock(),
         )
 
@@ -183,7 +183,7 @@ class TestUserConfigurationHelpers(unittest.TestCase):
             base_config={"ID": 1},
             external_choice="Allow",
             full_name="Jane Doe",
-            selected_theme="No change",
+            selected_theme="dark",
             on_error=on_error,
         )
 
@@ -204,7 +204,7 @@ class TestUserConfigurationHelpers(unittest.TestCase):
             base_config={"ID": 1},
             external_choice="Do not allow",
             full_name="",
-            selected_theme="No change",
+            selected_theme="dark",
             on_error=on_error,
         )
 

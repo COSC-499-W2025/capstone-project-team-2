@@ -6,6 +6,7 @@ from pathlib import Path
 
 # Add project root to path so we can import src.web.streamlit_helpers
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from src.web.theme import apply_theme_from_config
 from src.web.streamlit_helpers import (
     API_BASE, THEMES, api_error, list_docs, fetch_doc,
     edit_contact_section, edit_summary_section, edit_theme_section,
@@ -14,6 +15,8 @@ from src.web.streamlit_helpers import (
     add_education_section, remove_education_section,
     add_experience_section, remove_experience_section,
 )
+
+apply_theme_from_config()
 
 
 def resume_tab():

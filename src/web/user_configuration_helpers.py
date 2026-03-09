@@ -6,6 +6,8 @@ import requests
 
 from src.web.streamlit_helpers import API_BASE, api_error
 
+_VALID_THEMES = {"light", "dark"}
+
 
 def fetch_config(on_error: Callable[[str], None] | None = None) -> dict:
     """Fetch current user configuration from API.
@@ -122,7 +124,7 @@ def save_user_configuration(
         updated_config["First Name"] = parts[0]
         updated_config["Last Name"] = " ".join(parts[1:]) if len(parts) > 1 else ""
 
-    if selected_theme != "No change":
+    if selected_theme in _VALID_THEMES:
         preferences = updated_config.get("Preferences")
         if not isinstance(preferences, dict):
             preferences = {}

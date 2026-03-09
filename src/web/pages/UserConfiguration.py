@@ -5,6 +5,7 @@ import streamlit as st
 
 # Add project root to path so we can import src.web modules.
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from src.web.theme import apply_theme_from_config
 from src.web.user_configuration_helpers import (
     current_external_consent,
     current_name,
@@ -13,8 +14,10 @@ from src.web.user_configuration_helpers import (
     save_user_configuration,
 )
 
-_THEME_OPTIONS = ["No change", "light", "dark"]
+_THEME_OPTIONS = ["Light", "Dark"]
 _CONSENT_OPTIONS = ["Allow", "Do not allow"]
+
+apply_theme_from_config()
 
 st.title("User Configuration")
 st.caption("Set consent for external tools (required) and optional profile preferences.")
@@ -26,10 +29,13 @@ if not config:
 current_consent = current_external_consent(config)
 current_name_value = current_name(config) or "Not set"
 current_theme_value = current_theme(config)
+theme_lower = str(current_theme_value).strip().lower()
+default_theme = theme_lower if theme_lower in {"light", "dark"} else st.session_state.get("ui_theme", "dark")
+theme_display = theme_lower.title() if theme_lower in {"light", "dark"} else current_theme_value
 
 st.info(
     f"Current settings: External tools: {current_consent} | "
-    f"Name: {current_name_value} | Theme: {current_theme_value}"
+    f"Name: {current_name_value} | Theme: {theme_display}"
 )
 
 if current_consent == "Allow":
@@ -58,10 +64,10 @@ with st.form("user_config_form", clear_on_submit=False):
         value="" if current_name_value == "Not set" else current_name_value,
         placeholder="e.g., Jane Doe",
     )
-    selected_theme = st.selectbox(
+    selected_theme_label = st.selectbox(
         "Streamlit Theme",
         options=_THEME_OPTIONS,
-        index=0,
+        index=0 if default_theme == "light" else 1,
     )
 
     _, save_col = st.columns([3, 1.5])
@@ -74,6 +80,7 @@ with st.form("user_config_form", clear_on_submit=False):
         )
 
 if submitted:
+    selected_theme = selected_theme_label.lower()
     if save_user_configuration(
         config,
         external_choice,
@@ -81,5 +88,6 @@ if submitted:
         selected_theme,
         on_error=st.error,
     ):
+        st.session_state["ui_theme"] = selected_theme
         st.success("Configuration saved.")
         st.rerun()
