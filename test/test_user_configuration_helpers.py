@@ -71,10 +71,17 @@ class TestUserConfigurationHelpers(unittest.TestCase):
         self.assertEqual(fetch_config(on_error=on_error), {})
         on_error.assert_called_once_with("Config unavailable")
 
+    @patch("src.web.user_configuration_helpers.requests.get")
+    def test_fetch_config_non_dict_payload(self, mock_get):
+        """Return empty dict when /config/get returns a non-dict JSON payload."""
+        mock_get.return_value = _Resp(ok=True, payload=["not", "a", "dict"])
+        self.assertEqual(fetch_config(), {})
+
     @patch("src.web.user_configuration_helpers.requests.post")
     def test_save_user_configuration_success(self, mock_post):
         """Persist consent and optional name/theme updates with two API calls."""
         mock_post.side_effect = [_Resp(ok=True, payload={}), _Resp(ok=True, payload={})]
+        on_error = MagicMock()
 
         base = {"ID": 1, "Preferences": {"theme": "dark"}}
         ok = save_user_configuration(
@@ -82,11 +89,12 @@ class TestUserConfigurationHelpers(unittest.TestCase):
             external_choice="Allow",
             full_name="Jane Doe",
             selected_theme="light",
-            on_error=MagicMock(),
+            on_error=on_error,
         )
 
         self.assertTrue(ok)
         self.assertEqual(mock_post.call_count, 2)
+        on_error.assert_not_called()
 
         first_call = mock_post.call_args_list[0]
         self.assertTrue(first_call.args[0].endswith("/privacy-consent"))
@@ -103,6 +111,67 @@ class TestUserConfigurationHelpers(unittest.TestCase):
         self.assertEqual(payload["Preferences"]["theme"], "light")
         self.assertEqual(payload["consented"]["external"], True)
         self.assertEqual(payload["consented"]["Data consent"], True)
+
+    @patch("src.web.user_configuration_helpers.requests.post")
+    def test_save_user_configuration_preserves_fields_with_no_optional_updates(self, mock_post):
+        """Keep existing name/theme when optional inputs are not changed."""
+        mock_post.side_effect = [_Resp(ok=True, payload={}), _Resp(ok=True, payload={})]
+
+        base = {
+            "ID": 1,
+            "First Name": "Jane",
+            "Last Name": "Doe",
+            "Preferences": {"theme": "dark"},
+        }
+        ok = save_user_configuration(
+            base_config=base,
+            external_choice="Do not allow",
+            full_name="   ",
+            selected_theme="No change",
+            on_error=MagicMock(),
+        )
+
+        self.assertTrue(ok)
+        payload = mock_post.call_args_list[1].kwargs["json"]
+        self.assertEqual(payload["First Name"], "Jane")
+        self.assertEqual(payload["Last Name"], "Doe")
+        self.assertEqual(payload["Preferences"]["theme"], "dark")
+        self.assertEqual(payload["consented"]["external"], False)
+
+    @patch("src.web.user_configuration_helpers.requests.post")
+    def test_save_user_configuration_single_name_sets_empty_last_name(self, mock_post):
+        """Set last name to empty string when only one name token is provided."""
+        mock_post.side_effect = [_Resp(ok=True, payload={}), _Resp(ok=True, payload={})]
+
+        ok = save_user_configuration(
+            base_config={"ID": 1},
+            external_choice="Allow",
+            full_name="Madonna",
+            selected_theme="No change",
+            on_error=MagicMock(),
+        )
+
+        self.assertTrue(ok)
+        payload = mock_post.call_args_list[1].kwargs["json"]
+        self.assertEqual(payload["First Name"], "Madonna")
+        self.assertEqual(payload["Last Name"], "")
+
+    @patch("src.web.user_configuration_helpers.requests.post")
+    def test_save_user_configuration_creates_preferences_when_missing(self, mock_post):
+        """Create Preferences dict when theme is updated and Preferences is missing."""
+        mock_post.side_effect = [_Resp(ok=True, payload={}), _Resp(ok=True, payload={})]
+
+        ok = save_user_configuration(
+            base_config={"ID": 1},
+            external_choice="Allow",
+            full_name="",
+            selected_theme="dark",
+            on_error=MagicMock(),
+        )
+
+        self.assertTrue(ok)
+        payload = mock_post.call_args_list[1].kwargs["json"]
+        self.assertEqual(payload["Preferences"]["theme"], "dark")
 
     @patch("src.web.user_configuration_helpers.requests.post")
     def test_save_user_configuration_consent_failure(self, mock_post):
