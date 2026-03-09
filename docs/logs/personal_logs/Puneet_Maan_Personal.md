@@ -28,6 +28,8 @@
 - Prepared the team weekly log for this cycle (T2 Weekly #9).
 - Reviewed PR #481 (ssmith86): Upload frontend CLI/UI integration.
 - Reviewed PR #478 (Graves067): MySQL to SQLite refactoring.
+- Reviewed PR #479 (ssmith86): updated error handling and test files.
+- Reviewed PR #476 (ssmith86): corrected error handling in data_extraction.py.
 
 ### Connection to last week
 - Continued Milestone 3 frontend direction by contributing dashboard and mode behavior work in Streamlit, aligned with the prior plan to build multi-page UI flows.
