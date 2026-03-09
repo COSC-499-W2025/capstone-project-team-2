@@ -35,6 +35,7 @@
 - Streamlit starter UI for resume/portfolio workflows (Part 1)
 - Streamlit dashboard and public/private mode behavior
 - Upload frontend integration
+- Frontend user-configuration consent flow for external tools
 - API/CLI error handling fixes and related test updates
 - Refactored persistence layer from MySQL to SQLite
 - Removed Ollama integration
@@ -56,6 +57,7 @@
 | [#478](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/478) | Cameron Gillespie | MySQL to SQLite refactor | [#468](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/468) | ✅ |
 | [#476](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/476) | Sam Smith | Fix error handling in `data_extraction.py` | [#475](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/475) | ✅ |
 | [#474](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/474) | Samantha Maranda | Remove Ollama | [#473](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/473) | ✅ |
+| [#488](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/488) | Mahi Gangal | Frontend for user configuration consent for external tools | [#469](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/469) | ✅ |
 
 ## Testing
 | PR | Test Type | Command / Check | Result |
@@ -73,6 +75,8 @@
 | [#478](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/478) | Pytest | `python -m pytest test/test_db_versioning_functions.py -v` | ✅ |
 | [#476](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/476) | Pytest | `pytest test/test_data_extraction.py` | ✅ |
 | [#474](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/474) | Docker test suite | Run full Docker tests to confirm no breaking changes | ✅ |
+| [#488](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/488) | Pytest | `python -m pytest -q test/test_user_configuration_helpers.py test/test_user_configuration_integration.py` | ✅ |
+| [#488](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/488) | Manual verification | Start API + frontend; verify consent capture/persistence, optional name/theme updates, and config reload behavior | ✅ |
 
 ## Team Members
 
@@ -83,10 +87,10 @@
 | Cameron Gillespie | Full Stack Developer | [@Graves067](https://github.com/Graves067)         | PR #478 |
 | Puneet Maan       | Full Stack Developer | [@Puneet-Maan](https://github.com/Puneet-Maan)     | PR #483, prepared team log |
 | Sam Smith         | Full Stack Developer | [@ssmith86](https://github.com/ssmith86)           | PRs #481, #479, #476 |
-| Mahi Gangal       | Full Stack Developer | [@mahigangal](https://github.com/mahigangal)       | Pending |
+| Mahi Gangal       | Full Stack Developer | [@mahigangal](https://github.com/mahigangal)       | PR #488 |
 
 ## Overview
-This week focused on building the frontend foundation for Milestone 3. The team added Streamlit starter pages, dashboard flow, public/private mode behavior, and upload UI support, while also completing related backend cleanup (error-handling fixes, SQLite refactor, and Ollama removal) to stabilize the full workflow.
+This week focused on building the frontend foundation for Milestone 3. The team added Streamlit starter pages, dashboard flow, public/private mode behavior, upload UI support, and user-configuration consent capture for external tools, while also completing related backend cleanup (error-handling fixes, SQLite refactor, and Ollama removal) to stabilize the full workflow.
 
 The **next cycle** will focus on:
 - Continuing frontend development, including Streamlit UI polish.
