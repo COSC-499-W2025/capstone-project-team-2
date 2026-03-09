@@ -1,6 +1,7 @@
 ### Navigation
 ## Term 2
-- [Week 6-8](#t2-week-6-8-02092026--020282026)
+- [Week 9](#t2-week-9-03022026--02082026)
+- [Week 6-8](#t2-week-6-8-02092026--03012026)
 - [Week 4/5](#t2-week-45-01262026--02082026)
 - [Week 3](#t2-week-3-01192025--01252025)
 - [Week 2](#t2-week-2-01122025--01182025)
@@ -18,7 +19,94 @@
 - [Week 4](#week-4-09222025---09282025)
 - [Week 3](#week-3-09152025---09212025)
 
-## T2 Week 6-8 (02/09/2026- 02/028/2026)
+## T2 Week 9 (03/02/2026- 02/08/2026)
+### Task Types Worked On (Screenshot from Peer Eval)
+<img width="1276" height="741" alt="image" src="https://github.com/user-attachments/assets/f19914e4-44ab-4dfa-b45b-98f1655cfc48" />
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: finished converting refactoring error handling 
+  * #2: created the project upload page for the front end
+ 
+## Associated Tasks from Project Board:
+
+| Task ID | Description                     | Feature                   | Assigned To | Status   |
+| ------- | ------------------------------- | ------------------------- | ----------- | -------- |
+|[#417]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/476)|corrected error handling in data_extraction.py| ssmith86 | complete|
+|[#479](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/479)|updated error handling and test files| ssmith86 | complete |
+|[#481]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/481)|front end for project uploads| ssmith86 | complete |
+ 
+### Progress Update (since 01/26/2026) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td> [#417]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/476)
+        </td>
+        <!-- Status -->
+        <td> complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>[#479](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/479)
+        </td>
+        <!-- Status -->
+        <td> complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>[#481]|(https://github.com/COSC-499-W2025/capstone-project-team-2/pull/481)
+        </td>
+        <!-- Status -->
+        <td> complete
+        </td>
+    </tr>
+    </table>
+
+### Extra Details:
+**Other Coding Tasks**
+- Reviewed the following files to determine if they required error handling (**note: it is just as much work to do review of these as it is to do the ones where I change the error handling because I have to read through the entire file, find the places with existing error handling, understand the code and intention behind the way the error handling was done and make a determination on whether or not it needs to be changed.**)
+     - app_context.py
+     - data_extraction.py
+     - document_analysis.py
+     - extraction.py
+     - project_duration_estimation.py
+     - project_stack_detector.py
+     - project_type_detector.py
+     - Generate_AI_RenderCV_portfolio_and_Resume.py
+     - portfolio_renderCV_service.py
+     - portfolio_service.py
+     - project_insights.py
+     - resume_exporter.py
+     - resume_item_generator.py
+     - db_helper_function.py
+     - dedup_index.py
+     - file_data_saving.py
+     - load_json_save.py
+     - saved_projects.py
+     - utility_methods.py
+
+**Reviewing / Collaboration Tasks**
+-  Reviewed the Following PRs
+     - [#465](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/465)
+     - [#466](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/466)
+     - [#472](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/472)
+     - [#483](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/483)
+      
+**Connection to Previous Week**
+- Up to this point we've been setting the groundwork so that once we start frontend it will go quickly and smoothly. All of that is finished now, so it this week was time to start on that.
+
+**Plan for Next Week**
+ - We have a significant amount of front end development to complete still, so I will continue working on that
+ - Streamlet doesn't allow folders to be downloaded directly, but instead requires a path. This week I ran out of time to develop a solution so that users don't have to directly enter the path for folders, so I will work on developing that as well
+
+## T2 Week 6-8 (02/09/2026- 03/01/2026)
 ### Task Types Worked On (Screenshot from Peer Eval)
 <img width="885" height="645" alt="image" src="https://github.com/user-attachments/assets/0b341711-4dd4-4749-a358-b38dbb66779d" />
 
