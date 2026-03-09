@@ -728,5 +728,98 @@ class TestSkillEndpoints(_BaseResumeTest):
         self.assertEqual(resp.status_code, 404)
 
 
+AI_PATCH = "src.reporting.Generate_Resume_AI_Ver2.GenerateResumeAI_Ver2"
+
+
+class TestAddProjectAI(_BaseResumeTest):
+    """Tests for POST /resume/{id}/add/project/{project_name}/ai."""
+
+    def setUp(self):
+        super().setUp()
+        self.ai_patcher = patch(AI_PATCH)
+        self.mock_ai_cls = self.ai_patcher.start()
+        self.mock_ai = MagicMock()
+        self.mock_ai_cls.return_value = self.mock_ai
+        self.addCleanup(self.ai_patcher.stop)
+
+    def test_success(self):
+        """AI generation succeeds and project is added."""
+        self.mock_ai.project_exists = True
+        mock_entry = MagicMock()
+        mock_entry.project_title = "AI Project"
+        mock_entry.one_sentence_summary = "An AI-generated summary."
+        mock_entry.tech_stack = "Python, FastAPI"
+        mock_entry.key_responsibilities = ["Built REST APIs", "Deployed to cloud"]
+        self.mock_ai.generate_AI_Resume_entry.return_value = mock_entry
+        self.mock_doc.add_project.return_value = "Successfully added project 'AI Project'"
+
+        resp = self.client.post("/resume/test_abc123/add/project/MyProject/ai")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+        self.mock_doc.add_project.assert_called_once()
+
+    def test_success_no_tech_stack(self):
+        """AI generation succeeds without tech_stack — summary is used as-is."""
+        self.mock_ai.project_exists = True
+        mock_entry = MagicMock()
+        mock_entry.project_title = "Simple Project"
+        mock_entry.one_sentence_summary = "A simple summary."
+        mock_entry.tech_stack = ""
+        mock_entry.key_responsibilities = ["Did something"]
+        self.mock_ai.generate_AI_Resume_entry.return_value = mock_entry
+        self.mock_doc.add_project.return_value = "Successfully added project 'Simple Project'"
+
+        resp = self.client.post("/resume/test_abc123/add/project/MyProject/ai")
+        self.assertEqual(resp.status_code, 200)
+
+    def test_project_not_in_db_returns_404(self):
+        """Project not found in database returns 404."""
+        self.mock_ai.project_exists = False
+
+        resp = self.client.post("/resume/test_abc123/add/project/Unknown/ai")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found in database", resp.json()["detail"])
+
+    def test_ai_returns_none_returns_400(self):
+        """AI generation returns None (no data) returns 400."""
+        self.mock_ai.project_exists = True
+        self.mock_ai.generate_AI_Resume_entry.return_value = None
+
+        resp = self.client.post("/resume/test_abc123/add/project/MyProject/ai")
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("no data", resp.json()["detail"])
+
+    def test_ai_generation_error_returns_500(self):
+        """Exception during AI generation returns 500."""
+        self.mock_ai.project_exists = True
+        self.mock_ai.generate_AI_Resume_entry.side_effect = RuntimeError("API key expired")
+
+        resp = self.client.post("/resume/test_abc123/add/project/MyProject/ai")
+        self.assertEqual(resp.status_code, 500)
+        self.assertIn("AI generation failed", resp.json()["detail"])
+
+    def test_add_project_error_returns_500(self):
+        """Exception during add_project returns 500."""
+        self.mock_ai.project_exists = True
+        mock_entry = MagicMock()
+        mock_entry.project_title = "AI Project"
+        mock_entry.one_sentence_summary = "Summary."
+        mock_entry.tech_stack = ""
+        mock_entry.key_responsibilities = []
+        self.mock_ai.generate_AI_Resume_entry.return_value = mock_entry
+        self.mock_doc.add_project.side_effect = RuntimeError("disk full")
+
+        resp = self.client.post("/resume/test_abc123/add/project/MyProject/ai")
+        self.assertEqual(resp.status_code, 500)
+        self.assertIn("disk full", resp.json()["detail"])
+
+    def test_resume_not_found_returns_404(self):
+        """Missing resume returns 404."""
+        self._set_not_found()
+        resp = self.client.post("/resume/fake_id/add/project/MyProject/ai")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+
 if __name__ == "__main__":
     unittest.main()
