@@ -608,3 +608,116 @@ def remove_experience_section(doc_id, rd, invalidate_fn):
             st.rerun()
         else:
             st.error(api_error(res))
+
+
+def remove_project_by_name(doc_id, rd, invalidate_fn):
+    """Render a UI to select and remove a project entry from a resume.
+
+    Args:
+        doc_id: The resume identifier (name + UUID suffix)
+        rd: The full resume data dict (must contain a "projects" key)
+        invalidate_fn: Callback to clear cached document data after a successful removal
+
+    Returns:
+        None: Renders Streamlit UI components directly
+    """
+    entries = rd.get("projects") or []
+    if not entries:
+        st.info("No project entries to remove.")
+        return
+    names = [e.get("name", "") for e in entries if e.get("name")]
+    selected = st.selectbox("Select project to remove", names, key="proj_remove_sel")
+    if st.button(f"Remove {selected}", type="primary", icon=":material/delete:", key="proj_remove_btn"):
+        res = requests.delete(f"{API_BASE}/resume/{doc_id}/project/{selected}", timeout=10)
+        if res.ok:
+            invalidate_fn()
+            st.session_state["_flash_success"] = f"Removed **{selected}**."
+            st.rerun()
+        else:
+            st.error(api_error(res))
+
+
+def add_skill_section(doc_id, invalidate_fn):
+    """Render a form to add a new skill category to a resume via the API.
+
+    Args:
+        doc_id: The resume identifier (name + UUID suffix)
+        invalidate_fn: Callback to clear cached document data after a successful add
+
+    Returns:
+        None: Renders Streamlit UI components directly
+    """
+    with st.form("add_skill_form", clear_on_submit=True):
+        label = st.text_input("Skill Category *", placeholder="e.g., Languages")
+        details = st.text_input("Details *", placeholder="e.g., Python, Java, C++")
+        if st.form_submit_button("Add Skill", type="primary", icon=":material/add:"):
+            if not label.strip():
+                st.warning("Skill category is required.", icon=":material/warning:")
+            elif not details.strip():
+                st.warning("Details are required.", icon=":material/warning:")
+            else:
+                payload = {"label": label.strip(), "details": details.strip()}
+                res = requests.post(f"{API_BASE}/resume/{doc_id}/add/skill", json=payload, timeout=15)
+                if res.ok:
+                    invalidate_fn()
+                    st.session_state["_flash_success"] = "Skill category added."
+                    st.rerun()
+                else:
+                    st.error(api_error(res))
+
+
+def modify_skill_section(doc_id, rd, endpoint_prefix, invalidate_fn):
+    """Render a UI to modify an existing skill category on a resume.
+
+    Args:
+        doc_id: The resume identifier (name + UUID suffix)
+        rd: The full resume data dict (must contain a "skills" key)
+        endpoint_prefix: The API route prefix (e.g. "resume" or "portfolio")
+        invalidate_fn: Callback to clear cached document data after a successful modification
+
+    Returns:
+        None: Renders Streamlit UI components directly
+    """
+    entries = rd.get("skills") or []
+    if not entries:
+        st.info("No skill entries to modify.")
+        return
+    labels = [e.get("label", "") for e in entries if e.get("label")]
+    selected = st.selectbox("Select skill to modify", labels, key="skill_modify_sel")
+    current = next((e.get("details", "") for e in entries if e.get("label") == selected), "")
+    with st.form("modify_skill_form", clear_on_submit=False):
+        new_details = st.text_input("Details", value=current, key="skill_modify_details")
+        if st.form_submit_button("Update Skill", type="primary", icon=":material/edit:"):
+            if new_details.strip() == current.strip():
+                st.info("No changes detected.")
+            else:
+                post_edit(endpoint_prefix, doc_id,
+                          [{"section": "skills", "item_name": selected, "field": "", "new_value": new_details.strip()}],
+                          invalidate_fn, f"Updated **{selected}**.")
+
+
+def remove_skill_section(doc_id, rd, invalidate_fn):
+    """Render a UI to select and remove a skill category from a resume.
+
+    Args:
+        doc_id: The resume identifier (name + UUID suffix)
+        rd: The full resume data dict (must contain a "skills" key)
+        invalidate_fn: Callback to clear cached document data after a successful removal
+
+    Returns:
+        None: Renders Streamlit UI components directly
+    """
+    entries = rd.get("skills") or []
+    if not entries:
+        st.info("No skill entries to remove.")
+        return
+    labels = [e.get("label", "") for e in entries if e.get("label")]
+    selected = st.selectbox("Select skill to remove", labels, key="skill_remove_sel")
+    if st.button(f"Remove {selected}", type="primary", icon=":material/delete:", key="skill_remove_btn"):
+        res = requests.delete(f"{API_BASE}/resume/{doc_id}/skill/{selected}", timeout=10)
+        if res.ok:
+            invalidate_fn()
+            st.session_state["_flash_success"] = f"Removed **{selected}**."
+            st.rerun()
+        else:
+            st.error(api_error(res))
