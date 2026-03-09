@@ -2,7 +2,7 @@
 
 ## Quick Navigation
 ### Term 2
-- [T2 Weekly #9 (Mar 2 to Mar 8, 2026) - Prepared by Puneet Maan](#t2-weekly-9)
+- [T2 Weekly #9 (Mar 2 to Mar 8, 2026) - Prepared by: Puneet Maan](#t2-weekly-9)
 - [T2 Weekly #8 (Feb 9 to Mar 1, 2026)](#t2-weekly-8)
 - [T2 Weekly #5 (Jan 26 to Feb 8, 2026)](#t2-weekly-5)
 - [T2 Weekly #3 (Jan 19 to Jan 25, 2026)](#t2-weekly-3)
