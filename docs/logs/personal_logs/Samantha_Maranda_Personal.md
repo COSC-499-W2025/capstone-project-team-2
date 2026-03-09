@@ -689,3 +689,51 @@
 ### Extra Details:
 * Was challenged by preexisting bugs related to the changes I wanted to make this cycle. Many of my APIs were difficult to work with and prior tests had difficulty adjusting due to poor test building due to these bugs and some couldn't be completed until those issues are fixed.
 * Next week I plan on continuing building API for project insights and possibly attempting to fix these issues if they aren't delegated to those who know that code better.
+
+---------------------------
+
+## Sunday (01/03/2026 - 08/03/2026)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/08-03-2026_PeerEval_SamM.jpg)
+
+### Features Worked on this Week
+  * #1: Convert CLI function calls to API methods
+  * #2: Remove ollama
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description        | Feature   | Assigned To | Status   |
+| ------- | ------------------ | --------- | ----------- | -------- |
+| #385   | Convert CLI function calls to API methods | Convert CLI function calls to API methods | Samantha Maranda  | In Progress |
+| #473   | Removing unused ollama functionality | Remove ollama | Samantha Maranda  | Complete |
+
+### Progress Update (since 08/03/2026) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Convert CLI functions into API methods
+        </td>
+        <!-- Status -->
+        <td>In Progress
+        </td>
+    </tr>
+ <tr>
+        <!-- Task/Issue # -->
+        <td>Removing ollama
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+* Next week I will continue working on API and will work on removing docker. I also want to work on some broken tests that fail for unknown reasons likely related to improper use of mocks and certain libraries.
