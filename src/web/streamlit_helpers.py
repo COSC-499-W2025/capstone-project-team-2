@@ -4,6 +4,16 @@ Shared helper functions for the Streamlit Resume & Portfolio UI.
 Contains reusable components for API communication, document CRUD,
 and section editors (contact, summary, theme, projects, entries,
 connections, downloads).
+
+Maintainer notes:
+- This file intentionally centralizes repeated UI+API patterns used by both
+  resume and portfolio workflows.
+- Keep business logic thin here; API remains the source of truth.
+- Most helpers follow this pattern:
+  1) read current data from cached session state
+  2) render controls/forms
+  3) call API
+  4) invalidate cache + rerun on success
 """
 import re
 import streamlit as st
@@ -24,6 +34,10 @@ MIME_TYPES = {"pdf": "application/pdf", "html": "text/html", "markdown": "text/m
 FILE_EXTS = {"pdf": "pdf", "html": "html", "markdown": "md"}
 
 _API_ID_RE = re.compile(r'_[0-9a-f]{8}$')
+
+# ---------------------------------------------------------------------------
+# Shared API + caching utilities
+# ---------------------------------------------------------------------------
 
 
 def list_docs(suffix: str) -> list:
@@ -68,6 +82,7 @@ def fetch_doc(cache_key, doc_id, url_prefix):
         dict: The document data as a JSON dict, or None if the request failed
     """
     if st.session_state.get(cache_key) is None:
+        # Cache avoids repeated GET calls while the user edits the same document.
         try:
             resp = requests.get(f"{API_BASE}/{url_prefix}/{doc_id}", timeout=10)
             if not resp.ok:
@@ -88,6 +103,7 @@ def fetch_projects():
     """
     if st.session_state.get("projects_cache") is None:
         try:
+            # Endpoint intentionally returns light project names for fast selection.
             st.session_state.projects_cache = requests.get(f"{API_BASE}/projects/", timeout=10).json()
         except Exception:
             st.session_state.projects_cache = []
@@ -105,6 +121,7 @@ def fetch_project_info(project_name):
     """
     cache = st.session_state.setdefault("project_info_cache", {})
     if project_name not in cache:
+        # Cache by project name so repeated preview/edit cycles stay responsive.
         try:
             resp = requests.get(f"{API_BASE}/projects/{project_name}", timeout=10)
             cache[project_name] = resp.json() if resp.ok else {}
@@ -128,12 +145,17 @@ def post_edit(endpoint_prefix, doc_id, edits, invalidate_fn, success_msg):
     """
     res = requests.post(f"{API_BASE}/{endpoint_prefix}/{doc_id}/edit", json={"edits": edits}, timeout=15)
     if res.ok:
+        # Critical: clear cached document so UI reflects backend truth after edit.
         invalidate_fn()
         st.session_state["_flash_success"] = success_msg
         st.rerun()
     else:
         st.error(api_error(res))
 
+
+# ---------------------------------------------------------------------------
+# Section editors shared by resume and portfolio pages
+# ---------------------------------------------------------------------------
 
 def edit_contact_section(doc_id, rd, endpoint_prefix, invalidate_fn):
     """Render a contact info editor showing current values and a form to update them.
@@ -170,6 +192,7 @@ def edit_contact_section(doc_id, rd, endpoint_prefix, invalidate_fn):
         with c3:
             r_website = st.text_input("Website", value=contact.get("website", ""))
         if st.form_submit_button("Save Contact", type="primary", icon=":material/save:"):
+            # Send only non-empty fields to avoid overwriting valid values with blanks.
             edits = [
                 {"section": "contact", "item_name": "", "field": f, "new_value": v}
                 for f, v in {"name": r_name, "email": r_email, "phone": r_phone,
@@ -248,6 +271,7 @@ def add_project_section(doc_id, endpoint_prefix, invalidate_fn):
         st.info("No saved project analyses found.")
         return
     selected = st.selectbox("Select project to add", projects, key=f"proj_sel_{endpoint_prefix}")
+    # Resume item is precomputed by backend analysis; UI exposes optional overrides.
     resume_item = (fetch_project_info(selected).get("analysis") or {}).get("resume_item") or {}
     if resume_item:
         with st.expander("Current project info", expanded=True):
@@ -275,6 +299,7 @@ def add_project_section(doc_id, endpoint_prefix, invalidate_fn):
             res = requests.post(f"{API_BASE}/{endpoint_prefix}/{doc_id}/add/project/{selected}", json=payload or None, timeout=15)
             if res.ok:
                 invalidate_fn()
+                # Keep project list fresh in case backend created/changed records.
                 st.session_state.pop("projects_cache", None)
                 st.success(res.json().get("status", "Project added."))
                 st.rerun()
@@ -326,6 +351,7 @@ def modify_entries_section(doc_id, rd, section, item_key, field_options, endpoin
             elif attribute in ("summary",):
                 new_value = st.text_area(f"New {attribute}", value=str(current_value or ""), height=120)
             elif attribute in ("start_date", "end_date"):
+                # Convert stored strings to dates when possible for better UX.
                 try:
                     default_date = pendulum.parse(str(current_value)).date() if current_value and current_value != "present" else today
                 except Exception:
@@ -339,6 +365,10 @@ def modify_entries_section(doc_id, rd, section, item_key, field_options, endpoin
                           [{"section": section, "item_name": selected, "field": attribute, "new_value": new_value}],
                           invalidate_fn, f"Updated **{attribute}** for '{selected}'.")
 
+
+# ---------------------------------------------------------------------------
+# Render/download helpers
+# ---------------------------------------------------------------------------
 
 def download_section(doc_id, endpoint_prefix, dl_key):
     """Render a download section with format selection, custom filename, render button, and preview.
@@ -360,6 +390,7 @@ def download_section(doc_id, endpoint_prefix, dl_key):
         with st.spinner("Rendering...", show_time=True):
             res = requests.post(f"{API_BASE}/{endpoint_prefix}/{doc_id}/render/{fmt}", timeout=60)
         if res.ok:
+            # Persist rendered bytes so users can download repeatedly without rerender.
             st.session_state[f"{dl_key}_bytes"] = res.content
             st.session_state[f"{dl_key}_rendered"] = fmt
             st.session_state[f"{dl_key}_time"] = pendulum.now().format("YYYY-MM-DD HH:mm:ss")
@@ -374,6 +405,7 @@ def download_section(doc_id, endpoint_prefix, dl_key):
         # Preview section
         data = st.session_state[f"{dl_key}_bytes"]
         with st.expander("Preview", expanded=True):
+            # Preview behavior varies by format due to Streamlit widget support.
             if fmt == "pdf":
                 st.pdf(data, height=600)
             elif fmt == "html":
@@ -383,6 +415,10 @@ def download_section(doc_id, endpoint_prefix, dl_key):
     if st.session_state.get(f"{dl_key}_time"):
         st.caption(f"Last rendered: {st.session_state[f'{dl_key}_time']}")
 
+
+# ---------------------------------------------------------------------------
+# Delete + social/connections editors
+# ---------------------------------------------------------------------------
 
 def delete_doc_section(existing, endpoint_prefix, key):
     """Render a document deletion UI with a selector and delete button.
@@ -459,6 +495,10 @@ def edit_connections_section(doc_id, pd_, endpoint_prefix, invalidate_fn):
                               [{"section": "connections", "item_name": to_remove, "field": "delete", "new_value": ""}],
                               invalidate_fn, f"Removed **{to_remove}**.")
 
+
+# ---------------------------------------------------------------------------
+# Resume-specific helpers (education/experience)
+# ---------------------------------------------------------------------------
 
 def add_education_section(doc_id, invalidate_fn):
     """Render a form to add a new education entry to a resume via the API.
