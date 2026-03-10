@@ -22,12 +22,13 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-from src.web.mode import render_mode_sidebar
+from src.web.mode import render_page_header
 from src.web.streamlit_helpers import API_BASE
 
 PROJECT_INSIGHTS_PATH = Path(__file__).resolve().parents[3] / "User_config_files" / "project_insights.json"
 ACTIVITY_TYPES = ("code", "test", "design", "document", "other")
 
+# File-type heuristics used to infer activity categories from project trees.
 CODE_EXTENSIONS = {
     ".py", ".java", ".js", ".ts", ".jsx", ".tsx", ".c", ".cpp", ".h", ".hpp",
     ".cs", ".go", ".rb", ".php", ".swift", ".kt", ".rs", ".sql", ".sh",
@@ -45,6 +46,12 @@ def _parse_dt(value: Any) -> datetime | None:
     Supports both:
     - ISO timestamps (API output, e.g. `2026-03-08T10:00:00+00:00`)
     - Legacy flat timestamps (e.g. `2026-03-08 10:00:00`)
+
+    Args:
+        value: Raw timestamp value from project insight payloads.
+
+    Returns:
+        A parsed datetime object, or ``None`` when parsing fails.
     """
     if not isinstance(value, str):
         return None
@@ -62,6 +69,13 @@ def _iter_file_nodes(node: Dict[str, Any], prefix: str = "") -> Iterable[Tuple[s
 
     The hierarchy payload is nested. This helper flattens it so activity
     classification can operate on individual files.
+
+    Args:
+        node: Current hierarchy node from project insight payload.
+        prefix: Path prefix accumulated from parent nodes.
+
+    Returns:
+        An iterator of ``(path, node)`` tuples for file-like nodes.
     """
     name = str(node.get("name", "") or "")
     current = f"{prefix}/{name}" if prefix else name
@@ -84,6 +98,13 @@ def _classify_activity(path: str, node: Dict[str, Any]) -> str:
     3) document hints
     4) code extensions/types
     5) fallback to `other`
+
+    Args:
+        path: File path used for hint/extension checks.
+        node: File node payload containing optional type metadata.
+
+    Returns:
+        One of ``code/test/design/document/other``.
     """
     lower_path = path.lower()
     ext = Path(lower_path).suffix
@@ -106,6 +127,12 @@ def _project_score(project: Dict[str, Any]) -> float:
     Weighting keeps contribution volume as the dominant factor while still
     rewarding contribution share and skill breadth:
     ``score = (top_count * 100) + top_pct + (skill_count * 3)``
+
+    Args:
+        project: Project insight record.
+
+    Returns:
+        A numeric ranking score used for sorting top projects.
     """
     stats = project.get("stats") or {}
     top_count = int(stats.get("top_contribution_count") or 0)
@@ -123,7 +150,6 @@ def _load_projects() -> Tuple[List[Dict[str, Any]], str]:
             - projects payload
             - source label (`API`, `local file`, or `none`)
     """
-    # Primary path: live API for latest project insights.
     try:
         resp = requests.get(f"{API_BASE}/insights/projects", timeout=8)
         if resp.ok and isinstance(resp.json(), list):
@@ -131,7 +157,6 @@ def _load_projects() -> Tuple[List[Dict[str, Any]], str]:
     except requests.RequestException:
         pass
 
-    # Fallback path: local persisted insights for offline usage.
     if PROJECT_INSIGHTS_PATH.exists():
         try:
             payload = json.loads(PROJECT_INSIGHTS_PATH.read_text(encoding="utf-8"))
@@ -148,6 +173,12 @@ def _build_skills_project_timeline(projects: List[Dict[str, Any]]) -> pd.DataFra
 
     Each row represents one analyzed project at one date with the number of
     extracted skills.
+
+    Args:
+        projects: List of project insight records.
+
+    Returns:
+        A dataframe with ``date``, ``project_name``, and ``skill_count`` columns.
     """
     rows: List[Dict[str, Any]] = []
     for project in projects:
@@ -174,6 +205,12 @@ def _build_skill_frequency_timeline(projects: List[Dict[str, Any]]) -> pd.DataFr
     - index: month (`YYYY-MM`)
     - columns: skill names
     - values: occurrence count across projects in that month
+
+    Args:
+        projects: List of project insight records.
+
+    Returns:
+        A month-by-skill pivot dataframe.
     """
     rows: List[Dict[str, Any]] = []
     for project in projects:
@@ -197,6 +234,12 @@ def _build_activity_heatmap(projects: List[Dict[str, Any]]) -> pd.DataFrame:
 
     For each project, file nodes are bucketed into:
     ``code/test/design/document/other`` and aggregated by analyzed month.
+
+    Args:
+        projects: List of project insight records.
+
+    Returns:
+        An activity-by-month pivot dataframe.
     """
     rows: List[Dict[str, Any]] = []
     for project in projects:
@@ -222,7 +265,14 @@ def _build_activity_heatmap(projects: List[Dict[str, Any]]) -> pd.DataFrame:
 
 
 def _render_top_projects(projects: List[Dict[str, Any]]) -> None:
-    """Render top-3 project cards using contribution-based ranking."""
+    """Render top-3 project cards using contribution-based ranking.
+
+    Args:
+        projects: List of project insight records.
+
+    Returns:
+        None. Renders Streamlit components directly.
+    """
     ranked = sorted(projects, key=_project_score, reverse=True)[:3]
     st.subheader("Top 3 Projects")
     if not ranked:
@@ -249,17 +299,35 @@ def render_page() -> None:
     """Render the dashboard page.
 
     Public mode stays read-only. Private mode enables skill selection controls.
+
+    Returns:
+        None. Renders dashboard sections directly.
     """
-    mode = render_mode_sidebar()
+    mode = render_page_header(
+        "Dashboard",
+        "Timeline of skills, activity heatmap, and top project highlights.",
+    )
+    st.markdown(
+        """
+        <div class="page-hero">
+            <h3>Dashboard Workspace</h3>
+            <p>Track skill growth, activity volume, and top project impact from analyzed insights.</p>
+            <div class="page-chip-row">
+                <span class="page-chip">Timeline</span>
+                <span class="page-chip">Heatmap</span>
+                <span class="page-chip">Top Projects</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     projects, source = _load_projects()
-    st.subheader("Dashboard")
-    st.caption(f"Data source: {source} | Mode: {mode}")
+    st.caption(f"Data source: {source}")
 
     if not projects:
         st.warning("No project insights found. Analyze at least one project to populate the dashboard.")
         return
 
-    # Headline metrics for quick portfolio health checks.
     project_count = len(projects)
     unique_skills = sorted({s for p in projects for s in (p.get("skills") or [])})
     parsed_dts = [dt for p in projects if (dt := _parse_dt(p.get("analyzed_at"))) is not None]
@@ -270,39 +338,38 @@ def render_page() -> None:
     m2.metric("Unique Skills", f"{len(unique_skills)}")
     m3.metric("Latest Analysis", latest_dt.strftime("%Y-%m-%d") if latest_dt else "Unknown")
 
-    # Timeline 1: project-level skill count progression.
-    st.markdown("### Skills Timeline")
-    project_timeline = _build_skills_project_timeline(projects)
-    if project_timeline.empty:
-        st.info("No timestamped skill data is available yet.")
-    else:
-        st.line_chart(project_timeline.set_index("date")["skill_count"], height=250)
+    with st.container(border=True):
+        st.markdown("<p class='section-title'>Skills Timeline</p>", unsafe_allow_html=True)
+        project_timeline = _build_skills_project_timeline(projects)
+        if project_timeline.empty:
+            st.info("No timestamped skill data is available yet.")
+        else:
+            st.line_chart(project_timeline.set_index("date")["skill_count"], height=250)
 
-        # Timeline 2: skill-level occurrence trends across months.
-        skill_timeline = _build_skill_frequency_timeline(projects)
-        if not skill_timeline.empty:
-            candidates = sorted(skill_timeline.columns.tolist())
-            if mode == "Public":
-                selected = candidates[: min(5, len(candidates))]
-                if selected:
-                    st.area_chart(skill_timeline[selected], height=260)
-                st.caption("Public mode: fixed read-only skill view.")
-            else:
-                selected = st.multiselect(
-                    "Skills to track over time",
-                    options=candidates,
-                    default=candidates[: min(5, len(candidates))],
-                )
-                if selected:
-                    st.area_chart(skill_timeline[selected], height=260)
+            skill_timeline = _build_skill_frequency_timeline(projects)
+            if not skill_timeline.empty:
+                candidates = sorted(skill_timeline.columns.tolist())
+                if mode == "Public":
+                    selected = candidates[: min(5, len(candidates))]
+                    if selected:
+                        st.area_chart(skill_timeline[selected], height=260)
+                    st.caption("Public mode: fixed read-only skill view.")
+                else:
+                    selected = st.multiselect(
+                        "Skills to track over time",
+                        options=candidates,
+                        default=candidates[: min(5, len(candidates))],
+                    )
+                    if selected:
+                        st.area_chart(skill_timeline[selected], height=260)
 
-    # Heatmap matrix shows activity mix changes over time.
-    st.markdown("### Activity Heatmap")
-    heatmap = _build_activity_heatmap(projects)
-    if heatmap.empty:
-        st.info("No hierarchy data is available for heatmap rendering.")
-    else:
-        st.dataframe(heatmap, use_container_width=True)
+    with st.container(border=True):
+        st.markdown("<p class='section-title'>Activity Heatmap</p>", unsafe_allow_html=True)
+        heatmap = _build_activity_heatmap(projects)
+        if heatmap.empty:
+            st.info("No hierarchy data is available for heatmap rendering.")
+        else:
+            st.dataframe(heatmap, use_container_width=True)
 
     _render_top_projects(projects)
 
