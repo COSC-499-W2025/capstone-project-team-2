@@ -41,6 +41,7 @@ from src.reporting.portfolio_service import (
     save_project_role_override,
 )
 from src.core.app_context import runtimeAppContext
+from src.reporting.Generate_Resume_AI_Ver2 import GenerateResumeAI_Ver2
 
 RENDERED_OUTPUTS_DIR = Path(__file__).resolve().parents[2] / "User_config_files" / "Generate_render_CV_files" / "rendered_outputs"
 
@@ -530,8 +531,6 @@ def add_project_ai(portfolio_id: str, project_name: str):
         HTTPException: 400 if AI generation fails or returns no data.
         HTTPException: 500 if an unexpected error occurs.
     """
-    from src.reporting.Generate_Resume_AI_Ver2 import GenerateResumeAI_Ver2
-
     doc = _load_portfolio(portfolio_id)
 
     generator = GenerateResumeAI_Ver2(project_name)

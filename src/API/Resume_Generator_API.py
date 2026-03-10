@@ -42,6 +42,7 @@ from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
     Connections,
 )
 from src.core.app_context import runtimeAppContext
+from src.reporting.Generate_Resume_AI_Ver2 import GenerateResumeAI_Ver2
 
 RENDERED_OUTPUTS_DIR = Path(__file__).resolve().parents[2] / "User_config_files" / "Generate_render_CV_files" / "rendered_outputs"
 
@@ -564,9 +565,9 @@ def add_project_manual(id: str, payload: ManualProjectRequest):
     )
     try:
         result = _check_result(doc.add_project(proj))
+    except HTTPException:
+        raise
     except Exception as e:
-        if isinstance(e, HTTPException):
-            raise
         raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
     return {"status": result}
 
@@ -622,9 +623,9 @@ def add_project(id: str, project_name: str, payload: Optional[ProjectRequest] = 
     )
     try:
         result = _check_result(doc.add_project(proj))
+    except HTTPException:
+        raise
     except Exception as e:
-        if isinstance(e, HTTPException):
-            raise
         raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
     return {"status": result}
 
@@ -648,8 +649,6 @@ def add_project_ai(id: str, project_name: str):
         HTTPException: 400 if AI generation fails or returns no data.
         HTTPException: 500 if an unexpected error occurs.
     """
-    from src.reporting.Generate_Resume_AI_Ver2 import GenerateResumeAI_Ver2
-
     doc = _load_resume(id)
 
     generator = GenerateResumeAI_Ver2(project_name)
@@ -675,9 +674,9 @@ def add_project_ai(id: str, project_name: str):
     )
     try:
         result = _check_result(doc.add_project(proj))
+    except HTTPException:
+        raise
     except Exception as e:
-        if isinstance(e, HTTPException):
-            raise
         raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
     return {"status": result}
 
