@@ -642,7 +642,7 @@ class TestSkillEndpoints(_BasePortfolioTest):
         self.assertEqual(resp.status_code, 404)
 
 
-AI_PATCH = "src.reporting.Generate_Resume_AI_Ver2.GenerateResumeAI_Ver2"
+AI_PATCH = "src.API.Portfolio_Generator_API.GenerateResumeAI_Ver2"
 
 
 class TestAddProjectAI(_BasePortfolioTest):
