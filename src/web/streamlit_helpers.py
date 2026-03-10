@@ -264,15 +264,18 @@ def add_project_section(doc_id, endpoint_prefix, invalidate_fn):
                         st.markdown(f"- {h}")
         st.caption("AI analysis will use Gemini to generate a polished resume entry from the project data.")
         if st.button("Generate & Add with AI", type="primary", icon=":material/auto_awesome:", key=f"proj_ai_btn_{endpoint_prefix}"):
-            with st.spinner("Generating AI resume entry..."):
-                res = requests.post(f"{API_BASE}/{endpoint_prefix}/{doc_id}/add/project/{selected}/ai", timeout=60)
-            if res.ok:
-                invalidate_fn()
-                st.session_state.pop("projects_cache", None)
-                st.session_state["_flash_success"] = res.json().get("status", "Project added with AI analysis.")
-                st.rerun()
-            else:
-                st.error(api_error(res))
+            try:
+                with st.spinner("Generating AI resume entry..."):
+                    res = requests.post(f"{API_BASE}/{endpoint_prefix}/{doc_id}/add/project/{selected}/ai", timeout=60)
+                if res.ok:
+                    invalidate_fn()
+                    st.session_state.pop("projects_cache", None)
+                    st.session_state["_flash_success"] = res.json().get("status", "Project added with AI analysis.")
+                    st.rerun()
+                else:
+                    st.error(api_error(res))
+            except requests.RequestException as e:
+                st.error(f"Could not reach the API server: {e}")
 
     elif mode == "📂 From Analyzed Project":
         projects = fetch_projects()
@@ -677,12 +680,13 @@ def remove_experience_section(doc_id, rd, invalidate_fn):
             st.error(api_error(res))
 
 
-def remove_project_by_name(doc_id, rd, invalidate_fn):
-    """Render a UI to select and remove a project entry from a resume.
+def remove_project_by_name(doc_id, rd, endpoint_prefix, invalidate_fn):
+    """Render a UI to select and remove a project entry from a document.
 
     Args:
-        doc_id: The resume identifier (name + UUID suffix)
-        rd: The full resume data dict (must contain a "projects" key)
+        doc_id: The document identifier (name + UUID suffix)
+        rd: The full document data dict (must contain a "projects" key)
+        endpoint_prefix: The API route prefix (e.g. "resume" or "portfolio")
         invalidate_fn: Callback to clear cached document data after a successful removal
 
     Returns:
@@ -693,9 +697,9 @@ def remove_project_by_name(doc_id, rd, invalidate_fn):
         st.info("No project entries to remove.")
         return
     names = [e.get("name", "") for e in entries if e.get("name")]
-    selected = st.selectbox("Select project to remove", names, key="proj_remove_sel")
-    if st.button(f"Remove {selected}", type="primary", icon=":material/delete:", key="proj_remove_btn"):
-        res = requests.delete(f"{API_BASE}/resume/{doc_id}/project/{selected}", timeout=10)
+    selected = st.selectbox("Select project to remove", names, key=f"proj_remove_sel_{endpoint_prefix}")
+    if st.button(f"Remove {selected}", type="primary", icon=":material/delete:", key=f"proj_remove_btn_{endpoint_prefix}"):
+        res = requests.delete(f"{API_BASE}/{endpoint_prefix}/{doc_id}/project/{selected}", timeout=10)
         if res.ok:
             invalidate_fn()
             st.session_state["_flash_success"] = f"Removed **{selected}**."
@@ -704,17 +708,18 @@ def remove_project_by_name(doc_id, rd, invalidate_fn):
             st.error(api_error(res))
 
 
-def add_skill_section(doc_id, invalidate_fn):
-    """Render a form to add a new skill category to a resume via the API.
+def add_skill_section(doc_id, endpoint_prefix, invalidate_fn):
+    """Render a form to add a new skill category to a document via the API.
 
     Args:
-        doc_id: The resume identifier (name + UUID suffix)
+        doc_id: The document identifier (name + UUID suffix)
+        endpoint_prefix: The API route prefix (e.g. "resume" or "portfolio")
         invalidate_fn: Callback to clear cached document data after a successful add
 
     Returns:
         None: Renders Streamlit UI components directly
     """
-    with st.form("add_skill_form", clear_on_submit=True):
+    with st.form(f"add_skill_form_{endpoint_prefix}", clear_on_submit=True):
         label = st.text_input("Skill Category *", placeholder="e.g., Languages")
         details = st.text_input("Details *", placeholder="e.g., Python, Java, C++")
         if st.form_submit_button("Add Skill", type="primary", icon=":material/add:"):
@@ -724,7 +729,7 @@ def add_skill_section(doc_id, invalidate_fn):
                 st.warning("Details are required.", icon=":material/warning:")
             else:
                 payload = {"label": label.strip(), "details": details.strip()}
-                res = requests.post(f"{API_BASE}/resume/{doc_id}/add/skill", json=payload, timeout=15)
+                res = requests.post(f"{API_BASE}/{endpoint_prefix}/{doc_id}/add/skill", json=payload, timeout=15)
                 if res.ok:
                     invalidate_fn()
                     st.session_state["_flash_success"] = "Skill category added."
@@ -763,12 +768,13 @@ def modify_skill_section(doc_id, rd, endpoint_prefix, invalidate_fn):
                           invalidate_fn, f"Updated **{selected}**.")
 
 
-def remove_skill_section(doc_id, rd, invalidate_fn):
-    """Render a UI to select and remove a skill category from a resume.
+def remove_skill_section(doc_id, rd, endpoint_prefix, invalidate_fn):
+    """Render a UI to select and remove a skill category from a document.
 
     Args:
-        doc_id: The resume identifier (name + UUID suffix)
-        rd: The full resume data dict (must contain a "skills" key)
+        doc_id: The document identifier (name + UUID suffix)
+        rd: The full document data dict (must contain a "skills" key)
+        endpoint_prefix: The API route prefix (e.g. "resume" or "portfolio")
         invalidate_fn: Callback to clear cached document data after a successful removal
 
     Returns:
@@ -779,9 +785,9 @@ def remove_skill_section(doc_id, rd, invalidate_fn):
         st.info("No skill entries to remove.")
         return
     labels = [e.get("label", "") for e in entries if e.get("label")]
-    selected = st.selectbox("Select skill to remove", labels, key="skill_remove_sel")
-    if st.button(f"Remove {selected}", type="primary", icon=":material/delete:", key="skill_remove_btn"):
-        res = requests.delete(f"{API_BASE}/resume/{doc_id}/skill/{selected}", timeout=10)
+    selected = st.selectbox("Select skill to remove", labels, key=f"skill_remove_sel_{endpoint_prefix}")
+    if st.button(f"Remove {selected}", type="primary", icon=":material/delete:", key=f"skill_remove_btn_{endpoint_prefix}"):
+        res = requests.delete(f"{API_BASE}/{endpoint_prefix}/{doc_id}/skill/{selected}", timeout=10)
         if res.ok:
             invalidate_fn()
             st.session_state["_flash_success"] = f"Removed **{selected}**."

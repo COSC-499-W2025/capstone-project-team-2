@@ -180,7 +180,7 @@ def resume_tab():
 
         if section == "✏️ Edit":
             category = st.selectbox("Select category",
-                                    ["Contact Info", "Summary", "Theme", "Education", "Experience","Skills", "Connections"],
+                                    ["Contact Info", "Summary", "Theme", "Education", "Experience", "Skills", "Connections"],
                                     key="resume_edit_cat")
             if category == "Contact Info":
                 edit_contact_section(resume_id, rd, "resume", invalidate)
@@ -214,15 +214,15 @@ def resume_tab():
                 skill_action = st.segmented_control("Action", ["➕ Add Skill", "✏️ Modify Skill", "🗑️ Remove Skill"],
                                                      label_visibility="hidden", key="resume_skill_action")
                 if skill_action == "➕ Add Skill":
-                    add_skill_section(resume_id, invalidate)
+                    add_skill_section(resume_id, "resume", invalidate)
                 elif skill_action == "✏️ Modify Skill":
                     modify_skill_section(resume_id, rd, "resume", invalidate)
                 elif skill_action == "🗑️ Remove Skill":
-                    remove_skill_section(resume_id, rd, invalidate)
+                    remove_skill_section(resume_id, rd, "resume", invalidate)
             elif category == "Connections":
                 edit_connections_section(resume_id, rd, "resume", invalidate)
         elif section == "📊 Projects":
-            action = st.segmented_control("Action", ["➕ Add Project", "✏️ Modify Project",  "🗑️ Remove Project"],
+            action = st.segmented_control("Action", ["➕ Add Project", "✏️ Modify Project", "🗑️ Remove Project"],
                                           label_visibility="hidden", key="resume_proj_action")
             if action == "➕ Add Project":
                 add_project_section(resume_id, "resume", invalidate)
@@ -230,8 +230,8 @@ def resume_tab():
                 modify_entries_section(resume_id, rd, "projects", "name",
                                       ["summary", "highlights", "start_date", "end_date", "location", "name"],
                                       "resume", invalidate)
-            elif action  =="🗑️ Remove Project":
-                remove_project_by_name(resume_id, rd, invalidate)
+            elif action == "🗑️ Remove Project":
+                remove_project_by_name(resume_id, rd, "resume", invalidate)
 
         elif section == "⬇️ Download":
             download_section(resume_id, "resume", "resume_dl")
