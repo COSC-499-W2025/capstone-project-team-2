@@ -190,6 +190,15 @@ export function updateConfig(payload) {
  * @param {string} theme
  * @returns {Promise<any>}
  */
+/**
+ * Fetches all saved resume IDs and display names.
+ *
+ * @returns {Promise<Array<{id: string, name: string}>>}
+ */
+export function fetchResumes() {
+  return request("/resumes");
+}
+
 export function generateResume(name, theme) {
   return request("/resume/generate", {
     method: "POST",
@@ -256,6 +265,17 @@ export function addResumeProject(id, projectName, payload) {
  * @param {Record<string, any>} payload
  * @returns {Promise<any>}
  */
+/**
+ * Adds an analyzed project to a resume using AI-generated content.
+ *
+ * @param {string} id
+ * @param {string} projectName
+ * @returns {Promise<any>}
+ */
+export function addResumeProjectAI(id, projectName) {
+  return request(`/resume/${encodeURIComponent(id)}/add/project/${encodeURIComponent(projectName)}/ai`, { method: "POST" });
+}
+
 export function addResumeEducation(id, payload) {
   return request(`/resume/${encodeURIComponent(id)}/add/education`, {
     method: "POST",
@@ -323,6 +343,15 @@ export function renderResume(id, format) {
  * @param {string} theme
  * @returns {Promise<any>}
  */
+/**
+ * Fetches all saved portfolio IDs and display names.
+ *
+ * @returns {Promise<Array<{id: string, name: string}>>}
+ */
+export function fetchPortfolios() {
+  return request("/portfolios");
+}
+
 export function generatePortfolio(name, theme) {
   return request("/portfolio/generate", {
     method: "POST",
@@ -389,6 +418,17 @@ export function addPortfolioProject(id, projectName, payload) {
  * @param {string} format
  * @returns {Promise<Blob>}
  */
+/**
+ * Adds an analyzed project to a portfolio using AI-generated content.
+ *
+ * @param {string} id
+ * @param {string} projectName
+ * @returns {Promise<any>}
+ */
+export function addPortfolioProjectAI(id, projectName) {
+  return request(`/portfolio/${encodeURIComponent(id)}/add/project/${encodeURIComponent(projectName)}/ai`, { method: "POST" });
+}
+
 export function renderPortfolio(id, format) {
   return request(`/portfolio/${encodeURIComponent(id)}/render/${format}`, { method: "POST" }, "blob");
 }
@@ -400,6 +440,12 @@ export function renderPortfolio(id, format) {
  * @param {string} projectName
  * @returns {Promise<any>}
  */
+export function removeResumeProject(id, projectName) {
+  return request(`/resume/${encodeURIComponent(id)}/project/${encodeURIComponent(projectName)}`, {
+    method: "DELETE"
+  });
+}
+
 export function removePortfolioProject(id, projectName) {
   return request(`/portfolio/${encodeURIComponent(id)}/project/${encodeURIComponent(projectName)}`, {
     method: "DELETE"
