@@ -36,7 +36,13 @@ import {
   removeResumeEducation,
   removeResumeExperience,
   renderPortfolio,
-  renderResume
+  renderResume,
+  addResumeSkill,
+  appendResumeSkill,
+  removeResumeSkill,
+  addPortfolioSkill,
+  appendPortfolioSkill,
+  removePortfolioSkill
 } from "../../lib/api";
 
 /**
@@ -755,6 +761,177 @@ function ResumeEducationExperience({ doc, onAddEducation, onRemoveEducation, onA
 }
 
 /**
+ * Skills CRUD panel for adding, appending to, and removing skill categories.
+ *
+ * @param {{
+ *   doc: any,
+ *   onAddSkill: (payload: { label: string, details: string }) => void,
+ *   onAppendSkill: (label: string, details: string) => void,
+ *   onRemoveSkill: (label: string) => void
+ * }} props
+ * @returns {JSX.Element}
+ */
+function SkillsEditor({ doc, onAddSkill, onAppendSkill, onRemoveSkill, onApply }) {
+  const skills = Array.isArray(doc?.skills) ? doc.skills : [];
+  const labels = skills.map((s) => s.label).filter(Boolean);
+
+  const [action, setAction] = useState("add");
+  const [label, setLabel] = useState("");
+  const [details, setDetails] = useState("");
+  const [selectedLabel, setSelectedLabel] = useState(labels[0] || "");
+  const [appendDetails, setAppendDetails] = useState("");
+  const [modifyDetails, setModifyDetails] = useState("");
+
+  useEffect(() => {
+    setSelectedLabel(labels[0] || "");
+  }, [doc]);
+
+  useEffect(() => {
+    if (action === "modify") {
+      const current = skills.find((s) => s.label === selectedLabel);
+      setModifyDetails(current?.details || "");
+    }
+  }, [selectedLabel, action]);
+
+  return (
+    <div className="form-stack">
+      <LiquidSegmentedControl
+        value={action}
+        onChange={setAction}
+        options={[
+          { value: "add", label: "Add" },
+          { value: "modify", label: "Modify" },
+          { value: "append", label: "Append" },
+          { value: "remove", label: "Remove" },
+        ]}
+      />
+
+      {action === "add" && (
+        <>
+          <label>
+            Category label
+            <input value={label} placeholder="e.g., Languages" onChange={(e) => setLabel(e.target.value)} />
+          </label>
+          <label>
+            Skills (comma-separated)
+            <input value={details} placeholder="e.g., Python, Java, C++" onChange={(e) => setDetails(e.target.value)} />
+          </label>
+          <button
+            type="button"
+            className="liquid-btn solid"
+            onClick={() => { onAddSkill({ label, details }); setLabel(""); setDetails(""); }}
+          >
+            Add Skill Category
+          </button>
+        </>
+      )}
+
+      {action === "modify" && (
+        <>
+          {labels.length ? (
+            <>
+              <label>
+                Category to modify
+                <select value={selectedLabel} onChange={(e) => setSelectedLabel(e.target.value)}>
+                  {labels.map((l) => <option key={l}>{l}</option>)}
+                </select>
+              </label>
+              <label>
+                Skills (comma-separated)
+                <input value={modifyDetails} placeholder="e.g., Python, Java, C++" onChange={(e) => setModifyDetails(e.target.value)} />
+              </label>
+              <button
+                type="button"
+                className="liquid-btn solid"
+                onClick={() => onApply([{ section: "skills", item_name: selectedLabel, field: "", new_value: modifyDetails }])}
+              >
+                Save {selectedLabel}
+              </button>
+            </>
+          ) : (
+            <p className="muted">No skill categories in this document yet.</p>
+          )}
+        </>
+      )}
+
+      {action === "append" && (
+        <>
+          {labels.length ? (
+            <>
+              <label>
+                Existing category
+                <select value={selectedLabel} onChange={(e) => setSelectedLabel(e.target.value)}>
+                  {labels.map((l) => <option key={l}>{l}</option>)}
+                </select>
+              </label>
+              {selectedLabel && (
+                <label>
+                  Current skills
+                  <input
+                    type="text"
+                    readOnly
+                    style={{ opacity: 0.6, cursor: "default" }}
+                    value={skills.find((s) => s.label === selectedLabel)?.details || ""}
+                  />
+                </label>
+              )}
+              <label>
+                Skills to append (comma-separated)
+                <input value={appendDetails} placeholder="e.g., Rust, TypeScript" onChange={(e) => setAppendDetails(e.target.value)} />
+              </label>
+              <button
+                type="button"
+                className="liquid-btn solid"
+                onClick={() => { onAppendSkill(selectedLabel, appendDetails); setAppendDetails(""); }}
+              >
+                Append to {selectedLabel}
+              </button>
+            </>
+          ) : (
+            <p className="muted">No skill categories in this document yet.</p>
+          )}
+        </>
+      )}
+
+      {action === "remove" && (
+        <>
+          {labels.length ? (
+            <>
+              <label>
+                Category to remove
+                <select value={selectedLabel} onChange={(e) => setSelectedLabel(e.target.value)}>
+                  {labels.map((l) => <option key={l}>{l}</option>)}
+                </select>
+              </label>
+              {selectedLabel && (
+                <label>
+                  Current skills
+                  <input
+                    type="text"
+                    readOnly
+                    style={{ opacity: 0.6, cursor: "default" }}
+                    value={skills.find((s) => s.label === selectedLabel)?.details || ""}
+                  />
+                </label>
+              )}
+              <button
+                type="button"
+                className="liquid-btn"
+                onClick={() => onRemoveSkill(selectedLabel)}
+              >
+                Remove {selectedLabel}
+              </button>
+            </>
+          ) : (
+            <p className="muted">No skill categories in this document yet.</p>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
  * Core workspace studio for one document kind (resume or portfolio).
  * Handles lifecycle actions, edits, project operations, and rendering.
  *
@@ -972,6 +1149,30 @@ function DocumentStudio({ kind, mode }) {
       if (isResume) await addResumeProjectAI(docId, projectName);
       else await addPortfolioProjectAI(docId, projectName);
     }, "Project added with AI.");
+  }
+
+  async function onAddSkill(payload) {
+    if (!docId) return;
+    await safeAction(async () => {
+      if (isResume) await addResumeSkill(docId, payload);
+      else await addPortfolioSkill(docId, payload);
+    }, "Skill category added.");
+  }
+
+  async function onAppendSkill(label, details) {
+    if (!docId) return;
+    await safeAction(async () => {
+      if (isResume) await appendResumeSkill(docId, label, details);
+      else await appendPortfolioSkill(docId, label, details);
+    }, "Skills appended.");
+  }
+
+  async function onRemoveSkill(label) {
+    if (!docId) return;
+    await safeAction(async () => {
+      if (isResume) await removeResumeSkill(docId, label);
+      else await removePortfolioSkill(docId, label);
+    }, "Skill category removed.");
   }
 
   /**
@@ -1236,6 +1437,7 @@ function DocumentStudio({ kind, mode }) {
                   { value: "summary", label: "Summary" },
                   { value: "theme", label: "Theme" },
                   { value: "connections", label: "Connections" },
+                  { value: "skills", label: "Skills" },
                   ...(isResume ? [{ value: "career", label: "Education + Experience" }] : [])
                 ]}
               />
@@ -1244,6 +1446,15 @@ function DocumentStudio({ kind, mode }) {
               {editCategory === "summary" ? <EditSummary doc={doc} onApply={onApplyEdits} /> : null}
               {editCategory === "theme" ? <EditTheme doc={doc} onApply={onApplyEdits} /> : null}
               {editCategory === "connections" ? <ConnectionsEditor doc={doc} onApply={onApplyEdits} /> : null}
+              {editCategory === "skills" ? (
+                <SkillsEditor
+                  doc={doc}
+                  onAddSkill={onAddSkill}
+                  onAppendSkill={onAppendSkill}
+                  onRemoveSkill={onRemoveSkill}
+                  onApply={onApplyEdits}
+                />
+              ) : null}
               {isResume && editCategory === "career" ? (
                 <ResumeEducationExperience
                   doc={doc}
