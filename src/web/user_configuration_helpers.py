@@ -1,10 +1,20 @@
-"""Helper functions for user-configuration Streamlit page."""
+"""Helper functions for User Configuration frontend workflows.
+
+Design intent:
+- Keep page files focused on rendering.
+- Centralize config/consent request logic here.
+- Provide small pure helpers for extracting values from config payloads.
+"""
 
 from typing import Callable
 
 import requests
 
 from src.web.streamlit_helpers import API_BASE, api_error
+
+# ---------------------------------------------------------------------------
+# Read helpers
+# ---------------------------------------------------------------------------
 
 
 def fetch_config(on_error: Callable[[str], None] | None = None) -> dict:
@@ -17,6 +27,7 @@ def fetch_config(on_error: Callable[[str], None] | None = None) -> dict:
         dict: Loaded configuration data, or empty dict on failure.
     """
     try:
+        # Single source endpoint used by configuration page initialization.
         response = requests.get(f"{API_BASE}/config/get", timeout=10)
     except requests.ConnectionError:
         if on_error:
@@ -29,6 +40,7 @@ def fetch_config(on_error: Callable[[str], None] | None = None) -> dict:
         return {}
 
     payload = response.json()
+    # Defensive type check: backend is expected to return an object/dict.
     return payload if isinstance(payload, dict) else {}
 
 
@@ -41,6 +53,7 @@ def current_name(config: dict) -> str:
     Returns:
         str: Combined first and last name.
     """
+    # API stores names as separate keys; UI displays a single combined field.
     first = str(config.get("First Name", "")).strip()
     last = str(config.get("Last Name", "")).strip()
     return " ".join(part for part in [first, last] if part)
@@ -78,6 +91,10 @@ def current_external_consent(config: dict) -> str:
             return "Do not allow"
     return "Not set"
 
+# ---------------------------------------------------------------------------
+# Write helper
+# ---------------------------------------------------------------------------
+
 
 def save_user_configuration(
     base_config: dict,
@@ -100,6 +117,7 @@ def save_user_configuration(
     """
     external_allowed = external_choice == "Allow"
 
+    # 1) Persist privacy consent first because this is a hard requirement.
     consent_response = requests.post(
         f"{API_BASE}/privacy-consent",
         json={"data_consent": True, "external_consent": external_allowed},
@@ -111,6 +129,7 @@ def save_user_configuration(
         return False
 
     updated_config = dict(base_config)
+    # Mirror consent state into full config payload for consistency.
     updated_config["consented"] = {
         "external": external_allowed,
         "Data consent": True,
@@ -118,17 +137,20 @@ def save_user_configuration(
 
     cleaned_name = full_name.strip()
     if cleaned_name:
+        # Keep backward-compatible split keys expected by existing templates/API.
         parts = cleaned_name.split()
         updated_config["First Name"] = parts[0]
         updated_config["Last Name"] = " ".join(parts[1:]) if len(parts) > 1 else ""
 
     if selected_theme != "No change":
+        # Update nested preferences map while preserving other preference keys.
         preferences = updated_config.get("Preferences")
         if not isinstance(preferences, dict):
             preferences = {}
         preferences["theme"] = selected_theme
         updated_config["Preferences"] = preferences
 
+    # 2) Persist full updated config object.
     config_response = requests.post(
         f"{API_BASE}/config/update",
         json=updated_config,
