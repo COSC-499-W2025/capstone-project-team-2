@@ -26,6 +26,8 @@ Endpoints:
     DELETE /portfolio/{id}                                - Delete the portfolio YAML file entirely
 """
 
+import re
+import pendulum
 from typing import Any, Optional, List
 from pathlib import Path
 import uuid
@@ -41,6 +43,7 @@ from src.reporting.portfolio_service import (
     save_project_role_override,
 )
 from src.core.app_context import runtimeAppContext
+from src.reporting.Generate_Resume_AI_Ver2 import GenerateResumeAI_Ver2
 
 RENDERED_OUTPUTS_DIR = Path(__file__).resolve().parents[2] / "User_config_files" / "Generate_render_CV_files" / "rendered_outputs"
 
@@ -270,6 +273,31 @@ def get_portfolio_showcase_role(project_name: str):
     return {"project_name": project_name, "role": role}
 
 
+@portfolioRouter.get("/portfolios")
+def list_portfolios():
+    """List all saved portfolio IDs, display names, and creation dates.
+
+    Returns:
+        list[dict]: Each entry has 'id', 'name', and 'created_at' (ISO string or None).
+    """
+    import ruamel.yaml as _yaml
+    cv_dir = Path(__file__).resolve().parents[2] / "User_config_files" / "Generate_render_CV_files"
+    results = []
+    y = _yaml.YAML()
+    for yaml_file in sorted(cv_dir.glob("*_Portfolio_CV.yaml")):
+        portfolio_id = yaml_file.stem.replace("_Portfolio_CV", "")
+        display_name = re.sub(r'_[0-9a-f]{8}$', '', portfolio_id).replace("_", " ")
+        created_at = None
+        try:
+            with open(yaml_file, "r") as f:
+                data = y.load(f)
+            created_at = data.get("created_at")
+        except Exception:
+            pass
+        results.append({"id": portfolio_id, "name": display_name, "created_at": created_at})
+    return results
+
+
 @portfolioRouter.post("/portfolio/generate")
 def generate_portfolio(payload: GeneratePortfolioRequest):
     """Create a new portfolio YAML document.
@@ -286,7 +314,7 @@ def generate_portfolio(payload: GeneratePortfolioRequest):
     """
     doc=RenderCVDocument(doc_type='portfolio')
     portfolio_id=str(uuid.uuid4())[:8]
-    full_name=f"{payload.name}_{portfolio_id}"
+    full_name=f"{payload.name.replace(' ', '_')}_{portfolio_id}"
     gen_result=doc.generate(name=full_name,overwrite=payload.overwrite)
     if gen_result=="Skipping generation":
         raise HTTPException(status_code=409,detail=f"Portfolio {full_name} already exists. Set overwrite=true to replace it")
@@ -298,6 +326,10 @@ def generate_portfolio(payload: GeneratePortfolioRequest):
             doc.update_theme(payload.theme)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
+
+    doc.data["created_at"] = pendulum.now("UTC").to_iso8601_string()
+    with open(doc.yaml_file, "w") as f:
+        doc.yaml.dump(doc.data, f)
 
     return {"portfolio_id": full_name, "status": "Portfolio created successfully"}
 
@@ -616,6 +648,57 @@ def export_portfolio_custom(portfolio_id: str, format: str, payload: SaveRequest
     shutil.rmtree(rendered_path.parent, True)
 
     return {"status": "Saved successfully", "path": str(dest)}
+
+
+@portfolioRouter.post("/portfolio/{portfolio_id}/add/project/{project_name}/ai")
+def add_project_ai(portfolio_id: str, project_name: str):
+    """Add a project entry to a portfolio using AI-generated content.
+
+    Fetches the project from the database, generates a polished entry
+    using Gemini AI, and adds it to the portfolio document.
+
+    Args:
+        portfolio_id: The portfolio identifier.
+        project_name: The name of the analysed project in the database.
+
+    Returns:
+        dict: {"status": str} confirming the project was added.
+
+    Raises:
+        HTTPException: 404 if the portfolio or project does not exist.
+        HTTPException: 400 if AI generation returned no data.
+        HTTPException: 500 if AI generation or save failed.
+    """
+    doc = _load_portfolio(portfolio_id)
+
+    generator = GenerateResumeAI_Ver2(project_name)
+    if not generator.project_exists:
+        raise HTTPException(status_code=404, detail=f"Project '{project_name}' not found in database")
+
+    try:
+        ai_entry = generator.generate_AI_Resume_entry()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI generation failed: {e}")
+
+    if ai_entry is None:
+        raise HTTPException(status_code=400, detail=f"AI generation returned no data for '{project_name}'")
+
+    summary = ai_entry.one_sentence_summary
+    if ai_entry.tech_stack:
+        summary = f"{summary} Tech stack: {ai_entry.tech_stack}"
+
+    proj = Project(
+        name=ai_entry.project_title,
+        summary=summary,
+        highlights=ai_entry.key_responsibilities,
+    )
+    try:
+        result = _check_result(doc.add_project(proj))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
+    return {"status": result}
 
 
 @portfolioRouter.delete("/portfolio/{portfolio_id}/project/{project_name}")
