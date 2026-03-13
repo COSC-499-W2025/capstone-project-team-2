@@ -24,7 +24,7 @@ test("formatExternalConsentLabel renders user-facing consent labels", () => {
 test("validateExternalConsentSelection requires an explicit consent choice", () => {
   assert.equal(
     validateExternalConsentSelection("unset"),
-    "Select an external tools consent option before saving."
+    "Please choose whether external tools are allowed."
   );
   assert.equal(validateExternalConsentSelection("allow"), "");
   assert.equal(validateExternalConsentSelection("deny"), "");

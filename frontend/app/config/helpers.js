@@ -13,7 +13,7 @@ export function formatExternalConsentLabel(state) {
 
 export function validateExternalConsentSelection(state) {
   if (state === "unset") {
-    return "Select an external tools consent option before saving.";
+    return "Please choose whether external tools are allowed.";
   }
   return "";
 }
