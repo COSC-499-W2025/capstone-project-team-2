@@ -1055,7 +1055,12 @@ function DocumentStudio({ kind, mode }) {
       const merged = [id, ...readRecentIds().filter((x) => x !== id)].slice(0, 10);
       saveRecentIds(merged);
       const listFn = isResume ? fetchResumes : fetchPortfolios;
-      listFn().then((d) => setSavedDocs(Array.isArray(d) ? d : [])).catch(() => {});
+      try {
+        const docs = await listFn();
+        setSavedDocs(Array.isArray(docs) ? docs : []);
+      } catch {
+        // non-critical — status card will show "—" if list fetch fails
+      }
     }, `${isResume ? "Resume" : "Portfolio"} created.`);
   }
 
