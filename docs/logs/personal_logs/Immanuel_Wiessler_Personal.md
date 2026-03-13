@@ -2043,10 +2043,14 @@ Following Week 23's work on skill management endpoints and the initial Streamlit
 ## 🚀 Work Completed
 
 ### Coding Tasks
-- Restored discoverable saved document selection in the workspace page by adding `GET /resumes` and `GET /portfolios` listing endpoints, `POST /resume/{id}/add/project/{name}/ai` and `POST /portfolio/{id}/add/project/{name}/ai` AI-powered project generation endpoints, document selection dropdowns, recent document tracking via localStorage, a SkillsEditor component, revamped education/experience editors, a Combobox for network selection with typeahead filtering, and a PDF theme preview modal ([PR #501](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/501))
+- Opened PR: [Add frontend API helpers and expand backend API test suite #524](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/524)
+- Opened PR: [Revamp workspace DocumentStudio and restore saved document selection (#498) #522](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/522)
+- Opened PR: [Add dark theme styles for alerts and selects #517](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/517)
 
 ### Testing/Debugging Tasks
-- Expanded unit tests covering all new listing endpoints, AI project generation, export behaviour, and consolidated manual project addition tests ([PR #501](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/501))
+- Expanded backend API test suite with ~350 lines of new pytest coverage across `test_resume_generator_API.py` and `test_portfolio_generator_API.py` (PR #524) — covering GET/POST endpoints, `.json` suffix normalization, duplicate experience 409 errors, and export validations
+- Validated dark mode alert variants (.error, .success, .warning) and form select dropdowns render correctly after styling changes (PR #517)
+- Tested saved document list refresh after removal, education/experience workflows, SkillsEditor operations, AI project addition button states, and PDF preview functionality in the revamped DocumentStudio (PR #522)
 
 ### Reviewing/Collaboration Tasks
 - Reviewed PR (1st reviewer): [Migrate Frontend from Streamlit to Next.js and Standardize Shared UI #495](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/495)
@@ -2063,9 +2067,11 @@ Following Week 23's work on skill management endpoints and the initial Streamlit
 
 | Task/Issue | Status |
 |------------|--------|
-| **Restore saved document selection & new endpoints (PR #501)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 | **Reviewed Migrate Frontend to Next.js PR (PR #495)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 | **Reviewed Revert Streamlit Overhaul PR (PR #497)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Add dark theme styles for alerts and selects (PR #517)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Add frontend API helpers and expand backend API test suite (PR #524)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Revamp workspace DocumentStudio and restore saved document selection (PR #522)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 
 ---
 
