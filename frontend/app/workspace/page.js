@@ -387,7 +387,7 @@ function ConnectionsEditor({ doc, onApply }) {
  * }} props
  * @returns {JSX.Element}
  */
-function ProjectEditor({ projects, docProjects, onAddProject, onAddProjectAI, onEditProject, onRemoveProject }) {
+function ProjectEditor({ projects, docProjects, onAddProject, onAddProjectAI, onEditProject, onRemoveProject, busy = false }) {
   const [aiLoading, setAiLoading] = useState(false);
   const [projectName, setProjectName] = useState(projects[0] || "");
   const [summary, setSummary] = useState("");
@@ -457,10 +457,10 @@ function ProjectEditor({ projects, docProjects, onAddProject, onAddProjectAI, on
             <input type="month" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
           </label>
           <div className="button-row">
-            <button type="button" className="liquid-btn solid" onClick={() => onAddProject(projectName, payload)}>
+            <button type="button" className="liquid-btn solid" disabled={busy || aiLoading} onClick={() => onAddProject(projectName, payload)}>
               Add Project
             </button>
-            <button type="button" className="liquid-btn solid" disabled={aiLoading} onClick={async () => { setAiLoading(true); try { await onAddProjectAI(projectName); } finally { setAiLoading(false); } }} title="Use Gemini AI to generate a polished project entry">
+            <button type="button" className="liquid-btn solid" disabled={busy || aiLoading} onClick={async () => { setAiLoading(true); try { await onAddProjectAI(projectName); } finally { setAiLoading(false); } }} title="Use Gemini AI to generate a polished project entry">
               {aiLoading ? "⏳ Generating..." : "✦ Add with AI"}
             </button>
           </div>
@@ -1485,6 +1485,7 @@ function DocumentStudio({ kind, mode }) {
               onAddProjectAI={onAddProjectAI}
               onEditProject={(projectName, field, value) => onApplyEdits([{ section: "projects", item_name: projectName, field, new_value: value }])}
               onRemoveProject={onRemoveProject}
+              busy={busy}
             />
           ) : null}
 
