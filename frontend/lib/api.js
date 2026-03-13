@@ -70,7 +70,9 @@ async function request(path, init = {}, expect = "json") {
         // Intentionally no-op: keep fallback message.
       }
     }
-    throw new Error(msg);
+    const err = new Error(msg);
+    err.status = response.status;
+    throw err;
   }
 
   if (expect === "blob") return response.blob();
@@ -259,13 +261,6 @@ export function addResumeProject(id, projectName, payload) {
 }
 
 /**
- * Adds a resume education entry.
- *
- * @param {string} id
- * @param {Record<string, any>} payload
- * @returns {Promise<any>}
- */
-/**
  * Adds an analyzed project to a resume using AI-generated content.
  *
  * @param {string} id
@@ -276,6 +271,13 @@ export function addResumeProjectAI(id, projectName) {
   return request(`/resume/${encodeURIComponent(id)}/add/project/${encodeURIComponent(projectName)}/ai`, { method: "POST" });
 }
 
+/**
+ * Adds a resume education entry.
+ *
+ * @param {string} id
+ * @param {Record<string, any>} payload
+ * @returns {Promise<any>}
+ */
 export function addResumeEducation(id, payload) {
   return request(`/resume/${encodeURIComponent(id)}/add/education`, {
     method: "POST",
