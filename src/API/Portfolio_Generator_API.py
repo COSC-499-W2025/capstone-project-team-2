@@ -28,6 +28,7 @@ Endpoints:
 
 import re
 import pendulum
+import ruamel.yaml as _yaml
 from typing import Any, Optional, List
 from pathlib import Path
 import uuid
@@ -137,7 +138,7 @@ class ManualProjectRequest(BaseModel):
     highlights: Optional[list[str]] = None
 
 
-class  skillRequest(BaseModel):
+class SkillRequest(BaseModel):
     """Payload for adding a new a skill"""
     model_config = ConfigDict(json_schema_extra={
         "example":{
@@ -204,7 +205,7 @@ def _load_portfolio(name:str) -> RenderCVDocument:
         doc.load(name=name)
 
     except FileNotFoundError:
-        raise HTTPException(status_code=404,detail=f"Portfolio '{name}' not found'")
+        raise HTTPException(status_code=404, detail=f"Portfolio '{name}' not found")
 
     return doc
 
@@ -220,7 +221,7 @@ def _check_result(result:str):
     Raises:
         HTTPException: 400 if the result does not indicate success.
     """
-    if "Successfully" not in result:
+    if "successfully" not in result.lower():
         raise HTTPException(status_code=400,detail=result)
     return result
 
@@ -280,7 +281,6 @@ def list_portfolios():
     Returns:
         list[dict]: Each entry has 'id', 'name', and 'created_at' (ISO string or None).
     """
-    import ruamel.yaml as _yaml
     cv_dir = Path(__file__).resolve().parents[2] / "User_config_files" / "Generate_render_CV_files"
     results = []
     y = _yaml.YAML()
@@ -413,7 +413,7 @@ def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
         section=edit.section.lower()
 
         if section=="summary":
-            result= doc.update_summary(str(edit.new_value))
+            result = _check_result(doc.update_summary(str(edit.new_value)))
 
         elif section=="contact":
             doc.update_contact(**{edit.field : edit.new_value})
@@ -426,10 +426,10 @@ def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
                 raise HTTPException(status_code=400, detail=str(e))
 
         elif section == "skills":
-            result=doc.modify_skill(edit.item_name, edit.new_value)
+            result = _check_result(doc.modify_skill(edit.item_name, edit.new_value))
 
         elif section == "projects":
-            result=doc.modify_project(edit.item_name, edit.field, edit.new_value)
+            result = _check_result(doc.modify_project(edit.item_name, edit.field, edit.new_value))
 
         elif section == "connections":
             if edit.field == "delete":
@@ -522,15 +522,15 @@ def add_project(portfolio_id: str, project_name: str, payload: Optional[ProjectR
     resume_item=project_data.get("resume_item",{}) if isinstance(project_data,dict) else {}
     if not resume_item:
         raise HTTPException(
-            status_code=404,
+            status_code=400,
             detail=f"Project record '{project_name}' has no resume_item data",
         )
 
     proj= Project(
         name=payload.name if payload and payload.name else resume_item.get("project_name",""),
-        start_date=payload.start_date if payload and payload.start_date else "2025-01",
-        end_date=payload.end_date if payload and payload.end_date else "2026-02",
-        location=payload.location if payload and payload.location else "N/A",
+        start_date=payload.start_date if payload and payload.start_date else resume_item.get("start_date", "2025-01"),
+        end_date=payload.end_date if payload and payload.end_date else resume_item.get("end_date", "2026-02"),
+        location=payload.location if payload and payload.location else resume_item.get("location", "N/A"),
         summary=payload.summary if payload and payload.summary else resume_item.get("summary"),
         highlights=payload.highlights if payload and payload.highlights else resume_item.get("highlights"),
     )
@@ -671,7 +671,11 @@ def add_project_ai(portfolio_id: str, project_name: str):
     """
     doc = _load_portfolio(portfolio_id)
 
-    generator = GenerateResumeAI_Ver2(project_name)
+    db_name = project_name
+    if not runtimeAppContext.store.project_exists(db_name) and not project_name.endswith(".json"):
+        db_name = f"{project_name}.json"
+
+    generator = GenerateResumeAI_Ver2(db_name)
     if not generator.project_exists:
         raise HTTPException(status_code=404, detail=f"Project '{project_name}' not found in database")
 
@@ -725,7 +729,7 @@ def remove_project(portfolio_id: str, project_name: str):
 
 
 @portfolioRouter.post("/portfolio/{portfolio_id}/add/skill")
-def add_skill(portfolio_id: str, payload:skillRequest):
+def add_skill(portfolio_id: str, payload: SkillRequest):
     """Add a new skill category entry to an existing portfolio.
 
         Args:

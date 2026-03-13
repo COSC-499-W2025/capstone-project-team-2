@@ -28,6 +28,7 @@ Endpoints:
 
 import re
 import pendulum
+import ruamel.yaml as _yaml
 from typing import Optional, List, Any
 from pathlib import Path
 import uuid
@@ -258,7 +259,6 @@ def list_resumes():
     Returns:
         list[dict]: Each entry has 'id', 'name', and 'created_at' (ISO string or None).
     """
-    import ruamel.yaml as _yaml
     cv_dir = Path(__file__).resolve().parents[2] / "User_config_files" / "Generate_render_CV_files"
     results = []
     y = _yaml.YAML()
