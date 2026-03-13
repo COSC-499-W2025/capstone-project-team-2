@@ -407,7 +407,7 @@ def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
     Section-specific notes:
         - summary: Only `new_value` is used; `item_name` and `field` are ignored.
         - contact: Use `field` to specify which contact field to update (e.g., email, phone).
-        - theme: Only `new_value` is used; valid themes are 'sb2nov', 'classic', 'moderncv', 'engineeringresumes'.
+        - theme: Only `new_value` is used; valid themes are 'sb2nov', 'classic', 'moderncv', 'engineeringresumes', 'engineeringclassic'.
         - skills: Use `item_name` to identify the skill to rename; `new_value` is the new skill name.
         - projects: Use `item_name` for the project name, `field` for the attribute to change.
         - connections: Use `item_name` for network name, `field="username"` to add/modify, `field="delete"` to remove.

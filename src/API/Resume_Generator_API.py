@@ -399,7 +399,7 @@ def edit_resume(id: str, payload: EditResumeRequest):
     Section-specific notes:
         - summary: Only `new_value` is used; `item_name` and `field` are ignored.
         - contact: Use `field` to specify which contact field to update (e.g., email, phone).
-        - theme: Only `new_value` is used; valid themes are 'sb2nov', 'classic', 'moderncv', 'engineeringresumes'.
+        - theme: Only `new_value` is used; valid themes are 'sb2nov', 'classic', 'moderncv', 'engineeringresumes', 'engineeringclassic'.
         - skills: Use `item_name` to identify the skill to rename; `new_value` is the new skill name.
         - experience: Use `item_name` for the job title, `field` for the attribute to change.
         - education: Use `item_name` for the degree name, `field` for the attribute to change.
