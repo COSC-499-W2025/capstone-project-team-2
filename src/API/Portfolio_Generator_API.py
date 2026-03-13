@@ -49,6 +49,7 @@ from src.reporting.Generate_Resume_AI_Ver2 import GenerateResumeAI_Ver2
 RENDERED_OUTPUTS_DIR = Path(__file__).resolve().parents[2] / "User_config_files" / "Generate_render_CV_files" / "rendered_outputs"
 
 ALLOWED_CONTACT_FIELDS = {"email", "phone", "location", "website", "name"}
+SKIPPING_GENERATION = "Skipping generation"
 
 portfolioRouter = APIRouter(tags=["Portfolio"])
 
@@ -318,7 +319,7 @@ def generate_portfolio(payload: GeneratePortfolioRequest):
     portfolio_id=str(uuid.uuid4())[:8]
     full_name=f"{payload.name.replace(' ', '_')}_{portfolio_id}"
     gen_result=doc.generate(name=full_name,overwrite=payload.overwrite)
-    if gen_result=="Skipping generation":
+    if gen_result == SKIPPING_GENERATION:
         raise HTTPException(status_code=409,detail=f"Portfolio {full_name} already exists. Set overwrite=true to replace it")
 
     doc.load(name=full_name)
@@ -431,7 +432,7 @@ def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
 
         elif section == "theme":
             try:
-                result=doc.update_theme(str(edit.new_value))
+                result = _check_result(doc.update_theme(str(edit.new_value)))
             except ValueError as e:
                 raise HTTPException(status_code=400, detail=str(e))
 

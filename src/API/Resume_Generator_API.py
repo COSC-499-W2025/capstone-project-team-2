@@ -53,6 +53,7 @@ RENDERED_OUTPUTS_DIR = Path(__file__).resolve().parents[2] / "User_config_files"
 resumeRouter = APIRouter(tags=["Resume"])
 
 ALLOWED_CONTACT_FIELDS = {"email", "phone", "location", "website", "name"}
+SKIPPING_GENERATION = "Skipping generation"
 
 
 class GenerateResumeRequest(BaseModel):
@@ -300,7 +301,7 @@ def generate_resume(payload: GenerateResumeRequest):
 
     gen_result = doc.generate(name=full_name, overwrite=payload.overwrite)
 
-    if gen_result == "Skipping generation":
+    if gen_result == SKIPPING_GENERATION:
         raise HTTPException(status_code=409,
                             detail=f"Resume '{payload.name}' already exists. Set overwrite=true to replace it.",
                             )
