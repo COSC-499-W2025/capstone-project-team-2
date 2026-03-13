@@ -767,7 +767,8 @@ function ResumeEducationExperience({ doc, onAddEducation, onRemoveEducation, onA
  *   doc: any,
  *   onAddSkill: (payload: { label: string, details: string }) => void,
  *   onAppendSkill: (label: string, details: string) => void,
- *   onRemoveSkill: (label: string) => void
+ *   onRemoveSkill: (label: string) => void,
+ *   onApply: (edits: any[]) => void
  * }} props
  * @returns {JSX.Element}
  */
@@ -1084,6 +1085,8 @@ function DocumentStudio({ kind, mode }) {
       saveRecentIds(existing.filter((x) => x !== id.trim()));
       if (wasRecent) {
         setMessage("Removed stale document ID.");
+        const listFn = isResume ? fetchResumes : fetchPortfolios;
+        listFn().then((d) => setSavedDocs(Array.isArray(d) ? d : [])).catch(() => {});
       } else {
         setError(err.message || "Request failed.");
       }

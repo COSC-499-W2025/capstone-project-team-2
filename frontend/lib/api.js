@@ -184,13 +184,6 @@ export function updateConfig(payload) {
 }
 
 /**
- * Generates a resume document for a given person/theme.
- *
- * @param {string} name
- * @param {string} theme
- * @returns {Promise<any>}
- */
-/**
  * Fetches all saved resume IDs and display names.
  *
  * @returns {Promise<Array<{id: string, name: string}>>}
@@ -199,6 +192,13 @@ export function fetchResumes() {
   return request("/resumes");
 }
 
+/**
+ * Generates a resume document for a given person/theme.
+ *
+ * @param {string} name
+ * @param {string} theme
+ * @returns {Promise<any>}
+ */
 export function generateResume(name, theme) {
   return request("/resume/generate", {
     method: "POST",
@@ -423,13 +423,6 @@ export function removeResumeSkill(id, label) {
 }
 
 /**
- * Generates a portfolio document for a given person/theme.
- *
- * @param {string} name
- * @param {string} theme
- * @returns {Promise<any>}
- */
-/**
  * Fetches all saved portfolio IDs and display names.
  *
  * @returns {Promise<Array<{id: string, name: string}>>}
@@ -438,6 +431,13 @@ export function fetchPortfolios() {
   return request("/portfolios");
 }
 
+/**
+ * Generates a portfolio document for a given person/theme.
+ *
+ * @param {string} name
+ * @param {string} theme
+ * @returns {Promise<any>}
+ */
 export function generatePortfolio(name, theme) {
   return request("/portfolio/generate", {
     method: "POST",
