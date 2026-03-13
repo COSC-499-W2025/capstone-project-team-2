@@ -818,6 +818,8 @@ def add_experience(id: str, payload: ExperienceRequest):
         highlights=payload.highlights,
     )
     result = doc.add_experience(exp)
+    if "Duplicate" in result:
+        raise HTTPException(status_code=409, detail=result)
     if result != "Successfully added experience":
         raise HTTPException(status_code=400, detail=result)
     return {"status": result}
