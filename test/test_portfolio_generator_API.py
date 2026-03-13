@@ -134,6 +134,14 @@ class TestEditPortfolio(_BasePortfolioTest):
         self.assertEqual(len(resp.json()["results"]), 5)
         self.mock_doc.modify_project.assert_called_once_with("MyProject", "summary", "Updated summary")
 
+    def test_invalid_contact_field_returns_400(self):
+        """Unknown contact field is rejected with 400 by the allowlist check."""
+        resp = self._post_edit([
+            {"section": "contact", "item_name": "", "field": "fax", "new_value": "555-0000"}
+        ])
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Unknown contact field", resp.json()["detail"])
+
     def test_invalid_theme_returns_400(self):
         """Test that invalid theme in edit returns 400, not 500."""
         self.mock_doc.update_theme.side_effect = ValueError("Invalid theme 'bad'. Available: classic, sb2nov")

@@ -489,6 +489,15 @@ class TestExperienceEndpoints(_BaseResumeTest):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()["status"], "Successfully added experience")
 
+        # Duplicate returns 409
+        self.mock_doc.add_experience.return_value = "Duplicate company 'Acme Corp' already exists"
+        resp = self.client.post("/resume/test_abc123/add/experience", json={
+            "company": "Acme Corp",
+            "position": "Software Engineer",
+        })
+        self.assertEqual(resp.status_code, 409)
+        self.assertIn("Duplicate", resp.json()["detail"])
+
         # Add failure
         self.mock_doc.add_experience.return_value = "Company name cannot be empty"
         resp = self.client.post("/resume/test_abc123/add/experience", json={
