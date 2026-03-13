@@ -48,6 +48,8 @@ from src.reporting.Generate_Resume_AI_Ver2 import GenerateResumeAI_Ver2
 
 RENDERED_OUTPUTS_DIR = Path(__file__).resolve().parents[2] / "User_config_files" / "Generate_render_CV_files" / "rendered_outputs"
 
+ALLOWED_CONTACT_FIELDS = {"email", "phone", "location", "website", "name"}
+
 portfolioRouter = APIRouter(tags=["Portfolio"])
 
 
@@ -416,6 +418,11 @@ def edit_portfolio(portfolio_id:str,payload: EditProjectRequest):
             result = _check_result(doc.update_summary(str(edit.new_value)))
 
         elif section=="contact":
+            if edit.field not in ALLOWED_CONTACT_FIELDS:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Unknown contact field '{edit.field}'. Valid fields: {', '.join(sorted(ALLOWED_CONTACT_FIELDS))}"
+                )
             doc.update_contact(**{edit.field : edit.new_value})
             result = f"Successfully updated contact field '{edit.field}'"
 
