@@ -1242,12 +1242,24 @@ a:focus-visible {
 }
 
 .success {
-  color: var(--success);
-  font-weight: 600;
-  background: linear-gradient(160deg, rgba(224, 255, 239, 0.82), rgba(200, 243, 221, 0.62));
-  border: 1px solid rgba(169, 230, 197, 0.9);
+  color: #0f4d27;
+  font-weight: 700;
+  background: linear-gradient(160deg, rgba(248, 255, 251, 0.96), rgba(232, 247, 238, 0.92));
+  border: 1px solid rgba(91, 156, 116, 0.48);
   border-radius: 12px;
   padding: 0.5rem 0.66rem;
+  box-shadow:
+    0 10px 22px rgba(17, 58, 33, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme="dark"] .success {
+  color: #d6ffe5;
+  background: linear-gradient(160deg, rgba(14, 63, 37, 0.88), rgba(22, 95, 56, 0.66));
+  border-color: rgba(119, 231, 165, 0.4);
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 /* ==========================================================================

@@ -31,7 +31,6 @@ export default function ConfigPage() {
 
   const [externalConsent, setExternalConsent] = useState("allow");
   const [fullName, setFullName] = useState("");
-  const [theme, setTheme] = useState("No change");
 
   useEffect(() => {
     let ignore = false;
@@ -68,7 +67,7 @@ export default function ConfigPage() {
   }, []);
 
   /**
-   * Persists consent/name/theme changes back to backend configuration.
+   * Persists consent and name changes back to backend configuration.
    *
    * @param {import("react").FormEvent<HTMLFormElement>} event
    * @returns {Promise<void>}
@@ -94,14 +93,6 @@ export default function ConfigPage() {
         nextConfig["Last Name"] = rest.join(" ");
       }
 
-      if (theme !== "No change") {
-        const preferences = typeof nextConfig.Preferences === "object" && nextConfig.Preferences
-          ? { ...nextConfig.Preferences }
-          : {};
-        preferences.theme = theme;
-        nextConfig.Preferences = preferences;
-      }
-
       await updateConfig(nextConfig);
       setConfig(nextConfig);
       setMessage("Configuration saved.");
@@ -109,8 +100,6 @@ export default function ConfigPage() {
       setError(err.message || "Failed to save configuration.");
     }
   }
-
-  const currentTheme = config?.Preferences?.theme || "Not set";
 
   return (
     <LiquidShell
@@ -134,10 +123,6 @@ export default function ConfigPage() {
                 <div className="settings-row">
                   <span className="settings-label">Name</span>
                   <strong className="settings-value">{fullName || "Not set"}</strong>
-                </div>
-                <div className="settings-row">
-                  <span className="settings-label">Theme</span>
-                  <strong className="settings-value">{currentTheme}</strong>
                 </div>
               </div>
             </GlassCard>
@@ -167,15 +152,6 @@ export default function ConfigPage() {
                     placeholder="e.g., Jane Doe"
                     onChange={(e) => setFullName(e.target.value)}
                   />
-                </label>
-
-                <label className="settings-row settings-field-row">
-                  <span className="settings-label">Theme</span>
-                  <select className="settings-control" value={theme} onChange={(e) => setTheme(e.target.value)}>
-                    <option>No change</option>
-                    <option>light</option>
-                    <option>dark</option>
-                  </select>
                 </label>
 
                 <div className="button-row">
