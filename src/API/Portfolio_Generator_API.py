@@ -330,8 +330,11 @@ def generate_portfolio(payload: GeneratePortfolioRequest):
             raise HTTPException(status_code=400, detail=str(e))
 
     doc.data["created_at"] = pendulum.now("UTC").to_iso8601_string()
-    with open(doc.yaml_file, "w") as f:
-        doc.yaml.dump(doc.data, f)
+    try:
+        with open(doc.yaml_file, "w") as f:
+            doc.yaml.dump(doc.data, f)
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Portfolio generated but failed to save metadata: {e}")
 
     return {"portfolio_id": full_name, "status": "Portfolio created successfully"}
 

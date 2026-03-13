@@ -314,8 +314,11 @@ def generate_resume(payload: GenerateResumeRequest):
             raise HTTPException(status_code=400, detail=str(e))
 
     doc.data["created_at"] = pendulum.now("UTC").to_iso8601_string()
-    with open(doc.yaml_file, "w") as f:
-        doc.yaml.dump(doc.data, f)
+    try:
+        with open(doc.yaml_file, "w") as f:
+            doc.yaml.dump(doc.data, f)
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Resume generated but failed to save metadata: {e}")
 
     return {"resume_id": full_name, "status": "Resume created successfully"}
 
