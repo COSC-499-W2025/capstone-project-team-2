@@ -4,6 +4,7 @@
 
 ## Quick Navigation
 ### Term 2
+- [Week 24 (03/09/2026 – 03/15/2026)](#-personal-log--week-24-03092026--03152026)
 - [Week 23 (03/02/2026 – 03/08/2026)](#-personal-log--week-23-03022026--03082026)
 - [Week 22 (02/23/2026 – 03/01/2026)](#-personal-log--week-22-02232026--03012026)
 - [Week 21 - Bonus Week (02/16/2026 – 02/22/2026)](#-personal-log--week-21---bonus-week-02162026--02222026)
@@ -2022,6 +2023,65 @@ For **Week 23**, I focused on two aspects: frontend and backend development. On 
 ensure that users can add, delete, and modify the skill sections of the resume or portfilolo, another API CRUD operation I added was the ability to manually add new projects to the system if the user so desire, The APIs were desgined in a way to maintained consistent. Finally, I also added 24 new test cases covering success, validation, and error scenarios.
 
 On the frontend side being my second task , [PR #466](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/466) introduced the general setup for our frontend system, which uses Streamlit, and the first frontend component, the **Resume and Portfolio UI**, which consists of separate tabs for Resume and Portfolio management. In addition, I introduced a separate file of reusable helper modules containingcontaining form layouts, API call wrappers, and Preview functionality. In summary, the Resume and Portfolio UI supports the For CRUD operations(Creating, loading, editing, and deleting), as well as downloading render outputs in the available formats(PDF, HTML, Markdown)
+
+
+---
+
+# 📝 Personal Log – Week 24 (03/09/2026 – 03/15/2026)
+
+## 📊 Peer Evaluation
+
+
+---
+
+## 🔗 Connection to Previous Week
+
+Following Week 23's work on skill management endpoints and the initial Streamlit frontend setup, this week focused on
+
+---
+
+## 🚀 Work Completed
+
+### Coding Tasks
+- Restored discoverable saved document selection in the workspace page by adding `GET /resumes` and `GET /portfolios` listing endpoints, `POST /resume/{id}/add/project/{name}/ai` and `POST /portfolio/{id}/add/project/{name}/ai` AI-powered project generation endpoints, document selection dropdowns, recent document tracking via localStorage, a SkillsEditor component, revamped education/experience editors, a Combobox for network selection with typeahead filtering, and a PDF theme preview modal ([PR #501](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/501))
+
+### Testing/Debugging Tasks
+- Expanded unit tests covering all new listing endpoints, AI project generation, export behaviour, and consolidated manual project addition tests ([PR #501](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/501))
+
+### Reviewing/Collaboration Tasks
+- Reviewed PR (1st reviewer): [Migrate Frontend from Streamlit to Next.js and Standardize Shared UI #495](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/495)
+- Reviewed PR (2nd reviewer): [Revert 'Overhaul of Streamlit Frontend Styles and Mode Controls' #497](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/497)
+
+---
+
+## 📌 Associated Tasks from Project Board
+- [Restore discoverable saved document selection in workspace page resume portfolio #498](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/498)
+
+---
+
+## 📈 Progress Update
+
+| Task/Issue | Status |
+|------------|--------|
+| **Restore saved document selection & new endpoints (PR #501)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Migrate Frontend to Next.js PR (PR #495)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Revert Streamlit Overhaul PR (PR #497)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+
+---
+
+## ⚠️ Issues/Blockers
+
+- N/A
+
+---
+
+## 🎯 Next Week's Goals
+- Work on [Add Portfolio Showcase Role Override UI #514](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/514) — build a frontend UI component for setting and retrieving project roles via the `/portfolio-showcase/{project_name}/role` endpoint
+- Address bugs and improvements revealed during peer testing
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 24)
 
 
 ---
