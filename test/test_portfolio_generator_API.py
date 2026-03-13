@@ -206,18 +206,18 @@ class TestAddProject(_BasePortfolioTest):
         self.assertEqual(resp.status_code, 200)
         self.assertIn("Successfully", resp.json()["status"])
 
-    def test_missing_data_returns_404(self):
-        """Test 404 for missing DB record and missing resume_item."""
+    def test_missing_data_returns_error(self):
+        """Test 404 for missing DB record and 400 for missing resume_item."""
         # DB record not found
         self.mock_ctx.store.fetch_by_name.return_value = None
         resp = self.client.post("/portfolio/test_abc123/add/project/UnknownProject")
         self.assertEqual(resp.status_code, 404)
         self.assertIn("not found in database", resp.json()["detail"])
 
-        # Record exists but no resume_item
+        # Record exists but no resume_item → 400 (bad content, not missing resource)
         self.mock_ctx.store.fetch_by_name.return_value = {"hierarchy": {}, "project_root": "C:\\some\\path"}
         resp = self.client.post("/portfolio/test_abc123/add/project/WarframeFinderStreamlit")
-        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 400)
         self.assertIn("no resume_item", resp.json()["detail"])
 
     def test_unexpected_error_returns_500(self):
@@ -664,6 +664,13 @@ class TestListPortfolios(_BasePortfolioTest):
 class TestAddProjectAI(_BasePortfolioTest):
     """Tests for POST /portfolio/{id}/add/project/{project_name}/ai."""
 
+    def setUp(self):
+        super().setUp()
+        patcher = patch(CTX_PATCH)
+        self.mock_ctx = patcher.start()
+        self.mock_ctx.store.project_exists.return_value = True
+        self.addCleanup(patcher.stop)
+
     def _make_ai_entry(self, tech_stack="Python, FastAPI"):
         entry = MagicMock()
         entry.one_sentence_summary = "Built a REST API with FastAPI."
@@ -734,6 +741,41 @@ class TestAddProjectAI(_BasePortfolioTest):
             resp = self.client.post("/portfolio/fake_id/add/project/WarframeFinderStreamlit/ai")
             self.assertEqual(resp.status_code, 404)
             MockAI.assert_not_called()
+
+    def test_json_suffix_normalization(self):
+        """Project stored as 'name.json' is found when requested without the suffix."""
+        with patch(AI_PATCH) as MockAI, patch(CTX_PATCH) as mock_ctx:
+            mock_gen = MagicMock()
+            MockAI.return_value = mock_gen
+            mock_gen.project_exists = True
+            mock_gen.generate_AI_Resume_entry.return_value = self._make_ai_entry()
+            self.mock_doc.add_project.return_value = "Successfully added project"
+
+            # Simulate the store not finding the bare name but finding the .json variant
+            mock_ctx.store.project_exists.side_effect = lambda name: name.endswith(".json")
+
+            resp = self.client.post("/portfolio/test_abc123/add/project/WarframeFinderStreamlit/ai")
+            self.assertEqual(resp.status_code, 200)
+
+            # GenerateResumeAI_Ver2 must have been called with the .json-suffixed name
+            MockAI.assert_called_once_with("WarframeFinderStreamlit.json")
+
+    def test_no_json_suffix_normalization_when_already_suffixed(self):
+        """Project name already ending in .json is passed through unchanged."""
+        with patch(AI_PATCH) as MockAI, patch(CTX_PATCH) as mock_ctx:
+            mock_gen = MagicMock()
+            MockAI.return_value = mock_gen
+            mock_gen.project_exists = True
+            mock_gen.generate_AI_Resume_entry.return_value = self._make_ai_entry()
+            self.mock_doc.add_project.return_value = "Successfully added project"
+
+            mock_ctx.store.project_exists.return_value = False
+
+            resp = self.client.post("/portfolio/test_abc123/add/project/WarframeFinderStreamlit.json/ai")
+            self.assertEqual(resp.status_code, 200)
+
+            # Must NOT double-append .json
+            MockAI.assert_called_once_with("WarframeFinderStreamlit.json")
 
 
 if __name__ == "__main__":

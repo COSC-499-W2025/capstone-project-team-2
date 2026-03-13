@@ -716,35 +716,38 @@ class TestSkillEndpoints(_BaseResumeTest):
 class TestListResumes(_BaseResumeTest):
     """Tests for GET /resumes."""
 
-    @patch("src.API.Resume_Generator_API.Path")
-    def test_list_resumes(self, MockPath):
-        """Returns 200 with a list; entries have id, name, and created_at when files exist."""
-        import io
-
-        # Empty list when no YAML files
-        mock_cv_dir = MagicMock()
-        mock_cv_dir.glob.return_value = []
-        MockPath.return_value.resolve.return_value.parents.__getitem__.return_value \
-            .__truediv__.return_value.__truediv__.return_value = mock_cv_dir
-
-        resp = self.client.get("/resumes")
+    def test_empty_directory(self):
+        """Returns 200 with an empty list when no resume YAML files exist."""
+        with tempfile.TemporaryDirectory() as tmp:
+            cv_dir = Path(tmp)
+            with patch("src.API.Resume_Generator_API.Path") as MockPath:
+                MockPath.return_value.resolve.return_value.parents.__getitem__.return_value \
+                    .__truediv__.return_value.__truediv__.return_value = cv_dir
+                resp = self.client.get("/resumes")
         self.assertEqual(resp.status_code, 200)
-        self.assertIsInstance(resp.json(), list)
+        self.assertEqual(resp.json(), [])
 
-        # Populated list with expected fields
-        fake_yaml = MagicMock()
-        fake_yaml.stem = "Jane_Doe_abc12345_Resume_CV"
-        mock_cv_dir.glob.return_value = [fake_yaml]
+    def test_populated_directory(self):
+        """Returns id, name, and created_at for each resume YAML file found."""
+        with tempfile.TemporaryDirectory() as tmp:
+            cv_dir = Path(tmp)
+            yaml_content = "created_at: '2025-01-01T00:00:00Z'\n"
+            (cv_dir / "Jane_Doe_abc12345_Resume_CV.yaml").write_text(yaml_content)
 
-        with patch("builtins.open", MagicMock(return_value=io.StringIO("created_at: '2025-01-01T00:00:00Z'\n"))):
-            resp = self.client.get("/resumes")
+            with patch("src.API.Resume_Generator_API.Path") as MockPath:
+                MockPath.return_value.resolve.return_value.parents.__getitem__.return_value \
+                    .__truediv__.return_value.__truediv__.return_value = cv_dir
+                resp = self.client.get("/resumes")
 
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         self.assertIsInstance(data, list)
-        if data:
-            for key in ("id", "name", "created_at"):
-                self.assertIn(key, data[0])
+        self.assertEqual(len(data), 1)
+        for key in ("id", "name", "created_at"):
+            self.assertIn(key, data[0])
+        self.assertEqual(data[0]["id"], "Jane_Doe_abc12345")
+        self.assertEqual(data[0]["name"], "Jane Doe")
+        self.assertEqual(data[0]["created_at"], "2025-01-01T00:00:00Z")
 
 
 class TestAddProjectAI(_BaseResumeTest):
