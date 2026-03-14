@@ -2088,6 +2088,7 @@ Following Week 23's work on skill management endpoints and the initial Streamlit
 ## 🎯 Next Week's Goals
 - Work on [Add Awards Section to Resume Data Model and UI #503](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/503) — implement a dedicated Awards section in the resume API and frontend editors
 - Address bugs and improvements revealed during peer testing
+- Work on updating API documentation with new endpoints 
 
 ---
 
