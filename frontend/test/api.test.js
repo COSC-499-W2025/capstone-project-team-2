@@ -3,11 +3,14 @@ import assert from "node:assert/strict";
 
 import {
   analyzeUploadedProject,
+  fetchRepresentationPreferences,
+  fetchRepresentationProjects,
   fetchProjects,
   fetchProjectInsights,
   getApiBase,
   saveConsent,
-  updateConfig
+  updateConfig,
+  updateRepresentationPreferences
 } from "../lib/api.js";
 
 /**
@@ -110,6 +113,55 @@ test("updateConfig sends payload to /config/update", async () => {
 
   assert.equal(calls[0].url, "http://localhost:8000/config/update");
   assert.deepEqual(JSON.parse(calls[0].init?.body ?? "{}"), configPayload);
+});
+
+test("fetchRepresentationPreferences calls /representation/preferences", async () => {
+  const calls = [];
+  global.fetch = async (url) => {
+    calls.push(url);
+    return makeResponse({ json: { project_order: ["Project A"] } });
+  };
+
+  const payload = await fetchRepresentationPreferences();
+
+  assert.deepEqual(payload, { project_order: ["Project A"] });
+  assert.equal(calls[0], "http://localhost:8000/representation/preferences");
+});
+
+test("updateRepresentationPreferences sends payload to /representation/preferences", async () => {
+  const calls = [];
+  global.fetch = async (url, init) => {
+    calls.push({ url, init });
+    return makeResponse({ json: { saved: true } });
+  };
+
+  const payload = {
+    project_order: ["Project A"],
+    chronology_corrections: { "Project A": { analyzed_at: "2025-03-14T12:00:00Z" } },
+    highlight_skills: ["React"],
+    showcase_projects: ["Project A"]
+  };
+
+  await updateRepresentationPreferences(payload);
+
+  assert.equal(calls[0].url, "http://localhost:8000/representation/preferences");
+  assert.equal(calls[0].init?.method, "POST");
+  assert.deepEqual(JSON.parse(calls[0].init?.body ?? "{}"), payload);
+});
+
+test("fetchRepresentationProjects encodes only_showcase and snapshot_label query params", async () => {
+  const calls = [];
+  global.fetch = async (url) => {
+    calls.push(url);
+    return makeResponse({ json: { projects: [] } });
+  };
+
+  await fetchRepresentationProjects({ onlyShowcase: true, snapshotLabel: "milestone 3" });
+
+  assert.equal(
+    calls[0],
+    "http://localhost:8000/representation/projects?only_showcase=true&snapshot_label=milestone+3"
+  );
 });
 
 test("network failure surfaces friendly API offline message", async () => {

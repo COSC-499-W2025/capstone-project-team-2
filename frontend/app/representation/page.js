@@ -15,66 +15,15 @@ import {
   fetchRepresentationProjects,
   updateRepresentationPreferences
 } from "../../lib/api";
-
-const DEFAULT_REPRESENTATION_PREFERENCES = {
-  project_order: [],
-  chronology_corrections: {},
-  comparison_attributes: ["languages", "frameworks", "duration_estimate"],
-  highlight_skills: [],
-  showcase_projects: []
-};
-
-function normalizeRepresentationPreferences(data) {
-  return {
-    ...DEFAULT_REPRESENTATION_PREFERENCES,
-    ...(data && typeof data === "object" ? data : {})
-  };
-}
-
-function mergeProjectOrder(preferred, projects) {
-  const merged = [];
-  for (const name of Array.isArray(preferred) ? preferred : []) {
-    if (name && !merged.includes(name)) merged.push(name);
-  }
-  for (const project of Array.isArray(projects) ? projects : []) {
-    const name = project?.project_name;
-    if (name && !merged.includes(name)) merged.push(name);
-  }
-  return merged;
-}
-
-function parseListInput(value) {
-  return String(value || "")
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
-function formatChronologyInputs(corrections) {
-  const inputs = {};
-  if (!corrections || typeof corrections !== "object") return inputs;
-  for (const [projectName, value] of Object.entries(corrections)) {
-    if (value && typeof value === "object" && value.analyzed_at) {
-      inputs[projectName] = String(value.analyzed_at);
-    }
-  }
-  return inputs;
-}
-
-function buildChronologyPayload(inputs) {
-  const payload = {};
-  for (const [projectName, value] of Object.entries(inputs || {})) {
-    const cleaned = String(value || "").trim();
-    if (cleaned) payload[projectName] = { analyzed_at: cleaned };
-  }
-  return payload;
-}
-
-function formatDateLabel(value) {
-  if (!value) return "Unknown date";
-  const date = new Date(value);
-  return Number.isNaN(date.valueOf()) ? value : date.toLocaleString();
-}
+import {
+  DEFAULT_REPRESENTATION_PREFERENCES,
+  buildChronologyPayload,
+  formatChronologyInputs,
+  formatDateLabel,
+  mergeProjectOrder,
+  normalizeRepresentationPreferences,
+  parseListInput
+} from "./helpers";
 
 /**
  * Representation preferences route for project ordering and emphasis controls.
