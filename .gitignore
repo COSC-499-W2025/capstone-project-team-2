@@ -7,6 +7,9 @@ nul
 *.db-wal
 *.db-shm
 
+# Claude Code local settings
+.claude/
+
 # User-local configuration & generated files
 User_config_files/
 src/User_config_files/
