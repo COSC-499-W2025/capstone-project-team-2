@@ -302,6 +302,20 @@ def generate_portfolio(payload: GeneratePortfolioRequest):
     return {"portfolio_id": full_name, "status": "Portfolio created successfully"}
 
 
+@portfolioRouter.get("/portfolio/")
+def list_portfolios() -> list[str]:
+    """List all saved portfolio IDs by scanning the CV files directory.
+
+    Returns:
+        list[str]: Sorted list of portfolio IDs (name + UUID suffix).
+    """
+    cv_files_dir = Path(__file__).resolve().parents[2] / "User_config_files" / "Generate_render_CV_files"
+    return sorted(
+        p.name.removesuffix("_Portfolio_CV.yaml")
+        for p in cv_files_dir.glob("*_Portfolio_CV.yaml")
+    )
+
+
 @portfolioRouter.get("/portfolio/{portfolio_id}")
 def get_portfolio(portfolio_id: str):
     """Retrieve all sections of an existing portfolio.

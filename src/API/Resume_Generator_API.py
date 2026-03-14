@@ -288,6 +288,20 @@ def generate_resume(payload: GenerateResumeRequest):
     return {"resume_id": full_name, "status": "Resume created successfully"}
 
 
+@resumeRouter.get("/resume/")
+def list_resumes() -> list[str]:
+    """List all saved resume IDs by scanning the CV files directory.
+
+    Returns:
+        list[str]: Sorted list of resume IDs (name + UUID suffix).
+    """
+    cv_files_dir = Path(__file__).resolve().parents[2] / "User_config_files" / "Generate_render_CV_files"
+    return sorted(
+        p.name.removesuffix("_Resume_CV.yaml")
+        for p in cv_files_dir.glob("*_Resume_CV.yaml")
+    )
+
+
 @resumeRouter.get("/resume/{id}")
 def get_resume(id: str):
     """Retrieve the full resume data as JSON.

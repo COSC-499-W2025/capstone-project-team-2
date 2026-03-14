@@ -3,8 +3,11 @@ import assert from "node:assert/strict";
 
 import {
   analyzeUploadedProject,
+  deleteProject,
+  fetchPortfolios,
   fetchProjects,
   fetchProjectInsights,
+  fetchResumes,
   getApiBase,
   saveConsent,
   updateConfig
@@ -131,4 +134,61 @@ test("backend non-2xx with detail string becomes thrown message", async () => {
   });
 
   await assert.rejects(() => fetchProjects(), /Invalid payload/);
+});
+
+test("deleteProject calls DELETE /projects/:name and resolves on SUCCESS status", async () => {
+  const calls = [];
+  global.fetch = async (url, init) => {
+    calls.push({ url, init });
+    return makeResponse({ json: { dbstatus: "[SUCCESS] Deleted DB records.", status: "[SUCCESS] Deleted 'my-project.json' from filesystem!" } });
+  };
+  await deleteProject("my-project");
+  assert.equal(calls[0].url, "http://localhost:8000/projects/my-project");
+  assert.equal(calls[0].init?.method, "DELETE");
+});
+
+test("deleteProject throws on [WARNING] status body", async () => {
+  global.fetch = async () => makeResponse({
+    json: { dbstatus: "[INFO] DB deletion skipped.", status: "[WARNING] save_path filename mismatch." }
+  });
+  await assert.rejects(() => deleteProject("my-project"), /\[WARNING\]/);
+});
+
+test("deleteProject throws on [INFO] status body (protected artifact)", async () => {
+  global.fetch = async () => makeResponse({
+    json: { dbstatus: "[INFO] internal artifact.", status: "[INFO] 'UserConfigs.json' is an internal artifact and cannot be deleted." }
+  });
+  await assert.rejects(() => deleteProject("UserConfigs"), /\[INFO\]/);
+});
+
+test("deleteProject encodes project name with spaces in URL", async () => {
+  const calls = [];
+  global.fetch = async (url, init) => {
+    calls.push({ url, init });
+    return makeResponse({ json: { status: "[SUCCESS] Done." } });
+  };
+  await deleteProject("my project name");
+  assert.equal(calls[0].url, "http://localhost:8000/projects/my%20project%20name");
+});
+
+test("fetchResumes calls GET /resume/", async () => {
+  const calls = [];
+  global.fetch = async (url) => {
+    calls.push(url);
+    return makeResponse({ json: ["Alice_a1b2c3d4", "Bob_e5f6a7b8"] });
+  };
+  const result = await fetchResumes();
+  assert.deepEqual(result, ["Alice_a1b2c3d4", "Bob_e5f6a7b8"]);
+  assert.equal(calls[0], "http://localhost:8000/resume/");
+});
+
+test("fetchPortfolios calls GET /portfolio/", async () => {
+  const calls = [];
+  global.fetch = async (url) => {
+    calls.push(url);
+    return makeResponse({ json: ["Carol_c1d2e3f4"] });
+  };
+  const result = await fetchPortfolios();
+  assert.deepEqual(result, ["Carol_c1d2e3f4"]);
+  assert.equal(calls[0], "http://localhost:8000/portfolio/");
 });

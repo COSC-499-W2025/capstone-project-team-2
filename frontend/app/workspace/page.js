@@ -8,7 +8,7 @@
  * - document lifecycle handlers (generate/load/delete/edit/render),
  * - and mode-aware rendering for private/public access behavior.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { GlassCard, LiquidShell } from "../../components/LiquidShell";
 import { LiquidSegmentedControl } from "../../components/LiquidPillControl";
 import {
@@ -17,12 +17,15 @@ import {
   addResumeExperience,
   addResumeProject,
   deletePortfolio,
+  deleteProject,
   deleteResume,
   editPortfolio,
   editResume,
   fetchPortfolio,
+  fetchPortfolios,
   fetchProjects,
   fetchResume,
+  fetchResumes,
   generatePortfolio,
   generateResume,
   removePortfolioProject,
@@ -304,7 +307,7 @@ function ConnectionsEditor({ doc, onApply }) {
  * }} props
  * @returns {JSX.Element}
  */
-function ProjectEditor({ projects, docProjects, onAddProject, onEditProject, onRemoveProject }) {
+function ProjectEditor({ projects, docProjects, onAddProject, onEditProject, onRemoveProject, onDeleteAnalyzedProject }) {
   const [projectName, setProjectName] = useState(projects[0] || "");
   const [summary, setSummary] = useState("");
   const [highlights, setHighlights] = useState("");
@@ -322,6 +325,12 @@ function ProjectEditor({ projects, docProjects, onAddProject, onEditProject, onR
   useEffect(() => {
     setSelectedDocProject(docProjects?.[0]?.name || "");
   }, [docProjects]);
+
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  useEffect(() => {
+    setConfirmDelete(false);
+  }, [projectName]);
 
   const payload = {
     summary: summary || undefined,
@@ -359,6 +368,39 @@ function ProjectEditor({ projects, docProjects, onAddProject, onEditProject, onR
           <button type="button" className="liquid-btn solid" onClick={() => onAddProject(projectName, payload)}>
             Add Project
           </button>
+          {projectName && (
+            <div className="button-row">
+              {confirmDelete ? (
+                <>
+                  <button
+                    type="button"
+                    className="liquid-btn solid"
+                    onClick={() => {
+                      setConfirmDelete(false);
+                      onDeleteAnalyzedProject(projectName);
+                    }}
+                  >
+                    Confirm Delete
+                  </button>
+                  <button
+                    type="button"
+                    className="liquid-btn"
+                    onClick={() => setConfirmDelete(false)}
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  className="liquid-btn"
+                  onClick={() => setConfirmDelete(true)}
+                >
+                  Delete Project
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </GlassCard>
 
@@ -563,16 +605,12 @@ function DocumentStudio({ kind, mode }) {
   const [activeSection, setActiveSection] = useState("edit");
   const [editCategory, setEditCategory] = useState("contact");
   const [savedProjects, setSavedProjects] = useState([]);
+  const [savedIds, setSavedIds] = useState([]);
 
   const [rendering, setRendering] = useState(false);
 
   useEffect(() => {
     let ignore = false;
-    /**
-     * Loads known analyzed project names for project insertion workflows.
-     *
-     * @returns {Promise<void>}
-     */
     async function loadProjects() {
       try {
         const data = await fetchProjects();
@@ -582,10 +620,22 @@ function DocumentStudio({ kind, mode }) {
       }
     }
     loadProjects();
-    return () => {
-      ignore = true;
-    };
+    return () => { ignore = true; };
   }, []);
+
+  useEffect(() => {
+    let ignore = false;
+    async function loadSavedIds() {
+      try {
+        const data = isResume ? await fetchResumes() : await fetchPortfolios();
+        if (!ignore) setSavedIds(Array.isArray(data) ? data : []);
+      } catch {
+        if (!ignore) setSavedIds([]);
+      }
+    }
+    loadSavedIds();
+    return () => { ignore = true; };
+  }, [isResume]);
 
   /**
    * Refreshes document state from backend for the current document id.
@@ -640,10 +690,8 @@ function DocumentStudio({ kind, mode }) {
       setIdInput(id);
       const data = isResume ? await fetchResume(id) : await fetchPortfolio(id);
       setDoc(data);
-      const key = isResume ? "recentResumeIds" : "recentPortfolioIds";
-      const existing = JSON.parse(window.localStorage.getItem(key) || "[]");
-      const merged = [id, ...existing.filter((x) => x !== id)].slice(0, 10);
-      window.localStorage.setItem(key, JSON.stringify(merged));
+      const ids = isResume ? await fetchResumes() : await fetchPortfolios();
+      setSavedIds(Array.isArray(ids) ? ids : []);
     }, `${isResume ? "Resume" : "Portfolio"} created.`);
   }
 
@@ -654,16 +702,25 @@ function DocumentStudio({ kind, mode }) {
    * @returns {Promise<void>}
    */
   async function onLoad(id = idInput) {
-    if (!id.trim()) {
+    const trimmedId = id.trim();
+    if (!trimmedId) {
       setError("Enter a document ID first.");
       return;
     }
-    await safeAction(async () => {
-      const data = isResume ? await fetchResume(id.trim()) : await fetchPortfolio(id.trim());
-      setDocId(id.trim());
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      const data = isResume ? await fetchResume(trimmedId) : await fetchPortfolio(trimmedId);
+      setDocId(trimmedId);
       setDoc(data);
-      setIdInput(id.trim());
-    }, `${isResume ? "Resume" : "Portfolio"} loaded.`);
+      setIdInput(trimmedId);
+      setMessage(`${isResume ? "Resume" : "Portfolio"} loaded.`);
+    } catch (err) {
+      setError(err.message || "Request failed.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   /**
@@ -676,12 +733,15 @@ function DocumentStudio({ kind, mode }) {
       setError("Load a document first.");
       return;
     }
+    const deletedId = docId;
     await safeAction(async () => {
-      if (isResume) await deleteResume(docId);
-      else await deletePortfolio(docId);
+      if (isResume) await deleteResume(deletedId);
+      else await deletePortfolio(deletedId);
       setDocId("");
       setDoc(null);
       setIdInput("");
+      const ids = isResume ? await fetchResumes() : await fetchPortfolios();
+      setSavedIds(Array.isArray(ids) ? ids : []);
     }, `${isResume ? "Resume" : "Portfolio"} deleted.`);
   }
 
@@ -732,6 +792,21 @@ function DocumentStudio({ kind, mode }) {
   }
 
   /**
+   * Permanently deletes an analyzed project from storage.
+   *
+   * @param {string} projectName
+   * @returns {Promise<void>}
+   */
+  async function onDeleteAnalyzedProject(projectName) {
+    if (!projectName) return;
+    await safeAction(async () => {
+      await deleteProject(projectName);
+      const data = await fetchProjects();
+      setSavedProjects(Array.isArray(data) ? data : []);
+    }, `Project "${projectName}" deleted.`);
+  }
+
+  /**
    * Requests rendered output in a selected format and downloads it.
    *
    * @param {string} format
@@ -751,16 +826,6 @@ function DocumentStudio({ kind, mode }) {
     }
   }
 
-  const recentIds = useMemo(() => {
-    if (typeof window === "undefined") return [];
-    const key = isResume ? "recentResumeIds" : "recentPortfolioIds";
-    try {
-      const parsed = JSON.parse(window.localStorage.getItem(key) || "[]");
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  }, [isResume, docId]);
 
   if (mode === "public") {
     return (
@@ -784,14 +849,17 @@ function DocumentStudio({ kind, mode }) {
                   {busy ? "Loading..." : `Load ${isResume ? "Resume" : "Portfolio"}`}
                 </button>
               </div>
-              {recentIds.length ? (
-                <div className="button-row">
-                  {recentIds.map((id) => (
-                    <button key={id} type="button" className="liquid-btn" onClick={() => { setIdInput(id); onLoad(id); }}>
-                      {id}
-                    </button>
-                  ))}
-                </div>
+              {savedIds.length ? (
+                <>
+                  <p className="muted" style={{ marginBottom: 0 }}>Saved {isResume ? "Resumes" : "Portfolios"}</p>
+                  <div className="button-row">
+                    {savedIds.map((id) => (
+                      <button key={id} type="button" className="liquid-btn" onClick={() => { setIdInput(id); onLoad(id); }}>
+                        {id}
+                      </button>
+                    ))}
+                  </div>
+                </>
               ) : null}
             </div>
             {error ? <p className="error">{error}</p> : null}
@@ -848,12 +916,15 @@ function DocumentStudio({ kind, mode }) {
                 Load
               </button>
             </div>
-            {recentIds.length ? (
-              <div className="button-row">
-                {recentIds.slice(0, 3).map((id) => (
-                  <button key={id} type="button" className="liquid-btn" onClick={() => { setIdInput(id); onLoad(id); }}>{id}</button>
-                ))}
-              </div>
+            {savedIds.length ? (
+              <>
+                <p className="muted" style={{ marginBottom: 0 }}>Saved {isResume ? "Resumes" : "Portfolios"}</p>
+                <div className="button-row">
+                  {savedIds.map((id) => (
+                    <button key={id} type="button" className="liquid-btn" onClick={() => { setIdInput(id); onLoad(id); }}>{id}</button>
+                  ))}
+                </div>
+              </>
             ) : null}
           </div>
         </GlassCard>
@@ -934,6 +1005,7 @@ function DocumentStudio({ kind, mode }) {
               onAddProject={onAddProject}
               onEditProject={(projectName, field, value) => onApplyEdits([{ section: "projects", item_name: projectName, field, new_value: value }])}
               onRemoveProject={onRemoveProject}
+              onDeleteAnalyzedProject={onDeleteAnalyzedProject}
             />
           ) : null}
 

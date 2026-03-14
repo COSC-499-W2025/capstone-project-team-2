@@ -109,6 +109,24 @@ export function fetchProjectByName(projectName) {
 }
 
 /**
+ * Deletes an analyzed project by name.
+ *
+ * The backend always returns HTTP 200; errors are signalled via status-string
+ * prefixes. This helper translates [WARNING] and [INFO] responses into thrown
+ * errors so callers can handle them uniformly via safeAction().
+ *
+ * @param {string} projectName
+ * @returns {Promise<void>}
+ */
+export async function deleteProject(projectName) {
+  const result = await request(`/projects/${encodeURIComponent(projectName)}`, { method: "DELETE" });
+  const status = result?.status ?? "";
+  if (status.startsWith("[WARNING]") || status.startsWith("[INFO]")) {
+    throw new Error(status);
+  }
+}
+
+/**
  * Uploads a ZIP file to backend project ingestion.
  *
  * `nameOverride` is primarily used when the client synthesizes a `File`
@@ -196,6 +214,15 @@ export function generateResume(name, theme) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, theme })
   });
+}
+
+/**
+ * Lists all saved resume IDs.
+ *
+ * @returns {Promise<string[]>}
+ */
+export function fetchResumes() {
+  return request("/resume/");
 }
 
 /**
@@ -329,6 +356,15 @@ export function generatePortfolio(name, theme) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, theme })
   });
+}
+
+/**
+ * Lists all saved portfolio IDs.
+ *
+ * @returns {Promise<string[]>}
+ */
+export function fetchPortfolios() {
+  return request("/portfolio/");
 }
 
 /**
