@@ -5,8 +5,7 @@
  *
  * Purpose:
  * - hydrate persisted consent/profile values,
- * - provide editable controls,
- * - and persist updates through backend config endpoints.
+ * - and persist updates through backend configuration endpoints.
  */
 import { useEffect, useState } from "react";
 import { GlassCard, LiquidShell } from "../../components/LiquidShell";
@@ -14,16 +13,11 @@ import { LiquidSegmentedControl } from "../../components/LiquidPillControl";
 import { fetchConfig, saveConsent, updateConfig } from "../../lib/api";
 
 /**
- * User configuration route for consent and profile preference updates.
- * Loads current configuration, allows controlled edits, and persists
- * changes through backend config endpoints.
+ * User configuration route for consent and profile settings.
  *
  * @returns {JSX.Element}
  */
 export default function ConfigPage() {
-  /**
-   * Primary data and request-state atoms for this page.
-   */
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -35,13 +29,8 @@ export default function ConfigPage() {
 
   useEffect(() => {
     let ignore = false;
-    /**
-     * Loads persisted configuration and maps it into local component state.
-     * Uses an `ignore` guard to avoid state updates after unmount.
-     *
-     * @returns {Promise<void>}
-     */
-    async function load() {
+
+    async function loadConfigData() {
       setLoading(true);
       setError("");
       try {
@@ -61,18 +50,14 @@ export default function ConfigPage() {
         if (!ignore) setLoading(false);
       }
     }
-    load();
+
+    loadConfigData();
+
     return () => {
       ignore = true;
     };
   }, []);
 
-  /**
-   * Persists consent/name/theme changes back to backend configuration.
-   *
-   * @param {import("react").FormEvent<HTMLFormElement>} event
-   * @returns {Promise<void>}
-   */
   async function onSave(event) {
     event.preventDefault();
     if (!config) return;
@@ -115,7 +100,7 @@ export default function ConfigPage() {
   return (
     <LiquidShell
       title="User Configuration"
-      subtitle="Set external-tool consent and optional profile preferences."
+      subtitle="Set consent and profile details."
     >
       <div className="page-stack config-page">
         {loading ? <p className="muted">Loading configuration...</p> : null}

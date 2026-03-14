@@ -1335,6 +1335,7 @@ a:focus-visible {
 }
 
 .config-page .config-grid,
+.representation-page .config-grid,
 .workspace-page .grid {
   gap: 1rem;
 }

@@ -184,6 +184,43 @@ export function updateConfig(payload) {
 }
 
 /**
+ * Fetches stored representation preferences.
+ *
+ * @returns {Promise<any>}
+ */
+export function fetchRepresentationPreferences() {
+  return request("/representation/preferences");
+}
+
+/**
+ * Persists representation preferences.
+ *
+ * @param {Record<string, any>} payload
+ * @returns {Promise<any>}
+ */
+export function updateRepresentationPreferences(payload) {
+  return request("/representation/preferences", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+}
+
+/**
+ * Fetches projects with representation preferences applied.
+ *
+ * @param {{ onlyShowcase?: boolean, snapshotLabel?: string }} [options={}]
+ * @returns {Promise<any>}
+ */
+export function fetchRepresentationProjects(options = {}) {
+  const params = new URLSearchParams();
+  if (options.onlyShowcase) params.set("only_showcase", "true");
+  if (options.snapshotLabel) params.set("snapshot_label", options.snapshotLabel);
+  const query = params.toString();
+  return request(`/representation/projects${query ? `?${query}` : ""}`);
+}
+
+/**
  * Generates a resume document for a given person/theme.
  *
  * @param {string} name
