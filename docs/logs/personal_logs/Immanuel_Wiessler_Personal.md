@@ -2055,6 +2055,7 @@ Following Week 23's work on skill management endpoints and the initial Streamlit
 ### Reviewing/Collaboration Tasks
 - Reviewed PR (1st reviewer): [Migrate Frontend from Streamlit to Next.js and Standardize Shared UI #495](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/495)
 - Reviewed PR (2nd reviewer): [Revert 'Overhaul of Streamlit Frontend Styles and Mode Controls' #497](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/497)
+- Reviewed PR (1st reviewer): [Remove modes #502](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/502)
 
 ---
 
