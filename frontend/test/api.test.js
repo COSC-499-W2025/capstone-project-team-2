@@ -132,3 +132,14 @@ test("backend non-2xx with detail string becomes thrown message", async () => {
 
   await assert.rejects(() => fetchProjects(), /Invalid payload/);
 });
+
+test("backend non-2xx attaches response.status to thrown error", async () => {
+  global.fetch = async () => makeResponse({
+    ok: false,
+    status: 404,
+    json: { detail: "Resume 'abc' not found" }
+  });
+
+  const err = await fetchProjects().catch((e) => e);
+  assert.equal(err.status, 404);
+});
