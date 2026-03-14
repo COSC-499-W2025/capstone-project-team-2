@@ -1085,7 +1085,7 @@ function DocumentStudio({ kind, mode }) {
       setIdInput(id.trim());
       setMessage(`${isResume ? "Resume" : "Portfolio"} loaded.`);
     } catch (err) {
-      const isNotFound = err.message?.includes("(404)");
+      const isNotFound = err.status === 404;
       const existing = readRecentIds();
       const wasRecent = existing.includes(id.trim());
       if (isNotFound && wasRecent) {
