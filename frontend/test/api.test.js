@@ -5,8 +5,10 @@ import {
   analyzeUploadedProject,
   fetchProjects,
   fetchProjectInsights,
+  getPortfolioShowcaseRole,
   getApiBase,
   saveConsent,
+  setPortfolioShowcaseRole,
   updateConfig
 } from "../lib/api.js";
 
@@ -131,4 +133,55 @@ test("backend non-2xx with detail string becomes thrown message", async () => {
   });
 
   await assert.rejects(() => fetchProjects(), /Invalid payload/);
+});
+
+test("getPortfolioShowcaseRole calls encoded showcase role endpoint", async () => {
+  const calls = [];
+  global.fetch = async (url) => {
+    calls.push(url);
+    return makeResponse({ json: { project_name: "My Project", role: "Backend Developer" } });
+  };
+
+  const payload = await getPortfolioShowcaseRole("My Project");
+
+  assert.deepEqual(payload, { project_name: "My Project", role: "Backend Developer" });
+  assert.equal(calls[0], "http://localhost:8000/portfolio-showcase/My%20Project/role");
+});
+
+test("setPortfolioShowcaseRole posts expected JSON body", async () => {
+  const calls = [];
+  global.fetch = async (url, init) => {
+    calls.push({ url, init });
+    return makeResponse({
+      json: {
+        project_name: "My Project",
+        role: "Technical Lead",
+        status: "Role override saved successfully"
+      }
+    });
+  };
+
+  const payload = await setPortfolioShowcaseRole("My Project", "Technical Lead");
+
+  assert.deepEqual(payload, {
+    project_name: "My Project",
+    role: "Technical Lead",
+    status: "Role override saved successfully"
+  });
+  assert.equal(calls[0].url, "http://localhost:8000/portfolio-showcase/My%20Project/role");
+  assert.equal(calls[0].init?.method, "POST");
+  assert.deepEqual(JSON.parse(calls[0].init?.body ?? "{}"), { role: "Technical Lead" });
+});
+
+test("getPortfolioShowcaseRole surfaces backend 404 detail", async () => {
+  global.fetch = async () => makeResponse({
+    ok: false,
+    status: 404,
+    json: { detail: "No saved role for project 'UnknownProject'." }
+  });
+
+  await assert.rejects(
+    () => getPortfolioShowcaseRole("UnknownProject"),
+    /No saved role for project 'UnknownProject'\./
+  );
 });

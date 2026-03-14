@@ -332,6 +332,31 @@ export function generatePortfolio(name, theme) {
 }
 
 /**
+ * Fetches a saved portfolio showcase role override for one project.
+ *
+ * @param {string} projectName
+ * @returns {Promise<any>}
+ */
+export function getPortfolioShowcaseRole(projectName) {
+  return request(`/portfolio-showcase/${encodeURIComponent(projectName)}/role`);
+}
+
+/**
+ * Saves a portfolio showcase role override for one project.
+ *
+ * @param {string} projectName
+ * @param {string} role
+ * @returns {Promise<any>}
+ */
+export function setPortfolioShowcaseRole(projectName, role) {
+  return request(`/portfolio-showcase/${encodeURIComponent(projectName)}/role`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ role })
+  });
+}
+
+/**
  * Fetches one portfolio document by id.
  *
  * @param {string} id

@@ -22,6 +22,7 @@ import {
   editResume,
   fetchPortfolio,
   fetchProjects,
+  getPortfolioShowcaseRole,
   fetchResume,
   generatePortfolio,
   generateResume,
@@ -29,7 +30,8 @@ import {
   removeResumeEducation,
   removeResumeExperience,
   renderPortfolio,
-  renderResume
+  renderResume,
+  setPortfolioShowcaseRole
 } from "../../lib/api";
 
 /**
@@ -292,19 +294,126 @@ function ConnectionsEditor({ doc, onApply }) {
 }
 
 /**
+ * Portfolio showcase role override editor for one selected project name.
+ *
+ * The override is stored outside the portfolio document itself, so this panel
+ * loads/saves directly against the project-level showcase endpoint.
+ *
+ * @param {{ title: string, projectName: string, hint?: string }} props
+ * @returns {JSX.Element}
+ */
+function PortfolioRoleOverrideCard({ title, projectName, hint = "" }) {
+  const [role, setRole] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadRole() {
+      if (!projectName) {
+        setRole("");
+        setError("");
+        setMessage("");
+        return;
+      }
+
+      setLoading(true);
+      setError("");
+      setMessage("");
+
+      try {
+        const data = await getPortfolioShowcaseRole(projectName);
+        if (!ignore) setRole(data?.role || "");
+      } catch (err) {
+        if (ignore) return;
+        if ((err?.message || "").includes("No saved role for project")) {
+          setRole("");
+          return;
+        }
+        setError(err.message || "Failed to load role override.");
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    }
+
+    loadRole();
+    return () => {
+      ignore = true;
+    };
+  }, [projectName]);
+
+  async function onSave() {
+    if (!projectName) return;
+    setSaving(true);
+    setError("");
+    setMessage("");
+    try {
+      const data = await setPortfolioShowcaseRole(projectName, role);
+      setRole(data?.role || role.trim());
+      setMessage("Role override saved.");
+    } catch (err) {
+      setError(err.message || "Failed to save role override.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <GlassCard title={title} hint={hint}>
+      <div className="form-stack">
+        <label>
+          Project
+          <input value={projectName || ""} readOnly placeholder="Select a project first" />
+        </label>
+        <label>
+          Showcase role
+          <textarea
+            rows={3}
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            placeholder="e.g., Backend Developer"
+            disabled={!projectName || loading || saving}
+          />
+        </label>
+        <div className="button-row">
+          <button
+            type="button"
+            className="liquid-btn solid"
+            disabled={!projectName || loading || saving}
+            onClick={onSave}
+          >
+            {loading ? "Loading..." : saving ? "Saving..." : "Save Role Override"}
+          </button>
+        </div>
+        {!projectName ? <p className="muted">Select a project to load or save its showcase role.</p> : null}
+        {projectName && !loading && !error && !message && !role ? (
+          <p className="muted">No saved role override for this project yet.</p>
+        ) : null}
+        {error ? <p className="error">{error}</p> : null}
+        {message ? <p className="success">{message}</p> : null}
+      </div>
+    </GlassCard>
+  );
+}
+
+/**
  * Project management panel for adding analyzed projects into a document
  * and modifying/removing existing project entries.
  *
  * @param {{
  *   projects: string[],
- *   docProjects: any[],
+  *   docProjects: any[],
  *   onAddProject: (projectName: string, payload: Record<string, any>) => void,
  *   onEditProject: (projectName: string, field: string, value: any) => void,
- *   onRemoveProject: (projectName: string) => void
+ *   onRemoveProject: (projectName: string) => void,
+ *   allowRoleOverride?: boolean
  * }} props
  * @returns {JSX.Element}
  */
-function ProjectEditor({ projects, docProjects, onAddProject, onEditProject, onRemoveProject }) {
+function ProjectEditor({ projects, docProjects, onAddProject, onEditProject, onRemoveProject, allowRoleOverride = false }) {
   const [projectName, setProjectName] = useState(projects[0] || "");
   const [summary, setSummary] = useState("");
   const [highlights, setHighlights] = useState("");
@@ -362,6 +471,14 @@ function ProjectEditor({ projects, docProjects, onAddProject, onEditProject, onR
         </div>
       </GlassCard>
 
+      {allowRoleOverride ? (
+        <PortfolioRoleOverrideCard
+          title="Showcase Role Override"
+          hint="Stored by analyzed project name for portfolio showcase customization."
+          projectName={projectName}
+        />
+      ) : null}
+
       <GlassCard title="Modify Existing Project">
         {docProjects?.length ? (
           <div className="form-stack">
@@ -406,6 +523,14 @@ function ProjectEditor({ projects, docProjects, onAddProject, onEditProject, onR
           <p className="muted">No projects in this document yet.</p>
         )}
       </GlassCard>
+
+      {allowRoleOverride ? (
+        <PortfolioRoleOverrideCard
+          title="Existing Project Role Override"
+          hint="Useful when you want the saved showcase role to match the project already in this portfolio."
+          projectName={selectedDocProject}
+        />
+      ) : null}
     </div>
   );
 }
@@ -934,6 +1059,7 @@ function DocumentStudio({ kind, mode }) {
               onAddProject={onAddProject}
               onEditProject={(projectName, field, value) => onApplyEdits([{ section: "projects", item_name: projectName, field, new_value: value }])}
               onRemoveProject={onRemoveProject}
+              allowRoleOverride={!isResume}
             />
           ) : null}
 
