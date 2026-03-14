@@ -2086,7 +2086,6 @@ Following Week 23's work on skill management endpoints and the initial Streamlit
 ---
 
 ## 🎯 Next Week's Goals
-- Work on [Add Portfolio Showcase Role Override UI #514](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/514) — build a frontend UI component for setting and retrieving project roles via the `/portfolio-showcase/{project_name}/role` endpoint
 - Work on [Add Awards Section to Resume Data Model and UI #503](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/503) — implement a dedicated Awards section in the resume API and frontend editors
 - Address bugs and improvements revealed during peer testing
 
