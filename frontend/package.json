@@ -19,9 +19,5 @@
     "react": "19.1.1",
     "react-dom": "19.1.1"
   },
-  "type": "module",
-  "devDependencies": {
-    "eslint": "9.39.4",
-    "eslint-config-next": "16.1.6"
-  }
+  "type": "module"
 }
