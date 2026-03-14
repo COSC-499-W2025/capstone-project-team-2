@@ -728,5 +728,45 @@ class TestSkillEndpoints(_BaseResumeTest):
         self.assertEqual(resp.status_code, 404)
 
 
+class TestListResumes(unittest.TestCase):
+    """Tests for GET /resume/ using a real temporary directory."""
+
+    def setUp(self):
+        self.client = TestClient(app)
+
+    def _make_cv_dir(self, tmp_root):
+        """Create and return the expected cv_files_dir path inside tmp_root."""
+        cv_dir = Path(tmp_root) / "User_config_files" / "Generate_render_CV_files"
+        cv_dir.mkdir(parents=True)
+        return cv_dir
+
+    def test_returns_sorted_ids(self):
+        """Returns resume IDs sorted alphabetically with suffix stripped."""
+        with tempfile.TemporaryDirectory() as tmp_root:
+            cv_dir = self._make_cv_dir(tmp_root)
+            (cv_dir / "Zara_e5f6a7b8_Resume_CV.yaml").touch()
+            (cv_dir / "Alice_a1b2c3d4_Resume_CV.yaml").touch()
+            (cv_dir / "Alice_a1b2c3d4_Portfolio_CV.yaml").touch()  # should be ignored
+
+            with patch("src.API.Resume_Generator_API.Path") as mock_path:
+                mock_path.return_value.resolve.return_value.parents.__getitem__.return_value = Path(tmp_root)
+                resp = self.client.get("/resume/")
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json(), ["Alice_a1b2c3d4", "Zara_e5f6a7b8"])
+
+    def test_empty_directory_returns_empty_list(self):
+        """Returns empty list when no resume files exist."""
+        with tempfile.TemporaryDirectory() as tmp_root:
+            self._make_cv_dir(tmp_root)
+
+            with patch("src.API.Resume_Generator_API.Path") as mock_path:
+                mock_path.return_value.resolve.return_value.parents.__getitem__.return_value = Path(tmp_root)
+                resp = self.client.get("/resume/")
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json(), [])
+
+
 if __name__ == "__main__":
     unittest.main()
