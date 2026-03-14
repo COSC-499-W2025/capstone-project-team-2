@@ -2062,6 +2062,8 @@ Following Week 23's work on skill management endpoints and the initial Streamlit
 
 ## 📌 Associated Tasks from Project Board
 - [Restore discoverable saved document selection in workspace page resume portfolio #498](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/498)
+- [Add dark theme styles for alerts and selects, and add CV theme preview assets #525](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/525)
+- [Add frontend API helpers and expand backend API test suite #526](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/526)
 
 ---
 
@@ -2079,7 +2081,7 @@ Following Week 23's work on skill management endpoints and the initial Streamlit
 
 ## ⚠️ Issues/Blockers
 
-- N/A
+- 
 
 ---
 
