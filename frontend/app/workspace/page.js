@@ -413,7 +413,7 @@ function ProjectEditor({ projects, docProjects, onAddProject, onAddProjectAI, on
     fetchProjectByName(projectName)
       .then((data) => {
         if (cancelled) return;
-        const item = data?.resume_item || {};
+        const item = data?.analysis?.resume_item || {};
         setSummary(item.summary || "");
         setHighlights((item.highlights || []).join("\n"));
         setStartDate(toMonthValue(item.start_date || ""));
@@ -594,9 +594,9 @@ function ResumeEducationExperience({ doc, onAddEducation, onRemoveEducation, onA
     return val.split("\n").map((x) => x.trim()).filter(Boolean);
   }
 
-  function formatDate(val) {
+  function formatDate(val, isEnd = false) {
     if (!val) return undefined;
-    return val === today ? "present" : val;
+    return isEnd && val === today ? "present" : val;
   }
 
   return (
@@ -638,7 +638,7 @@ function ResumeEducationExperience({ doc, onAddEducation, onRemoveEducation, onA
                 gpa: gpa || undefined,
                 location: eduLocation || undefined,
                 start_date: formatDate(eduStart),
-                end_date: formatDate(eduEnd),
+                end_date: formatDate(eduEnd, true),
                 highlights: parseHighlights(eduHighlights)
               })}>Add Education</button>
             </>
@@ -664,7 +664,7 @@ function ResumeEducationExperience({ doc, onAddEducation, onRemoveEducation, onA
                     }
                   </label>
                   <button type="button" className="liquid-btn solid" onClick={() => {
-                    const value = eduField === "highlights" ? parseHighlights(eduFieldValue) : DATE_FIELDS.includes(eduField) ? formatDate(eduFieldValue) : eduFieldValue;
+                    const value = eduField === "highlights" ? parseHighlights(eduFieldValue) : DATE_FIELDS.includes(eduField) ? formatDate(eduFieldValue, eduField === "end_date") : eduFieldValue;
                     onEdit([{ section: "education", item_name: selectedEdu, field: eduField, new_value: value }]);
                   }}>Save Change</button>
                 </>
@@ -710,7 +710,7 @@ function ResumeEducationExperience({ doc, onAddEducation, onRemoveEducation, onA
                 position: position || undefined,
                 location: expLocation || undefined,
                 start_date: formatDate(expStart),
-                end_date: formatDate(expEnd),
+                end_date: formatDate(expEnd, true),
                 highlights: parseHighlights(expHighlights)
               })}>Add Experience</button>
             </>
@@ -736,7 +736,7 @@ function ResumeEducationExperience({ doc, onAddEducation, onRemoveEducation, onA
                     }
                   </label>
                   <button type="button" className="liquid-btn solid" onClick={() => {
-                    const value = expField === "highlights" ? parseHighlights(expFieldValue) : DATE_FIELDS.includes(expField) ? formatDate(expFieldValue) : expFieldValue;
+                    const value = expField === "highlights" ? parseHighlights(expFieldValue) : DATE_FIELDS.includes(expField) ? formatDate(expFieldValue, expField === "end_date") : expFieldValue;
                     onEdit([{ section: "experience", item_name: selectedExp, field: expField, new_value: value }]);
                   }}>Save Change</button>
                 </>
@@ -1085,7 +1085,7 @@ function DocumentStudio({ kind, mode }) {
       setIdInput(id.trim());
       setMessage(`${isResume ? "Resume" : "Portfolio"} loaded.`);
     } catch (err) {
-      const isNotFound = err.status === 404;
+      const isNotFound = err.message?.includes("(404)");
       const existing = readRecentIds();
       const wasRecent = existing.includes(id.trim());
       if (isNotFound && wasRecent) {
