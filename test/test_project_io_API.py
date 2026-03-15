@@ -13,12 +13,6 @@ from fastapi.testclient import TestClient
 
 test_client = TestClient(app)
 
-@pytest.fixture(autouse=True)
-def reset_save_dir():
-    original = runtimeAppContext.default_save_dir
-    yield
-    runtimeAppContext.default_save_dir = original
-
 @pytest.fixture
 def make_project_save_dir(monkeypatch, tmp_path):
     """
@@ -27,9 +21,9 @@ def make_project_save_dir(monkeypatch, tmp_path):
     def _make(relative: str = "project_insights") -> Path:
         save_dir = tmp_path / relative
         save_dir.mkdir(parents=True, exist_ok=True)
-        monkeypatch.setattr(runtimeAppContext, "default_save_dir", save_dir)
+        import src.core.app_context as _ctx
+        monkeypatch.setattr(_ctx.runtimeAppContext, "default_save_dir", save_dir)
         return save_dir
-
     return _make
 
 def test_return_all_saved_projects_none():
