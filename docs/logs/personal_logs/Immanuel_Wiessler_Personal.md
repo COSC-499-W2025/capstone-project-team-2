@@ -2057,13 +2057,13 @@ Following Week 23's work on skill management endpoints and the initial Streamlit
 - Reviewed PR (1st reviewer): [Migrate Frontend from Streamlit to Next.js and Standardize Shared UI #495](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/495)
 - Reviewed PR (2nd reviewer): [Revert 'Overhaul of Streamlit Frontend Styles and Mode Controls' #497](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/497)
 - Reviewed PR (1st reviewer): [Remove modes #502](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/502)
+- Reviewed PR: [Add Portfolio Showcase Role Override UI #529](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/529)
+- Reviewed PR: [Failing test correction #534](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/534)
 
 ---
 
 ## 📌 Associated Tasks from Project Board
 - [Restore discoverable saved document selection in workspace page resume portfolio #498](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/498)
-- [Add dark theme styles for alerts and selects, and add CV theme preview assets #525](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/525)
-- [Add frontend API helpers and expand backend API test suite #526](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/526)
 
 ---
 
@@ -2076,19 +2076,20 @@ Following Week 23's work on skill management endpoints and the initial Streamlit
 | **Add dark theme styles for alerts and selects (PR #517)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 | **Add frontend API helpers and expand backend API test suite (PR #524)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 | **Revamp workspace DocumentStudio and restore saved document selection (PR #522)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Add Portfolio Showcase Role Override UI (PR #529)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Failing test correction (PR #534)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 
 ---
 
 ## ⚠️ Issues/Blockers
 
-- 
+- N/A
 
 ---
 
 ## 🎯 Next Week's Goals
-- Work on [Add Awards Section to Resume Data Model and UI #503](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/503) — implement a dedicated Awards section in the resume API and frontend editors
+- Work on [Add Portfolio Showcase Role Override UI #514](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/514) — build a frontend UI component for setting and retrieving project roles via the `/portfolio-showcase/{project_name}/role` endpoint
 - Address bugs and improvements revealed during peer testing
-- Work on updating API documentation with new endpoints 
 
 ---
 
@@ -2104,6 +2105,6 @@ The third task was expanding the **backend API test suite** ([PR #524](https://g
 
 On the review side, the most significant review this week was [PR #495](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/495) — a proposed migration of the entire frontend from Streamlit to Next.js. This was a large architectural change and required careful evaluation of the trade-offs involved given our project timeline. I reviewed the implementation and provided feedback as the first reviewer. I also reviewed [PR #497](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/497), which reverted a previous Streamlit style overhaul, and [PR #502](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/502), which removed the light/dark mode toggle controls from the frontend.
 
-Overall, this week was a mix of targeted frontend improvements, backend test hardening, and active participation in shaping the team's frontend direction through code review.
+Overall, this week was a mix of targeted frontend improvements, backend test hardening, and active participation in shaping the team's frontend direction through code review, with the added benefit of having to focus on doing coding Prs and preparing for midterms as well.
 
 ---
