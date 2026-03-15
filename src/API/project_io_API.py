@@ -109,9 +109,17 @@ def _allowed_project_save_dirs() -> tuple[Path, ...]:
 
 
 def _is_path_within_allowed_dirs(path: Path, allowed_dirs: tuple[Path, ...]) -> bool:
-    """Return True when path resolves inside one of allowed directories."""
-    resolved = path.expanduser().resolve()
-    return any(resolved == d or d in resolved.parents for d in allowed_dirs)
+    expanded = path.expanduser()
+    resolved = expanded.parent.resolve() / expanded.name
+    for d in allowed_dirs:
+        if resolved == d:
+            return True
+        try:
+            resolved.relative_to(d)
+            return True
+        except ValueError:
+            pass
+    return False
 
 @projectsRouter.post("/upload")
 async def upload_project(upload_file: UploadFile) -> dict:
@@ -212,16 +220,13 @@ def get_project_by_name(id: str) -> dict:
     project_stem = Path(project_filename).stem
 
     # Prefer DB source when available.
-    try:
-        data = runtimeAppContext.store.fetch_by_name(project_filename)
-        if data is not None:
-            return {
-                "project_name": project_stem,
-                "source": "database",
-                "analysis": data,
-            }
-    except Exception:
-        pass
+    data = runtimeAppContext.store.fetch_by_name(project_filename)
+    if data is not None:
+        return {
+            "project_name": project_stem,
+            "source": "database",
+            "analysis": data,
+        }
 
     # Fallback to local files.
     candidate_paths = [

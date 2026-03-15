@@ -12,9 +12,14 @@ class TestFilePassing:
         mock_extract = MagicMock(return_value=Path("/tmp/extracted"))
         mock_analyze = MagicMock(return_value={"dedup": None, "snapshots": []})
 
-        with patch("src.core.multi_project_handler.extract_if_zip", mock_extract), \
-             patch("src.core.multi_project_handler.analyze_project", mock_analyze):
-            single_project_run(("/projects/archive.zip", False))
+        with (
+        patch("src.core.multi_project_handler.extract_if_zip", mock_extract),
+        patch("src.core.multi_project_handler.analyze_project", mock_analyze),
+        patch("src.core.analysis_service.record_project_insight", MagicMock()),
+        patch("src.core.analysis_service.export_json", MagicMock(return_value={})),
+        patch("src.core.analysis_service.deduplicate_project", MagicMock()),
+        ):
+         single_project_run(("/projects/archive.zip", False))
 
         mock_extract.assert_called_once_with(Path("/projects/archive.zip"))
 
@@ -23,9 +28,14 @@ class TestFilePassing:
         mock_extract = MagicMock()
         mock_analyze = MagicMock(return_value={"dedup": None, "snapshots": []})
 
-        with patch("src.core.multi_project_handler.extract_if_zip", mock_extract), \
-             patch("src.core.multi_project_handler.analyze_project", mock_analyze):
-            single_project_run(("/projects/my_app", False))
+        with (
+        patch("src.core.multi_project_handler.extract_if_zip", mock_extract),
+        patch("src.core.multi_project_handler.analyze_project", mock_analyze),
+        patch("src.core.analysis_service.record_project_insight", MagicMock()),
+        patch("src.core.analysis_service.export_json", MagicMock(return_value={})),
+        patch("src.core.analysis_service.deduplicate_project", MagicMock()),
+        ):
+             single_project_run(("/projects/my_app", False))
 
         mock_extract.assert_not_called()
         
@@ -103,6 +113,7 @@ class TestFilePassing:
             return {"skipped": False, "snapshots": []}
 
         with patch("src.core.analysis_service.export_json", side_effect=mock_export), \
+            patch("src.core.multi_project_handler.analyze_project", MagicMock(return_value={})), \
             patch("src.core.multi_project_handler.extract_if_zip", MagicMock(side_effect=lambda p: p)), \
             patch("src.core.analysis_service.record_project_insight", MagicMock(return_value=None)), \
             patch("src.core.analysis_service.deduplicate_project", MagicMock(return_value=MagicMock(
