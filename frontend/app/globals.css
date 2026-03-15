@@ -458,6 +458,7 @@ h1 {
   width: auto;
   flex-wrap: nowrap;
   align-items: center;
+  overflow: visible;
 }
 
 .liquid-nav-main {
@@ -466,6 +467,18 @@ h1 {
   flex-wrap: wrap;
   gap: 0.36rem;
   min-width: 0;
+}
+
+.liquid-nav-main::before {
+  content: "";
+  position: absolute;
+  top: -1.8rem;
+  right: 0;
+  bottom: -0.9rem;
+  left: 0;
+  background: transparent;
+  pointer-events: auto;
+  z-index: 0;
 }
 
 .liquid-nav-tail {
