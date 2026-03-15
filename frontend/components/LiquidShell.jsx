@@ -21,7 +21,8 @@ const links = [
   { href: "/dashboard", label: "Dashboard", modes: ["public", "private"] },
   { href: "/upload", label: "Upload", modes: ["private"] },
   { href: "/workspace", label: "Resume + Portfolio", modes: ["public", "private"] },
-  { href: "/config", label: "User Config", modes: ["private"] }
+  { href: "/config", label: "User Config", modes: ["private"] },
+  { href: "/representation", label: "Representation", modes: ["private"] }
 ];
 
 /**

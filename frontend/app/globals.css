@@ -1131,7 +1131,7 @@ label {
   color: var(--ink-1);
 }
 
-input,
+input:not([type="checkbox"]):not([type="radio"]),
 select,
 textarea {
   width: 100%;
@@ -1159,6 +1159,22 @@ a:focus-visible {
   outline: none;
   border-color: rgba(179, 228, 255, 0.95);
   box-shadow: 0 0 0 3px var(--focus), inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: auto;
+  min-width: 1rem;
+  height: 1rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  flex: 0 0 auto;
 }
 
 .segmented {
@@ -1365,6 +1381,7 @@ a:focus-visible {
 }
 
 .config-page .config-grid,
+.representation-page .config-grid,
 .workspace-page .grid {
   gap: 1rem;
 }
@@ -1446,6 +1463,63 @@ a:focus-visible {
   margin-top: 0.34rem;
 }
 
+.representation-project-row {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.representation-project-header {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.representation-project-meta {
+  min-width: 0;
+  flex: 1 1 16rem;
+}
+
+.representation-project-subtext {
+  margin: 0.28rem 0 0;
+}
+
+.representation-project-skills {
+  margin: 0.18rem 0 0;
+}
+
+.representation-project-actions {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  flex: 0 1 auto;
+  max-width: 100%;
+}
+
+.representation-showcase-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.representation-chronology-field {
+  width: 100%;
+  margin-top: 0.72rem;
+}
+
+.representation-chronology-hint {
+  margin: 0.25rem 0 0.4rem;
+}
+
+.representation-chronology-input {
+  width: 100%;
+  margin-top: 0.32rem;
+}
+
 /* ==========================================================================
    Responsive Adjustments
    ========================================================================== */
@@ -1502,6 +1576,25 @@ a:focus-visible {
 
   .grid {
     gap: 0.82rem;
+  }
+
+  .representation-project-header {
+    flex-direction: column;
+  }
+
+  .representation-project-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 520px) {
+  .representation-project-actions .liquid-btn {
+    flex: 1 1 9rem;
+  }
+
+  .representation-showcase-toggle {
+    flex-basis: 100%;
   }
 
 }
