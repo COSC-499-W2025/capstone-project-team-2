@@ -1417,6 +1417,63 @@ a:focus-visible {
   margin-top: 0.34rem;
 }
 
+.representation-project-row {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.representation-project-header {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.representation-project-meta {
+  min-width: 0;
+  flex: 1 1 16rem;
+}
+
+.representation-project-subtext {
+  margin: 0.28rem 0 0;
+}
+
+.representation-project-skills {
+  margin: 0.18rem 0 0;
+}
+
+.representation-project-actions {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  flex: 0 1 auto;
+  max-width: 100%;
+}
+
+.representation-showcase-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.representation-chronology-field {
+  width: 100%;
+  margin-top: 0.72rem;
+}
+
+.representation-chronology-hint {
+  margin: 0.25rem 0 0.4rem;
+}
+
+.representation-chronology-input {
+  width: 100%;
+  margin-top: 0.32rem;
+}
+
 /* ==========================================================================
    Responsive Adjustments
    ========================================================================== */
@@ -1473,6 +1530,25 @@ a:focus-visible {
 
   .grid {
     gap: 0.82rem;
+  }
+
+  .representation-project-header {
+    flex-direction: column;
+  }
+
+  .representation-project-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 520px) {
+  .representation-project-actions .liquid-btn {
+    flex: 1 1 9rem;
+  }
+
+  .representation-showcase-toggle {
+    flex-basis: 100%;
   }
 
 }

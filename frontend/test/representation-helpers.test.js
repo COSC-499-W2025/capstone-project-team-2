@@ -7,7 +7,9 @@ import {
   formatChronologyInputs,
   mergeProjectOrder,
   normalizeRepresentationPreferences,
-  parseListInput
+  parseListInput,
+  toDateTimeLocalValue,
+  toIsoDateTimeValue
 } from "../app/representation/helpers.js";
 
 test("normalizeRepresentationPreferences fills missing defaults", () => {
@@ -48,19 +50,25 @@ test("formatChronologyInputs flattens analyzed_at values for form state", () => 
     "Project B": { other: "ignored" }
   });
 
-  assert.deepEqual(formatted, {
-    "Project A": "2025-03-14T12:00:00Z"
-  });
+  assert.equal(formatted["Project A"], toDateTimeLocalValue("2025-03-14T12:00:00Z"));
+  assert.equal(formatted["Project B"], undefined);
 });
 
-test("buildChronologyPayload omits blank values and trims saved timestamps", () => {
+test("buildChronologyPayload omits blank values and converts valid inputs to ISO", () => {
   const payload = buildChronologyPayload({
-    "Project A": " 2025-03-14T12:00:00Z ",
+    "Project A": "2025-03-14T12:00:00",
     "Project B": "",
     "Project C": "   "
   });
 
   assert.deepEqual(payload, {
-    "Project A": { analyzed_at: "2025-03-14T12:00:00Z" }
+    "Project A": { analyzed_at: toIsoDateTimeValue("2025-03-14T12:00:00") }
   });
+});
+
+test("buildChronologyPayload rejects invalid date values", () => {
+  assert.throws(
+    () => buildChronologyPayload({ "Project A": "testing" }),
+    /Enter a valid date and time for Project A\./
+  );
 });

@@ -68,7 +68,8 @@ export function formatChronologyInputs(corrections) {
   if (!corrections || typeof corrections !== "object") return inputs;
   for (const [projectName, value] of Object.entries(corrections)) {
     if (value && typeof value === "object" && value.analyzed_at) {
-      inputs[projectName] = String(value.analyzed_at);
+      const formatted = toDateTimeLocalValue(String(value.analyzed_at));
+      if (formatted) inputs[projectName] = formatted;
     }
   }
   return inputs;
@@ -86,9 +87,45 @@ export function buildChronologyPayload(inputs) {
   const payload = {};
   for (const [projectName, value] of Object.entries(inputs || {})) {
     const cleaned = String(value || "").trim();
-    if (cleaned) payload[projectName] = { analyzed_at: cleaned };
+    if (!cleaned) continue;
+
+    const isoValue = toIsoDateTimeValue(cleaned);
+    if (!isoValue) {
+      throw new Error(`Enter a valid date and time for ${projectName}.`);
+    }
+    payload[projectName] = { analyzed_at: isoValue };
   }
   return payload;
+}
+
+/**
+ * Converts a stored timestamp into an HTML `datetime-local` field value.
+ *
+ * @param {string} value
+ * @returns {string}
+ */
+export function toDateTimeLocalValue(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) return "";
+
+  const year = String(date.getFullYear());
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+}
+
+/**
+ * Converts an HTML `datetime-local` field value into an ISO timestamp.
+ *
+ * @param {string} value
+ * @returns {string}
+ */
+export function toIsoDateTimeValue(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.valueOf()) ? "" : date.toISOString();
 }
 
 /**

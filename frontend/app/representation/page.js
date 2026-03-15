@@ -251,21 +251,20 @@ export default function RepresentationPage() {
                 return (
                   <div
                     key={projectName}
-                    className="settings-row"
-                    style={{ alignItems: "flex-start", flexDirection: "column" }}
+                    className="settings-row representation-project-row"
                   >
-                    <div style={{ display: "flex", width: "100%", justifyContent: "space-between", gap: "1rem", alignItems: "flex-start" }}>
-                      <div style={{ minWidth: 0 }}>
+                    <div className="representation-project-header">
+                      <div className="representation-project-meta">
                         <strong className="settings-value">{projectName}</strong>
-                        <p className="muted" style={{ margin: "0.28rem 0 0" }}>
+                        <p className="muted representation-project-subtext">
                           Analyzed: {formatDateLabel(project?.analyzed_at)}
                         </p>
-                        <p className="muted" style={{ margin: "0.18rem 0 0" }}>
+                        <p className="muted representation-project-skills">
                           Skills: {skills || "No detected skills"}
                         </p>
                       </div>
 
-                      <div style={{ display: "flex", gap: "0.45rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                      <div className="representation-project-actions">
                         <button
                           type="button"
                           className="liquid-btn"
@@ -282,7 +281,7 @@ export default function RepresentationPage() {
                         >
                           Move Down
                         </button>
-                        <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", whiteSpace: "nowrap" }}>
+                        <label className="representation-showcase-toggle">
                           <input
                             type="checkbox"
                             checked={showcaseProjects.includes(projectName)}
@@ -293,12 +292,16 @@ export default function RepresentationPage() {
                       </div>
                     </div>
 
-                    <label style={{ width: "100%", marginTop: "0.72rem" }}>
+                    <label className="representation-chronology-field">
                       Chronology correction (`analyzed_at`)
+                      <p className="muted representation-chronology-hint">
+                        Use the date/time picker. Leave blank to keep the detected analyzed date.
+                      </p>
                       <input
-                        style={{ width: "100%", marginTop: "0.32rem" }}
+                        type="datetime-local"
+                        step="1"
+                        className="representation-chronology-input"
                         value={chronologyInputs[projectName] || ""}
-                        placeholder={project?.analyzed_at || "e.g., 2025-03-14T12:00:00Z"}
                         onChange={(e) => setChronologyInputs((current) => ({
                           ...current,
                           [projectName]: e.target.value
