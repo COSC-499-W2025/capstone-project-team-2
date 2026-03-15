@@ -331,6 +331,7 @@ Exposed representation preferences in the Next.js frontend through a dedicated `
 - https://github.com/COSC-499-W2025/capstone-project-team-2/pull/524
 - https://github.com/COSC-499-W2025/capstone-project-team-2/pull/529
 - https://github.com/COSC-499-W2025/capstone-project-team-2/pull/534
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/532
 
 ### Additional Details
 
