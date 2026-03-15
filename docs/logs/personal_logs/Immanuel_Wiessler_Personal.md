@@ -2037,7 +2037,7 @@ On the frontend side being my second task , [PR #466](https://github.com/COSC-49
 
 ## 🔗 Connection to Previous Week
 
-Following Week 23's work on skill management endpoints and the initial Streamlit frontend setup, this week focused on
+Following Week 23's work on skill management endpoints and the initial Streamlit frontend setup, this week focused on intergrating our new tech stack into the backend and frontend to make the system more robust and user-friendly.
 
 ---
 
@@ -2057,8 +2057,8 @@ Following Week 23's work on skill management endpoints and the initial Streamlit
 - Reviewed PR (1st reviewer): [Migrate Frontend from Streamlit to Next.js and Standardize Shared UI #495](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/495)
 - Reviewed PR (2nd reviewer): [Revert 'Overhaul of Streamlit Frontend Styles and Mode Controls' #497](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/497)
 - Reviewed PR (1st reviewer): [Remove modes #502](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/502)
-- Reviewed PR: [Add Portfolio Showcase Role Override UI #529](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/529)
-- Reviewed PR: [Failing test correction #534](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/534)
+- Reviewed PR (1st Reviwer): [Add Portfolio Showcase Role Override UI #529](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/529)
+- Reviewed PR (1st Reviwer): [Failing test correction #534](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/534)
 
 ---
 
@@ -2085,7 +2085,7 @@ Following Week 23's work on skill management endpoints and the initial Streamlit
 
 ## ⚠️ Issues/Blockers
 
-- N/A
+- There was one minor issue in regards to making sure that the resume and portfoilo intergration were working as intended
 
 ---
 
@@ -2105,7 +2105,7 @@ The second task was the **DocumentStudio revamp** ([PR #522](https://github.com/
 
 The third task was expanding the **backend API test suite** ([PR #524](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/524)) with approximately 350 lines of new pytest coverage across `test_resume_generator_API.py` and `test_portfolio_generator_API.py`. The new tests fill gaps in GET/POST endpoint coverage, verify that `.json` suffix normalization works correctly when fetching stored projects, confirm that duplicate experience entries return a proper 409 conflict response, and validate export endpoint behavior. This brings the API test suite into a more complete state ahead of the final milestone.
 
-On the review side, the most significant review this week was [PR #495](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/495) — a proposed migration of the entire frontend from Streamlit to Next.js. This was a large architectural change and required careful evaluation of the trade-offs involved given our project timeline. I reviewed the implementation and provided feedback as the first reviewer. I also reviewed [PR #497](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/497), which reverted a previous Streamlit style overhaul, and [PR #502](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/502), which removed the light/dark mode toggle controls from the frontend.
+On the review side, the most significant review this week was [PR #495](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/495) — a proposed migration of the entire frontend from Streamlit to Next.js. This was a large architectural change and required careful evaluation of the trade-offs involved given our project timeline. I reviewed the implementation and provided feedback as the first reviewer. I also reviewed [PR #497](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/497), which reverted a previous Streamlit style overhaul, and [PR #502](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/502), which removed the light/dark mode toggle controls from the frontend. Additionally, I reviewed [PR #529](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/529), which added a Portfolio Showcase Role Override UI for setting and retrieving project roles, and [PR #534](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/534), which corrected failing tests in the test suite.
 
 Overall, this week was a mix of targeted frontend improvements, backend test hardening, and active participation in shaping the team's frontend direction through code review, with the added benefit of having to focus on doing coding Prs and preparing for midterms as well.
 
