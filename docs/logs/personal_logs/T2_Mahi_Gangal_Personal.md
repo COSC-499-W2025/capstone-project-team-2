@@ -291,6 +291,7 @@ This week’s work focused on Milestone 3 frontend delivery and quality validati
 - Removed redundant mode/theme controls from the User Configuration page and cleaned up related config-state handling.
 - Added frontend UI for Portfolio Showcase role overrides using the existing backend endpoints.
 - Exposed Representation Preferences in the Next.js UI through a dedicated page and supporting helper/API logic.
+- Completed team log for Week 10.
 - Verified automated tests after integration.
 - Reviewed teammates’ PRs and provided feedback on correctness, edge cases, and test coverage.
 
@@ -332,6 +333,7 @@ Exposed representation preferences in the Next.js frontend through a dedicated `
 - https://github.com/COSC-499-W2025/capstone-project-team-2/pull/529
 - https://github.com/COSC-499-W2025/capstone-project-team-2/pull/534
 - https://github.com/COSC-499-W2025/capstone-project-team-2/pull/532
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/540
 
 ### Additional Details
 
