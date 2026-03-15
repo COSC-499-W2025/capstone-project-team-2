@@ -1,3 +1,52 @@
+## Dates of Sprint: (03/08/2026 – 03/15/2026)
+
+### Peer Eval Screenshot:
+
+<img width="1092" height="626" alt="image" src= "https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Cameron-Personal-Logs/docs/logs/peer_eval_screenshots/PL_Cameron_03-15-26.png" />
+
+
+### Features Worked on this sprint (Provide sufficient detail)
+  * #1: Fix backend Automated tests
+
+
+
+
+### Tasks for Prior Week
+  * #1: MySQL to SQLite
+
+
+
+
+
+## Associated Tasks from Project Board:
+
+| Description        | Status   |
+| ------------------ | -------- |
+| [fix backend Automated tests]  | [Complete] |
+
+
+## Published PRs (Excluding PL/TLs)
+ * [MySQL to SQLite](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/478)
+
+
+
+
+## Reviewed PRs
+  * [Add frontend API helpers and expand backend API test suite](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/524)
+  * [Revamp workspace DocumentStudio and restore saved document selection](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/522)
+  * [Revamp workspace DocumentStudio and restore saved document selection](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/521)
+
+
+---
+## Next week goals
+- N/A until team meeting
+
+### Extra Details:
+
+<details>
+  Migrated our old Mysql database over to SQLite so docker is for the most part completely depreciated from the project. The project and CLI can run completely independent from docker and for the most part its a glorified test runner. It really makes me thing about why we decided to utilize it, which in part was because of me wanting to use mySQL from the databases course but also well.... we didnt know if we were required to have an online app. I guess we thought that it wouldve been easier to deploy and online database with docker? No matter the reason I am quite excited to rip out the old docker code and now having learned more SQLite i look forward to advancing the project and the database as a whole for the next week i MIGHT be working on it.
+</details>
+
 ## Dates of Sprint: (03/01/2026 – 03/08/2026)
 
 ### Peer Eval Screenshot:
