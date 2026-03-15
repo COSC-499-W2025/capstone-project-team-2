@@ -10,7 +10,7 @@
     "prestart": "node scripts/ensure-canonical-files.mjs",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --test test/**/*.test.js"
+    "test": "node --test test/*.test.js"
   },
   "dependencies": {
     "framer-motion": "^11.18.2",

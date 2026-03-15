@@ -449,6 +449,31 @@ export function generatePortfolio(name, theme) {
 }
 
 /**
+ * Fetches a saved portfolio showcase role override for one project.
+ *
+ * @param {string} projectName
+ * @returns {Promise<any>}
+ */
+export function getPortfolioShowcaseRole(projectName) {
+  return request(`/portfolio-showcase/${encodeURIComponent(projectName)}/role`);
+}
+
+/**
+ * Saves a portfolio showcase role override for one project.
+ *
+ * @param {string} projectName
+ * @param {string} role
+ * @returns {Promise<any>}
+ */
+export function setPortfolioShowcaseRole(projectName, role) {
+  return request(`/portfolio-showcase/${encodeURIComponent(projectName)}/role`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ role })
+  });
+}
+
+/**
  * Fetches one portfolio document by id.
  *
  * @param {string} id
@@ -608,31 +633,6 @@ export function removePortfolioSkill(id, label) {
 }
 
 /**
- * Saves a human-authored role override for a project's portfolio showcase.
- *
- * @param {string} projectName
- * @param {string} role
- * @returns {Promise<any>}
- */
-export function setPortfolioShowcaseRole(projectName, role) {
-  return request(`/portfolio-showcase/${encodeURIComponent(projectName)}/role`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ role })
-  });
-}
-
-/**
- * Retrieves the saved role override for a project's portfolio showcase.
- *
- * @param {string} projectName
- * @returns {Promise<any>}
- */
-export function getPortfolioShowcaseRole(projectName) {
-  return request(`/portfolio-showcase/${encodeURIComponent(projectName)}/role`);
-}
-
-/**
  * Removes one project entry from a portfolio.
  *
  * @param {string} id
@@ -650,4 +650,3 @@ export function removePortfolioProject(id, projectName) {
     method: "DELETE"
   });
 }
-
