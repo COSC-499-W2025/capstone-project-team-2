@@ -650,3 +650,4 @@ export function removePortfolioProject(id, projectName) {
     method: "DELETE"
   });
 }
+

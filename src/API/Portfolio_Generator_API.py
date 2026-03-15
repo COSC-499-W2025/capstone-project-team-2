@@ -279,25 +279,26 @@ def get_portfolio_showcase_role(project_name: str):
 
 @portfolioRouter.get("/portfolios")
 def list_portfolios():
-    """List all saved portfolio IDs, display names, and creation dates.
+    """List all saved portfolio documents.
 
     Returns:
-        list[dict]: Each entry has 'id', 'name', and 'created_at' (ISO string or None).
+        list: Each entry has ``id`` (the file stem used as the portfolio ID),
+        ``display_name`` (name without the UUID suffix), and ``created_at``
+        (ISO-8601 timestamp of file creation time).
     """
     cv_dir = Path(__file__).resolve().parents[2] / "User_config_files" / "Generate_render_CV_files"
     results = []
-    y = _yaml.YAML()
-    for yaml_file in sorted(cv_dir.glob("*_Portfolio_CV.yaml")):
-        portfolio_id = yaml_file.stem.replace("_Portfolio_CV", "")
-        display_name = re.sub(r'_[0-9a-f]{8}$', '', portfolio_id).replace("_", " ")
-        created_at = None
-        try:
-            with open(yaml_file, "r") as f:
-                data = y.load(f)
-            created_at = data.get("created_at")
-        except Exception:
-            pass
-        results.append({"id": portfolio_id, "name": display_name, "created_at": created_at})
+    for f in cv_dir.glob("*_Portfolio_CV.yaml"):
+        stem = f.stem  # e.g. "Jane_Doe_a1b2c3d4_Portfolio_CV"
+        portfolio_id = stem[: -len("_Portfolio_CV")]
+        parts = portfolio_id.rsplit("_", 1)
+        display_name = parts[0].replace("_", " ") if len(parts) == 2 else portfolio_id
+        results.append({
+            "id": portfolio_id,
+            "name": display_name,
+            "created_at": f.stat().st_ctime * 1000,
+        })
+    results.sort(key=lambda x: x["created_at"], reverse=True)
     return results
 
 

@@ -255,25 +255,26 @@ def _check_result(result: str):
 
 @resumeRouter.get("/resumes")
 def list_resumes():
-    """List all saved resume IDs, display names, and creation dates.
+    """List all saved resume documents.
 
     Returns:
-        list[dict]: Each entry has 'id', 'name', and 'created_at' (ISO string or None).
+        list: Each entry has ``id`` (the file stem used as the resume ID),
+        ``display_name`` (name without the UUID suffix), and ``created_at``
+        (ISO-8601 timestamp of file creation time).
     """
     cv_dir = Path(__file__).resolve().parents[2] / "User_config_files" / "Generate_render_CV_files"
     results = []
-    y = _yaml.YAML()
-    for yaml_file in sorted(cv_dir.glob("*_Resume_CV.yaml")):
-        resume_id = yaml_file.stem.replace("_Resume_CV", "")
-        display_name = re.sub(r'_[0-9a-f]{8}$', '', resume_id).replace("_", " ")
-        created_at = None
-        try:
-            with open(yaml_file, "r") as f:
-                data = y.load(f)
-            created_at = data.get("created_at")
-        except Exception:
-            pass
-        results.append({"id": resume_id, "name": display_name, "created_at": created_at})
+    for f in cv_dir.glob("*_Resume_CV.yaml"):
+        stem = f.stem  # e.g. "John_Doe_a1b2c3d4_Resume_CV"
+        resume_id = stem[: -len("_Resume_CV")]
+        parts = resume_id.rsplit("_", 1)
+        display_name = parts[0].replace("_", " ") if len(parts) == 2 else resume_id
+        results.append({
+            "id": resume_id,
+            "name": display_name,
+            "created_at": f.stat().st_ctime * 1000,
+        })
+    results.sort(key=lambda x: x["created_at"], reverse=True)
     return results
 
 
