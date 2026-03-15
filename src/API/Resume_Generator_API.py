@@ -271,7 +271,7 @@ def list_resumes():
         display_name = parts[0].replace("_", " ") if len(parts) == 2 else resume_id
         results.append({
             "id": resume_id,
-            "display_name": display_name,
+            "name": display_name,
             "created_at": f.stat().st_ctime * 1000,
         })
     results.sort(key=lambda x: x["created_at"], reverse=True)
