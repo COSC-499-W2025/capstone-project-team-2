@@ -38,7 +38,7 @@ import {
   removeResumeExperience,
   renderPortfolio,
   renderResume,
-  setPortfolioShowcaseRole
+  setPortfolioShowcaseRole,
   addResumeSkill,
   appendResumeSkill,
   removeResumeSkill,
@@ -496,8 +496,7 @@ function PortfolioRoleOverrideCard({ title, projectName, hint = "" }) {
  * }} props
  * @returns {JSX.Element}
  */
-function ProjectEditor({ projects, docProjects, onAddProject, onEditProject, onRemoveProject, allowRoleOverride = false }) {
-function ProjectEditor({ projects, docProjects, onAddProject, onAddProjectAI, onEditProject, onRemoveProject, busy = false }) {
+function ProjectEditor({ projects, docProjects, onAddProject, onAddProjectAI, onEditProject, onRemoveProject, busy = false, allowRoleOverride = false }) {
   const [aiLoading, setAiLoading] = useState(false);
   const [projectName, setProjectName] = useState(projects[0] || "");
   const [summary, setSummary] = useState("");

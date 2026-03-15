@@ -10,7 +10,6 @@ import {
   getApiBase,
   saveConsent,
   setPortfolioShowcaseRole,
-  updateConfig
   updateConfig,
   fetchConfig,
   uploadProjectZip
@@ -247,6 +246,8 @@ test("getPortfolioShowcaseRole surfaces backend 404 detail", async () => {
     () => getPortfolioShowcaseRole("UnknownProject"),
     /No saved role for project 'UnknownProject'\./
   );
+});
+
 test("backend non-2xx attaches response.status to thrown error", async () => {
   global.fetch = async () => makeResponse({
     ok: false,
