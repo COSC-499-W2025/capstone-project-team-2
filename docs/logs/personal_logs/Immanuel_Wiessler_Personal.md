@@ -4,6 +4,7 @@
 
 ## Quick Navigation
 ### Term 2
+- [Week 24 (03/09/2026 – 03/15/2026)](#-personal-log--week-24-03092026--03152026)
 - [Week 23 (03/02/2026 – 03/08/2026)](#-personal-log--week-23-03022026--03082026)
 - [Week 22 (02/23/2026 – 03/01/2026)](#-personal-log--week-22-02232026--03012026)
 - [Week 21 - Bonus Week (02/16/2026 – 02/22/2026)](#-personal-log--week-21---bonus-week-02162026--02222026)
@@ -2023,5 +2024,89 @@ ensure that users can add, delete, and modify the skill sections of the resume o
 
 On the frontend side being my second task , [PR #466](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/466) introduced the general setup for our frontend system, which uses Streamlit, and the first frontend component, the **Resume and Portfolio UI**, which consists of separate tabs for Resume and Portfolio management. In addition, I introduced a separate file of reusable helper modules containingcontaining form layouts, API call wrappers, and Preview functionality. In summary, the Resume and Portfolio UI supports the For CRUD operations(Creating, loading, editing, and deleting), as well as downloading render outputs in the available formats(PDF, HTML, Markdown)
 
+
+---
+
+# 📝 Personal Log – Week 24 (03/09/2026 – 03/15/2026)
+
+## 📊 Peer Evaluation
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/13-03-2026.png)
+
+
+---
+
+## 🔗 Connection to Previous Week
+
+Following Week 23's work on skill management endpoints and the initial Streamlit frontend setup, this week focused on
+
+---
+
+## 🚀 Work Completed
+
+### Coding Tasks
+- Opened PR: [Add frontend API helpers and expand backend API test suite #524](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/524)
+- Opened PR: [Revamp workspace DocumentStudio and restore saved document selection (#498) #522](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/522)
+- Opened PR: [Add dark theme styles for alerts and selects #517](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/517)
+
+### Testing/Debugging Tasks
+- Expanded backend API test suite with ~350 lines of new pytest coverage across `test_resume_generator_API.py` and `test_portfolio_generator_API.py` (PR #524) — covering GET/POST endpoints, `.json` suffix normalization, duplicate experience 409 errors, and export validations
+- Validated dark mode alert variants (.error, .success, .warning) and form select dropdowns render correctly after styling changes (PR #517)
+- Tested saved document list refresh after removal, education/experience workflows, SkillsEditor operations, AI project addition button states, and PDF preview functionality in the revamped DocumentStudio (PR #522)
+
+### Reviewing/Collaboration Tasks
+- Reviewed PR (1st reviewer): [Migrate Frontend from Streamlit to Next.js and Standardize Shared UI #495](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/495)
+- Reviewed PR (2nd reviewer): [Revert 'Overhaul of Streamlit Frontend Styles and Mode Controls' #497](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/497)
+- Reviewed PR (1st reviewer): [Remove modes #502](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/502)
+- Reviewed PR: [Add Portfolio Showcase Role Override UI #529](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/529)
+- Reviewed PR: [Failing test correction #534](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/534)
+
+---
+
+## 📌 Associated Tasks from Project Board
+- [Restore discoverable saved document selection in workspace page resume portfolio #498](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/498)
+- [Add Portfolio Showcase Role Override UI #514](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/514)
+- [Failing tests #533](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/533)
+
+---
+
+## 📈 Progress Update
+
+| Task/Issue | Status |
+|------------|--------|
+| **Reviewed Migrate Frontend to Next.js PR (PR #495)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Revert Streamlit Overhaul PR (PR #497)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Add dark theme styles for alerts and selects (PR #517)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Add frontend API helpers and expand backend API test suite (PR #524)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Revamp workspace DocumentStudio and restore saved document selection (PR #522)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Add Portfolio Showcase Role Override UI (PR #529)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Failing test correction (PR #534)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+
+---
+
+## ⚠️ Issues/Blockers
+
+- N/A
+
+---
+
+## 🎯 Next Week's Goals
+- Work on [Add Portfolio Showcase Role Override UI #514](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/514) — build a frontend UI component for setting and retrieving project roles via the `/portfolio-showcase/{project_name}/role` endpoint
+- Address bugs and improvements revealed during peer testing
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 24)
+
+**Week 24** was centered around frontend polish, backend test coverage, and a significant architectural review for the team's frontend direction.
+
+The first task was adding **dark theme styles for alerts and form select dropdowns** ([PR #517](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/517)). Without this fix, the `.error`, `.success`, and `.warning` alert variants and `<select>` elements were rendering with light backgrounds in dark mode, creating a poor visual experience. The fix involved targeting the specific Streamlit-generated CSS classes and overriding their background, border, and text color properties so they render consistently with the rest of the dark theme. I validated all four alert variants and the select dropdowns manually after the change.
+
+The second task was the **DocumentStudio revamp** ([PR #522](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/522)), which addressed issue [#498](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/498) — the workspace page had lost the ability for users to discover and reload previously saved resume and portfolio documents. The revamp restored the saved document selection panel so users can see and load their existing documents without having to regenerate them from scratch. I also fixed the saved document list so it refreshes automatically after a document is removed, preventing stale entries from appearing. Testing covered education/experience workflows, SkillsEditor operations, AI project addition button states, and PDF preview functionality throughout the revamped component.
+
+The third task was expanding the **backend API test suite** ([PR #524](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/524)) with approximately 350 lines of new pytest coverage across `test_resume_generator_API.py` and `test_portfolio_generator_API.py`. The new tests fill gaps in GET/POST endpoint coverage, verify that `.json` suffix normalization works correctly when fetching stored projects, confirm that duplicate experience entries return a proper 409 conflict response, and validate export endpoint behavior. This brings the API test suite into a more complete state ahead of the final milestone.
+
+On the review side, the most significant review this week was [PR #495](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/495) — a proposed migration of the entire frontend from Streamlit to Next.js. This was a large architectural change and required careful evaluation of the trade-offs involved given our project timeline. I reviewed the implementation and provided feedback as the first reviewer. I also reviewed [PR #497](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/497), which reverted a previous Streamlit style overhaul, and [PR #502](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/502), which removed the light/dark mode toggle controls from the frontend.
+
+Overall, this week was a mix of targeted frontend improvements, backend test hardening, and active participation in shaping the team's frontend direction through code review, with the added benefit of having to focus on doing coding Prs and preparing for midterms as well.
 
 ---
