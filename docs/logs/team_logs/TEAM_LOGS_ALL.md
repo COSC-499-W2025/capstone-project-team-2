@@ -45,10 +45,10 @@
 
 
 ### Screenshot from Kanban board
-![Kanban board snapshot]()
+![Kanban board snapshot](screenshots/kanban_board/Kanban_2026-03-15.png)
 
 ## Burn-up Chart (Velocity)
-![Burn-up chart]()
+![Burn-up chart](screenshots/Burn_up_charts/Burnup_2026-03-15.png)
 
 ## Delivery Summary
 | PR | Owner | Change | Closes | Status |
