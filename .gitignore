@@ -12,6 +12,9 @@ User_config_files/
 src/User_config_files/
 project_insights/
 
+# Claude Code local settings
+.claude/
+
 # IDE files
 .idea/
 

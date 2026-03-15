@@ -756,6 +756,29 @@ def update_thumbnail_in_insights(
     return updated
 
 
+def remove_project_from_insights(
+    project_name: str,
+    storage_path: PathLike = DEFAULT_STORAGE,
+) -> int:
+    """
+    Remove all insight entries whose ``project_name`` matches the given name.
+
+    Args:
+        project_name: Name of the project to remove (without ``.json`` suffix).
+        storage_path: Path to project_insights.json.
+
+    Returns:
+        Number of entries removed.
+    """
+    path = Path(storage_path)
+    entries = _read_entries(path)
+    kept = [e for e in entries if e.get("project_name") != project_name]
+    removed = len(entries) - len(kept)
+    if removed:
+        _write_entries(path, kept)
+    return removed
+
+
 def remove_thumbnail_from_insights(
     project_id: str,
     storage_path: PathLike = DEFAULT_STORAGE,
