@@ -64,21 +64,16 @@
 ## Testing
 | PR | Test Type | Command / Check | Result |
 | ------- | ------------------ | ----------- | ----------- |
-| [#472](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/472) | Docs review | Documentation-only review | ✅ |
-| [#466](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/466) | Manual run | `uvicorn src.API.general_API:app --host 0.0.0.0 --port 8000 --reload` + `streamlit run src/web/streamlit_app.py` | ✅ |
-| [#465](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/465) | Pytest | `python -m pytest test/test_resume_generator_API.py::TestSkillEndpoints test/test_portfolio_generator_API.py::TestSkillEndpoints -v` | ✅ |
-| [#465](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/465) | Pytest | `python -m pytest test/test_resume_generator_API.py::TestAddProjectManual test/test_portfolio_generator_API.py::TestAddProjectManual -v` | ✅ |
-| [#483](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/483) | Manual checks | Multipage navigation, mode toggle, public/private behavior | ✅ |
-| [#483](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/483) | Static compile | `python3 -m py_compile src/web/streamlit_app.py src/web/mode.py src/web/pages/Dashboard.py src/web/pages/ResumeAndPortfoiloMaker.py` | ✅ |
-| [#481](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/481) | Pytest | `pytest test/test_project_upload_page.py` | ✅ |
-| [#479](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/479) | Pytest | `pytest test/test_portfolio_service.py` | ✅ |
-| [#478](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/478) | Pytest | `python -m pytest test/test_sqlite_db.py -v` | ✅ |
-| [#478](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/478) | Pytest | `python -m pytest test/test_db_helper_functions.py -v` | ✅ |
-| [#478](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/478) | Pytest | `python -m pytest test/test_db_versioning_functions.py -v` | ✅ |
-| [#476](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/476) | Pytest | `pytest test/test_data_extraction.py` | ✅ |
-| [#474](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/474) | Docker test suite | Run full Docker tests to confirm no breaking changes | ✅ |
-| [#488](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/488) | Pytest | `python -m pytest -q test/test_user_configuration_helpers.py test/test_user_configuration_integration.py` | ✅ |
-| [#488](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/488) | Manual verification | Start API + frontend; verify consent capture/persistence, optional name/theme updates, and config reload behavior | ✅ |
+| [#495](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/495) | Manual run, Frontend Tests | `npm test`, `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
+| [#502](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/502) | Manual run, Frontend Tests| `node --test frontend/test/config-helpers.test.js`, `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
+| [#517](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/517) | Manual Run | `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
+| [#522](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/522)  | Manual run, Frontend Tests | `npm test`, `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
+| [#524](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/524) | Pytest, Frontend Tests | ` python -m pytest test/test_resume_generator_API.py test/test_portfolio_generator_API.py -v`, `node --test test/resume_and_portfolio_api.test.js` | ✅ |
+| [#529](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/529) | Manual run, Frontend Tests | `npm test`, `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
+| [#530](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/530) | Manual run, Frontend Tests | `node --test test/api.test.js test/representation-helpers.test.js`, `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
+| [#532](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/532) | Manual run | `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
+| [#534](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/534) | Manual run, Frontend Tests | `python -m pytest test/`, `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
+
 
 ## Team Members
 
@@ -95,6 +90,9 @@
 
 
 The **next cycle** will focus on:
+- Finishing remaining frontend issues.
+- Implementing feedback from Peer testing #2
+- Prepare for Milestone #3 Presentation
 
 
 ---
