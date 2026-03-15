@@ -201,6 +201,24 @@ export function generateResume(name, theme) {
 }
 
 /**
+ * Lists all saved resume documents.
+ *
+ * @returns {Promise<Array<{id: string, display_name: string, created_at: number}>>}
+ */
+export function fetchResumes() {
+  return request("/resumes");
+}
+
+/**
+ * Lists all saved portfolio documents.
+ *
+ * @returns {Promise<Array<{id: string, display_name: string, created_at: number}>>}
+ */
+export function fetchPortfolios() {
+  return request("/portfolios");
+}
+
+/**
  * Fetches one resume document by id.
  *
  * @param {string} id
@@ -404,6 +422,137 @@ export function renderPortfolio(id, format) {
  */
 export function removePortfolioProject(id, projectName) {
   return request(`/portfolio/${encodeURIComponent(id)}/project/${encodeURIComponent(projectName)}`, {
+    method: "DELETE"
+  });
+}
+
+/**
+ * Removes a resume project entry by project name.
+ *
+ * @param {string} id
+ * @param {string} projectName
+ * @returns {Promise<any>}
+ */
+export function removeResumeProject(id, projectName) {
+  return request(`/resume/${encodeURIComponent(id)}/project/${encodeURIComponent(projectName)}`, {
+    method: "DELETE"
+  });
+}
+
+/**
+ * Adds a project to a resume using AI-generated content (no manual payload).
+ *
+ * @param {string} id
+ * @param {string} projectName
+ * @returns {Promise<any>}
+ */
+export function addResumeProjectAI(id, projectName) {
+  return request(`/resume/${encodeURIComponent(id)}/add/project/${encodeURIComponent(projectName)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({})
+  });
+}
+
+/**
+ * Adds a project to a portfolio using AI-generated content (no manual payload).
+ *
+ * @param {string} id
+ * @param {string} projectName
+ * @returns {Promise<any>}
+ */
+export function addPortfolioProjectAI(id, projectName) {
+  return request(`/portfolio/${encodeURIComponent(id)}/add/project/${encodeURIComponent(projectName)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({})
+  });
+}
+
+/**
+ * Adds a new skill category to a resume.
+ *
+ * @param {string} id
+ * @param {Record<string, any>} payload
+ * @returns {Promise<any>}
+ */
+export function addResumeSkill(id, payload) {
+  return request(`/resume/${encodeURIComponent(id)}/add/skill`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+}
+
+/**
+ * Appends items to an existing resume skill category.
+ *
+ * @param {string} id
+ * @param {string} label
+ * @param {Record<string, any>} details
+ * @returns {Promise<any>}
+ */
+export function appendResumeSkill(id, label, details) {
+  return request(`/resume/${encodeURIComponent(id)}/skill/${encodeURIComponent(label)}/append`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(details)
+  });
+}
+
+/**
+ * Removes a skill category from a resume.
+ *
+ * @param {string} id
+ * @param {string} label
+ * @returns {Promise<any>}
+ */
+export function removeResumeSkill(id, label) {
+  return request(`/resume/${encodeURIComponent(id)}/skill/${encodeURIComponent(label)}`, {
+    method: "DELETE"
+  });
+}
+
+/**
+ * Adds a new skill category to a portfolio.
+ *
+ * @param {string} id
+ * @param {Record<string, any>} payload
+ * @returns {Promise<any>}
+ */
+export function addPortfolioSkill(id, payload) {
+  return request(`/portfolio/${encodeURIComponent(id)}/add/skill`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+}
+
+/**
+ * Appends items to an existing portfolio skill category.
+ *
+ * @param {string} id
+ * @param {string} label
+ * @param {Record<string, any>} details
+ * @returns {Promise<any>}
+ */
+export function appendPortfolioSkill(id, label, details) {
+  return request(`/portfolio/${encodeURIComponent(id)}/skill/${encodeURIComponent(label)}/append`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(details)
+  });
+}
+
+/**
+ * Removes a skill category from a portfolio.
+ *
+ * @param {string} id
+ * @param {string} label
+ * @returns {Promise<any>}
+ */
+export function removePortfolioSkill(id, label) {
+  return request(`/portfolio/${encodeURIComponent(id)}/skill/${encodeURIComponent(label)}`, {
     method: "DELETE"
   });
 }

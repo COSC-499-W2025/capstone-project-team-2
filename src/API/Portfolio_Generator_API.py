@@ -270,6 +270,31 @@ def get_portfolio_showcase_role(project_name: str):
     return {"project_name": project_name, "role": role}
 
 
+@portfolioRouter.get("/portfolios")
+def list_portfolios():
+    """List all saved portfolio documents.
+
+    Returns:
+        list: Each entry has ``id`` (the file stem used as the portfolio ID),
+        ``display_name`` (name without the UUID suffix), and ``created_at``
+        (ISO-8601 timestamp of file creation time).
+    """
+    cv_dir = Path(__file__).resolve().parents[2] / "User_config_files" / "Generate_render_CV_files"
+    results = []
+    for f in cv_dir.glob("*_Portfolio_CV.yaml"):
+        stem = f.stem  # e.g. "Jane_Doe_a1b2c3d4_Portfolio_CV"
+        portfolio_id = stem[: -len("_Portfolio_CV")]
+        parts = portfolio_id.rsplit("_", 1)
+        display_name = parts[0].replace("_", " ") if len(parts) == 2 else portfolio_id
+        results.append({
+            "id": portfolio_id,
+            "display_name": display_name,
+            "created_at": f.stat().st_ctime,
+        })
+    results.sort(key=lambda x: x["created_at"], reverse=True)
+    return results
+
+
 @portfolioRouter.post("/portfolio/generate")
 def generate_portfolio(payload: GeneratePortfolioRequest):
     """Create a new portfolio YAML document.
