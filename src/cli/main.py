@@ -3,6 +3,7 @@ from pathlib import Path
 import time
 import os
 import signal
+import shutil
 
 # CLI entrypoint that wires consent/config into the shared menu flow.
 #sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -30,9 +31,9 @@ def run() -> int:
 
     #Run series of npm commands. Run waits for process to finish before next one continues while Popen will not wait since it's
     # needed to be an active process in the background
-    subprocess.run(["npm", "install"])
-    subprocess.run(["npm", "run", "build"])
-    npm_instance = subprocess.Popen(["npm", "run", "dev"])
+    subprocess.run([shutil.which("npm"), "install"])
+    subprocess.run([shutil.which("npm"), "run", "build"])
+    npm_instance = subprocess.Popen([shutil.which("npm"), "run", "dev"])
 
     #Sets up a wait for event, the wait is interrupted on event and does not wait 60s per check
     while not exit.is_set():
