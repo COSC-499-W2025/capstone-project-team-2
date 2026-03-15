@@ -35,7 +35,7 @@
   * [Add frontend API helpers and expand backend API test suite](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/524)
   * [Revamp workspace DocumentStudio and restore saved document selection](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/522)
   * [Revamp workspace DocumentStudio and restore saved document selection](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/521)
-    * [Automation of frontend startup commands](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/541)
+  * [Automation of frontend startup commands](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/541)
 
 
 ---
