@@ -220,6 +220,9 @@ export function fetchRepresentationProjects(options = {}) {
   if (options.snapshotLabel) params.set("snapshot_label", options.snapshotLabel);
   const query = params.toString();
   return request(`/representation/projects${query ? `?${query}` : ""}`);
+}
+
+/**
  * Fetches all saved resume IDs and display names.
  *
  * @returns {Promise<Array<{id: string, name: string}>>}
@@ -684,4 +687,3 @@ export function removePortfolioProject(id, projectName) {
     method: "DELETE"
   });
 }
-

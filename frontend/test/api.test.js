@@ -11,7 +11,7 @@ import {
   getApiBase,
   saveConsent,
   updateConfig,
-  updateRepresentationPreferences
+  updateRepresentationPreferences,
   fetchConfig,
   uploadProjectZip
 } from "../lib/api.js";
