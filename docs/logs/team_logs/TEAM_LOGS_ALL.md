@@ -40,6 +40,9 @@
 - Expose Representation Preferences in UI
 - created new page for project management
 - Failing test correction
+- Unify liquid glass form controls and interaction states across frontend
+- Automation of frontend startup commands
+
 
 ### Screenshot from Kanban board
 ![Kanban board snapshot]()
@@ -59,6 +62,8 @@
 | [#530](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/530) | Mahi Gangal | Expose Representation Preferences in UI | [#513](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/513) | ✅ |
 | [#532](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/532) | Sam Smith | created new page for project management | N/A | ✅ |
 | [#534](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/534) | Cameron Gillespie | Failing test correction | N/A | ✅ |
+| [#540](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/540) | Puneet Mann | Unify liquid glass form controls and interaction states across frontend | N/A | ✅ |
+| [#541](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/541) | Samantha Maranda | Automation of frontend startup commands | N/A | ✅ |
 
 
 ## Testing
@@ -73,6 +78,8 @@
 | [#530](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/530) | Manual run, Frontend Tests | `node --test test/api.test.js test/representation-helpers.test.js`, `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
 | [#532](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/532) | Manual run | `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
 | [#534](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/534) | Manual run, Frontend Tests | `python -m pytest test/`, `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
+| [#540](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/540) | Manual run | `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
+| [#541](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/541) | Manual run | `python -m src.cli.main` | ✅ |
 
 
 ## Team Members
@@ -80,14 +87,15 @@
 | Name              | Role/Title          | GitHub Username                                    | Contributions this cycle |
 |-------------------|---------------------|----------------------------------------------------|--------------------------|
 | Immanuel Wiessler | Full Stack Developer | [@ThunderIW](https://github.com/ThunderIW)         | PRs #517, #522, #524 |
-| Samantha Maranda  | Full Stack Developer | [@Weebtrian](https://github.com/Weebtrain)         |  |
+| Samantha Maranda  | Full Stack Developer | [@Weebtrian](https://github.com/Weebtrain)         | PR #541 |
 | Cameron Gillespie | Full Stack Developer | [@Graves067](https://github.com/Graves067)         | PR #534 |
-| Puneet Maan       | Full Stack Developer | [@Puneet-Maan](https://github.com/Puneet-Maan)     | PR #495 |
+| Puneet Maan       | Full Stack Developer | [@Puneet-Maan](https://github.com/Puneet-Maan)     | PRs #495, #540 |
 | Sam Smith         | Full Stack Developer | [@ssmith86](https://github.com/ssmith86)           | PRs #532 |
-| Mahi Gangal       | Full Stack Developer | [@mahigangal](https://github.com/mahigangal)       | PR #502, #529, #530, prepared team logs |
+| Mahi Gangal       | Full Stack Developer | [@mahigangal](https://github.com/mahigangal)       | PRs #502, #529, #530, prepared team logs |
 
 ## Overview
 
+During this cycle, the team focused on strengthening and streamlining the frontend experience while continuing to expand core product functionality. Major work included migrating the UI from Streamlit to Next.js, unifying liquid-glass form controls and interaction states, improving dark theme support, and refining key pages such as workspace, configuration, representation, upload, and project management. The team also added new user-facing features like portfolio role override controls and representation preferences, expanded frontend and backend testing support, fixed failing tests, and introduced automation for frontend startup commands. Overall, this cycle established a more consistent, maintainable UI foundation while improving reliability and usability across the system.
 
 The **next cycle** will focus on:
 - Finishing remaining frontend issues.
