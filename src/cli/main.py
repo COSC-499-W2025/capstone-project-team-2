@@ -1,5 +1,8 @@
 import sys
 from pathlib import Path
+import time
+import os
+import signal
 
 # CLI entrypoint that wires consent/config into the shared menu flow.
 #sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -9,8 +12,44 @@ from src.cli.menus import main_menu
 from src.config.user_consent import UserConsent
 from src.API.general_API import app
 from src.API.consent_API import *
+import subprocess
+from threading import Event
+
+exit = Event()
 
 def run() -> int:
+    #Setting up variations of termination keybinds to quit safely and shutdown appropriate processes while in wait mode
+    signal.signal(signal.SIGTERM, quit)
+    signal.signal(signal.SIGINT, quit)
+    signal.signal(signal.SIGHUP, quit)
+
+    #Run API command to start API in background
+    uvicorn_instance = subprocess.Popen(["uvicorn", "src.API.general_API:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ])
+
+    #Change directory to correctly run npm commands
+    os.chdir("frontend/")
+
+    #Run series of npm commands. Run waits for process to finish before next one continues while Popen will not wait since it's
+    # needed to be an active process in the background
+    subprocess.run(["npm", "install"])
+    subprocess.run(["npm", "run", "build"])
+    npm_instance = subprocess.Popen(["npm", "run", "dev"])
+
+    #Sets up a wait for event, the wait is interrupted on event and does not wait 60s per check
+    while not exit.is_set():
+        exit.wait(60)
+
+    #After wait is interrupted, send shutdown signal to active processes safely before exit
+    npm_instance.terminate()
+    uvicorn_instance.terminate()
+    return 0
+
+#Method for the event handler to handle starting shutdown
+def quit(signo, _frame):
+    print("Interrupted by %d, shutting down" % signo)
+    exit.set()
+
+def run_deprecated() -> int:
     """
     Entry point for the CLI application.
     Handles consent, loads configuration, and dispatches to the main menu.
