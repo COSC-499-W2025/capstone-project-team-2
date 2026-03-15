@@ -11,6 +11,12 @@ import { useEffect, useState } from "react";
 import { GlassCard, LiquidShell } from "../../components/LiquidShell";
 import { LiquidSegmentedControl } from "../../components/LiquidPillControl";
 import { fetchConfig, saveConsent, updateConfig } from "../../lib/api";
+import {
+  applyNameToConfig,
+  formatExternalConsentLabel,
+  resolveExternalConsentState,
+  validateExternalConsentSelection
+} from "./helpers";
 
 /**
  * User configuration route for consent and profile settings.
@@ -23,9 +29,8 @@ export default function ConfigPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
-  const [externalConsent, setExternalConsent] = useState("allow");
+  const [externalConsent, setExternalConsent] = useState("unset");
   const [fullName, setFullName] = useState("");
-  const [theme, setTheme] = useState("No change");
 
   useEffect(() => {
     let ignore = false;
@@ -38,8 +43,7 @@ export default function ConfigPage() {
         if (ignore) return;
         setConfig(data || {});
 
-        const external = data?.consented?.external;
-        setExternalConsent(external === false ? "deny" : "allow");
+        setExternalConsent(resolveExternalConsentState(data));
 
         const first = String(data?.["First Name"] || "").trim();
         const last = String(data?.["Last Name"] || "").trim();
@@ -58,6 +62,12 @@ export default function ConfigPage() {
     };
   }, []);
 
+  /**
+   * Persists consent and name changes back to backend configuration.
+   *
+   * @param {import("react").FormEvent<HTMLFormElement>} event
+   * @returns {Promise<void>}
+   */
   async function onSave(event) {
     event.preventDefault();
     if (!config) return;
@@ -65,27 +75,18 @@ export default function ConfigPage() {
     setError("");
     setMessage("");
 
+    const consentError = validateExternalConsentSelection(externalConsent);
+    if (consentError) {
+      setError(consentError);
+      return;
+    }
+
     try {
       const allowExternal = externalConsent === "allow";
       await saveConsent(allowExternal);
 
-      const nextConfig = { ...config };
+      const nextConfig = applyNameToConfig(config, fullName);
       nextConfig.consented = { external: allowExternal, "Data consent": true };
-
-      const cleaned = fullName.trim();
-      if (cleaned) {
-        const [first, ...rest] = cleaned.split(/\s+/);
-        nextConfig["First Name"] = first;
-        nextConfig["Last Name"] = rest.join(" ");
-      }
-
-      if (theme !== "No change") {
-        const preferences = typeof nextConfig.Preferences === "object" && nextConfig.Preferences
-          ? { ...nextConfig.Preferences }
-          : {};
-        preferences.theme = theme;
-        nextConfig.Preferences = preferences;
-      }
 
       await updateConfig(nextConfig);
       setConfig(nextConfig);
@@ -95,7 +96,7 @@ export default function ConfigPage() {
     }
   }
 
-  const currentTheme = config?.Preferences?.theme || "Not set";
+  const currentExternalConsent = formatExternalConsentLabel(resolveExternalConsentState(config));
 
   return (
     <LiquidShell
@@ -114,15 +115,11 @@ export default function ConfigPage() {
               <div className="settings-list">
                 <div className="settings-row">
                   <span className="settings-label">External tools</span>
-                  <strong className="settings-value">{config?.consented?.external === false ? "Do not allow" : "Allow"}</strong>
+                  <strong className="settings-value">{currentExternalConsent}</strong>
                 </div>
                 <div className="settings-row">
                   <span className="settings-label">Name</span>
                   <strong className="settings-value">{fullName || "Not set"}</strong>
-                </div>
-                <div className="settings-row">
-                  <span className="settings-label">Theme</span>
-                  <strong className="settings-value">{currentTheme}</strong>
                 </div>
               </div>
             </GlassCard>
@@ -137,6 +134,7 @@ export default function ConfigPage() {
                     value={externalConsent}
                     onChange={setExternalConsent}
                     options={[
+                      { value: "unset", label: "Not set" },
                       { value: "allow", label: "Allow" },
                       { value: "deny", label: "Do not allow" }
                     ]}
@@ -152,15 +150,6 @@ export default function ConfigPage() {
                     placeholder="e.g., Jane Doe"
                     onChange={(e) => setFullName(e.target.value)}
                   />
-                </label>
-
-                <label className="settings-row settings-field-row">
-                  <span className="settings-label">Theme</span>
-                  <select className="settings-control" value={theme} onChange={(e) => setTheme(e.target.value)}>
-                    <option>No change</option>
-                    <option>light</option>
-                    <option>dark</option>
-                  </select>
                 </label>
 
                 <div className="button-row">

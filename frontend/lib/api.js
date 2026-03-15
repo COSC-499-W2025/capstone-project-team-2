@@ -70,7 +70,9 @@ async function request(path, init = {}, expect = "json") {
         // Intentionally no-op: keep fallback message.
       }
     }
-    throw new Error(msg);
+    const err = new Error(msg);
+    err.status = response.status;
+    throw err;
   }
 
   if (expect === "blob") return response.blob();
@@ -218,6 +220,12 @@ export function fetchRepresentationProjects(options = {}) {
   if (options.snapshotLabel) params.set("snapshot_label", options.snapshotLabel);
   const query = params.toString();
   return request(`/representation/projects${query ? `?${query}` : ""}`);
+ * Fetches all saved resume IDs and display names.
+ *
+ * @returns {Promise<Array<{id: string, name: string}>>}
+ */
+export function fetchResumes() {
+  return request("/resumes");
 }
 
 /**
@@ -287,6 +295,17 @@ export function addResumeProject(id, projectName, payload) {
 }
 
 /**
+ * Adds an analyzed project to a resume using AI-generated content.
+ *
+ * @param {string} id
+ * @param {string} projectName
+ * @returns {Promise<any>}
+ */
+export function addResumeProjectAI(id, projectName) {
+  return request(`/resume/${encodeURIComponent(id)}/add/project/${encodeURIComponent(projectName)}/ai`, { method: "POST" });
+}
+
+/**
  * Adds a resume education entry.
  *
  * @param {string} id
@@ -351,6 +370,101 @@ export function removeResumeExperience(id, company) {
  */
 export function renderResume(id, format) {
   return request(`/resume/${encodeURIComponent(id)}/render/${format}`, { method: "POST" }, "blob");
+}
+
+/**
+ * Renders a resume and saves it to the default output directory.
+ *
+ * @param {string} id
+ * @param {string} format
+ * @returns {Promise<any>}
+ */
+export function exportResume(id, format) {
+  return request(`/resume/${encodeURIComponent(id)}/export/${format}`, { method: "POST" });
+}
+
+/**
+ * Renders a resume and saves it to a custom directory.
+ *
+ * @param {string} id
+ * @param {string} format
+ * @param {string} path Target directory path.
+ * @returns {Promise<any>}
+ */
+export function exportResumeCustom(id, format, path) {
+  return request(`/resume/${encodeURIComponent(id)}/export/${format}/custom`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path })
+  });
+}
+
+/**
+ * Adds a project entry to a resume with fully manual data (no DB lookup).
+ *
+ * @param {string} id
+ * @param {Record<string, any>} payload
+ * @returns {Promise<any>}
+ */
+export function addResumeProjectManual(id, payload) {
+  return request(`/resume/${encodeURIComponent(id)}/add/project/manual`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+}
+
+/**
+ * Adds a new skill category to a resume.
+ *
+ * @param {string} id
+ * @param {{ label: string, details: string }} payload
+ * @returns {Promise<any>}
+ */
+export function addResumeSkill(id, payload) {
+  return request(`/resume/${encodeURIComponent(id)}/add/skill`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+}
+
+/**
+ * Appends items to an existing skill category on a resume.
+ *
+ * @param {string} id
+ * @param {string} label Exact skill category label.
+ * @param {string} details Comma-separated items to append.
+ * @returns {Promise<any>}
+ */
+export function appendResumeSkill(id, label, details) {
+  return request(`/resume/${encodeURIComponent(id)}/skill/${encodeURIComponent(label)}/append`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ details })
+  });
+}
+
+/**
+ * Removes a skill category from a resume by label.
+ *
+ * @param {string} id
+ * @param {string} label Exact skill category label.
+ * @returns {Promise<any>}
+ */
+export function removeResumeSkill(id, label) {
+  return request(`/resume/${encodeURIComponent(id)}/skill/${encodeURIComponent(label)}`, {
+    method: "DELETE"
+  });
+}
+
+/**
+ * Fetches all saved portfolio IDs and display names.
+ *
+ * @returns {Promise<Array<{id: string, name: string}>>}
+ */
+export function fetchPortfolios() {
+  return request("/portfolios");
 }
 
 /**
@@ -426,8 +540,130 @@ export function addPortfolioProject(id, projectName, payload) {
  * @param {string} format
  * @returns {Promise<Blob>}
  */
+/**
+ * Adds an analyzed project to a portfolio using AI-generated content.
+ *
+ * @param {string} id
+ * @param {string} projectName
+ * @returns {Promise<any>}
+ */
+export function addPortfolioProjectAI(id, projectName) {
+  return request(`/portfolio/${encodeURIComponent(id)}/add/project/${encodeURIComponent(projectName)}/ai`, { method: "POST" });
+}
+
 export function renderPortfolio(id, format) {
   return request(`/portfolio/${encodeURIComponent(id)}/render/${format}`, { method: "POST" }, "blob");
+}
+
+/**
+ * Renders a portfolio and saves it to the default output directory.
+ *
+ * @param {string} id
+ * @param {string} format
+ * @returns {Promise<any>}
+ */
+export function exportPortfolio(id, format) {
+  return request(`/portfolio/${encodeURIComponent(id)}/export/${format}`, { method: "POST" });
+}
+
+/**
+ * Renders a portfolio and saves it to a custom directory.
+ *
+ * @param {string} id
+ * @param {string} format
+ * @param {string} path Target directory path.
+ * @returns {Promise<any>}
+ */
+export function exportPortfolioCustom(id, format, path) {
+  return request(`/portfolio/${encodeURIComponent(id)}/export/${format}/custom`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path })
+  });
+}
+
+/**
+ * Adds a project entry to a portfolio with fully manual data (no DB lookup).
+ *
+ * @param {string} id
+ * @param {Record<string, any>} payload
+ * @returns {Promise<any>}
+ */
+export function addPortfolioProjectManual(id, payload) {
+  return request(`/portfolio/${encodeURIComponent(id)}/add/project/manual`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+}
+
+/**
+ * Adds a new skill category to a portfolio.
+ *
+ * @param {string} id
+ * @param {{ label: string, details: string }} payload
+ * @returns {Promise<any>}
+ */
+export function addPortfolioSkill(id, payload) {
+  return request(`/portfolio/${encodeURIComponent(id)}/add/skill`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+}
+
+/**
+ * Appends items to an existing skill category on a portfolio.
+ *
+ * @param {string} id
+ * @param {string} label Exact skill category label.
+ * @param {string} details Comma-separated items to append.
+ * @returns {Promise<any>}
+ */
+export function appendPortfolioSkill(id, label, details) {
+  return request(`/portfolio/${encodeURIComponent(id)}/skill/${encodeURIComponent(label)}/append`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ details })
+  });
+}
+
+/**
+ * Removes a skill category from a portfolio by label.
+ *
+ * @param {string} id
+ * @param {string} label Exact skill category label.
+ * @returns {Promise<any>}
+ */
+export function removePortfolioSkill(id, label) {
+  return request(`/portfolio/${encodeURIComponent(id)}/skill/${encodeURIComponent(label)}`, {
+    method: "DELETE"
+  });
+}
+
+/**
+ * Saves a human-authored role override for a project's portfolio showcase.
+ *
+ * @param {string} projectName
+ * @param {string} role
+ * @returns {Promise<any>}
+ */
+export function setPortfolioShowcaseRole(projectName, role) {
+  return request(`/portfolio-showcase/${encodeURIComponent(projectName)}/role`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ role })
+  });
+}
+
+/**
+ * Retrieves the saved role override for a project's portfolio showcase.
+ *
+ * @param {string} projectName
+ * @returns {Promise<any>}
+ */
+export function getPortfolioShowcaseRole(projectName) {
+  return request(`/portfolio-showcase/${encodeURIComponent(projectName)}/role`);
 }
 
 /**
@@ -437,8 +673,15 @@ export function renderPortfolio(id, format) {
  * @param {string} projectName
  * @returns {Promise<any>}
  */
+export function removeResumeProject(id, projectName) {
+  return request(`/resume/${encodeURIComponent(id)}/project/${encodeURIComponent(projectName)}`, {
+    method: "DELETE"
+  });
+}
+
 export function removePortfolioProject(id, projectName) {
   return request(`/portfolio/${encodeURIComponent(id)}/project/${encodeURIComponent(projectName)}`, {
     method: "DELETE"
   });
 }
+
