@@ -6,6 +6,7 @@
 - [Week 4-5 (Jan 26 – Feb 8)](#week-4-5-jan-26feb-8)
 - [Week 6-8 (Feb 9 - March 1)](#week-6-8-feb-9march-1)
 - [Week 9 (March 2 - March 8)](#week-9-march-2---march-8)
+- [Week 10 (March 9 - March 15)](#week-10-march-9---march-15)
 
 ## Week 2 (Jan 12 - Jan 18)
 
@@ -281,5 +282,61 @@ Refactored API/payload logic into helper functions to keep UI code minimal and t
 ### Additional Details
 This week’s work focused on Milestone 3 frontend delivery and quality validation. I implemented the User Configuration frontend for external-tools consent, including required consent handling and optional name/theme updates, while keeping the implementation aligned with existing API patterns and page structure. I also refactored the page logic into reusable helpers to improve maintainability and enable stronger testing. To validate the feature, I added both unit tests and real API integration tests, covering success paths, edge cases, rejection behavior, and config persistence. In parallel, I reviewed multiple team PRs and provided feedback on runtime risks, behavior consistency, and test coverage. A key challenge was balancing minimal frontend changes with robust test coverage and ensuring behavior stayed consistent with existing consent/config flows. Next week, I plan to continue supporting frontend stabilization, address review feedback, and help finalize remaining Milestone 3 integration and polish tasks. Also, meet with the team to discuss about Peer testing. 
 
+## Week 10 (March 9 - March 15)
 
+### Peer Eval Screenshot: ![](https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Mahi_Gangal_Personal_Logs/docs/logs/peer_eval_screenshots/MG%20Week10.png)
 
+### Tasks Worked On
+
+- Removed redundant mode/theme controls from the User Configuration page and cleaned up related config-state handling.
+- Added frontend UI for Portfolio Showcase role overrides using the existing backend endpoints.
+- Exposed Representation Preferences in the Next.js UI through a dedicated page and supporting helper/API logic.
+- Completed team log for Week 10.
+- Verified automated tests after integration.
+- Reviewed teammates’ PRs and provided feedback on correctness, edge cases, and test coverage.
+
+### Individual Contributions 
+
+- **[PR #502 – Remove modes](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/502)**
+
+Cleaned up the Next.js User Configuration page by removing the redundant light/dark mode control and stopping the page from reading, displaying, or saving theme preferences. Fixed config-state handling so missing `consented.external` values show as `Not set` instead of defaulting to `Allow`, added validation requiring users to explicitly choose an external-tools consent option before saving, and fixed name persistence so clearing the full-name input properly clears stored first and last name values. Refactored config-page logic into helpers to improve testability and maintainability.
+
+- **[PR #529 - Add Portfolio Showcase Role Override UI](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/529)**
+
+Added frontend support for portfolio showcase role overrides using the existing backend API. Implemented API helpers for loading and saving project-level role overrides, added a portfolio-only role override panel in the Projects tab, and connected the workspace UI so saved overrides reload correctly when switching between analyzed projects. Also corrected the frontend test script so `npm test` runs the existing Node-based frontend tests.
+
+- **[PR #530 - Expose Representation Preferences in UI](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/530)**
+
+Exposed representation preferences in the Next.js frontend through a dedicated `/representation` page rather than mixing those settings into User Configuration. Added UI controls for project order, chronology corrections, highlighted skills, and showcase projects, along with API helpers for loading and saving representation preferences and project data. Kept `/config` focused on consent and profile settings only, added a private navigation entry for the new page, and extracted shared representation helper logic to improve structure and testability.
+
+### Tests Implemented
+
+- **[PR #502 – Remove modes](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/502)**
+1. frontend/test/config-helpers.test.js: Added tests covering consent-state mapping, consent label formatting, unset consent validation, full-name splitting, and name-clearing behavior.
+
+- **[PR #529 - Add Portfolio Showcase Role Override UI](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/529)**
+1. npm test: Verified frontend API-layer behavior for encoded role-override GET requests, POST request payloads, and backend 404 handling for missing saved roles.
+
+- **[PR #530 - Expose Representation Preferences in UI](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/530)**
+1. test/api.test.js
+2. test/representation-helpers.test.js: Added tests for representation API helper routing/payload behavior and representation helper logic, including default normalization, project-order merging, highlighted-skill parsing, chronology input formatting, and chronology payload building.
+
+### PRs Reviewed
+
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/494
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/495
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/497
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/516
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/517
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/522
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/524
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/529
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/534
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/532
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/540
+
+### Additional Details
+
+This week’s work focused on frontend cleanup, feature completion, and UI support for Milestone 3 functionality. I removed redundant mode handling from User Configuration, fixed several config-state edge cases, and improved helper-based structure for maintainability and testing. I also added the Portfolio Showcase role-override UI using existing backend endpoints, making it possible to manage saved project roles directly from the workspace. In parallel, I helped expose representation preferences in the frontend through a new dedicated page, with supporting API wiring, helper logic, and navigation updates. 
+
+To validate these changes, I added and ran frontend tests covering config helpers, portfolio showcase API behavior, and representation helper/API logic. I also manually verified the new UI flows to ensure saved values reload correctly and the pages behave consistently with existing backend contracts. Alongside implementation work, I reviewed several team PRs and provided feedback on behavior consistency, edge cases, and missing test coverage. A key challenge this week was keeping the frontend changes scoped and maintainable while adding several user-facing controls across different areas of the app. Next week, I plan to continue supporting frontend stabilization, address any follow-up review feedback from Peer Testing #2, and help finalize remaining integration and polish workn for Milestone #3 presentation.
