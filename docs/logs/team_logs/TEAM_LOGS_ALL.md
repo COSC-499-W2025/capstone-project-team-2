@@ -2,6 +2,7 @@
 
 ## Quick Navigation
 ### Term 2
+- [T2 Weekly #10 (Mar 9 to Mar 15, 2026) - Prepared by: Mahi Gangal](#t2-weekly-10)
 - [T2 Weekly #9 (Mar 2 to Mar 8, 2026) - Prepared by: Puneet Maan](#t2-weekly-9)
 - [T2 Weekly #8 (Feb 9 to Mar 1, 2026)](#t2-weekly-8)
 - [T2 Weekly #5 (Jan 26 to Feb 8, 2026)](#t2-weekly-5)
@@ -25,6 +26,78 @@
 ---
 
 ## Term 2
+
+<a id="t2-weekly-10"></a>
+## T2 Weekly #10 (Mar 9 to Mar 15, 2026) - Prepared by Mahi Gangal
+
+## Features in the Project Plan Cycle
+- Remove modes
+- Migrate Frontend from Streamlit to Next.js and Standardize Shared UI
+- Add dark theme styles for alerts and selects and theme preview
+- Revamp workspace DocumentStudio and restore saved document selection
+- Add frontend API helpers and expand backend API test suite
+- Add Portfolio Showcase Role Override UI
+- Expose Representation Preferences in UI
+- created new page for project management
+- Failing test correction
+
+### Screenshot from Kanban board
+![Kanban board snapshot]()
+
+## Burn-up Chart (Velocity)
+![Burn-up chart]()
+
+## Delivery Summary
+| PR | Owner | Change | Closes | Status |
+| ------- | ------------------ | ----------- | ----------- | ----------- |
+| [#495](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/495) | Puneet Mann | Migrate Frontend from Streamlit to Next.js and Standardize Shared UI | N/A | ✅ |
+| [#502](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/502) | Mahi Gangal | Remove Modes | [#499](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/499), [#500](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/500) | ✅ |
+| [#517](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/517) | Immanuel Wiessler | Add dark theme styles for alerts and selects and theme preview | [#525](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/525) | ✅ |
+| [#522](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/522) | Immanuel Wiessler | Revamp workspace DocumentStudio and restore saved document selection | [#498](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/498) | ✅ |
+| [#524](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/524) | Immanuel Wiessler | Add frontend API helpers and expand backend API test suite | [#526](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/526) | ✅ |
+| [#529](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/529) | Mahi Gangal | Add Portfolio Showcase Role Override UI | [#514](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/514) | ✅ |
+| [#530](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/530) | Mahi Gangal | Expose Representation Preferences in UI | [#513](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/513) | ✅ |
+| [#532](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/532) | Sam Smith | created new page for project management | N/A | ✅ |
+| [#534](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/534) | Cameron Gillespie | Failing test correction | N/A | ✅ |
+
+
+## Testing
+| PR | Test Type | Command / Check | Result |
+| ------- | ------------------ | ----------- | ----------- |
+| [#472](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/472) | Docs review | Documentation-only review | ✅ |
+| [#466](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/466) | Manual run | `uvicorn src.API.general_API:app --host 0.0.0.0 --port 8000 --reload` + `streamlit run src/web/streamlit_app.py` | ✅ |
+| [#465](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/465) | Pytest | `python -m pytest test/test_resume_generator_API.py::TestSkillEndpoints test/test_portfolio_generator_API.py::TestSkillEndpoints -v` | ✅ |
+| [#465](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/465) | Pytest | `python -m pytest test/test_resume_generator_API.py::TestAddProjectManual test/test_portfolio_generator_API.py::TestAddProjectManual -v` | ✅ |
+| [#483](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/483) | Manual checks | Multipage navigation, mode toggle, public/private behavior | ✅ |
+| [#483](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/483) | Static compile | `python3 -m py_compile src/web/streamlit_app.py src/web/mode.py src/web/pages/Dashboard.py src/web/pages/ResumeAndPortfoiloMaker.py` | ✅ |
+| [#481](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/481) | Pytest | `pytest test/test_project_upload_page.py` | ✅ |
+| [#479](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/479) | Pytest | `pytest test/test_portfolio_service.py` | ✅ |
+| [#478](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/478) | Pytest | `python -m pytest test/test_sqlite_db.py -v` | ✅ |
+| [#478](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/478) | Pytest | `python -m pytest test/test_db_helper_functions.py -v` | ✅ |
+| [#478](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/478) | Pytest | `python -m pytest test/test_db_versioning_functions.py -v` | ✅ |
+| [#476](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/476) | Pytest | `pytest test/test_data_extraction.py` | ✅ |
+| [#474](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/474) | Docker test suite | Run full Docker tests to confirm no breaking changes | ✅ |
+| [#488](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/488) | Pytest | `python -m pytest -q test/test_user_configuration_helpers.py test/test_user_configuration_integration.py` | ✅ |
+| [#488](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/488) | Manual verification | Start API + frontend; verify consent capture/persistence, optional name/theme updates, and config reload behavior | ✅ |
+
+## Team Members
+
+| Name              | Role/Title          | GitHub Username                                    | Contributions this cycle |
+|-------------------|---------------------|----------------------------------------------------|--------------------------|
+| Immanuel Wiessler | Full Stack Developer | [@ThunderIW](https://github.com/ThunderIW)         | PRs #517, #522, #524 |
+| Samantha Maranda  | Full Stack Developer | [@Weebtrian](https://github.com/Weebtrain)         |  |
+| Cameron Gillespie | Full Stack Developer | [@Graves067](https://github.com/Graves067)         | PR #534 |
+| Puneet Maan       | Full Stack Developer | [@Puneet-Maan](https://github.com/Puneet-Maan)     | PR #495 |
+| Sam Smith         | Full Stack Developer | [@ssmith86](https://github.com/ssmith86)           | PRs #532 |
+| Mahi Gangal       | Full Stack Developer | [@mahigangal](https://github.com/mahigangal)       | PR #502, #529, #530, prepared team logs |
+
+## Overview
+
+
+The **next cycle** will focus on:
+
+
+---
 
 <a id="t2-weekly-9"></a>
 ## T2 Weekly #9 (Mar 2 to Mar 8, 2026) - Prepared by Puneet Maan
