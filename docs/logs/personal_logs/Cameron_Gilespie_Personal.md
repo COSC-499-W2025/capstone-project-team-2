@@ -1,3 +1,56 @@
+## Dates of Sprint: (03/08/2026 – 03/15/2026)
+
+### Peer Eval Screenshot:
+
+<img width="1092" height="626" alt="image" src= "https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Cameron-Personal-Logs/docs/logs/peer_eval_screenshots/PL_Cameron_03-15-26.png" />
+
+
+### Features Worked on this sprint (Provide sufficient detail)
+  * #1: Fix backend Automated tests
+
+
+
+
+### Tasks for Prior Week
+  * #1: MySQL to SQLite
+
+
+
+
+
+## Associated Tasks from Project Board:
+
+| Description        | Status   |
+| ------------------ | -------- |
+| [fix failing backend Automated tests]  | [Complete] |
+
+
+## Published PRs (Excluding PL/TLs)
+ * [MySQL to SQLite](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/478)
+
+
+
+
+## Reviewed PRs
+  * [Add frontend API helpers and expand backend API test suite](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/524)
+  * [Revamp workspace DocumentStudio and restore saved document selection](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/522)
+  * [Revamp workspace DocumentStudio and restore saved document selection](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/521)
+  * [Automation of frontend startup commands](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/541)
+
+
+---
+## Next week goals
+- complete removal of docker
+- possible removal of skipped tests
+- clean up small backend processes
+- implementaion of peer eval critism
+
+### Extra Details:
+
+<details>
+  simply cleaned up our failing backend  tests since there were inconsistencies in the conditions of their failure so all now should pass consistently a ive made small edits to the test mocks and to the source codes themselves, I worked closely with Samantha and Immanuel  to resovlve issues in both their PRs since immanuel split one large PR into 3 parts and samantha had some issues with cross platform implementations. I admit I forgot what specifically I said I was going to do this week on account of me needed to go to the ER for a rather scary event which has now been resolved so I did something small. Now with all my exams completed however, I aim to take care of any amount of small tasks that need to be taken care of in the following weeks to make sure this project is a product myself and my team are proud of.
+</details>
+
 ## Dates of Sprint: (03/01/2026 – 03/08/2026)
 
 ### Peer Eval Screenshot:
@@ -46,7 +99,7 @@
 ### Extra Details:
 
 <details>
-  Migrated our old Mysql database over to SQLite so docker is for the most part completely depreciated from the project. The project and CLI can run completely independent from docker and for the most part its a glorified test runner. It really makes me thing about why we decided to utilize it, which in part was because of me wanting to use mySQL from the databases course but also well.... we didnt know if we were required to have an online app. I guess we thought that it wouldve been easier to deploy and online database with docker? No matter the reason I am quite excited to rip out the old docker code and now having learned more SQLite i look forward to advancing the project and the database as a whole for the next week i MIGHT be working on it.
+  Migrated our old Mysql database over to SQLite so docker is for the most part completely depreciated from the project. The project and CLI can run completely independent from docker and for the most part its a glorified test runner. It really makes me thing about why we decided to utilize it, which in part was because of me wanting to use mySQL from the databases course but also well.... we didnt know if we were required to have an online app. I guess we thought that it wouldve been easier to deploy and online database with docker? No matter the reason I am quite excited to rip out the old docker code and now having learned more SQLite I look forward to advancing the project and the database as a whole for the next week I MIGHT be working on it.
 </details>
 
 ## Dates of Sprint: (02/08/2026 – 03/01/2026)
@@ -182,7 +235,7 @@ So the last two weeks I have set out to augment our current database into someth
 ### Extra Details:
 
 <details>
-this week i set out to complete the final piece of c code analyzer logic, which was completed with relative ease given it uses similar logic to the CPP analyzer. Throught the process it was really intresting re-assembling the the analyzer restructuring it to handle C# and finding that there is some logic that actually doesnt need to be changed so i refactored my CPP analyzer to have those duplicate methods in a seperate file so i can share them between the two analyzers AND theoretically after some more digging I might be able to shift my C# analyzer into other languages given they are a similar structure now having built this sort of analyzer twice. I also did some research into our aggregation issues and have found a few small solutions that should solve our troubles. this wasent an explicit task this week but i wanted to do it regardless.
+this week I set out to complete the final piece of c code analyzer logic, which was completed with relative ease given it uses similar logic to the CPP analyzer. Throught the process it was really intresting re-assembling the the analyzer restructuring it to handle C# and finding that there is some logic that actually doesnt need to be changed so I refactored my CPP analyzer to have those duplicate methods in a seperate file so I can share them between the two analyzers AND theoretically after some more digging I might be able to shift my C# analyzer into other languages given they are a similar structure now having built this sort of analyzer twice. I also did some research into our aggregation issues and have found a few small solutions that should solve our troubles. this wasent an explicit task this week but I wanted to do it regardless.
 
 
 </details>
@@ -282,7 +335,7 @@ this week i set out to complete the final piece of c code analyzer logic, which 
 ### Extra Details:
 
 <details>
-Worked on creating a new section to our code analysis, i created a subsection for C coding as well as an appropriate test for the analysis as a whole which then was directly integrated with the project menu for use in portfolio and resume items. it was a rather large PR, however, it was nessesary for this week given I unfortunately didnt have time to reduce the ammount of lines required due to essays, and tests and final exams this friday and the upcoming monday. I did find an alternative way to run the analysis about 3/4s of the way to completion which i plan to use in a refactorization of the code at a later date.
+Worked on creating a new section to our code analysis, I created a subsection for C coding as well as an appropriate test for the analysis as a whole which then was directly integrated with the project menu for use in portfolio and resume items. it was a rather large PR, however, it was nessesary for this week given I unfortunately didnt have time to reduce the ammount of lines required due to essays, and tests and final exams this friday and the upcoming monday. I did find an alternative way to run the analysis about 3/4s of the way to completion which I plan to use in a refactorization of the code at a later date.
 
 </details>
 
@@ -317,7 +370,7 @@ Worked on creating a new section to our code analysis, i created a subsection fo
 ### Extra Details:
 
 <details>
-This week i added portfolio output to our user interface, I also added our selected LLM Olama to our docker instance for future use of our LLM. Overall I did a small piece of critial work. the integration of Ollama into docker reduces our need to export data to an online enviroment by keeping it built into our project. furthermore, we had yet to have a formal output for our resume and portfolio. I was hoping to do more this week but a combination of a miscommunication between my team partner and I led me to do less on top of the fact that I really needed to focus on the final assignments/projects for my other classes.
+This week I added portfolio output to our user interface, I also added our selected LLM Olama to our docker instance for future use of our LLM. Overall I did a small piece of critial work. the integration of Ollama into docker reduces our need to export data to an online enviroment by keeping it built into our project. furthermore, we had yet to have a formal output for our resume and portfolio. I was hoping to do more this week but a combination of a miscommunication between my team partner and I led me to do less on top of the fact that I really needed to focus on the final assignments/projects for my other classes.
 
 </details>
 
@@ -386,7 +439,7 @@ The goals for Week 6:
 ### Extra Details:
 
 <details>
-So I set out this week to set up the database and edit the functions i set up last week to properly use mysql. Of which i completed and now can create the database and all appropriate tables. I really wanted to set up helper functions so that way we can just call those methods and it pulls data types, uploads the files,etc this week but i struggled with two things. A delay in my inital PR this week being merged (this is on me) as well as struggling with the mysql connection. I struggled particularily hard with getting the connection up and going between verision mismatches, ports and then docker set up changing a bit due to the win32 security import when it is built. after solving these issues I managed to get the task done. but i will be working hard over the reading break to ensure i get everything i want done and then some to make up for the unfortunate trouble shooting that i needed to do with SQL and Docker
+So I set out this week to set up the database and edit the functions I set up last week to properly use mysql. Of which I completed and now can create the database and all appropriate tables. I really wanted to set up helper functions so that way we can just call those methods and it pulls data types, uploads the files,etc this week but I struggled with two things. A delay in my inital PR this week being merged (this is on me) as well as struggling with the mysql connection. I struggled particularily hard with getting the connection up and going between verision mismatches, ports and then docker set up changing a bit due to the win32 security import when it is built. after solving these issues I managed to get the task done. but I will be working hard over the reading break to ensure I get everything I want done and then some to make up for the unfortunate trouble shooting that I needed to do with SQL and Docker
 
 </details>
 
@@ -456,7 +509,7 @@ The goals for Week 6:
 ### Extra Details:
 
 <details>
-So the primary goal of mine was to hop onto a new coding task this week however, that did not occur this week unfortunately due to a miscommunication between myself and a team member. So i continued finalizing the metadata extractor so that way it continues evolving with our current archetecture since it originally just outputted a string of values. now it should be outputting a full dictonary which we can utilize and transpose into a savable json file. I really hope to hop onto a different coding task to continue trying to learn python as a whole. I would also like to reflect on the fact that I did get alittle sick this week on wednesday and while already aiming to make up for just adapting the same bit of code week after week I am hoping to reach further and do more in the coming weeks.
+So the primary goal of mine was to hop onto a new coding task this week however, that did not occur this week unfortunately due to a miscommunication between myself and a team member. So I continued finalizing the metadata extractor so that way it continues evolving with our current archetecture since it originally just outputted a string of values. now it should be outputting a full dictonary which we can utilize and transpose into a savable json file. I really hope to hop onto a different coding task to continue trying to learn python as a whole. I would also like to reflect on the fact that I did get alittle sick this week on wednesday and while already aiming to make up for just adapting the same bit of code week after week I am hoping to reach further and do more in the coming weeks.
 
 </details>
 
