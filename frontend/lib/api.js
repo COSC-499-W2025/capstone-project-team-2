@@ -109,6 +109,24 @@ export function fetchProjectByName(projectName) {
 }
 
 /**
+ * Deletes an analyzed project by name.
+ *
+ * The backend always returns HTTP 200; errors are signalled via status-string
+ * prefixes. This helper translates [WARNING] and [INFO] responses into thrown
+ * errors so callers can handle them uniformly.
+ *
+ * @param {string} projectName
+ * @returns {Promise<void>}
+ */
+export async function deleteProject(projectName) {
+  const result = await request(`/projects/${encodeURIComponent(projectName)}`, { method: "DELETE" });
+  const status = result?.status ?? "";
+  if (status.startsWith("[WARNING]") || status.startsWith("[INFO]")) {
+    throw new Error(status);
+  }
+}
+
+/**
  * Uploads a ZIP file to backend project ingestion.
  *
  * `nameOverride` is primarily used when the client synthesizes a `File`
