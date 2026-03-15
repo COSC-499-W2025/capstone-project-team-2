@@ -26,6 +26,9 @@ Endpoints:
     DELETE /resume/{id}                              - Delete the resume YAML file entirely
 """
 
+import re
+import pendulum
+import ruamel.yaml as _yaml
 from typing import Optional, List, Any
 from pathlib import Path
 import uuid
@@ -42,6 +45,7 @@ from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
     Connections,
 )
 from src.core.app_context import runtimeAppContext
+from src.reporting.Generate_Resume_AI_Ver2 import GenerateResumeAI_Ver2
 
 RENDERED_OUTPUTS_DIR = Path(__file__).resolve().parents[2] / "User_config_files" / "Generate_render_CV_files" / "rendered_outputs"
 
@@ -49,6 +53,7 @@ RENDERED_OUTPUTS_DIR = Path(__file__).resolve().parents[2] / "User_config_files"
 resumeRouter = APIRouter(tags=["Resume"])
 
 ALLOWED_CONTACT_FIELDS = {"email", "phone", "location", "website", "name"}
+SKIPPING_GENERATION = "Skipping generation"
 
 
 class GenerateResumeRequest(BaseModel):
@@ -293,11 +298,11 @@ def generate_resume(payload: GenerateResumeRequest):
     """
     doc = RenderCVDocument(doc_type="resume")
     resume_id = str(uuid.uuid4())[:8]
-    full_name = f"{payload.name}_{resume_id}"
+    full_name = f"{payload.name.replace(' ', '_')}_{resume_id}"
 
     gen_result = doc.generate(name=full_name, overwrite=payload.overwrite)
 
-    if gen_result == "Skipping generation":
+    if gen_result == SKIPPING_GENERATION:
         raise HTTPException(status_code=409,
                             detail=f"Resume '{payload.name}' already exists. Set overwrite=true to replace it.",
                             )
@@ -309,6 +314,13 @@ def generate_resume(payload: GenerateResumeRequest):
             doc.update_theme(payload.theme)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
+
+    doc.data["created_at"] = pendulum.now("UTC").to_iso8601_string()
+    try:
+        with open(doc.yaml_file, "w") as f:
+            doc.yaml.dump(doc.data, f)
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Resume generated but failed to save metadata: {e}")
 
     return {"resume_id": full_name, "status": "Resume created successfully"}
 
@@ -389,7 +401,7 @@ def edit_resume(id: str, payload: EditResumeRequest):
     Section-specific notes:
         - summary: Only `new_value` is used; `item_name` and `field` are ignored.
         - contact: Use `field` to specify which contact field to update (e.g., email, phone).
-        - theme: Only `new_value` is used; valid themes are 'sb2nov', 'classic', 'moderncv', 'engineeringresumes'.
+        - theme: Only `new_value` is used; valid themes are 'sb2nov', 'classic', 'moderncv', 'engineeringresumes', 'engineeringclassic'.
         - skills: Use `item_name` to identify the skill to rename; `new_value` is the new skill name.
         - experience: Use `item_name` for the job title, `field` for the attribute to change.
         - education: Use `item_name` for the degree name, `field` for the attribute to change.
@@ -654,6 +666,61 @@ def add_project(id: str, project_name: str, payload: Optional[ProjectRequest] = 
     return {"status": result}
 
 
+@resumeRouter.post("/resume/{id}/add/project/{project_name}/ai")
+def add_project_ai(id: str, project_name: str):
+    """Add a project entry to a resume using AI-generated content.
+
+    Fetches the project from the database, generates a polished resume entry
+    using Gemini AI, and adds it to the resume document.
+
+    Args:
+        id: The resume identifier.
+        project_name: The name of the analysed project in the database.
+
+    Returns:
+        dict: {"status": str} confirming the project was added.
+
+    Raises:
+        HTTPException: 404 if the resume or project does not exist.
+        HTTPException: 400 if AI generation returned no data.
+        HTTPException: 500 if AI generation or save failed.
+    """
+    doc = _load_resume(id)
+
+    db_name = project_name
+    if not runtimeAppContext.store.project_exists(db_name) and not project_name.endswith(".json"):
+        db_name = f"{project_name}.json"
+
+    generator = GenerateResumeAI_Ver2(db_name)
+    if not generator.project_exists:
+        raise HTTPException(status_code=404, detail=f"Project '{project_name}' not found in database")
+
+    try:
+        ai_entry = generator.generate_AI_Resume_entry()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI generation failed: {e}")
+
+    if ai_entry is None:
+        raise HTTPException(status_code=400, detail=f"AI generation returned no data for '{project_name}'")
+
+    summary = ai_entry.one_sentence_summary
+    if ai_entry.tech_stack:
+        summary = f"{summary} Tech stack: {ai_entry.tech_stack}"
+
+    proj = Project(
+        name=ai_entry.project_title,
+        summary=summary,
+        highlights=ai_entry.key_responsibilities,
+    )
+    try:
+        result = _check_result(doc.add_project(proj))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
+    return {"status": result}
+
+
 @resumeRouter.delete("/resume/{id}/project/{project_name}")
 def remove_project(id: str, project_name: str):
     """Remove a project entry from an existing resume by project name.
@@ -756,6 +823,8 @@ def add_experience(id: str, payload: ExperienceRequest):
         highlights=payload.highlights,
     )
     result = doc.add_experience(exp)
+    if "Duplicate" in result:
+        raise HTTPException(status_code=409, detail=result)
     if result != "Successfully added experience":
         raise HTTPException(status_code=400, detail=result)
     return {"status": result}
