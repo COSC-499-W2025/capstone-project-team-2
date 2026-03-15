@@ -16,7 +16,19 @@ import sys
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from src.storage.db_helper_function import HelperFunct
+class _NullStore:
 
+    def insert_json(self, *args, **kwargs): 
+        return None
+    
+    def fetch_by_name(self, *args, **kwargs): 
+        return None
+    
+    def delete(self, *args, **kwargs): 
+        return False
+
+    def count_file_references(self, *args, **kwargs): 
+        return 0
 @dataclass
 class AppContext:
     """
@@ -68,12 +80,7 @@ def create_app_context(external_consent_value=False, data_consent_value=False) -
     if os.getenv("SKIP_DB_INIT") == "1":
         return AppContext(
             conn=None,
-            store=SimpleNamespace(
-                insert_json=lambda *args, **kwargs: None,
-                fetch_by_name=lambda *args, **kwargs: None,
-                delete=lambda *args, **kwargs: False,
-                count_file_references=lambda *args, **kwargs: 0,
-            ),
+            store=_NullStore(),
             legacy_save_dir=legacy_save_dir,
             default_save_dir=default_save_dir,
             external_consent=external_consent_value,

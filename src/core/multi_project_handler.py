@@ -2,6 +2,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from tqdm import tqdm
 from src.core.analysis_service import analyze_project, extract_if_zip
+import src.core.analysis_service as analysis_service
 from src.core.app_context import runtimeAppContext
 from src.API.analysis_API import perform_analysis_API
 import os
@@ -12,16 +13,16 @@ def single_project_run(args: tuple) -> dict:
     path, use_ai = args
     folder_path = Path(path)
 
-    try:
-        folder = extract_if_zip(folder_path) if folder_path.suffix.lower() == ".zip" else folder_path
-        result = analyze_project(folder, use_ai_analysis=use_ai) or {}
-        return {
-            "status": "Analysis Finished and Saved",
-            "dedup": result.get("dedup"),
-            "snapshots": result.get("snapshots", []),
-        }
-    except Exception as e:
-        return {"error": str(e), "dedup": None}
+    folder = extract_if_zip(folder_path) if folder_path.suffix.lower() == ".zip" else folder_path
+    result = analyze_project(folder, use_ai_analysis=use_ai) or {}
+    with _write_lock:
+        analysis_service.record_project_insight(result)
+        export_result = analysis_service.export_json(folder.name, result)
+    return {
+    "status": "Analysis Finished and Saved",
+    "dedup": result.get("dedup"),
+    "snapshots": export_result.get("snapshots", []),
+    }
 
 class multi_project_handler:
     @staticmethod

@@ -22,7 +22,8 @@ const links = [
   { href: "/upload", label: "Upload", modes: ["private"] },
   { href: "/workspace", label: "Resume + Portfolio", modes: ["public", "private"] },
   { href: "/projects", label: "Project Management", modes: ["private"] },
-  { href: "/config", label: "User Config", modes: ["private"] }
+  { href: "/config", label: "User Config", modes: ["private"] },
+  { href: "/representation", label: "Representation", modes: ["private"] }
 ];
 
 /**
