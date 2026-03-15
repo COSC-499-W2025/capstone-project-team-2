@@ -1,5 +1,5 @@
 """Integration tests for the user-configuration frontend flow via real API routes."""
-
+import pytest
 import unittest
 from pathlib import Path
 
@@ -7,8 +7,17 @@ import orjson
 from fastapi.testclient import TestClient
 
 from src.API.general_API import app
-from src.core.app_context import runtimeAppContext
+import src.core.app_context as _app_context_module
 
+@pytest.fixture(autouse=True)
+def reset_consent():
+    original_external = _app_context_module.runtimeAppContext.external_consent
+    original_data = _app_context_module.runtimeAppContext.data_consent
+    _app_context_module.runtimeAppContext.external_consent = False
+    _app_context_module.runtimeAppContext.data_consent = False
+    yield
+    _app_context_module.runtimeAppContext.external_consent = original_external
+    _app_context_module.runtimeAppContext.data_consent = original_data
 
 class TestUserConfigurationIntegration(unittest.TestCase):
     """Validate end-to-end config flow used by the Streamlit User Configuration page."""
@@ -16,9 +25,8 @@ class TestUserConfigurationIntegration(unittest.TestCase):
     def setUp(self) -> None:
         """Create test client, snapshot runtime consent, and seed a deterministic config."""
         self.client = TestClient(app)
-        self.original_external = runtimeAppContext.external_consent
-        self.original_data = runtimeAppContext.data_consent
-
+        self.original_external = _app_context_module.runtimeAppContext.external_consent
+        self.original_data = _app_context_module.runtimeAppContext.data_consent
         project_root = Path(__file__).resolve().parents[1]
         self.config_path = project_root / "User_config_files" / "UserConfigs.json"
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
@@ -29,13 +37,14 @@ class TestUserConfigurationIntegration(unittest.TestCase):
             "First Name": "Jane",
             "Last Name": "Doe",
             "Preferences": {"theme": "dark"},
+            "consented": {"external": False, "Data consent": False},
         }
         self.client.post("/config/update", json=self.seed_config)
 
     def tearDown(self) -> None:
         """Restore runtime consent values and original config file content."""
-        runtimeAppContext.external_consent = self.original_external
-        runtimeAppContext.data_consent = self.original_data
+        _app_context_module.runtimeAppContext.external_consent = False
+        _app_context_module.runtimeAppContext.data_consent = False
 
         if self.backup_bytes is None:
             if self.config_path.exists():
@@ -77,8 +86,8 @@ class TestUserConfigurationIntegration(unittest.TestCase):
         self.assertEqual(final_cfg["Preferences"]["theme"], "light")
         self.assertTrue(final_cfg["consented"]["external"])
         self.assertTrue(final_cfg["consented"]["Data consent"])
-        self.assertTrue(runtimeAppContext.external_consent)
-        self.assertTrue(runtimeAppContext.data_consent)
+        self.assertTrue(_app_context_module.runtimeAppContext.external_consent)
+        self.assertTrue(_app_context_module.runtimeAppContext.data_consent)
 
     def test_consent_only_flow_preserves_existing_profile_fields(self) -> None:
         """Update required consent only and ensure name/theme remain unchanged."""
@@ -97,8 +106,8 @@ class TestUserConfigurationIntegration(unittest.TestCase):
         self.assertEqual(final_cfg["Preferences"]["theme"], "dark")
         self.assertFalse(final_cfg["consented"]["external"])
         self.assertTrue(final_cfg["consented"]["Data consent"])
-        self.assertFalse(runtimeAppContext.external_consent)
-        self.assertTrue(runtimeAppContext.data_consent)
+        self.assertFalse(_app_context_module.runtimeAppContext.external_consent)
+        self.assertTrue(_app_context_module.runtimeAppContext.data_consent)
 
     def test_invalid_external_without_data_is_rejected(self) -> None:
         """Reject invalid consent request where external consent is true but data consent is false."""

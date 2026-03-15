@@ -13,6 +13,12 @@ from fastapi.testclient import TestClient
 
 test_client = TestClient(app)
 
+@pytest.fixture(autouse=True)
+def reset_save_dir():
+    original = runtimeAppContext.default_save_dir
+    yield
+    runtimeAppContext.default_save_dir = original
+
 @pytest.fixture
 def make_project_save_dir(monkeypatch, tmp_path):
     """
@@ -121,8 +127,9 @@ def test_get_project_by_name_prefers_database(monkeypatch):
     Ensures GET /projects/{id} returns DB data when available.
     """
     expected = {"resume_item": {"project_name": "alpha"}}
+    from src.core import app_context
     monkeypatch.setattr(
-        runtimeAppContext.store,
+        app_context.runtimeAppContext.store,
         "fetch_by_name",
         lambda filename: expected if filename == "alpha.json" else None,
     )
