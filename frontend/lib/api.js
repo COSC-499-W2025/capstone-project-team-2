@@ -70,7 +70,9 @@ async function request(path, init = {}, expect = "json") {
         // Intentionally no-op: keep fallback message.
       }
     }
-    throw new Error(msg);
+    const err = new Error(msg);
+    err.status = response.status;
+    throw err;
   }
 
   if (expect === "blob") return response.blob();
