@@ -737,3 +737,51 @@
 
 ### Extra Details:
 * Next week I will continue working on API and will work on removing docker. I also want to work on some broken tests that fail for unknown reasons likely related to improper use of mocks and certain libraries.
+* 
+---------------------------
+
+## Sunday (08/03/2026 - 15/03/2026)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/15-03-2026_PeerEval_SamM.jpg)
+
+### Features Worked on this Week
+  * #1: Automate frontend startup commands
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description        | Feature   | Assigned To | Status   |
+| ------- | ------------------ | --------- | ----------- | -------- |
+| #385   | Convert CLI function calls to API methods | Convert CLI function calls to API methods | Samantha Maranda  | Completed |
+| #527   | Automate the use of commands to start the frontend | Automate frontend startup commands | Samantha Maranda  | Complete |
+
+### Progress Update (since 08/03/2026) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Convert CLI functions into API methods
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+ <tr>
+        <!-- Task/Issue # -->
+        <td>Automate frontend startup commands
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+* Despite not making a PR for converting CLI functions this week, I have found that the leftover CLI that was to be converted into CLI was remade and API was built for it.
+* I am unsure what needs to be done for next week as the backend is finished and I have not been allocated to any frontend tasks yet.
