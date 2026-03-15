@@ -4,10 +4,13 @@ import assert from "node:assert/strict";
 import {
   analyzeUploadedProject,
   fetchProjects,
+  fetchProjectByName,
   fetchProjectInsights,
   getApiBase,
   saveConsent,
-  updateConfig
+  updateConfig,
+  fetchConfig,
+  uploadProjectZip
 } from "../lib/api.js";
 
 /**
@@ -39,6 +42,10 @@ function makeResponse(options = {}) {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Core / misc
+// ---------------------------------------------------------------------------
+
 test("getApiBase defaults to localhost:8000", () => {
   assert.equal(getApiBase(), "http://localhost:8000");
 });
@@ -55,6 +62,18 @@ test("fetchProjects calls /projects/", async () => {
   assert.deepEqual(payload, ["project-a", "project-b"]);
   assert.equal(calls.length, 1);
   assert.equal(calls[0], "http://localhost:8000/projects/");
+});
+
+test("fetchProjectByName calls /projects/:name with encoding", async () => {
+  const calls = [];
+  global.fetch = async (url) => {
+    calls.push(url);
+    return makeResponse({ json: { name: "My Project" } });
+  };
+
+  await fetchProjectByName("My Project");
+
+  assert.equal(calls[0], "http://localhost:8000/projects/My%20Project");
 });
 
 test("fetchProjectInsights calls /insights/projects", async () => {
@@ -79,6 +98,18 @@ test("analyzeUploadedProject appends encoded project_name query", async () => {
   await analyzeUploadedProject("My Project 1");
 
   assert.equal(calls[0], "http://localhost:8000/analyze?project_name=My%20Project%201");
+});
+
+test("analyzeUploadedProject with no name omits query string", async () => {
+  const calls = [];
+  global.fetch = async (url) => {
+    calls.push(url);
+    return makeResponse({ json: { ok: true } });
+  };
+
+  await analyzeUploadedProject();
+
+  assert.equal(calls[0], "http://localhost:8000/analyze");
 });
 
 test("saveConsent sends expected JSON body", async () => {
@@ -111,6 +142,37 @@ test("updateConfig sends payload to /config/update", async () => {
   assert.equal(calls[0].url, "http://localhost:8000/config/update");
   assert.deepEqual(JSON.parse(calls[0].init?.body ?? "{}"), configPayload);
 });
+
+test("fetchConfig calls /config/get", async () => {
+  const calls = [];
+  global.fetch = async (url) => {
+    calls.push(url);
+    return makeResponse({ json: { name: "Jane" } });
+  };
+
+  await fetchConfig();
+
+  assert.equal(calls[0], "http://localhost:8000/config/get");
+});
+
+test("uploadProjectZip POSTs a multipart form to /projects/upload", async () => {
+  const calls = [];
+  global.fetch = async (url, init) => {
+    calls.push({ url, init });
+    return makeResponse({ json: { uploaded: true } });
+  };
+
+  const fakeFile = new File(["data"], "project.zip", { type: "application/zip" });
+  await uploadProjectZip(fakeFile);
+
+  assert.equal(calls[0].url, "http://localhost:8000/projects/upload");
+  assert.equal(calls[0].init?.method, "POST");
+  assert.ok(calls[0].init?.body instanceof FormData);
+});
+
+// ---------------------------------------------------------------------------
+// Error path tests
+// ---------------------------------------------------------------------------
 
 test("network failure surfaces friendly API offline message", async () => {
   global.fetch = async () => {
