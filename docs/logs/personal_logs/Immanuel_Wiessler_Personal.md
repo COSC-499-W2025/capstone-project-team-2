@@ -2064,6 +2064,8 @@ Following Week 23's work on skill management endpoints and the initial Streamlit
 
 ## 📌 Associated Tasks from Project Board
 - [Restore discoverable saved document selection in workspace page resume portfolio #498](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/498)
+- [Add Portfolio Showcase Role Override UI #514](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/514)
+- [Failing tests #533](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/533)
 
 ---
 
