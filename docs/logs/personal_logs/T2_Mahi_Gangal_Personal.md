@@ -284,7 +284,7 @@ This week’s work focused on Milestone 3 frontend delivery and quality validati
 
 ## Week 10 (March 9 - March 15)
 
-### Peer Eval Screenshot: 
+### Peer Eval Screenshot: ![](https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Mahi_Gangal_Personal_Logs/docs/logs/peer_eval_screenshots/MG%20Week10.png)
 
 ### Tasks Worked On
 
