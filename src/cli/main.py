@@ -21,10 +21,9 @@ def run() -> int:
     #Setting up variations of termination keybinds to quit safely and shutdown appropriate processes while in wait mode
     signal.signal(signal.SIGTERM, quit)
     signal.signal(signal.SIGINT, quit)
-    signal.signal(signal.SIGHUP, quit)
 
     #Run API command to start API in background
-    uvicorn_instance = subprocess.Popen(["uvicorn", "src.API.general_API:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ])
+    uvicorn_instance = subprocess.Popen(["python", "-m", "uvicorn", "src.API.general_API:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ])
 
     #Change directory to correctly run npm commands
     os.chdir("frontend/")
