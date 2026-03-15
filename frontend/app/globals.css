@@ -1131,7 +1131,7 @@ label {
   color: var(--ink-1);
 }
 
-input,
+input:not([type="checkbox"]):not([type="radio"]),
 select,
 textarea {
   width: 100%;
@@ -1159,6 +1159,22 @@ a:focus-visible {
   outline: none;
   border-color: rgba(179, 228, 255, 0.95);
   box-shadow: 0 0 0 3px var(--focus), inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: auto;
+  min-width: 1rem;
+  height: 1rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  flex: 0 0 auto;
 }
 
 .segmented {
