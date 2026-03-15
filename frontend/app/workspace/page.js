@@ -329,7 +329,7 @@ function PortfolioRoleOverrideCard({ title, projectName, hint = "" }) {
         if (!ignore) setRole(data?.role || "");
       } catch (err) {
         if (ignore) return;
-        if ((err?.message || "").includes("No saved role for project")) {
+        if (err?.status === 404) {
           setRole("");
           return;
         }
