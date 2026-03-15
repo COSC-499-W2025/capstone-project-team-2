@@ -118,7 +118,7 @@ export default function ProjectsPage() {
       return;
     }
     setViewing(name);
-    if (viewData[name]) return;
+    if (viewData[name] && !viewData[name]._error) return;
     try {
       const data = await fetchProjectByName(name);
       setViewData((prev) => ({ ...prev, [name]: data }));

@@ -14,6 +14,7 @@ from src.storage.saved_projects import *
 from src.config.project_thumbnails import ThumbnailManager
 from src.reporting.project_insights import (
     list_project_insights,
+    remove_project_from_insights,
     update_thumbnail_in_insights,
     remove_thumbnail_from_insights,
 )
@@ -329,6 +330,13 @@ def delete_project(id: str, save_path: str | None = Query(default=None)) -> dict
             if deleted_file
             else f"[INFO] No local file was deleted for '{project_name}'."
         )
+
+    # Remove from project_insights.json so the dashboard stays in sync.
+    project_stem = Path(project_name).stem
+    try:
+        remove_project_from_insights(project_stem, storage_path=_insights_storage_path())
+    except Exception:
+        pass  # Non-critical — don't fail the whole delete if insights cleanup fails.
 
     return out_dict
 

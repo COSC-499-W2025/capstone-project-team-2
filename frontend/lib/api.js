@@ -121,7 +121,7 @@ export function fetchProjectByName(projectName) {
 export async function deleteProject(projectName) {
   const result = await request(`/projects/${encodeURIComponent(projectName)}`, { method: "DELETE" });
   const status = result?.status ?? "";
-  if (status.startsWith("[WARNING]") || status.startsWith("[INFO]")) {
+  if (status.startsWith("[WARNING]")) {
     throw new Error(status);
   }
 }
