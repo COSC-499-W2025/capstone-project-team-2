@@ -177,7 +177,7 @@ export default function UploadPage() {
       title="Project Upload"
       subtitle="Upload ZIP or choose a local folder, run analysis, and review generated project insights."
     >
-      <div className="page-stack">
+      <div className="page-stack upload-page">
         <LiquidSegmentedControl
           value={tab}
           onChange={setTab}

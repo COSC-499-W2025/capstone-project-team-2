@@ -167,7 +167,7 @@ function EditContact({ doc, onApply }) {
       {Object.keys(form).map((field) => (
         <label key={field}>
           {field}
-          <input value={form[field]} onChange={(e) => setForm((p) => ({ ...p, [field]: e.target.value }))} />
+          <input className="settings-control" value={form[field]} onChange={(e) => setForm((p) => ({ ...p, [field]: e.target.value }))} />
         </label>
       ))}
       <button type="submit" className="liquid-btn solid">Save Contact</button>
@@ -195,7 +195,7 @@ function EditSummary({ doc, onApply }) {
     >
       <label>
         Summary
-        <textarea rows={6} value={summary} onChange={(e) => setSummary(e.target.value)} />
+        <textarea className="settings-control" rows={6} value={summary} onChange={(e) => setSummary(e.target.value)} />
       </label>
       <button type="submit" className="liquid-btn solid">Update Summary</button>
     </form>
@@ -216,11 +216,11 @@ function EditTheme({ doc, onApply }) {
     <div className="form-stack">
       <label>
         Current theme
-        <input type="text" readOnly value={doc?.theme || "—"} style={{ opacity: 0.6, cursor: "default" }} />
+        <input className="settings-control" type="text" readOnly value={doc?.theme || "—"} style={{ opacity: 0.6, cursor: "default" }} />
       </label>
       <label>
         New theme
-        <select value={theme} onChange={(e) => setTheme(e.target.value)}>
+        <select className="settings-control" value={theme} onChange={(e) => setTheme(e.target.value)}>
           {THEMES.map((option) => (
             <option key={option} value={option}>{option}</option>
           ))}
@@ -255,8 +255,9 @@ function Combobox({ value, onChange, placeholder }) {
   }, []);
 
   return (
-    <div ref={ref} style={{ position: "relative" }}>
+    <div ref={ref} className="settings-combobox" style={{ position: "relative" }}>
       <input
+        className="settings-control"
         value={value}
         placeholder={placeholder}
         onChange={(e) => { onChange(e.target.value); setOpen(true); }}
@@ -333,7 +334,7 @@ function ConnectionsEditor({ doc, onApply }) {
           </label>
           <label>
             Username
-            <input value={username} onChange={(e) => setUsername(e.target.value)} />
+            <input className="settings-control" value={username} onChange={(e) => setUsername(e.target.value)} />
           </label>
           <button type="button" className="liquid-btn solid" onClick={() => onApply([{ section: "connections", item_name: network, field: "username", new_value: username }])}>
             Add Connection
@@ -345,13 +346,13 @@ function ConnectionsEditor({ doc, onApply }) {
         <>
           <label>
             Existing connection
-            <select value={network} onChange={(e) => setNetwork(e.target.value)}>
+            <select className="settings-control" value={network} onChange={(e) => setNetwork(e.target.value)}>
               {names.map((name) => <option key={name}>{name}</option>)}
             </select>
           </label>
           <label>
             New username
-            <input value={username} onChange={(e) => setUsername(e.target.value)} />
+            <input className="settings-control" value={username} onChange={(e) => setUsername(e.target.value)} />
           </label>
           <button type="button" className="liquid-btn solid" onClick={() => onApply([{ section: "connections", item_name: network, field: "username", new_value: username }])}>
             Update Connection
@@ -363,7 +364,7 @@ function ConnectionsEditor({ doc, onApply }) {
         <>
           <label>
             Remove connection
-            <select value={network} onChange={(e) => setNetwork(e.target.value)}>
+            <select className="settings-control" value={network} onChange={(e) => setNetwork(e.target.value)}>
               {names.map((name) => <option key={name}>{name}</option>)}
             </select>
           </label>
@@ -1458,11 +1459,11 @@ function DocumentStudio({ kind, mode }) {
               </label>
               <label className="settings-row settings-field-row">
                 <span className="settings-label">Theme</span>
-                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <div className="settings-inline-control">
                   <select className="settings-control" value={theme} onChange={(e) => setTheme(e.target.value)}>
                     {THEMES.map((item) => <option key={item}>{item}</option>)}
                   </select>
-                  <button type="button" className="liquid-btn" style={{ whiteSpace: "nowrap" }} onClick={() => setThemePreviewOpen(true)}>
+                  <button type="button" className="liquid-btn" onClick={() => setThemePreviewOpen(true)}>
                     Preview
                   </button>
                 </div>

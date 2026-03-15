@@ -458,6 +458,7 @@ h1 {
   width: auto;
   flex-wrap: nowrap;
   align-items: center;
+  overflow: visible;
 }
 
 .liquid-nav-main {
@@ -466,6 +467,18 @@ h1 {
   flex-wrap: wrap;
   gap: 0.36rem;
   min-width: 0;
+}
+
+.liquid-nav-main::before {
+  content: "";
+  position: absolute;
+  top: -1.8rem;
+  right: 0;
+  bottom: -0.9rem;
+  left: 0;
+  background: transparent;
+  pointer-events: auto;
+  z-index: 0;
 }
 
 .liquid-nav-tail {
@@ -832,6 +845,74 @@ h1 {
   box-shadow: inset 0 1px 0 rgba(211, 231, 255, 0.16);
 }
 
+:root[data-theme="dark"] .settings-control,
+:root[data-theme="dark"] .workspace-page input:not([type="checkbox"]):not([type="radio"]),
+:root[data-theme="dark"] .workspace-page select,
+:root[data-theme="dark"] .workspace-page textarea,
+:root[data-theme="dark"] .config-page input:not([type="checkbox"]):not([type="radio"]),
+:root[data-theme="dark"] .config-page select,
+:root[data-theme="dark"] .config-page textarea,
+:root[data-theme="dark"] .representation-page input:not([type="checkbox"]):not([type="radio"]),
+:root[data-theme="dark"] .representation-page select,
+:root[data-theme="dark"] .representation-page textarea,
+:root[data-theme="dark"] .upload-page input:not([type="checkbox"]):not([type="radio"]),
+:root[data-theme="dark"] .upload-page select,
+:root[data-theme="dark"] .upload-page textarea {
+  border-color: rgba(196, 223, 255, 0.3);
+  background:
+    radial-gradient(128% 110% at 20% 12%, rgba(160, 199, 241, 0.24), rgba(76, 115, 168, 0.16) 56%, rgba(28, 45, 73, 0.16)),
+    linear-gradient(160deg, rgba(50, 75, 112, 0.58), rgba(24, 38, 61, 0.46));
+  box-shadow:
+    0 6px 14px rgba(5, 12, 24, 0.22),
+    inset 0 1px 0 rgba(211, 231, 255, 0.24);
+}
+
+:root[data-theme="dark"] .settings-control::placeholder,
+:root[data-theme="dark"] .workspace-page input:not([type="checkbox"]):not([type="radio"])::placeholder,
+:root[data-theme="dark"] .workspace-page textarea::placeholder,
+:root[data-theme="dark"] .config-page input:not([type="checkbox"]):not([type="radio"])::placeholder,
+:root[data-theme="dark"] .config-page textarea::placeholder,
+:root[data-theme="dark"] .representation-page input:not([type="checkbox"]):not([type="radio"])::placeholder,
+:root[data-theme="dark"] .representation-page textarea::placeholder,
+:root[data-theme="dark"] .upload-page input:not([type="checkbox"]):not([type="radio"])::placeholder,
+:root[data-theme="dark"] .upload-page textarea::placeholder {
+  color: rgba(205, 224, 248, 0.72);
+}
+
+:root[data-theme="dark"] .settings-control:hover,
+:root[data-theme="dark"] .settings-control:focus-visible,
+:root[data-theme="dark"] .workspace-page input:not([type="checkbox"]):not([type="radio"]):hover,
+:root[data-theme="dark"] .workspace-page input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+:root[data-theme="dark"] .workspace-page select:hover,
+:root[data-theme="dark"] .workspace-page select:focus-visible,
+:root[data-theme="dark"] .workspace-page textarea:hover,
+:root[data-theme="dark"] .workspace-page textarea:focus-visible,
+:root[data-theme="dark"] .config-page input:not([type="checkbox"]):not([type="radio"]):hover,
+:root[data-theme="dark"] .config-page input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+:root[data-theme="dark"] .config-page select:hover,
+:root[data-theme="dark"] .config-page select:focus-visible,
+:root[data-theme="dark"] .config-page textarea:hover,
+:root[data-theme="dark"] .config-page textarea:focus-visible,
+:root[data-theme="dark"] .representation-page input:not([type="checkbox"]):not([type="radio"]):hover,
+:root[data-theme="dark"] .representation-page input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+:root[data-theme="dark"] .representation-page select:hover,
+:root[data-theme="dark"] .representation-page select:focus-visible,
+:root[data-theme="dark"] .representation-page textarea:hover,
+:root[data-theme="dark"] .representation-page textarea:focus-visible,
+:root[data-theme="dark"] .upload-page input:not([type="checkbox"]):not([type="radio"]):hover,
+:root[data-theme="dark"] .upload-page input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+:root[data-theme="dark"] .upload-page select:hover,
+:root[data-theme="dark"] .upload-page select:focus-visible,
+:root[data-theme="dark"] .upload-page textarea:hover,
+:root[data-theme="dark"] .upload-page textarea:focus-visible {
+  border-color: rgba(196, 223, 255, 0.52);
+  box-shadow:
+    0 9px 18px rgba(4, 10, 20, 0.26),
+    0 0 0 2px rgba(120, 188, 255, 0.42),
+    0 0 12px rgba(85, 158, 242, 0.24),
+    inset 0 1px 0 rgba(223, 239, 255, 0.3);
+}
+
 :root[data-theme="dark"] input,
 :root[data-theme="dark"] select,
 :root[data-theme="dark"] textarea {
@@ -839,6 +920,34 @@ h1 {
   border-color: rgba(196, 223, 255, 0.26);
   color: #e9f2ff;
   box-shadow: inset 0 1px 0 rgba(211, 231, 255, 0.18);
+}
+
+:root[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):hover,
+:root[data-theme="dark"] select:hover,
+:root[data-theme="dark"] textarea:hover {
+  border-color: rgba(186, 220, 255, 0.52);
+  box-shadow:
+    0 0 0 2px rgba(116, 185, 255, 0.38),
+    inset 0 1px 0 rgba(211, 231, 255, 0.24);
+}
+
+:root[data-theme="dark"] select {
+  background:
+    radial-gradient(128% 110% at 20% 12%, rgba(160, 199, 241, 0.24), rgba(76, 115, 168, 0.16) 56%, rgba(28, 45, 73, 0.16)),
+    linear-gradient(160deg, rgba(50, 75, 112, 0.58), rgba(24, 38, 61, 0.46)),
+    linear-gradient(45deg, transparent 50%, rgba(214, 232, 255, 0.92) 50%),
+    linear-gradient(135deg, rgba(214, 232, 255, 0.92) 50%, transparent 50%);
+  background-position:
+    0 0,
+    0 0,
+    calc(100% - 0.95rem) calc(50% - 0.14rem),
+    calc(100% - 0.65rem) calc(50% - 0.14rem);
+  background-size:
+    auto,
+    auto,
+    0.35rem 0.35rem,
+    0.35rem 0.35rem;
+  background-repeat: no-repeat;
 }
 
 :root[data-theme="dark"] select option {
@@ -866,11 +975,21 @@ h1 {
 }
 
 :root[data-theme="dark"] .liquid-btn:hover {
-  border-color: rgba(188, 217, 255, 0.46);
+  border-color: rgba(196, 223, 255, 0.56);
   box-shadow:
-    0 10px 20px rgba(4, 10, 18, 0.44),
+    0 9px 18px rgba(4, 10, 18, 0.34),
+    0 0 0 2px rgba(120, 188, 255, 0.46),
+    0 0 14px rgba(85, 158, 242, 0.28),
     inset 0 1px 0 rgba(201, 230, 255, 0.34),
     inset 0 -2px 5px rgba(113, 171, 231, 0.22);
+}
+
+:root[data-theme="dark"] .liquid-btn:focus-visible {
+  border-color: rgba(203, 228, 255, 0.62);
+  box-shadow:
+    0 0 0 2px rgba(124, 190, 255, 0.46),
+    0 0 12px rgba(87, 156, 242, 0.28),
+    inset 0 1px 0 rgba(201, 230, 255, 0.36);
 }
 
 :root[data-theme="dark"] .drop-zone {
@@ -1092,11 +1211,21 @@ h3 {
 
 .liquid-btn:hover {
   transform: translateY(-1px) scale(1.01);
-  border-color: rgba(255, 255, 255, 0.78);
+  border-color: rgba(255, 255, 255, 0.96);
   box-shadow:
     0 10px 20px rgba(17, 38, 64, 0.18),
+    0 0 0 2px rgba(188, 226, 255, 0.72),
+    0 0 24px rgba(160, 212, 255, 0.52),
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     inset 0 -2px 5px rgba(172, 210, 245, 0.22);
+}
+
+.liquid-btn:focus-visible {
+  border-color: rgba(255, 255, 255, 0.98);
+  box-shadow:
+    0 0 0 3px rgba(170, 218, 255, 0.78),
+    0 0 26px rgba(149, 205, 255, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
 }
 
 .liquid-btn:active {
@@ -1145,6 +1274,15 @@ textarea {
   -webkit-backdrop-filter: blur(8px) saturate(120%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
   transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):hover,
+select:hover,
+textarea:hover {
+  border-color: rgba(205, 235, 255, 0.96);
+  box-shadow:
+    0 0 0 2px rgba(182, 224, 255, 0.54),
+    inset 0 1px 0 rgba(255, 255, 255, 0.86);
 }
 
 textarea {
@@ -1413,6 +1551,8 @@ input[type="radio"] {
 .settings-label {
   color: var(--ink-1);
   font-size: 0.83rem;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .settings-value {
@@ -1426,13 +1566,200 @@ input[type="radio"] {
   padding-bottom: 0.5rem;
 }
 
-.settings-field-row .settings-control {
-  width: min(62%, 260px);
+.settings-inline-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: auto;
+  max-width: 100%;
+  margin-left: auto;
+}
+
+.settings-inline-control .settings-control {
+  width: var(--controls-field-w, 260px);
+  min-width: 0;
+  flex: 0 0 var(--controls-field-w, 260px);
+  max-width: 100%;
+}
+
+.settings-inline-control .liquid-btn {
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.settings-control,
+.workspace-page input:not([type="checkbox"]):not([type="radio"]),
+.workspace-page select,
+.workspace-page textarea,
+.config-page input:not([type="checkbox"]):not([type="radio"]),
+.config-page select,
+.config-page textarea,
+.representation-page input:not([type="checkbox"]):not([type="radio"]),
+.representation-page select,
+.representation-page textarea,
+.upload-page input:not([type="checkbox"]):not([type="radio"]),
+.upload-page select,
+.upload-page textarea {
+  margin: 0;
+  border-color: rgba(255, 255, 255, 0.68);
+  background:
+    radial-gradient(130% 112% at 20% 12%, rgba(255, 255, 255, 0.84), rgba(229, 241, 255, 0.52) 56%, rgba(178, 211, 243, 0.34)),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.62), rgba(214, 234, 255, 0.3));
+  box-shadow:
+    0 6px 14px rgba(20, 42, 68, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  transition: border-color 170ms ease, box-shadow 170ms ease, background 170ms ease;
+}
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 2rem;
+}
+
+.settings-field-row > .settings-control {
+  width: var(--controls-field-w, 260px);
+  flex: 0 0 var(--controls-field-w, 260px);
   height: 1.9rem;
   min-height: 1.9rem;
-  margin: 0;
   padding: 0.28rem 0.64rem;
   border-radius: 11px;
+  max-width: 100%;
+  margin-left: auto;
+}
+
+.settings-control::placeholder,
+.workspace-page input:not([type="checkbox"]):not([type="radio"])::placeholder,
+.workspace-page textarea::placeholder,
+.config-page input:not([type="checkbox"]):not([type="radio"])::placeholder,
+.config-page textarea::placeholder,
+.representation-page input:not([type="checkbox"]):not([type="radio"])::placeholder,
+.representation-page textarea::placeholder,
+.upload-page input:not([type="checkbox"]):not([type="radio"])::placeholder,
+.upload-page textarea::placeholder {
+  color: rgba(68, 96, 136, 0.78);
+}
+
+:root:not([data-theme="dark"]) .settings-control,
+:root:not([data-theme="dark"]) .workspace-page input:not([type="checkbox"]):not([type="radio"]),
+:root:not([data-theme="dark"]) .workspace-page select,
+:root:not([data-theme="dark"]) .workspace-page textarea,
+:root:not([data-theme="dark"]) .config-page input:not([type="checkbox"]):not([type="radio"]),
+:root:not([data-theme="dark"]) .config-page select,
+:root:not([data-theme="dark"]) .config-page textarea,
+:root:not([data-theme="dark"]) .representation-page input:not([type="checkbox"]):not([type="radio"]),
+:root:not([data-theme="dark"]) .representation-page select,
+:root:not([data-theme="dark"]) .representation-page textarea,
+:root:not([data-theme="dark"]) .upload-page input:not([type="checkbox"]):not([type="radio"]),
+:root:not([data-theme="dark"]) .upload-page select,
+:root:not([data-theme="dark"]) .upload-page textarea {
+  border-color: rgba(209, 233, 252, 0.92);
+  color: var(--ink-0);
+  background:
+    radial-gradient(132% 114% at 18% 10%, rgba(252, 255, 255, 0.94), rgba(236, 246, 255, 0.72) 54%, rgba(190, 218, 246, 0.48)),
+    linear-gradient(160deg, rgba(248, 253, 255, 0.84), rgba(218, 236, 253, 0.54));
+  box-shadow:
+    0 8px 16px rgba(28, 55, 86, 0.13),
+    0 0 0 1px rgba(172, 214, 247, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+:root:not([data-theme="dark"]) select {
+  background:
+    radial-gradient(132% 114% at 18% 10%, rgba(252, 255, 255, 0.94), rgba(236, 246, 255, 0.72) 54%, rgba(190, 218, 246, 0.48)),
+    linear-gradient(160deg, rgba(248, 253, 255, 0.84), rgba(218, 236, 253, 0.54)),
+    linear-gradient(45deg, transparent 50%, rgba(88, 120, 162, 0.9) 50%),
+    linear-gradient(135deg, rgba(88, 120, 162, 0.9) 50%, transparent 50%);
+  background-position:
+    0 0,
+    0 0,
+    calc(100% - 0.95rem) calc(50% - 0.14rem),
+    calc(100% - 0.65rem) calc(50% - 0.14rem);
+  background-size:
+    auto,
+    auto,
+    0.35rem 0.35rem,
+    0.35rem 0.35rem;
+  background-repeat: no-repeat;
+}
+
+:root:not([data-theme="dark"]) .settings-control::placeholder,
+:root:not([data-theme="dark"]) .workspace-page input:not([type="checkbox"]):not([type="radio"])::placeholder,
+:root:not([data-theme="dark"]) .workspace-page textarea::placeholder,
+:root:not([data-theme="dark"]) .config-page input:not([type="checkbox"]):not([type="radio"])::placeholder,
+:root:not([data-theme="dark"]) .config-page textarea::placeholder,
+:root:not([data-theme="dark"]) .representation-page input:not([type="checkbox"]):not([type="radio"])::placeholder,
+:root:not([data-theme="dark"]) .representation-page textarea::placeholder,
+:root:not([data-theme="dark"]) .upload-page input:not([type="checkbox"]):not([type="radio"])::placeholder,
+:root:not([data-theme="dark"]) .upload-page textarea::placeholder {
+  color: rgba(76, 106, 145, 0.82);
+}
+
+:root:not([data-theme="dark"]) .settings-control:-webkit-autofill,
+:root:not([data-theme="dark"]) .settings-control:-webkit-autofill:hover,
+:root:not([data-theme="dark"]) .settings-control:-webkit-autofill:focus,
+:root:not([data-theme="dark"]) .workspace-page input:not([type="checkbox"]):not([type="radio"]):-webkit-autofill,
+:root:not([data-theme="dark"]) .workspace-page input:not([type="checkbox"]):not([type="radio"]):-webkit-autofill:hover,
+:root:not([data-theme="dark"]) .workspace-page input:not([type="checkbox"]):not([type="radio"]):-webkit-autofill:focus,
+:root:not([data-theme="dark"]) .workspace-page textarea:-webkit-autofill,
+:root:not([data-theme="dark"]) .workspace-page textarea:-webkit-autofill:hover,
+:root:not([data-theme="dark"]) .workspace-page textarea:-webkit-autofill:focus,
+:root:not([data-theme="dark"]) .config-page input:not([type="checkbox"]):not([type="radio"]):-webkit-autofill,
+:root:not([data-theme="dark"]) .config-page input:not([type="checkbox"]):not([type="radio"]):-webkit-autofill:hover,
+:root:not([data-theme="dark"]) .config-page input:not([type="checkbox"]):not([type="radio"]):-webkit-autofill:focus,
+:root:not([data-theme="dark"]) .config-page textarea:-webkit-autofill,
+:root:not([data-theme="dark"]) .config-page textarea:-webkit-autofill:hover,
+:root:not([data-theme="dark"]) .config-page textarea:-webkit-autofill:focus,
+:root:not([data-theme="dark"]) .representation-page input:not([type="checkbox"]):not([type="radio"]):-webkit-autofill,
+:root:not([data-theme="dark"]) .representation-page input:not([type="checkbox"]):not([type="radio"]):-webkit-autofill:hover,
+:root:not([data-theme="dark"]) .representation-page input:not([type="checkbox"]):not([type="radio"]):-webkit-autofill:focus,
+:root:not([data-theme="dark"]) .representation-page textarea:-webkit-autofill,
+:root:not([data-theme="dark"]) .representation-page textarea:-webkit-autofill:hover,
+:root:not([data-theme="dark"]) .representation-page textarea:-webkit-autofill:focus,
+:root:not([data-theme="dark"]) .upload-page input:not([type="checkbox"]):not([type="radio"]):-webkit-autofill,
+:root:not([data-theme="dark"]) .upload-page input:not([type="checkbox"]):not([type="radio"]):-webkit-autofill:hover,
+:root:not([data-theme="dark"]) .upload-page input:not([type="checkbox"]):not([type="radio"]):-webkit-autofill:focus,
+:root:not([data-theme="dark"]) .upload-page textarea:-webkit-autofill,
+:root:not([data-theme="dark"]) .upload-page textarea:-webkit-autofill:hover,
+:root:not([data-theme="dark"]) .upload-page textarea:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--ink-0);
+  -webkit-box-shadow: 0 0 0 1000px rgba(231, 244, 255, 0.92) inset;
+  transition: background-color 9999s ease-out 0s;
+}
+
+:root:not([data-theme="dark"]) .settings-control:hover,
+:root:not([data-theme="dark"]) .settings-control:focus-visible,
+:root:not([data-theme="dark"]) .workspace-page input:not([type="checkbox"]):not([type="radio"]):hover,
+:root:not([data-theme="dark"]) .workspace-page input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+:root:not([data-theme="dark"]) .workspace-page select:hover,
+:root:not([data-theme="dark"]) .workspace-page select:focus-visible,
+:root:not([data-theme="dark"]) .workspace-page textarea:hover,
+:root:not([data-theme="dark"]) .workspace-page textarea:focus-visible,
+:root:not([data-theme="dark"]) .config-page input:not([type="checkbox"]):not([type="radio"]):hover,
+:root:not([data-theme="dark"]) .config-page input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+:root:not([data-theme="dark"]) .config-page select:hover,
+:root:not([data-theme="dark"]) .config-page select:focus-visible,
+:root:not([data-theme="dark"]) .config-page textarea:hover,
+:root:not([data-theme="dark"]) .config-page textarea:focus-visible,
+:root:not([data-theme="dark"]) .representation-page input:not([type="checkbox"]):not([type="radio"]):hover,
+:root:not([data-theme="dark"]) .representation-page input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+:root:not([data-theme="dark"]) .representation-page select:hover,
+:root:not([data-theme="dark"]) .representation-page select:focus-visible,
+:root:not([data-theme="dark"]) .representation-page textarea:hover,
+:root:not([data-theme="dark"]) .representation-page textarea:focus-visible,
+:root:not([data-theme="dark"]) .upload-page input:not([type="checkbox"]):not([type="radio"]):hover,
+:root:not([data-theme="dark"]) .upload-page input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+:root:not([data-theme="dark"]) .upload-page select:hover,
+:root:not([data-theme="dark"]) .upload-page select:focus-visible,
+:root:not([data-theme="dark"]) .upload-page textarea:hover,
+:root:not([data-theme="dark"]) .upload-page textarea:focus-visible {
+  border-color: rgba(255, 255, 255, 0.96);
+  box-shadow:
+    0 10px 20px rgba(24, 53, 87, 0.16),
+    0 0 0 2px rgba(188, 226, 255, 0.64),
+    0 0 18px rgba(160, 212, 255, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.98);
 }
 
 .config-consent-control {
@@ -1445,6 +1772,10 @@ input[type="radio"] {
 
 .config-form {
   margin-top: 0.72rem;
+}
+
+.workspace-page {
+  --controls-field-w: 260px;
 }
 
 .workspace-page .liquid-segmented {
@@ -1461,6 +1792,37 @@ input[type="radio"] {
 
 .workspace-control-grid .button-row {
   margin-top: 0.34rem;
+}
+
+.workspace-page .button-row .liquid-btn {
+  max-width: min(100%, 20rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workspace-page .form-grid > .liquid-btn,
+.workspace-page .form-stack > .liquid-btn {
+  justify-self: start;
+  width: auto;
+  max-width: min(100%, 20rem);
+}
+
+.workspace-page label:not(.settings-row) > input:not([type="checkbox"]):not([type="radio"]),
+.workspace-page label:not(.settings-row) > select {
+  width: min(100%, 24rem);
+}
+
+.workspace-page label:not(.settings-row) > .settings-combobox {
+  width: min(100%, 24rem);
+}
+
+.workspace-page label:not(.settings-row) > .settings-combobox > input:not([type="checkbox"]):not([type="radio"]) {
+  width: 100%;
+}
+
+.workspace-page label:not(.settings-row) > textarea {
+  width: min(100%, 40rem);
 }
 
 .representation-project-row {
@@ -1585,6 +1947,26 @@ input[type="radio"] {
   .representation-project-actions {
     width: 100%;
     justify-content: flex-start;
+  }
+
+  .settings-row {
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .settings-field-row > .settings-control {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .settings-inline-control {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .settings-inline-control .settings-control {
+    width: 100%;
+    flex: 1 1 auto;
   }
 }
 
@@ -1713,7 +2095,12 @@ input[type="radio"] {
 @media (prefers-reduced-motion: reduce) {
   .liquid-scene::before,
   .liquid-scene::after,
-  .liquid-orb {
+  .liquid-orb,
+  .liquid-btn,
+  .settings-control,
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
     animation: none !important;
   }
 }
