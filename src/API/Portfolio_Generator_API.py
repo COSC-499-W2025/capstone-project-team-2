@@ -296,7 +296,7 @@ def list_portfolios():
         results.append({
             "id": portfolio_id,
             "display_name": display_name,
-            "created_at": f.stat().st_ctime,
+            "created_at": f.stat().st_ctime * 1000,
         })
     results.sort(key=lambda x: x["created_at"], reverse=True)
     return results
