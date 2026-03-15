@@ -95,6 +95,11 @@ def _save_index(index_path: Path, index: Dict[str, dict], file_cache: Dict[str, 
     payload[FILE_CACHE_KEY] = file_cache
     index_path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
 
+def _partial_hash(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        h.update(f.read(4096))
+    return h.hexdigest()
 
 def _path_cache_key(path: Path) -> str:
     """Return a stable cache key for path-based metadata."""
@@ -123,6 +128,7 @@ def _digest_for_path(path: Path, file_cache: Dict[str, dict]) -> str:
         and cached.get("mtime_ns") == mtime_ns
         and cached.get("ctime_ns") == ctime_ns
         and isinstance(cached.get("hash"), str)
+        and cached.get("partial_hash") == _partial_hash(path)
     ):
         return cached["hash"]
 
@@ -131,6 +137,7 @@ def _digest_for_path(path: Path, file_cache: Dict[str, dict]) -> str:
         "size": size,
         "mtime_ns": mtime_ns,
         "ctime_ns": ctime_ns,
+        "partial_hash": _partial_hash(path),
         "hash": digest,
     }
     return digest

@@ -58,28 +58,3 @@ class configuration_for_users:
             return os.path.exists(self.loc_to_save)
         except Exception as e:
             raise IOError(f"Failed to save configuration: {e}") from e
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -21,9 +21,9 @@ def make_project_save_dir(monkeypatch, tmp_path):
     def _make(relative: str = "project_insights") -> Path:
         save_dir = tmp_path / relative
         save_dir.mkdir(parents=True, exist_ok=True)
-        monkeypatch.setattr(runtimeAppContext, "default_save_dir", save_dir)
+        import src.core.app_context as _ctx
+        monkeypatch.setattr(_ctx.runtimeAppContext, "default_save_dir", save_dir)
         return save_dir
-
     return _make
 
 def test_return_all_saved_projects_none():
@@ -121,8 +121,9 @@ def test_get_project_by_name_prefers_database(monkeypatch):
     Ensures GET /projects/{id} returns DB data when available.
     """
     expected = {"resume_item": {"project_name": "alpha"}}
+    from src.core import app_context
     monkeypatch.setattr(
-        runtimeAppContext.store,
+        app_context.runtimeAppContext.store,
         "fetch_by_name",
         lambda filename: expected if filename == "alpha.json" else None,
     )
