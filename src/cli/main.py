@@ -23,25 +23,28 @@ def run() -> int:
     signal.signal(signal.SIGTERM, quit)
     signal.signal(signal.SIGINT, quit)
 
-    #Run API command to start API in background
-    uvicorn_instance = subprocess.Popen(["python", "-m", "uvicorn", "src.API.general_API:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ])
+    try:
+        #Run API command to start API in background
+        uvicorn_instance = subprocess.Popen(["python", "-m", "uvicorn", "src.API.general_API:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ])
 
-    #Change directory to correctly run npm commands
-    os.chdir("frontend/")
+        #Change directory to correctly run npm commands
+        os.chdir("frontend/")
 
-    #Run series of npm commands. Run waits for process to finish before next one continues while Popen will not wait since it's
-    # needed to be an active process in the background
-    subprocess.run([shutil.which("npm"), "install"])
-    subprocess.run([shutil.which("npm"), "run", "build"])
-    npm_instance = subprocess.Popen([shutil.which("npm"), "run", "dev"])
+        #Run series of npm commands. Run waits for process to finish before next one continues while Popen will not wait since it's
+        # needed to be an active process in the background
+        subprocess.run([shutil.which("npm"), "install"])
+        subprocess.run([shutil.which("npm"), "run", "build"])
+        npm_instance = subprocess.Popen([shutil.which("npm"), "run", "dev"])
 
-    #Sets up a wait for event, the wait is interrupted on event and does not wait 60s per check
-    while not exit.is_set():
-        exit.wait(60)
-
-    #After wait is interrupted, send shutdown signal to active processes safely before exit
-    npm_instance.terminate()
-    uvicorn_instance.terminate()
+        #Sets up a wait for event, the wait is interrupted on event and does not wait 60s per check
+        while not exit.is_set():
+            exit.wait(60)
+    except:
+        pass
+    finally:
+        #After wait is interrupted, send shutdown signal to active processes safely before exit
+        npm_instance.terminate()
+        uvicorn_instance.terminate()
     return 0
 
 #Method for the event handler to handle starting shutdown
