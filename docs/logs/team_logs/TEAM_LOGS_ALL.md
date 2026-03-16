@@ -2,6 +2,7 @@
 
 ## Quick Navigation
 ### Term 2
+- [T2 Weekly #10 (Mar 9 to Mar 15, 2026) - Prepared by: Mahi Gangal](#t2-weekly-10)
 - [T2 Weekly #9 (Mar 2 to Mar 8, 2026) - Prepared by: Puneet Maan](#t2-weekly-9)
 - [T2 Weekly #8 (Feb 9 to Mar 1, 2026)](#t2-weekly-8)
 - [T2 Weekly #5 (Jan 26 to Feb 8, 2026)](#t2-weekly-5)
@@ -25,6 +26,84 @@
 ---
 
 ## Term 2
+
+<a id="t2-weekly-10"></a>
+## T2 Weekly #10 (Mar 9 to Mar 15, 2026) - Prepared by Mahi Gangal
+
+## Features in the Project Plan Cycle
+- Remove modes
+- Migrate Frontend from Streamlit to Next.js and Standardize Shared UI
+- Add dark theme styles for alerts and selects and theme preview
+- Revamp workspace DocumentStudio and restore saved document selection
+- Add frontend API helpers and expand backend API test suite
+- Add Portfolio Showcase Role Override UI
+- Expose Representation Preferences in UI
+- created new page for project management
+- Failing test correction
+- Unify liquid glass form controls and interaction states across frontend
+- Automation of frontend startup commands
+
+
+### Screenshot from Kanban board
+![Kanban board snapshot](screenshots/kanban_board/Kanban_2026-03-15.png)
+
+## Burn-up Chart (Velocity)
+![Burn-up chart](screenshots/Burn_up_charts/Burnup_2026-03-15.png)
+
+## Delivery Summary
+| PR | Owner | Change | Closes | Status |
+| ------- | ------------------ | ----------- | ----------- | ----------- |
+| [#495](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/495) | Puneet Mann | Migrate Frontend from Streamlit to Next.js and Standardize Shared UI | N/A | ✅ |
+| [#502](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/502) | Mahi Gangal | Remove Modes | [#499](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/499), [#500](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/500) | ✅ |
+| [#517](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/517) | Immanuel Wiessler | Add dark theme styles for alerts and selects and theme preview | [#525](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/525) | ✅ |
+| [#522](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/522) | Immanuel Wiessler | Revamp workspace DocumentStudio and restore saved document selection | [#498](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/498) | ✅ |
+| [#524](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/524) | Immanuel Wiessler | Add frontend API helpers and expand backend API test suite | [#526](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/526) | ✅ |
+| [#529](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/529) | Mahi Gangal | Add Portfolio Showcase Role Override UI | [#514](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/514) | ✅ |
+| [#530](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/530) | Mahi Gangal | Expose Representation Preferences in UI | [#513](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/513) | ✅ |
+| [#532](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/532) | Sam Smith | created new page for project management | N/A | ✅ |
+| [#534](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/534) | Cameron Gillespie | Failing test correction | N/A | ✅ |
+| [#540](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/540) | Puneet Mann | Unify liquid glass form controls and interaction states across frontend | N/A | ✅ |
+| [#541](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/541) | Samantha Maranda | Automation of frontend startup commands | N/A | ✅ |
+
+
+## Testing
+| PR | Test Type | Command / Check | Result |
+| ------- | ------------------ | ----------- | ----------- |
+| [#495](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/495) | Manual run, Frontend Tests | `npm test`, `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
+| [#502](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/502) | Manual run, Frontend Tests| `node --test frontend/test/config-helpers.test.js`, `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
+| [#517](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/517) | Manual Run | `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
+| [#522](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/522)  | Manual run, Frontend Tests | `npm test`, `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
+| [#524](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/524) | Pytest, Frontend Tests | ` python -m pytest test/test_resume_generator_API.py test/test_portfolio_generator_API.py -v`, `node --test test/resume_and_portfolio_api.test.js` | ✅ |
+| [#529](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/529) | Manual run, Frontend Tests | `npm test`, `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
+| [#530](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/530) | Manual run, Frontend Tests | `node --test test/api.test.js test/representation-helpers.test.js`, `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
+| [#532](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/532) | Manual run | `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
+| [#534](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/534) | Manual run, Frontend Tests | `python -m pytest test/`, `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
+| [#540](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/540) | Manual run | `uvicorn src.API.general_API:app --reload --host 127.0.0.1 --port 8000` + `npm run dev` | ✅ |
+| [#541](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/541) | Manual run | `python -m src.cli.main` | ✅ |
+
+
+## Team Members
+
+| Name              | Role/Title          | GitHub Username                                    | Contributions this cycle |
+|-------------------|---------------------|----------------------------------------------------|--------------------------|
+| Immanuel Wiessler | Full Stack Developer | [@ThunderIW](https://github.com/ThunderIW)         | PRs #517, #522, #524 |
+| Samantha Maranda  | Full Stack Developer | [@Weebtrian](https://github.com/Weebtrain)         | PR #541 |
+| Cameron Gillespie | Full Stack Developer | [@Graves067](https://github.com/Graves067)         | PR #534 |
+| Puneet Maan       | Full Stack Developer | [@Puneet-Maan](https://github.com/Puneet-Maan)     | PRs #495, #540 |
+| Sam Smith         | Full Stack Developer | [@ssmith86](https://github.com/ssmith86)           | PRs #532 |
+| Mahi Gangal       | Full Stack Developer | [@mahigangal](https://github.com/mahigangal)       | PRs #502, #529, #530, prepared team logs |
+
+## Overview
+
+During this cycle, the team focused on strengthening and streamlining the frontend experience while continuing to expand core product functionality. Major work included migrating the UI from Streamlit to Next.js, unifying liquid-glass form controls and interaction states, improving dark theme support, and refining key pages such as workspace, configuration, representation, upload, and project management. The team also added new user-facing features like portfolio role override controls and representation preferences, expanded frontend and backend testing support, fixed failing tests, and introduced automation for frontend startup commands. Overall, this cycle established a more consistent, maintainable UI foundation while improving reliability and usability across the system.
+
+The **next cycle** will focus on:
+- Finishing remaining frontend issues.
+- Implementing feedback from Peer testing #2
+- Prepare for Milestone #3 Presentation
+
+
+---
 
 <a id="t2-weekly-9"></a>
 ## T2 Weekly #9 (Mar 2 to Mar 8, 2026) - Prepared by Puneet Maan
