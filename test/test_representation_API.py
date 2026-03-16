@@ -63,15 +63,16 @@ def test_set_preferences_and_persist(client: TestClient, tmp_path: Path):
     disk = _read_json(pref_file)
     assert disk["highlight_skills"] == ["Python"]
 
-def test_projects_endpoint_404_without_insights(client: TestClient):
+def test_projects_endpoint_empty_without_insights(client: TestClient):
     """
-    Confirm /projects returns 404 when no insights exist.
+    Confirm /projects returns an empty payload when no insights exist.
 
     Args: client (TestClient): FastAPI test client.
     """
     resp = client.get("/representation/projects")
-    assert resp.status_code == 404
-    assert "No project insights" in resp.json()["detail"]
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["projects"] == []
 
 def test_projects_respects_showcase_filter(client: TestClient, tmp_path: Path, monkeypatch):
     """
