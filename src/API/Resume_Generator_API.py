@@ -28,6 +28,7 @@ Endpoints:
 
 import re
 import pendulum
+from datetime import datetime
 from typing import Optional, List, Any
 from pathlib import Path
 import uuid
@@ -266,13 +267,17 @@ def list_resumes():
     for f in cv_dir.glob("*_Resume_CV.yaml"):
         stem = f.stem  # e.g. "John_Doe_a1b2c3d4_Resume_CV"
         resume_id = stem[: -len("_Resume_CV")]
-        date_match = re.search(r'\((\d{4})_(\d{2})_(\d{2})\)$', resume_id)
+        date_match = re.search(r'\((\d{4})_(\d{2})_(\d{2})_(\d{2})(\d{2})\)$', resume_id)
+        date_match_old = re.search(r'\((\d{4})_(\d{2})_(\d{2})\)$', resume_id) if not date_match else None
         if date_match:
-            y, m, d = date_match.groups()
-            created_at = f"{y}-{m}-{d}T00:00:00Z"
+            y, m, d, h, mi = date_match.groups()
+            created_at = f"{y}-{m}-{d}T{h}:{mi}:00"
+            name_part = re.sub(r'_[a-f0-9]{8}_\(\d{4}_\d{2}_\d{2}_\d{4}\)$', '', resume_id)
+        elif date_match_old:
+            created_at = pendulum.from_timestamp(f.stat().st_ctime, tz=pendulum.local_timezone()).format("YYYY-MM-DDTHH:mm:ss")
             name_part = re.sub(r'_[a-f0-9]{8}_\(\d{4}_\d{2}_\d{2}\)$', '', resume_id)
         else:
-            created_at = pendulum.from_timestamp(f.stat().st_ctime, tz="UTC").to_iso8601_string()
+            created_at = pendulum.from_timestamp(f.stat().st_ctime, tz=pendulum.local_timezone()).format("YYYY-MM-DDTHH:mm:ss")
             parts = resume_id.rsplit("_", 1)
             name_part = parts[0] if len(parts) == 2 else resume_id
         display_name = name_part.replace("_", " ")
@@ -305,7 +310,7 @@ def generate_resume(payload: GenerateResumeRequest):
     """
     doc = RenderCVDocument(doc_type="resume")
     resume_id = str(uuid.uuid4())[:8]
-    date_str = pendulum.now("UTC").format("YYYY_MM_DD")
+    date_str = pendulum.now().format("YYYY_MM_DD_HHmm")
     full_name = f"{payload.name.replace(' ', '_')}_{resume_id}_({date_str})"
 
     gen_result = doc.generate(name=full_name, overwrite=payload.overwrite)
