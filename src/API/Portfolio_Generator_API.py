@@ -296,7 +296,7 @@ def list_portfolios():
         results.append({
             "id": portfolio_id,
             "name": display_name,
-            "created_at": f.stat().st_ctime * 1000,
+            "created_at": pendulum.from_timestamp(f.stat().st_ctime, tz="UTC").to_iso8601_string(),
         })
     results.sort(key=lambda x: x["created_at"], reverse=True)
     return results
@@ -331,7 +331,6 @@ def generate_portfolio(payload: GeneratePortfolioRequest):
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
 
-    doc.data["created_at"] = pendulum.now("UTC").to_iso8601_string()
     try:
         with open(doc.yaml_file, "w") as f:
             doc.yaml.dump(doc.data, f)
