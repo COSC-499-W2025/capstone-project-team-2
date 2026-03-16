@@ -7,23 +7,26 @@ by a unique ID (name + UUID suffix) returned in the X-Resume-ID header
 upon generation.
 
 Endpoints:
-    POST   /resume/generate                          - Create a new resume
-    GET    /resume/{id}                              - Retrieve full resume data as JSON
-    POST   /resume/{id}/render/{format}              - Re-render and return as file response
-    POST   /resume/{id}/export/{format}              - Render and export to default directory
-    POST   /resume/{id}/export/{format}/custom       - Render and export to a custom directory
-    POST   /resume/{id}/edit                         - Modify a field on an existing section item
-    POST   /resume/{id}/add/project/manual            - Add a project entry with manual data (no DB lookup)
-    POST   /resume/{id}/add/project/{project_name}   - Add a project entry from the database
-    DELETE /resume/{id}/project/{project_name}        - Remove a project entry
-    POST   /resume/{id}/add/education                - Add an education entry
-    DELETE /resume/{id}/education/{institution_name} - Remove an education entry
-    POST   /resume/{id}/add/experience               - Add an experience entry
-    DELETE /resume/{id}/experience/{company_name}    - Remove an experience entry
-    POST   /resume/{id}/add/skill                    - Add a new skill category
-    POST   /resume/{id}/skill/{label}/append         - Append items to an existing skill category
-    DELETE /resume/{id}/skill/{label}                - Remove a skill category
-    DELETE /resume/{id}                              - Delete the resume YAML file entirely
+    GET    /resumes                                          - List all saved resume documents
+    POST   /resume/generate                                  - Create a new resume
+    GET    /resume/{id}                                      - Retrieve full resume data as JSON
+    POST   /resume/{id}/render                               - Re-render and return as PDF (default format)
+    POST   /resume/{id}/render/{format}                      - Re-render and return as file response
+    POST   /resume/{id}/export/{format}                      - Render and export to default directory
+    POST   /resume/{id}/export/{format}/custom               - Render and export to a custom directory
+    POST   /resume/{id}/edit                                 - Modify a field on an existing section item
+    POST   /resume/{id}/add/project/manual                   - Add a project entry with manual data (no DB lookup)
+    POST   /resume/{id}/add/project/{project_name}           - Add a project entry from the database
+    POST   /resume/{id}/add/project/{project_name}/ai        - Add a project entry using AI-generated content
+    DELETE /resume/{id}/project/{project_name}               - Remove a project entry
+    POST   /resume/{id}/add/education                        - Add an education entry
+    DELETE /resume/{id}/education/{institution_name}         - Remove an education entry
+    POST   /resume/{id}/add/experience                       - Add an experience entry
+    DELETE /resume/{id}/experience/{company_name}            - Remove an experience entry
+    POST   /resume/{id}/add/skill                            - Add a new skill category
+    POST   /resume/{id}/skill/{label}/append                 - Append items to an existing skill category
+    DELETE /resume/{id}/skill/{label}                        - Remove a skill category
+    DELETE /resume/{id}                                      - Delete the resume YAML file entirely
 """
 
 import re
