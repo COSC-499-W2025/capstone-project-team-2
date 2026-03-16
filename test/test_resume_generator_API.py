@@ -69,7 +69,7 @@ class TestResumeFullWorkflow(_BaseResumeTest):
         data = resp.json()
         self.assertIn("resume_id", data)
         self.assertEqual(data["status"], "Resume created successfully")
-        self.assertTrue(data["resume_id"].startswith("John_"))
+        self.assertRegex(data["resume_id"], r"^John_[a-f0-9]{8}_\(\d{4}_\d{2}_\d{2}\)$")
         resume_id = data["resume_id"]
 
         # 2. Get resume — verify all expected sections are present
@@ -740,7 +740,7 @@ class TestListResumes(_BaseResumeTest):
         """Returns id, name, and created_at for each resume YAML file found."""
         with tempfile.TemporaryDirectory() as tmp:
             cv_dir = Path(tmp)
-            (cv_dir / "Jane_Doe_abc12345_Resume_CV.yaml").write_text("")
+            (cv_dir / "Jane_Doe_abc12345_(2025_01_01)_Resume_CV.yaml").write_text("")
 
             with patch("src.API.Resume_Generator_API.Path") as MockPath:
                 MockPath.return_value.resolve.return_value.parents.__getitem__.return_value \
@@ -753,10 +753,9 @@ class TestListResumes(_BaseResumeTest):
         self.assertEqual(len(data), 1)
         for key in ("id", "name", "created_at"):
             self.assertIn(key, data[0])
-        self.assertEqual(data[0]["id"], "Jane_Doe_abc12345")
+        self.assertEqual(data[0]["id"], "Jane_Doe_abc12345_(2025_01_01)")
         self.assertEqual(data[0]["name"], "Jane Doe")
-        self.assertIsInstance(data[0]["created_at"], str)
-        self.assertRegex(data[0]["created_at"], r"^\d{4}-\d{2}-\d{2}T")
+        self.assertEqual(data[0]["created_at"], "2025-01-01T00:00:00Z")
 
 
 class TestAddProjectAI(_BaseResumeTest):

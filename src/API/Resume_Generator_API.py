@@ -28,7 +28,6 @@ Endpoints:
 
 import re
 import pendulum
-import ruamel.yaml as _yaml
 from typing import Optional, List, Any
 from pathlib import Path
 import uuid
@@ -267,12 +266,20 @@ def list_resumes():
     for f in cv_dir.glob("*_Resume_CV.yaml"):
         stem = f.stem  # e.g. "John_Doe_a1b2c3d4_Resume_CV"
         resume_id = stem[: -len("_Resume_CV")]
-        parts = resume_id.rsplit("_", 1)
-        display_name = parts[0].replace("_", " ") if len(parts) == 2 else resume_id
+        date_match = re.search(r'\((\d{4})_(\d{2})_(\d{2})\)$', resume_id)
+        if date_match:
+            y, m, d = date_match.groups()
+            created_at = f"{y}-{m}-{d}T00:00:00Z"
+            name_part = re.sub(r'_[a-f0-9]{8}_\(\d{4}_\d{2}_\d{2}\)$', '', resume_id)
+        else:
+            created_at = pendulum.from_timestamp(f.stat().st_ctime, tz="UTC").to_iso8601_string()
+            parts = resume_id.rsplit("_", 1)
+            name_part = parts[0] if len(parts) == 2 else resume_id
+        display_name = name_part.replace("_", " ")
         results.append({
             "id": resume_id,
             "name": display_name,
-            "created_at": pendulum.from_timestamp(f.stat().st_ctime, tz="UTC").to_iso8601_string(),
+            "created_at": created_at,
         })
     results.sort(key=lambda x: x["created_at"], reverse=True)
     return results
@@ -298,7 +305,8 @@ def generate_resume(payload: GenerateResumeRequest):
     """
     doc = RenderCVDocument(doc_type="resume")
     resume_id = str(uuid.uuid4())[:8]
-    full_name = f"{payload.name.replace(' ', '_')}_{resume_id}"
+    date_str = pendulum.now("UTC").format("YYYY_MM_DD")
+    full_name = f"{payload.name.replace(' ', '_')}_{resume_id}_({date_str})"
 
     gen_result = doc.generate(name=full_name, overwrite=payload.overwrite)
 
