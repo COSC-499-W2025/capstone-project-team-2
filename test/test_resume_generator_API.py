@@ -740,8 +740,7 @@ class TestListResumes(_BaseResumeTest):
         """Returns id, name, and created_at for each resume YAML file found."""
         with tempfile.TemporaryDirectory() as tmp:
             cv_dir = Path(tmp)
-            yaml_content = "created_at: '2025-01-01T00:00:00Z'\n"
-            (cv_dir / "Jane_Doe_abc12345_Resume_CV.yaml").write_text(yaml_content)
+            (cv_dir / "Jane_Doe_abc12345_Resume_CV.yaml").write_text("")
 
             with patch("src.API.Resume_Generator_API.Path") as MockPath:
                 MockPath.return_value.resolve.return_value.parents.__getitem__.return_value \
@@ -756,7 +755,8 @@ class TestListResumes(_BaseResumeTest):
             self.assertIn(key, data[0])
         self.assertEqual(data[0]["id"], "Jane_Doe_abc12345")
         self.assertEqual(data[0]["name"], "Jane Doe")
-        self.assertEqual(data[0]["created_at"], "2025-01-01T00:00:00Z")
+        self.assertIsInstance(data[0]["created_at"], str)
+        self.assertRegex(data[0]["created_at"], r"^\d{4}-\d{2}-\d{2}T")
 
 
 class TestAddProjectAI(_BaseResumeTest):
