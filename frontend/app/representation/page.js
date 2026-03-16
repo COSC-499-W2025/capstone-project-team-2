@@ -32,7 +32,9 @@ import {
  */
 export default function RepresentationPage() {
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [projectsWarning, setProjectsWarning] = useState("");
   const [message, setMessage] = useState("");
   const [currentRepresentation, setCurrentRepresentation] = useState(DEFAULT_REPRESENTATION_PREFERENCES);
   const [representationProjects, setRepresentationProjects] = useState([]);
@@ -47,13 +49,17 @@ export default function RepresentationPage() {
     async function loadRepresentationData() {
       setLoading(true);
       setError("");
+      setProjectsWarning("");
       try {
         const preferences = normalizeRepresentationPreferences(await fetchRepresentationPreferences());
         let projectPayload = { projects: [] };
         try {
           projectPayload = await fetchRepresentationProjects();
-        } catch {
+        } catch (err) {
           projectPayload = { projects: [] };
+          if (!ignore) {
+            setProjectsWarning(err?.message || "Failed to load representation project insights.");
+          }
         }
         if (ignore) return;
 
@@ -78,25 +84,22 @@ export default function RepresentationPage() {
     };
   }, []);
 
-  async function onSave(event) {
-    event.preventDefault();
+  async function savePreferences(payload) {
+    if (saving) return;
+    setSaving(true);
+    setProjectsWarning("");
     setError("");
     setMessage("");
 
     try {
-      const payload = {
-        project_order: projectOrder,
-        chronology_corrections: buildChronologyPayload(chronologyInputs),
-        highlight_skills: parseListInput(highlightSkillsInput),
-        showcase_projects: showcaseProjects
-      };
-
       const updated = normalizeRepresentationPreferences(await updateRepresentationPreferences(payload));
       let projectPayload = { projects: [] };
+      let warning = "";
       try {
         projectPayload = await fetchRepresentationProjects();
-      } catch {
+      } catch (err) {
         projectPayload = { projects: [] };
+        warning = err?.message || "Preferences were saved, but project insights could not be refreshed.";
       }
 
       const projects = Array.isArray(projectPayload?.projects) ? projectPayload.projects : [];
@@ -106,10 +109,35 @@ export default function RepresentationPage() {
       setHighlightSkillsInput((updated.highlight_skills || []).join(", "));
       setShowcaseProjects(Array.isArray(updated.showcase_projects) ? updated.showcase_projects : []);
       setChronologyInputs(formatChronologyInputs(updated.chronology_corrections));
-      setMessage("Representation preferences saved.");
+      if (warning) {
+        setProjectsWarning(warning);
+        setMessage("Representation preferences saved with warnings.");
+      } else {
+        setMessage("Representation preferences saved.");
+      }
     } catch (err) {
       setError(err.message || "Failed to save representation preferences.");
+    } finally {
+      setSaving(false);
     }
+  }
+
+  async function onSaveSkills(event) {
+    event.preventDefault();
+    const payload = {
+      highlight_skills: parseListInput(highlightSkillsInput)
+    };
+    await savePreferences(payload);
+  }
+
+  async function onSaveProjects(event) {
+    event.preventDefault();
+    const payload = {
+      project_order: projectOrder,
+      chronology_corrections: buildChronologyPayload(chronologyInputs),
+      showcase_projects: showcaseProjects
+    };
+    await savePreferences(payload);
   }
 
   function moveProject(projectName, direction) {
@@ -170,6 +198,7 @@ export default function RepresentationPage() {
       <div className="page-stack representation-page">
         {loading ? <p className="muted">Loading representation preferences...</p> : null}
         {error ? <p className="error">{error}</p> : null}
+        {projectsWarning ? <p className="muted">{projectsWarning}</p> : null}
         {message ? <p className="success">{message}</p> : null}
 
         <div className="grid two-col config-grid">
@@ -201,7 +230,7 @@ export default function RepresentationPage() {
 
           <GlassCard title="Highlighted Skills">
             <p className="muted">Choose the skills that should be emphasized across representation views.</p>
-            <form onSubmit={onSave} className="form-stack">
+            <form onSubmit={onSaveSkills} className="form-stack">
               <label>
                 Highlighted skills (comma-separated)
                 <textarea
@@ -233,8 +262,8 @@ export default function RepresentationPage() {
               )}
 
               <div className="button-row">
-                <button type="submit" className="liquid-btn solid" disabled={loading}>
-                  Save Representation Preferences
+                <button type="submit" className="liquid-btn solid" disabled={loading || saving}>
+                  {saving ? "Saving..." : "Save Representation Preferences"}
                 </button>
               </div>
             </form>
@@ -244,7 +273,7 @@ export default function RepresentationPage() {
         <GlassCard title="Project Order + Showcase">
           <p className="muted">Reorder projects, mark showcase entries, and optionally override `analyzed_at` values for chronology fixes.</p>
           {projectOrder.length ? (
-            <form onSubmit={onSave} className="settings-list">
+            <form onSubmit={onSaveProjects} className="settings-list">
               {projectOrder.map((projectName, index) => {
                 const project = projectMeta.get(projectName);
                 const skills = Array.isArray(project?.skills) ? project.skills.slice(0, 4).join(", ") : "";
@@ -313,8 +342,8 @@ export default function RepresentationPage() {
               })}
 
               <div className="button-row">
-                <button type="submit" className="liquid-btn solid" disabled={loading}>
-                  Save Representation Preferences
+                <button type="submit" className="liquid-btn solid" disabled={loading || saving}>
+                  {saving ? "Saving..." : "Save Representation Preferences"}
                 </button>
               </div>
             </form>
