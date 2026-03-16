@@ -1,5 +1,6 @@
 ### Navigation
 ## Term 2
+- [Week 10](#t2-week-10-03092026--02152026)
 - [Week 9](#t2-week-9-03022026--02082026)
 - [Week 6-8](#t2-week-6-8-02092026--03012026)
 - [Week 4/5](#t2-week-45-01262026--02082026)
@@ -18,6 +19,62 @@
 - [Week 5](#week-5-09292025---10052025)
 - [Week 4](#week-4-09222025---09282025)
 - [Week 3](#week-3-09152025---09212025)
+
+## T2 Week 10 (03/09/2026- 02/15/2026)
+### Task Types Worked On (Screenshot from Peer Eval)
+<img width="1276" height="741" alt="image" src="https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Sam_Smith_Personal_Log/docs/logs/peer_eval_screenshots/Screenshot%202026-03-15%20143941.png" />
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: portfolio and resume deletion (closed due to double)
+  * #2: project management page
+ 
+## Associated Tasks from Project Board:
+
+| Task ID | Description                     | Feature                   | Assigned To | Status   |
+| ------- | ------------------------------- | ------------------------- | ----------- | -------- |
+|[#528](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/528)|old portfolio and resume deletion|added portfolio and resume deletion|ssmith86|closed|
+|[#532](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/532)|project management page|new page for project viewing and deletion|ssmith86|complete|
+
+ 
+### Progress Update (since 01/26/2026) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td> [#528](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/528)
+        </td>
+        <!-- Status -->
+        <td> complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>[#532](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/532)
+        </td>
+        <!-- Status -->
+        <td> complete
+        </td>
+    </tr>
+    </table>
+
+### Extra Details:
+**Reviewing / Collaboration Tasks**
+-  Reviewed the Following PRs
+     - [#522](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/522)
+     - [#529](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/529)
+     - [#530](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/530)
+   
+**Connection to Previous Week**
+- This week was a continuation on the frontend development
+
+**Plan for Next Week**
+ - bug fixes found in peer testing
+ - finalization of the finished project
 
 ## T2 Week 9 (03/02/2026- 02/08/2026)
 ### Task Types Worked On (Screenshot from Peer Eval)
