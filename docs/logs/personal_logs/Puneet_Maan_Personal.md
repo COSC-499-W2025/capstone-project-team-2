@@ -1,10 +1,48 @@
 ## Term 2 Links
+- [Week 10 (09/03/2026 – 15/03/2026)](#week-2026-03-09)
 - [Week 9 (02/03/2026 – 08/03/2026)](#week-2026-03-02)
 - [Week 6 + Week 7 (Reading Break) + Week 8 (09/02/2026 – 01/03/2026)](#week-2026-02-09)
 - [Weeks 4–5 (26/01/2026 – 08/02/2026)](#week-2026-01-26)
 - [Week 3 (19/01/2026 – 25/01/2026)](#week-2026-01-19)
 - [Week 2 (12/01/2026 – 18/01/2026)](#week-2026-01-12)
 - [Week 1 (05/01/2026 – 11/01/2026)](#week-2026-01-05)
+
+# Sprint Log: Week 10 (09/03/2026 – 15/03/2026) <a id="week-2026-03-09"></a>
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/15-03-2026_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Summary
+### Coding tasks
+- **PR #495 – Migrate Frontend from Streamlit to Next.js and Standardize Shared UI (Frontend):** Completed the frontend transition from Streamlit to Next.js and standardized shared UI structure/components.
+- **PR #540 – Unify liquid glass form controls and interaction states across frontend (Frontend):** Unified form control styling and interaction states for consistent frontend behavior.
+- **PR #546 – Patch Next.js security vulnerabilities by upgrading to 15.5.12 fixes:** Opened a security patch PR to upgrade Next.js and address known vulnerabilities.
+
+### Testing or debugging tasks
+- Performed frontend verification while migrating from Streamlit to Next.js, including shared UI behavior and interaction-state consistency checks.
+- Validated liquid glass form control updates across common user input and state transitions.
+- Verified Next.js upgrade impact while preparing security fix rollout in PR #546.
+
+### Reviewing or collaboration tasks
+- Reviewed PR #532 (ssmith86): created new page for project management CLI/UI.
+- Reviewed PR #530 (mahigangal): expose representation preferences in UI.
+- Reviewed PR #502 (mahigangal): remove modes bug.
+
+### Connection to last week
+- Shifted milestone frontend work from Streamlit implementation into a consolidated Next.js frontend, continuing the prior week’s UI direction while improving consistency and security posture.
+
+### Plan / goals for next period
+- Polish dashboard and key frontend interfaces (layout clarity, responsive behavior, and consistent interaction states), run targeted bug-finding passes on core user flows, and incorporate feedback from peer testing.
+- Explore and add an accessibility option in the frontend (for example improved contrast/readability controls), then verify it does not introduce regressions based on peer testing feedback.
+
+### Issues / blockers
+- No major blockers noted this period.
+
+## ====================================================
 
 # Sprint Log: Week 9 (02/03/2026 – 08/03/2026) <a id="week-2026-03-02"></a>
 
