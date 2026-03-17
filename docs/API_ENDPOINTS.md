@@ -185,6 +185,14 @@ Router prefix: `/insights`
 
 ## Resume
 
+### `GET /resumes`
+- Purpose: list all saved resume documents.
+- Returns `200`: array of objects, each with:
+  - `id` (string) — resume identifier (file stem without `_Resume_CV`)
+  - `name` (string) — display name with spaces (UUID suffix stripped)
+  - `created_at` (number) — file creation timestamp in milliseconds
+- Results are sorted newest-first.
+
 ### `POST /resume/generate`
 - Purpose: create a new resume YAML document.
 - JSON body:
@@ -200,7 +208,7 @@ Router prefix: `/insights`
 ### `GET /resume/{id}`
 - Purpose: fetch full resume content.
 - Returns `200` with:
-  - `name`, `contact`, `theme`, `summary`, `experience`, `education`, `projects`, `skills`, `connections`
+  - `name`, `contact`, `theme`, `summary`, `experience`, `education`, `projects`, `skills`, `awards`, `connections`
 - Errors:
   - `404` not found
 
@@ -209,7 +217,7 @@ Router prefix: `/insights`
 - JSON body:
   - `{"edits":[{"section":"...","item_name":"...","field":"...","new_value":...}]}`
 - Valid sections:
-  - `experience`, `education`, `projects`, `skills`, `summary`, `contact`, `theme`
+  - `experience`, `education`, `projects`, `skills`, `awards`, `summary`, `contact`, `theme`, `connections`
 - Returns `200`:
   - `{"results":[...]}`
 - Errors:
@@ -269,6 +277,18 @@ Router prefix: `/insights`
   - `400` add failure
   - `404` resume not found
   - `500` unexpected error
+
+### `POST /resume/{id}/add/project/{project_name}/ai`
+- Purpose: add a project entry to a resume using AI-generated content (Gemini).
+- Path:
+  - `id` = resume identifier
+  - `project_name` = name of the analysed project in the database
+- Returns `200`:
+  - `{"status":"..."}`
+- Errors:
+  - `400` AI generation returned no data
+  - `404` resume or project not found
+  - `500` AI generation or save failure
 
 ### `POST /resume/{id}/add/project/{project_name}`
 - Purpose: add analyzed project to resume projects.
@@ -383,6 +403,33 @@ Router prefix: `/insights`
 - Errors:
   - `404` resume or skill label not found
 
+### `POST /resume/{id}/add/award`
+- Purpose: add a new award entry to a resume.
+- Path:
+  - `id` = resume identifier
+- JSON body:
+  - `name` (string, required)
+  - `date` (optional string, `YYYY-MM` format)
+  - `location` (optional string) — city/state or issuing organization
+  - `highlights` (optional list of strings)
+  - `website` (optional string) — injected as `"Link: <url>"` at the end of highlights
+- Returns `200`:
+  - `{"status":"Successfully added award '<name>'"}`
+- Errors:
+  - `400` empty name or add failure
+  - `404` resume not found
+  - `409` award with same name already exists
+
+### `DELETE /resume/{id}/award/{award_name}`
+- Purpose: remove an award entry from a resume by exact award name.
+- Path:
+  - `id` = resume identifier
+  - `award_name` = exact award name to remove
+- Returns `200`:
+  - `{"status":"Successfully deleted: <award_name>"}`
+- Errors:
+  - `404` resume or award not found
+
 ### `DELETE /resume/{id}`
 - Purpose: delete resume YAML file.
 - Returns `200`:
@@ -434,7 +481,7 @@ Router prefix: `/insights`
 - JSON body:
   - `{"edits":[{"section":"...","item_name":"...","field":"...","new_value":"..."}]}`
 - Valid sections:
-  - `projects`, `skills`, `summary`, `contact`, `theme`
+  - `projects`, `skills`, `summary`, `contact`, `theme`, `connections`
 - Returns `200`:
   - `{"results":[...]}`
 - Errors:
@@ -568,14 +615,18 @@ All required endpoints are implemented and tested over HTTP style requests using
 | `GET /projects` | `GET /projects/` (also works as `/projects`) | `test/test_project_io_API.py` |
 | `GET /projects/{id}` | `GET /projects/{id}` | `test/test_project_io_API.py` |
 | `GET /skills` | `GET /skills` | `test/test_skills_API.py` |
+| `GET /resumes` | `GET /resumes` | `test/test_resume_generator_API.py` |
 | `GET /resume/{id}` | `GET /resume/{id}` | `test/test_resume_generator_API.py` |
 | `POST /resume/generate` | `POST /resume/generate` | `test/test_resume_generator_API.py` |
 | `POST /resume/{id}/edit` | `POST /resume/{id}/edit` | `test/test_resume_generator_API.py` |
+| `POST /resume/{id}/add/project/{project_name}/ai` | `POST /resume/{id}/add/project/{project_name}/ai` | `test/test_resume_generator_API.py` |
 | `DELETE /resume/{id}/project/{project_name}` | `DELETE /resume/{id}/project/{project_name}` | `test/test_resume_generator_API.py` |
 | `POST /resume/{id}/add/education` | `POST /resume/{id}/add/education` | `test/test_resume_generator_API.py` |
 | `DELETE /resume/{id}/education/{institution_name}` | `DELETE /resume/{id}/education/{institution_name}` | `test/test_resume_generator_API.py` |
 | `POST /resume/{id}/add/experience` | `POST /resume/{id}/add/experience` | `test/test_resume_generator_API.py` |
 | `DELETE /resume/{id}/experience/{company_name}` | `DELETE /resume/{id}/experience/{company_name}` | `test/test_resume_generator_API.py` |
+| `POST /resume/{id}/add/award` | `POST /resume/{id}/add/award` | `test/test_resume_generator_API.py` |
+| `DELETE /resume/{id}/award/{award_name}` | `DELETE /resume/{id}/award/{award_name}` | `test/test_resume_generator_API.py` |
 | `GET /portfolio/{id}` | `GET /portfolio/{portfolio_id}` | `test/test_portfolio_generator_API.py` |
 | `POST /portfolio/generate` | `POST /portfolio/generate` | `test/test_portfolio_generator_API.py` |
 | `POST /portfolio/{id}/edit` | `POST /portfolio/{portfolio_id}/edit` | `test/test_portfolio_generator_API.py` |
