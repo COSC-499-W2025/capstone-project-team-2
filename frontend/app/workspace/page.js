@@ -1464,7 +1464,7 @@ function DocumentStudio({ kind, mode }) {
                     {THEMES.map((item) => <option key={item}>{item}</option>)}
                   </select>
                   <button type="button" className="liquid-btn" onClick={() => setThemePreviewOpen(true)}>
-                    Preview
+                    View Template
                   </button>
                 </div>
               </label>
