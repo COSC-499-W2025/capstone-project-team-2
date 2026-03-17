@@ -6,9 +6,9 @@
  * Lists all analyzed projects stored on the backend and provides
  * per-project view and delete controls.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GlassCard, LiquidShell } from "../../components/LiquidShell";
-import { deleteProject, fetchProjectByName, fetchProjects } from "../../lib/api";
+import { deleteProject, deleteProjectThumbnail, fetchProjectByName, fetchProjects, projectThumbnailUrl, uploadProjectThumbnail } from "../../lib/api";
 
 /**
  * Inline detail panel showing human-readable fields from a project's resume_item.
@@ -96,11 +96,20 @@ export default function ProjectsPage() {
   const [error, setError] = useState("");
   const [viewing, setViewing] = useState(null);
   const [viewData, setViewData] = useState({});
+  // thumbnail state: { [name]: "loading" | "loaded" | "none" }
+  const [thumbState, setThumbState] = useState({});
+  // bumped on each successful upload to force browser cache invalidation
+  const [thumbVersion, setThumbVersion] = useState({});
+  const fileInputRef = useRef(null);
+  const thumbUploadTarget = useRef(null);
 
   async function loadProjects() {
     try {
       const data = await fetchProjects();
-      setProjects(Array.isArray(data) ? data : []);
+      const names = Array.isArray(data) ? data : [];
+      setProjects(names);
+      // Mark all thumbnails as loading so they attempt to render
+      setThumbState(Object.fromEntries(names.map((n) => [n, "loading"])));
     } catch (err) {
       setError(err.message || "Failed to load projects.");
     } finally {
@@ -111,6 +120,38 @@ export default function ProjectsPage() {
   useEffect(() => {
     loadProjects();
   }, []);
+
+  function onThumbClick(name) {
+    thumbUploadTarget.current = name;
+    fileInputRef.current?.click();
+  }
+
+  async function onThumbFileSelected(e) {
+    const file = e.target.files?.[0];
+    const name = thumbUploadTarget.current;
+    e.target.value = "";
+    if (!file || !name) return;
+    setError("");
+    setThumbState((prev) => ({ ...prev, [name]: "loading" }));
+    try {
+      await uploadProjectThumbnail(name, file);
+      setThumbVersion((prev) => ({ ...prev, [name]: (prev[name] ?? 0) + 1 }));
+      setThumbState((prev) => ({ ...prev, [name]: "loaded" }));
+    } catch (err) {
+      setError(err.message || "Thumbnail upload failed.");
+      setThumbState((prev) => ({ ...prev, [name]: "none" }));
+    }
+  }
+
+  async function onThumbDelete(name) {
+    setError("");
+    try {
+      await deleteProjectThumbnail(name);
+      setThumbState((prev) => ({ ...prev, [name]: "none" }));
+    } catch (err) {
+      setError(err.message || "Failed to remove thumbnail.");
+    }
+  }
 
   async function onToggleView(name) {
     if (viewing === name) {
@@ -160,11 +201,62 @@ export default function ProjectsPage() {
           ) : projects.length === 0 ? (
             <p className="muted">No analyzed projects found. Upload and analyze a project first.</p>
           ) : (
+            <>
+            {/* Hidden file input for thumbnail uploads */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={onThumbFileSelected}
+            />
             <div className="settings-list compact">
               {projects.map((name) => (
                 <div key={name}>
                   <div className="settings-row">
-                    <span className="settings-label" style={{ fontSize: "1rem", fontWeight: 500 }}>{name}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                      {/* Thumbnail slot */}
+                      <div style={{ position: "relative", flexShrink: 0 }}>
+                        <div
+                          title="Click to upload thumbnail"
+                          onClick={() => onThumbClick(name)}
+                          style={{
+                            width: 48, height: 48, borderRadius: 6, overflow: "hidden",
+                            border: "1px solid var(--border, #444)", cursor: "pointer",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            background: "var(--surface-alt, #1e1e1e)", flexShrink: 0,
+                          }}
+                        >
+                          {thumbState[name] === "loading" || thumbState[name] === "loaded" ? (
+                            <img
+                              src={`${projectThumbnailUrl(name)}?v=${thumbVersion[name] ?? 0}`}
+                              alt={name}
+                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              onLoad={() => setThumbState((prev) => ({ ...prev, [name]: "loaded" }))}
+                              onError={() => setThumbState((prev) => ({ ...prev, [name]: "none" }))}
+                            />
+                          ) : (
+                            <span style={{ fontSize: "0.6rem", opacity: 0.5, textAlign: "center", lineHeight: 1.2, padding: "0 4px" }}>Click to Add thumbnail</span>
+                          )}
+                        </div>
+                        {thumbState[name] === "loaded" ? (
+                          <button
+                            type="button"
+                            title="Remove thumbnail"
+                            onClick={() => onThumbDelete(name)}
+                            style={{
+                              position: "absolute", top: -6, right: -6,
+                              width: 18, height: 18, borderRadius: "50%",
+                              border: "none", background: "var(--danger, #c0392b)",
+                              color: "#fff", fontSize: "0.65rem", cursor: "pointer",
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              lineHeight: 1, padding: 0,
+                            }}
+                          >✕</button>
+                        ) : null}
+                      </div>
+                      <span className="settings-label" style={{ fontSize: "1rem", fontWeight: 500 }}>{name}</span>
+                    </div>
                     <div className="button-row">
                       <button
                         type="button"
@@ -216,6 +308,7 @@ export default function ProjectsPage() {
                 </div>
               ))}
             </div>
+            </>
           )}
         </GlassCard>
       </div>

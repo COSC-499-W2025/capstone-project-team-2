@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import uuid
 from fastapi import APIRouter, UploadFile, HTTPException, Query, status
+from fastapi.responses import FileResponse
 import zipfile
 
 from src.storage import saved_projects
@@ -462,6 +463,22 @@ def get_project_thumbnail(id: str) -> dict:
             "filename": thumb_path.name,
         },
     }
+
+
+@projectsRouter.get("/{id}/thumbnail/image")
+def get_project_thumbnail_image(id: str) -> FileResponse:
+    """Serve the raw thumbnail image file for a project."""
+    resolved = _resolve_project_identifier(id)
+    manager = ThumbnailManager(storage_dir=_thumbnail_storage_dir())
+    thumb_path = manager.get_thumbnail_path(resolved.insight_id)
+    if thumb_path is None:
+        thumb_path = manager.get_thumbnail_path(resolved.project_name)
+    if thumb_path is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No thumbnail found for project '{resolved.project_name}'.",
+        )
+    return FileResponse(str(thumb_path))
 
 
 @projectsRouter.delete("/{id}/thumbnail")

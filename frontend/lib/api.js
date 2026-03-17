@@ -705,3 +705,36 @@ export function removePortfolioProject(id, projectName) {
     method: "DELETE"
   });
 }
+
+/**
+ * Uploads a thumbnail image for an analyzed project.
+ *
+ * @param {string} projectName
+ * @param {File} file
+ * @returns {Promise<any>}
+ */
+export function uploadProjectThumbnail(projectName, file) {
+  const form = new FormData();
+  form.append("thumbnail", file, file.name);
+  return request(`/projects/${encodeURIComponent(projectName)}/thumbnail`, { method: "POST", body: form });
+}
+
+/**
+ * Deletes the thumbnail for an analyzed project.
+ *
+ * @param {string} projectName
+ * @returns {Promise<any>}
+ */
+export function deleteProjectThumbnail(projectName) {
+  return request(`/projects/${encodeURIComponent(projectName)}/thumbnail`, { method: "DELETE" });
+}
+
+/**
+ * Returns the URL to directly load a project's thumbnail image.
+ *
+ * @param {string} projectName
+ * @returns {string}
+ */
+export function projectThumbnailUrl(projectName) {
+  return `${API_BASE}/projects/${encodeURIComponent(projectName)}/thumbnail/image`;
+}

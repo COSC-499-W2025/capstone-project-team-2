@@ -117,6 +117,12 @@ class ThumbnailManager:
             safe_id = self._sanitize_filename(project_id)
             ext = image_path.suffix.lower()
             thumbnail_path = self.storage_dir / f"{safe_id}{ext}"
+
+            # Remove any existing thumbnails in other formats to avoid stale files
+            for other_ext in self.SUPPORTED_FORMATS:
+                old_path = self.storage_dir / f"{safe_id}{other_ext}"
+                if old_path != thumbnail_path and old_path.exists():
+                    old_path.unlink()
             
             # Open and process the image
             with Image.open(image_path) as img:
