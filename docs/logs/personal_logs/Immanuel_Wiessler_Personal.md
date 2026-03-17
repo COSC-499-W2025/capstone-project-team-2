@@ -4,6 +4,7 @@
 
 ## Quick Navigation
 ### Term 2
+- [Week 25 (03/16/2026 – 03/22/2026)](#-personal-log--week-25-03162026--03222026)
 - [Week 24 (03/09/2026 – 03/15/2026)](#-personal-log--week-24-03092026--03152026)
 - [Week 23 (03/02/2026 – 03/08/2026)](#-personal-log--week-23-03022026--03082026)
 - [Week 22 (02/23/2026 – 03/01/2026)](#-personal-log--week-22-02232026--03012026)
@@ -2108,5 +2109,71 @@ The third task was expanding the **backend API test suite** ([PR #524](https://g
 On the review side, the most significant review this week was [PR #495](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/495) — a proposed migration of the entire frontend from Streamlit to Next.js. This was a large architectural change and required careful evaluation of the trade-offs involved given our project timeline. I reviewed the implementation and provided feedback as the first reviewer. I also reviewed [PR #497](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/497), which reverted a previous Streamlit style overhaul, and [PR #502](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/502), which removed the light/dark mode toggle controls from the frontend. Additionally, I reviewed [PR #529](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/529), which added a Portfolio Showcase Role Override UI for setting and retrieving project roles, and [PR #534](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/534), which corrected failing tests in the test suite.
 
 Overall, this week was a mix of targeted frontend improvements, backend test hardening, and active participation in shaping the team's frontend direction through code review, with the added benefit of having to focus on doing coding Prs and preparing for midterms as well.
+
+---
+
+# 📝 Personal Log – Week 25 (03/16/2026 – 03/22/2026)
+
+## 📊 Peer Evaluation
+
+
+---
+
+## 🔗 Connection to Previous Week
+
+
+
+---
+
+## 🚀 Work Completed
+
+### Coding Tasks
+- Opened PR: [Fixed the issue with renderCV + data persistence + some minor UI fix #554](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/554)
+- Opened PR: [Add awards section to resume data model and UI API #556](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/556)
+
+### Testing/Debugging Tasks
+- Debugged and fixed a RenderCV validation error caused by `created_at` being written as a top-level YAML field, and resolved data persistence issues by deriving timestamps from the filesystem instead (PR #554)
+- Validated that generated YAML files no longer contain the `created_at` field, rendering completes without validation errors, and GET `/resume/list` returns correct ISO 8601 timestamps (PR #554)
+- Added 7 new pytest cases for the awards section covering award creation, duplicate 409 responses, empty name 400 validation, award deletion, 404 handling, response field verification, and award field modification (PR #556)
+
+### Reviewing/Collaboration Tasks
+- Reviewed PR (1st Reviewer): [Added thumbnail upload to frontend on project management page #561](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/561)
+- Reviewed PR (1st Reviewer): [Fix representation empty state API response and harden frontend save/refresh behavior #550](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/550)
+- Reviewed PR (1st Reviewer): [Updated preview button to say view template #562](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/562)
+
+---
+
+## 📌 Associated Tasks from Project Board
+- [Resume and portfolio date Creation Persistence #555](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/555)
+- [RenderCV Issue #553](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/553)
+
+---
+
+## 📈 Progress Update
+
+| Task/Issue | Status |
+|------------|--------|
+| **Fixed the issue with renderCV + data persistence + some minor UI fix (PR #554)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Add awards section to resume data model and UI API (PR #556)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Added thumbnail upload to frontend on project management page (PR #561)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Fix representation empty state API response and harden frontend save/refresh behavior (PR #550)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Updated preview button to say view template (PR #562)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+
+---
+
+## ⚠️ Issues/Blockers
+
+-
+
+---
+
+## 🎯 Next Week's Goals
+-
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 25)
+
+
 
 ---
