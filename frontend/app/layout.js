@@ -20,29 +20,7 @@ export const metadata = {
  */
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        {/**
-          * Inline boot script runs before React hydration to keep initial
-          * theme value in sync with local storage or system preference.
-          * This avoids visible flash between light/dark variants.
-          */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function () {
-                try {
-                  var stored = localStorage.getItem('uiTheme');
-                  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  var theme = (stored === 'dark' || stored === 'light') ? stored : (prefersDark ? 'dark' : 'light');
-                  document.documentElement.dataset.theme = theme;
-                  document.documentElement.style.colorScheme = theme;
-                } catch (e) {}
-              })();
-            `
-          }}
-        />
-      </head>
+    <html lang="en" data-theme="light" style={{ colorScheme: "light" }}>
       <body>{children}</body>
     </html>
   );
