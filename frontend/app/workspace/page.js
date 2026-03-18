@@ -1633,7 +1633,7 @@ function DocumentStudio({ kind, mode }) {
                 </div>
                 <div className="button-row">
                   <button type="button" className="liquid-btn solid" disabled={rendering} onClick={onPreview}>
-                    {rendering ? "Rendering..." : "Preview template"}
+                    {rendering ? "Rendering..." : "Preview PDF"}
                   </button>
                   {FORMATS.map((format) => (
                     <button key={format} type="button" className="liquid-btn solid" disabled={rendering} onClick={() => onRender(format)}>
