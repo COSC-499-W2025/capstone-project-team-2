@@ -290,7 +290,7 @@ function useBubbleController(items, selectedIndex) {
 export function LiquidPillNav({ items, activeHref, trailingContent = null, className = "" }) {
   const matchedIndex = items.findIndex((item) => item.href === activeHref);
   const selectedIndex = matchedIndex >= 0 ? matchedIndex : null;
-  const { railRef, itemRefs, bubbleX, bubbleW, leadEdge, trailEdge, isPositioned, onPointerMove, onPointerLeave, setHoverIndex } = useBubbleController(items, selectedIndex);
+  const { railRef, itemRefs, bubbleX, bubbleW, leadEdge, trailEdge, isPositioned, hoverIndex, onPointerMove, onPointerLeave, setHoverIndex } = useBubbleController(items, selectedIndex);
 
   return (
     <nav className={`liquid-pill-rail liquid-nav ${className}`.trim()}>
@@ -304,7 +304,7 @@ export function LiquidPillNav({ items, activeHref, trailingContent = null, class
           <Link
             key={item.href}
             href={item.href}
-            className={`liquid-pill-item ${selectedIndex != null && index === selectedIndex ? "active" : ""}`}
+            className={`liquid-pill-item ${selectedIndex != null && index === selectedIndex ? "active" : ""} ${hoverIndex != null && index === hoverIndex ? "mapped-hover" : ""}`.trim()}
             ref={(el) => {
               itemRefs.current[index] = el;
             }}
@@ -342,7 +342,7 @@ export function LiquidPillNav({ items, activeHref, trailingContent = null, class
 export function LiquidSegmentedControl({ options, value, onChange, className = "" }) {
   const matchedIndex = options.findIndex((item) => item.value === value);
   const selectedIndex = matchedIndex >= 0 ? matchedIndex : 0;
-  const { railRef, itemRefs, bubbleX, bubbleW, leadEdge, trailEdge, isPositioned, onPointerMove, onPointerLeave, setHoverIndex } = useBubbleController(options, selectedIndex);
+  const { railRef, itemRefs, bubbleX, bubbleW, leadEdge, trailEdge, isPositioned, hoverIndex, onPointerMove, onPointerLeave, setHoverIndex } = useBubbleController(options, selectedIndex);
 
   return (
     <div className={`liquid-pill-rail liquid-segmented ${className}`.trim()} ref={railRef} onPointerMove={onPointerMove} onPointerLeave={onPointerLeave}>
@@ -355,7 +355,7 @@ export function LiquidSegmentedControl({ options, value, onChange, className = "
         <button
           key={item.value}
           type="button"
-          className={`liquid-pill-item ${index === selectedIndex ? "active" : ""}`}
+          className={`liquid-pill-item ${index === selectedIndex ? "active" : ""} ${hoverIndex != null && index === hoverIndex ? "mapped-hover" : ""}`.trim()}
           ref={(el) => {
             itemRefs.current[index] = el;
           }}
