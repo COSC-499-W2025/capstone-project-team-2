@@ -85,6 +85,7 @@ export default function UploadPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [insight, setInsight] = useState(null);
+  const pipelineStateClass = loading || success ? "status-ok" : "status-missing";
 
   /**
    * Triggers backend analysis and stores the latest matching
@@ -226,7 +227,7 @@ export default function UploadPage() {
 
           <GlassCard title="Status" hint="Latest pipeline result.">
             <div className="settings-list compact">
-              <div className="settings-row">
+              <div className={`settings-row ${pipelineStateClass}`.trim()}>
                 <span className="settings-label">Pipeline</span>
                 <strong className="settings-value">
                   {loading ? "Running analysis pipeline..." : (success ? "Completed" : "Idle")}
