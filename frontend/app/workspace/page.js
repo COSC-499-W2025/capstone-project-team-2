@@ -4,7 +4,7 @@
  * Workspace route module.
  *
  * This file contains:
- * - shared editor/preview subcomponents for resume and portfolio documents,
+ * - shared editor/document-preview subcomponents for resume and portfolio documents,
  * - document lifecycle handlers (generate/load/delete/edit/render),
  * - and mode-aware rendering for private/public access behavior.
  */
@@ -87,13 +87,13 @@ function toMonthValue(input) {
 }
 
 /**
- * Public-mode preview section with read-only data and export actions.
+ * Public-mode document preview section with read-only data and export actions.
  *
  * @param {{ doc: any, onRender: (format: string) => void, rendering: boolean }} props
  * @returns {JSX.Element}
  */
-function PublicPreview({ doc, onRender, rendering }) {
-  if (!doc) return <p className="muted">Load a document ID to preview.</p>;
+function PublicDocumentPreview({ doc, onRender, rendering }) {
+  if (!doc) return <p className="muted">Load a document ID to view the document preview.</p>;
 
   return (
     <div className="grid two-col">
@@ -1091,8 +1091,8 @@ function DocumentStudio({ kind, mode }) {
   const [savedDocs, setSavedDocs] = useState([]);
 
   const [rendering, setRendering] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [themePreviewOpen, setThemePreviewOpen] = useState(false);
+  const [documentPreviewUrl, setDocumentPreviewUrl] = useState(null);
+  const [isThemePreviewOpen, setIsThemePreviewOpen] = useState(false);
   const [downloadName, setDownloadName] = useState("");
 
   useEffect(() => {
@@ -1354,24 +1354,32 @@ function DocumentStudio({ kind, mode }) {
     }
   }
 
-  async function onPreview() {
+  async function onDocumentPreview() {
     if (!docId) return;
     setRendering(true);
     setError("");
     try {
       const blob = isResume ? await renderResume(docId, "pdf") : await renderPortfolio(docId, "pdf");
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(URL.createObjectURL(blob));
+      if (documentPreviewUrl) URL.revokeObjectURL(documentPreviewUrl);
+      setDocumentPreviewUrl(URL.createObjectURL(blob));
     } catch (err) {
-      setError(err.message || "Preview failed.");
+      setError(err.message || "Document preview failed.");
     } finally {
       setRendering(false);
     }
   }
 
-  function closePreview() {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setPreviewUrl(null);
+  function closeDocumentPreview() {
+    if (documentPreviewUrl) URL.revokeObjectURL(documentPreviewUrl);
+    setDocumentPreviewUrl(null);
+  }
+
+  function openThemePreview() {
+    setIsThemePreviewOpen(true);
+  }
+
+  function closeThemePreview() {
+    setIsThemePreviewOpen(false);
   }
 
   const [recentIds, setRecentIds] = useState([]);
@@ -1446,7 +1454,7 @@ function DocumentStudio({ kind, mode }) {
             {message ? <p className="success">{message}</p> : null}
           </GlassCard>
 
-          <PublicPreview doc={doc} onRender={onRender} rendering={rendering} />
+          <PublicDocumentPreview doc={doc} onRender={onRender} rendering={rendering} />
         </div>
       </div>
     );
@@ -1480,8 +1488,8 @@ function DocumentStudio({ kind, mode }) {
               </label>
             </div>
             <div className="button-row">
-              <button type="button" className="liquid-btn" disabled={!theme} onClick={() => setThemePreviewOpen(true)}>
-                Preview
+              <button type="button" className="liquid-btn" disabled={!theme} onClick={openThemePreview}>
+                Theme Preview
               </button>
               <button type="button" className="liquid-btn solid btn-success" disabled={busy || !theme} onClick={onGenerate}>
                 Generate {isResume ? "Resume" : "Portfolio"}
@@ -1640,7 +1648,7 @@ function DocumentStudio({ kind, mode }) {
                   </label>
                 </div>
                 <div className="button-row">
-                  <button type="button" className="liquid-btn solid btn-success" disabled={rendering} onClick={onPreview}>
+                  <button type="button" className="liquid-btn solid btn-success" disabled={rendering} onClick={onDocumentPreview}>
                     {rendering ? "Rendering..." : "Preview PDF"}
                   </button>
                   {FORMATS.map((format) => (
@@ -1655,15 +1663,15 @@ function DocumentStudio({ kind, mode }) {
         </>
       ) : null}
 
-      {previewUrl && typeof document !== "undefined" ? createPortal(
+      {documentPreviewUrl && typeof document !== "undefined" ? createPortal(
         <div className="app-modal-overlay app-modal-overlay-full">
           <div className="app-modal-panel app-modal-panel-full glass-card">
             <div className="app-modal-header">
-              <strong>Preview - {isResume ? "Resume" : "Portfolio"}</strong>
-              <button type="button" className="liquid-btn solid btn-danger" onClick={closePreview}>Close</button>
+              <strong>Document Preview - {isResume ? "Resume" : "Portfolio"}</strong>
+              <button type="button" className="liquid-btn solid btn-danger" onClick={closeDocumentPreview}>Close</button>
             </div>
             <iframe
-              src={`${previewUrl}#toolbar=1&zoom=100`}
+              src={`${documentPreviewUrl}#toolbar=1&zoom=100`}
               className="app-modal-frame app-modal-frame-full"
               title="Document Preview"
             />
@@ -1671,12 +1679,12 @@ function DocumentStudio({ kind, mode }) {
         </div>,
         document.body
       ) : null}
-      {themePreviewOpen ? createPortal(
+      {isThemePreviewOpen ? createPortal(
         <div className="app-modal-overlay">
           <div className="app-modal-panel glass-card">
             <div className="app-modal-header">
               <strong>Theme Preview - {theme}</strong>
-              <button type="button" className="liquid-btn solid btn-danger" onClick={() => setThemePreviewOpen(false)}>Close</button>
+              <button type="button" className="liquid-btn solid btn-danger" onClick={closeThemePreview}>Close</button>
             </div>
             <iframe key={theme} src={`/theme-previews/${theme}.pdf`} className="app-modal-frame" title="Theme Preview" />
           </div>
