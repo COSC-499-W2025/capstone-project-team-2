@@ -57,6 +57,7 @@ const THEMES = ["sb2nov", "classic", "moderncv", "engineeringresumes", "engineer
  * @type {string[]}
  */
 const FORMATS = ["pdf", "html", "markdown"];
+const SELECT_PLACEHOLDER = "— select —";
 
 /**
  * Triggers a browser download for a generated Blob.
@@ -170,7 +171,7 @@ function EditContact({ doc, onApply }) {
           <input className="settings-control" value={form[field]} onChange={(e) => setForm((p) => ({ ...p, [field]: e.target.value }))} />
         </label>
       ))}
-      <button type="submit" className="liquid-btn solid">Save Contact</button>
+      <button type="submit" className="liquid-btn solid btn-success">Save Contact</button>
     </form>
   );
 }
@@ -197,7 +198,7 @@ function EditSummary({ doc, onApply }) {
         Summary
         <textarea className="settings-control" rows={6} value={summary} onChange={(e) => setSummary(e.target.value)} />
       </label>
-      <button type="submit" className="liquid-btn solid">Update Summary</button>
+      <button type="submit" className="liquid-btn solid btn-success">Update Summary</button>
     </form>
   );
 }
@@ -226,7 +227,7 @@ function EditTheme({ doc, onApply }) {
           ))}
         </select>
       </label>
-      <button type="button" className="liquid-btn solid" onClick={() => onApply([{ section: "theme", item_name: "", field: "", new_value: theme }])}>
+      <button type="button" className="liquid-btn solid btn-success" onClick={() => onApply([{ section: "theme", item_name: "", field: "", new_value: theme }])}>
         Change Theme
       </button>
     </div>
@@ -268,7 +269,7 @@ function Combobox({ value, onChange, placeholder }) {
           position: "absolute", top: "100%", left: 0, right: 0, zIndex: 200,
           margin: 0, padding: "0.25rem 0", listStyle: "none",
           background: "var(--bg-1)", border: "1px solid var(--line)",
-          borderRadius: "12px", boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+          borderRadius: "var(--surface-radius)",
           maxHeight: "180px", overflowY: "auto",
         }}>
           {filtered.map((n) => (
@@ -277,9 +278,9 @@ function Combobox({ value, onChange, placeholder }) {
               onMouseDown={() => { onChange(n); setOpen(false); }}
               style={{
                 padding: "0.45rem 0.85rem", cursor: "pointer",
-                color: "var(--ink-0)", borderRadius: "8px",
+                color: "var(--ink-0)", borderRadius: "var(--surface-radius)",
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "var(--glass)"}
+              onMouseEnter={(e) => e.currentTarget.style.background = "transparent"}
               onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
             >
               {n}
@@ -368,7 +369,7 @@ function ConnectionsEditor({ doc, onApply }) {
               {names.map((name) => <option key={name}>{name}</option>)}
             </select>
           </label>
-          <button type="button" className="liquid-btn solid" onClick={() => onApply([{ section: "connections", item_name: network, field: "delete", new_value: "" }])}>
+          <button type="button" className="liquid-btn solid btn-danger" onClick={() => onApply([{ section: "connections", item_name: network, field: "delete", new_value: "" }])}>
             Remove Connection
           </button>
         </>
@@ -546,31 +547,31 @@ function ProjectEditor({ projects, docProjects, onAddProject, onAddProjectAI, on
         <div className="form-stack">
           <label>
             Saved project
-            <select value={projectName} onChange={(e) => setProjectName(e.target.value)}>
+            <select className="settings-control" value={projectName} onChange={(e) => setProjectName(e.target.value)}>
               {projects.map((name) => <option key={name}>{name}</option>)}
             </select>
           </label>
           <label>
             Override summary
-            <textarea rows={3} value={summary} onChange={(e) => setSummary(e.target.value)} />
+            <textarea className="settings-control" rows={3} value={summary} onChange={(e) => setSummary(e.target.value)} />
           </label>
           <label>
             Override highlights (one per line)
-            <textarea rows={4} value={highlights} onChange={(e) => setHighlights(e.target.value)} />
+            <textarea className="settings-control" rows={4} value={highlights} onChange={(e) => setHighlights(e.target.value)} />
           </label>
           <label>
             Start date
-            <input type="month" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            <input className="settings-control" type="month" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
           </label>
           <label>
             End date
-            <input type="month" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            <input className="settings-control" type="month" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
           </label>
           <div className="button-row">
-            <button type="button" className="liquid-btn solid" disabled={busy || aiLoading} onClick={() => onAddProject(projectName, payload)}>
+            <button type="button" className="liquid-btn solid btn-success" disabled={busy || aiLoading} onClick={() => onAddProject(projectName, payload)}>
               Add Project
             </button>
-            <button type="button" className="liquid-btn solid" disabled={busy || aiLoading} onClick={async () => { setAiLoading(true); try { await onAddProjectAI(projectName); } finally { setAiLoading(false); } }} title="Use Gemini AI to generate a polished project entry">
+            <button type="button" className="liquid-btn solid btn-success" disabled={busy || aiLoading} onClick={async () => { setAiLoading(true); try { await onAddProjectAI(projectName); } finally { setAiLoading(false); } }} title="Use Gemini AI to generate a polished project entry">
               {aiLoading ? "⏳ Generating..." : "✦ Add with AI"}
             </button>
           </div>
@@ -590,13 +591,13 @@ function ProjectEditor({ projects, docProjects, onAddProject, onAddProjectAI, on
           <div className="form-stack">
             <label>
               Project in document
-              <select value={selectedDocProject} onChange={(e) => setSelectedDocProject(e.target.value)}>
+              <select className="settings-control" value={selectedDocProject} onChange={(e) => setSelectedDocProject(e.target.value)}>
                 {docProjects.map((item) => <option key={item.name}>{item.name}</option>)}
               </select>
             </label>
             <label>
               Field
-              <select value={field} onChange={(e) => { setField(e.target.value); setNewValue(""); }}>
+              <select className="settings-control" value={field} onChange={(e) => { setField(e.target.value); setNewValue(""); }}>
                 <option value="summary">summary</option>
                 <option value="highlights">highlights</option>
                 <option value="start_date">start_date</option>
@@ -623,10 +624,10 @@ function ProjectEditor({ projects, docProjects, onAddProject, onAddProjectAI, on
             <label>
               New value {field === "highlights" ? "(one per line)" : ""}
               {(field === "start_date" || field === "end_date")
-                ? <input type="month" value={newValue} onChange={(e) => setNewValue(e.target.value)} />
+                ? <input className="settings-control" type="month" value={newValue} onChange={(e) => setNewValue(e.target.value)} />
                 : (field === "name" || field === "location")
-                  ? <input type="text" value={newValue} onChange={(e) => setNewValue(e.target.value)} placeholder={field === "name" ? "e.g., My Awesome Project" : "e.g., Vancouver, BC"} />
-                  : <textarea rows={field === "highlights" ? 4 : 2} value={newValue} onChange={(e) => setNewValue(e.target.value)} placeholder={field === "highlights" ? "e.g., Built REST API with FastAPI\nWrote unit tests with pytest" : "e.g., A web app that generates resumes using AI."} />
+                  ? <input className="settings-control" type="text" value={newValue} onChange={(e) => setNewValue(e.target.value)} placeholder={field === "name" ? "e.g., My Awesome Project" : "e.g., Vancouver, BC"} />
+                  : <textarea className="settings-control" rows={field === "highlights" ? 4 : 2} value={newValue} onChange={(e) => setNewValue(e.target.value)} placeholder={field === "highlights" ? "e.g., Built REST API with FastAPI\nWrote unit tests with pytest" : "e.g., A web app that generates resumes using AI."} />
               }
             </label>
             <div className="button-row">
@@ -642,7 +643,7 @@ function ProjectEditor({ projects, docProjects, onAddProject, onAddProjectAI, on
               >
                 Save Change
               </button>
-              <button type="button" className="liquid-btn" onClick={() => onRemoveProject(selectedDocProject)}>Remove Project ({selectedDocProject})</button>
+              <button type="button" className="liquid-btn btn-danger" onClick={() => onRemoveProject(selectedDocProject)}>Remove Project ({selectedDocProject})</button>
             </div>
           </div>
         ) : (
@@ -758,7 +759,7 @@ function ResumeEducationExperience({ doc, onAddEducation, onRemoveEducation, onA
               <label>Start date<input type="month" value={eduStart} onChange={(e) => setEduStart(e.target.value)} /></label>
               <label>End date <span style={{opacity:0.6, fontSize:"0.8em"}}>(select current month for "present")</span><input type="month" value={eduEnd} onChange={(e) => setEduEnd(e.target.value)} /></label>
               <label>Highlights (one per line)<textarea rows={3} value={eduHighlights} onChange={(e) => setEduHighlights(e.target.value)} /></label>
-              <button type="button" className="liquid-btn solid" onClick={() => onAddEducation({
+              <button type="button" className="liquid-btn solid btn-success" onClick={() => onAddEducation({
                 institution, area,
                 degree: degree || undefined,
                 gpa: gpa || undefined,
@@ -803,7 +804,7 @@ function ResumeEducationExperience({ doc, onAddEducation, onRemoveEducation, onA
               {education.length ? (
                 <>
                   <label>Education entry<select value={selectedEdu} onChange={(e) => setSelectedEdu(e.target.value)}>{education.map((e) => <option key={e.institution}>{e.institution}</option>)}</select></label>
-                  <button type="button" className="liquid-btn" onClick={() => onRemoveEducation(selectedEdu)}>Remove ({selectedEdu})</button>
+                  <button type="button" className="liquid-btn btn-danger" onClick={() => onRemoveEducation(selectedEdu)}>Remove ({selectedEdu})</button>
                 </>
               ) : <p style={{opacity:0.6}}>No education entries to remove.</p>}
             </>
@@ -831,7 +832,7 @@ function ResumeEducationExperience({ doc, onAddEducation, onRemoveEducation, onA
               <label>Start date<input type="month" value={expStart} onChange={(e) => setExpStart(e.target.value)} /></label>
               <label>End date <span style={{opacity:0.6, fontSize:"0.8em"}}>(select current month for "present")</span><input type="month" value={expEnd} onChange={(e) => setExpEnd(e.target.value)} /></label>
               <label>Highlights (one per line)<textarea rows={3} value={expHighlights} onChange={(e) => setExpHighlights(e.target.value)} /></label>
-              <button type="button" className="liquid-btn solid" onClick={() => onAddExperience({
+              <button type="button" className="liquid-btn solid btn-success" onClick={() => onAddExperience({
                 company,
                 position: position || undefined,
                 location: expLocation || undefined,
@@ -875,7 +876,7 @@ function ResumeEducationExperience({ doc, onAddEducation, onRemoveEducation, onA
               {experience.length ? (
                 <>
                   <label>Experience entry<select value={selectedExp} onChange={(e) => setSelectedExp(e.target.value)}>{experience.map((e) => <option key={e.company}>{e.company}</option>)}</select></label>
-                  <button type="button" className="liquid-btn" onClick={() => onRemoveExperience(selectedExp)}>Remove ({selectedExp})</button>
+                  <button type="button" className="liquid-btn btn-danger" onClick={() => onRemoveExperience(selectedExp)}>Remove ({selectedExp})</button>
                 </>
               ) : <p style={{opacity:0.6}}>No experience entries to remove.</p>}
             </>
@@ -1043,7 +1044,7 @@ function SkillsEditor({ doc, onAddSkill, onAppendSkill, onRemoveSkill, onApply }
               )}
               <button
                 type="button"
-                className="liquid-btn"
+                className="liquid-btn btn-danger"
                 onClick={() => onRemoveSkill(selectedLabel)}
               >
                 Remove {selectedLabel}
@@ -1079,7 +1080,7 @@ function DocumentStudio({ kind, mode }) {
   const [docId, setDocId] = useState("");
   const [doc, setDoc] = useState(null);
   const [name, setName] = useState("");
-  const [theme, setTheme] = useState(THEMES[0]);
+  const [theme, setTheme] = useState("");
   const [idInput, setIdInput] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -1168,6 +1169,10 @@ function DocumentStudio({ kind, mode }) {
   async function onGenerate() {
     if (!name.trim()) {
       setError("Name is required.");
+      return;
+    }
+    if (!theme) {
+      setError("Theme is required.");
       return;
     }
 
@@ -1392,6 +1397,11 @@ function DocumentStudio({ kind, mode }) {
     setRecentIds(readRecentIds());
   }, [isResume]);
 
+  const activeDoc = savedDocs.find((d) => d.id === docId);
+  const createdAtText = activeDoc?.created_at ? new Date(activeDoc.created_at).toLocaleString() : "—";
+  const hasActiveId = Boolean(docId);
+  const hasCreatedAt = Boolean(activeDoc?.created_at);
+
   if (mode === "public") {
     return (
       <div className="page-stack workspace-page">
@@ -1406,7 +1416,7 @@ function DocumentStudio({ kind, mode }) {
                     value={idInput}
                     onChange={(e) => setIdInput(e.target.value)}
                   >
-                    <option value="">— select —</option>
+                    <option value="">{SELECT_PLACEHOLDER}</option>
                     {savedDocs.map((doc) => (
                       <option key={doc.id} value={doc.id}>{doc.name}{doc.created_at ? ` (${new Date(doc.created_at).toLocaleDateString()})` : ""}</option>
                     ))}
@@ -1445,7 +1455,11 @@ function DocumentStudio({ kind, mode }) {
   return (
     <div className="page-stack workspace-page">
       <div className="grid two-col workspace-control-grid">
-        <GlassCard title={`${isResume ? "Resume" : "Portfolio"} Controls`} hint={`Create or load a document. ${savedDocs.length} ${isResume ? "resume" : "portfolio"}${savedDocs.length !== 1 ? "s" : ""} saved.`}>
+        <GlassCard
+          className="resume-controls-card"
+          title={`${isResume ? "Resume" : "Portfolio"} Controls`}
+          hint={`Create or load a document. ${savedDocs.length} ${isResume ? "resume" : "portfolio"}${savedDocs.length !== 1 ? "s" : ""} saved.`}
+        >
           <div className="form-stack">
             <div className="settings-list compact">
               <label className="settings-row settings-field-row">
@@ -1459,18 +1473,17 @@ function DocumentStudio({ kind, mode }) {
               </label>
               <label className="settings-row settings-field-row">
                 <span className="settings-label">Theme</span>
-                <div className="settings-inline-control">
-                  <select className="settings-control" value={theme} onChange={(e) => setTheme(e.target.value)}>
-                    {THEMES.map((item) => <option key={item}>{item}</option>)}
-                  </select>
-                  <button type="button" className="liquid-btn" onClick={() => setThemePreviewOpen(true)}>
-                    Preview
-                  </button>
-                </div>
+                <select className="settings-control" value={theme} onChange={(e) => setTheme(e.target.value)}>
+                  <option value="">{SELECT_PLACEHOLDER}</option>
+                  {THEMES.map((item) => <option key={item}>{item}</option>)}
+                </select>
               </label>
             </div>
             <div className="button-row">
-              <button type="button" className="liquid-btn solid" disabled={busy} onClick={onGenerate}>
+              <button type="button" className="liquid-btn" disabled={!theme} onClick={() => setThemePreviewOpen(true)}>
+                Preview
+              </button>
+              <button type="button" className="liquid-btn solid btn-success" disabled={busy || !theme} onClick={onGenerate}>
                 Generate {isResume ? "Resume" : "Portfolio"}
               </button>
             </div>
@@ -1484,7 +1497,7 @@ function DocumentStudio({ kind, mode }) {
                   onChange={(e) => setIdInput(e.target.value)}
                   disabled={savedDocs.length === 0}
                 >
-                  <option value="">— select —</option>
+                  <option value="">{SELECT_PLACEHOLDER}</option>
                   {savedDocs.map((doc) => (
                     <option key={doc.id} value={doc.id}>{doc.name}{doc.created_at ? ` (${new Date(doc.created_at).toLocaleDateString()})` : ""}</option>
                   ))}
@@ -1518,29 +1531,24 @@ function DocumentStudio({ kind, mode }) {
         <GlassCard title="Status" hint="Current document and actions.">
           <div className="form-stack">
             <div className="settings-list compact">
-              <div className="settings-row">
+              <div className={`settings-row ${hasActiveId ? "status-ok" : "status-missing"}`.trim()}>
                 <span className="settings-label">Active ID</span>
                 <strong className="settings-value">{docId || "None"}</strong>
               </div>
-              <div className="settings-row">
+              <div className={`settings-row ${hasCreatedAt ? "status-ok" : "status-missing"}`.trim()}>
                 <span className="settings-label">Created</span>
-                <strong className="settings-value">
-                  {(() => {
-                    const found = savedDocs.find((d) => d.id === docId);
-                    return found?.created_at ? new Date(found.created_at).toLocaleString() : "—";
-                  })()}
-                </strong>
+                <strong className="settings-value">{createdAtText}</strong>
               </div>
-              <div className="settings-row">
+              <div className="settings-row status-ok">
                 <span className="settings-label">Mode</span>
                 <strong className="settings-value">{mode === "private" ? "Private" : "Public"}</strong>
               </div>
             </div>
             <div className="button-row">
-              <button type="button" className="liquid-btn solid" onClick={() => { setDocId(""); setDoc(null); setIdInput(""); }}>
+              <button type="button" className="liquid-btn" onClick={() => { setDocId(""); setDoc(null); setIdInput(""); }}>
                 Close
               </button>
-              <button type="button" className="liquid-btn solid" disabled={!docId || busy} onClick={onDelete}>
+              <button type="button" className="liquid-btn solid btn-danger" disabled={!docId || busy} onClick={onDelete}>
                 Delete Active
               </button>
             </div>
@@ -1632,11 +1640,11 @@ function DocumentStudio({ kind, mode }) {
                   </label>
                 </div>
                 <div className="button-row">
-                  <button type="button" className="liquid-btn solid" disabled={rendering} onClick={onPreview}>
+                  <button type="button" className="liquid-btn solid btn-success" disabled={rendering} onClick={onPreview}>
                     {rendering ? "Rendering..." : "Preview PDF"}
                   </button>
                   {FORMATS.map((format) => (
-                    <button key={format} type="button" className="liquid-btn solid" disabled={rendering} onClick={() => onRender(format)}>
+                    <button key={format} type="button" className="liquid-btn solid btn-success" disabled={rendering} onClick={() => onRender(format)}>
                       {rendering ? "Rendering..." : `Download ${format.toUpperCase()}`}
                     </button>
                   ))}
@@ -1663,12 +1671,12 @@ function DocumentStudio({ kind, mode }) {
       ) : null}
     {themePreviewOpen && (
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 1000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ background: "var(--glass-bg, #1a1a2e)", borderRadius: "12px", padding: "16px", width: "min(90vw, 900px)", height: "80vh", display: "flex", flexDirection: "column", gap: "12px" }}>
+        <div style={{ background: "var(--bg-0)", border: "1px solid var(--line)", borderRadius: "var(--control-radius)", padding: "16px", width: "min(90vw, 900px)", height: "80vh", display: "flex", flexDirection: "column", gap: "12px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontWeight: 600 }}>Theme Preview — {theme}</span>
             <button type="button" className="liquid-btn" onClick={() => setThemePreviewOpen(false)}>Close</button>
           </div>
-          <iframe key={theme} src={`/theme-previews/${theme}.pdf`} style={{ flex: 1, border: "none", borderRadius: "8px", width: "100%" }} title="Theme Preview" />
+          <iframe key={theme} src={`/theme-previews/${theme}.pdf`} style={{ flex: 1, border: "none", borderRadius: "var(--control-radius)", width: "100%" }} title="Theme Preview" />
         </div>
       </div>
     )}
