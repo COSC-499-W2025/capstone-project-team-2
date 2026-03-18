@@ -22,7 +22,7 @@ function ProjectDetail({ data }) {
   const chips = (arr) =>
     Array.isArray(arr) && arr.length
       ? arr.map((x) => (
-          <span key={x} className="liquid-btn" style={{ cursor: "default", fontSize: "0.8rem", padding: "2px 10px" }}>
+          <span key={x} className="data-chip">
             {x}
           </span>
         ))
@@ -68,13 +68,17 @@ function ProjectDetail({ data }) {
         {item.project_type ? (
           <div className="settings-row">
             <span className="settings-label">Project type</span>
-            <span className="settings-value">{item.project_type}</span>
+            <div className="button-row">
+              <span className="data-chip">{item.project_type}</span>
+            </div>
           </div>
         ) : null}
         {data?.analysis?.duration_estimate ? (
           <div className="settings-row">
             <span className="settings-label">Duration</span>
-            <span className="settings-value">{data.analysis.duration_estimate}</span>
+            <div className="button-row">
+              <span className="data-chip">{data.analysis.duration_estimate}</span>
+            </div>
           </div>
         ) : null}
       </div>
@@ -168,7 +172,7 @@ export default function ProjectsPage() {
                     <div className="button-row">
                       <button
                         type="button"
-                        className="liquid-btn"
+                        className="liquid-btn solid btn-success"
                         onClick={() => onToggleView(name)}
                       >
                         {viewing === name ? "Hide" : "View"}
@@ -177,7 +181,7 @@ export default function ProjectsPage() {
                         <>
                           <button
                             type="button"
-                            className="liquid-btn solid"
+                            className="liquid-btn solid btn-danger"
                             disabled={busy}
                             onClick={() => onDelete(name)}
                           >
@@ -195,7 +199,7 @@ export default function ProjectsPage() {
                       ) : (
                         <button
                           type="button"
-                          className="liquid-btn"
+                          className="liquid-btn btn-danger"
                           disabled={busy}
                           onClick={() => setConfirmDelete(name)}
                         >
