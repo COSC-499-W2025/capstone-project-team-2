@@ -1660,7 +1660,7 @@ function DocumentStudio({ kind, mode }) {
           <div className="app-modal-panel app-modal-panel-full glass-card">
             <div className="app-modal-header">
               <strong>Preview - {isResume ? "Resume" : "Portfolio"}</strong>
-              <button type="button" className="liquid-btn" onClick={closePreview}>Close</button>
+              <button type="button" className="liquid-btn solid btn-danger" onClick={closePreview}>Close</button>
             </div>
             <iframe
               src={`${previewUrl}#toolbar=1&zoom=100`}
@@ -1676,7 +1676,7 @@ function DocumentStudio({ kind, mode }) {
           <div className="app-modal-panel glass-card">
             <div className="app-modal-header">
               <strong>Theme Preview - {theme}</strong>
-              <button type="button" className="liquid-btn" onClick={() => setThemePreviewOpen(false)}>Close</button>
+              <button type="button" className="liquid-btn solid btn-danger" onClick={() => setThemePreviewOpen(false)}>Close</button>
             </div>
             <iframe key={theme} src={`/theme-previews/${theme}.pdf`} className="app-modal-frame" title="Theme Preview" />
           </div>
