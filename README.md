@@ -243,12 +243,14 @@ pip install -r src/requirements.txt
 
 3. **Run the application:**
 ```bash
-python src/main.py
+python -m src.cli.main
 ```
-   
-   Or alternatively:
+
+4. **Run the web frontend (Next.js):**
 ```bash
-python -m src.main
+cd frontend
+npm install
+npm run dev
 ```
 
 ## API Documentation
@@ -265,7 +267,7 @@ If you run the FastAPI app, interactive docs are also available at:
 
 ## Key Components
 
-- **Frontend (Presentation Layer)**: Built using **Streamlit** or **FreeSimpleGUI**, offering an intuitive menu-driven interface for users to navigate and interact with the application. Key features include:
+- **Frontend (Presentation Layer)**: Built using **Next.js**, offering a web interface for users to navigate and interact with the application. Key features include:
   - **Interactive menus**: For project analysis, viewing saved projects, portfolio generation, and configuration management.
   - **User consent workflow**: Guides users through the process of providing consent and configuring permissions for external services permissions
   - **Portfolio generation**: Enables users to generate a portfolio-ready resume or portfolio 
