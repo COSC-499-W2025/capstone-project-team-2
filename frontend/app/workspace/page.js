@@ -1656,30 +1656,33 @@ function DocumentStudio({ kind, mode }) {
       ) : null}
 
       {previewUrl && typeof document !== "undefined" ? createPortal(
-        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", flexDirection: "column" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 1rem", background: "var(--bg-1)", flexShrink: 0, borderBottom: "1px solid var(--line)" }}>
-            <strong style={{ color: "var(--ink-0)" }}>Preview — {isResume ? "Resume" : "Portfolio"}</strong>
-            <button type="button" className="liquid-btn" onClick={closePreview}>✕ Close</button>
+        <div className="app-modal-overlay app-modal-overlay-full">
+          <div className="app-modal-panel app-modal-panel-full glass-card">
+            <div className="app-modal-header">
+              <strong>Preview - {isResume ? "Resume" : "Portfolio"}</strong>
+              <button type="button" className="liquid-btn" onClick={closePreview}>Close</button>
+            </div>
+            <iframe
+              src={`${previewUrl}#toolbar=1&zoom=100`}
+              className="app-modal-frame app-modal-frame-full"
+              title="Document Preview"
+            />
           </div>
-          <iframe
-            src={`${previewUrl}#toolbar=1&zoom=100`}
-            style={{ flex: 1, border: "none", width: "100%", minHeight: 0 }}
-            title="Document Preview"
-          />
         </div>,
         document.body
       ) : null}
-    {themePreviewOpen && (
-      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 1000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ background: "var(--bg-0)", border: "1px solid var(--line)", borderRadius: "var(--control-radius)", padding: "16px", width: "min(90vw, 900px)", height: "80vh", display: "flex", flexDirection: "column", gap: "12px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontWeight: 600 }}>Theme Preview — {theme}</span>
-            <button type="button" className="liquid-btn" onClick={() => setThemePreviewOpen(false)}>Close</button>
+      {themePreviewOpen ? createPortal(
+        <div className="app-modal-overlay">
+          <div className="app-modal-panel glass-card">
+            <div className="app-modal-header">
+              <strong>Theme Preview - {theme}</strong>
+              <button type="button" className="liquid-btn" onClick={() => setThemePreviewOpen(false)}>Close</button>
+            </div>
+            <iframe key={theme} src={`/theme-previews/${theme}.pdf`} className="app-modal-frame" title="Theme Preview" />
           </div>
-          <iframe key={theme} src={`/theme-previews/${theme}.pdf`} style={{ flex: 1, border: "none", borderRadius: "var(--control-radius)", width: "100%" }} title="Theme Preview" />
-        </div>
-      </div>
-    )}
+        </div>,
+        document.body
+      ) : null}
     </div>
   );
 }

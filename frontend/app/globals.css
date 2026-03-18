@@ -1323,6 +1323,63 @@ textarea::placeholder {
   --controls-field-w: 260px;
 }
 
+.app-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(17, 17, 17, 0.66);
+}
+
+.app-modal-overlay-full {
+  z-index: 9999;
+  padding: 0.75rem;
+}
+
+.app-modal-panel {
+  width: min(92vw, 900px);
+  height: min(84vh, 780px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 1rem;
+}
+
+.app-modal-panel-full {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+}
+
+.app-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.app-modal-frame {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  border: 1px solid var(--layer-border);
+  border-radius: var(--surface-radius);
+  background: var(--bg-0);
+}
+
+.app-modal-frame-full {
+  border-radius: calc(var(--surface-radius) - 0.18rem);
+}
+
+.app-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .workspace-page .liquid-segmented {
   margin-bottom: 0.28rem;
 }
@@ -1512,6 +1569,19 @@ textarea::placeholder {
   .settings-inline-control .settings-control {
     width: 100%;
     flex: 1 1 auto;
+  }
+
+  .app-modal-overlay {
+    padding: 0.7rem;
+  }
+
+  .app-modal-panel {
+    width: 100%;
+    height: min(88vh, 760px);
+  }
+
+  .app-modal-overlay-full {
+    padding: 0.45rem;
   }
 }
 
