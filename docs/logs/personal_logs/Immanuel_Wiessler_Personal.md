@@ -2140,6 +2140,8 @@ Overall, this week was a mix of targeted frontend improvements, backend test har
 - Reviewed PR (1st Reviewer): [Added thumbnail upload to frontend on project management page #561](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/561)
 - Reviewed PR (1st Reviewer): [Fix representation empty state API response and harden frontend save/refresh behavior #550](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/550)
 - Reviewed PR (1st Reviewer): [Updated preview button to say view template #562](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/562)
+- Reviewed PR (1st Reviewer): [Frontend UI unification: single light theme, shared styles, consistency and performance improvements #565](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/565)
+- Reviewed PR (2nd Reviewer): [Remove Streamlit UI/runtime dependency and align docs/tests for Next.js frontend #569](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/569)
 
 ---
 
