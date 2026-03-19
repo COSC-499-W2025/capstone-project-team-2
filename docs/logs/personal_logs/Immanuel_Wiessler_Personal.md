@@ -2121,7 +2121,7 @@ Overall, this week was a mix of targeted frontend improvements, backend test har
 
 ## 🔗 Connection to Previous Week
 
-
+Following Week 24's work on dark theme styling, the DocumentStudio revamp, and backend API test expansion, this week shifted focus to fixing a critical RenderCV rendering bug, extending the resume data model with an awards section, and continuing a high volume of code reviews as the team approaches the milestone 3 deadline.
 
 ---
 
@@ -2148,6 +2148,7 @@ Overall, this week was a mix of targeted frontend improvements, backend test har
 ## 📌 Associated Tasks from Project Board
 - [Resume and portfolio date Creation Persistence #555](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/555)
 - [RenderCV Issue #553](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/553)
+- [award API for CRUD operations and stuff #570](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/570)
 
 ---
 
@@ -2165,17 +2166,35 @@ Overall, this week was a mix of targeted frontend improvements, backend test har
 
 ## ⚠️ Issues/Blockers
 
--
+- The `created_at` field being written as a top-level YAML key caused RenderCV validation to fail silently during resume generation — required tracing through the full write path to identify the root cause
+- Coordinating the awards section PR (#556) alongside the RenderCV fix PR (#554) required careful sequencing to avoid merge conflicts in shared resume model files
+- High review volume (5 PRs) this week competed with coding time, making it challenging to balance feature delivery with thorough reviews ahead of the milestone 3 deadline
+- PR #556 (Awards section) received a request for changes during review, requiring revisions to the API implementation before it could be merged
 
 ---
 
 ## 🎯 Next Week's Goals
--
+- implement the final UI element
+- Prepare for the milestone 3  submission
 
 ---
 
 ## 🧠 Reflection on Current Cycle (Week 25)
 
+**Week 25** was focused on resolving a critical rendering bug, extending the resume data model, and maintaining a high volume of code reviews as the team pushes toward the milestone 3 submission.
 
+The most impactful task was fixing the **RenderCV validation error** ([PR #554](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/554)). The root cause was that the `created_at` field was being written as a top-level key in the generated YAML files, which RenderCV's schema validation rejected. Rather than simply stripping the field before rendering, I chose to derive timestamps from the filesystem metadata instead, eliminating the need to persist `created_at` in the YAML altogether. This also resolved the broader data persistence issue reported in [#555](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/555), since the GET `/resume/list` endpoint now returns correct ISO 8601 timestamps without relying on an in-file field. A few minor UI fixes were bundled into the same PR to keep the changeset cohesive.
+
+The second coding task was adding the **awards section** to the resume data model and UI API ([PR #556](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/556)). This involved wiring up a new CRUD surface for awards — creation, modification, deletion — and backing it with 7 new pytest cases that cover the expected success paths as well as edge cases like duplicate 409 responses, empty name 400 validation, and 404 handling on missing awards and also in prepreation for the creation  of the UI implemenation in the final week of the capstone project.
+
+On the review side, this was one of the heavier review weeks. I served as 1st reviewer on four PRs — thumbnail upload on the project management page ([#561](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/561)), the representation empty state fix ([#550](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/550)), the preview-to-view-template button rename ([#562](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/562)), and the frontend UI unification PR ([#565](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/565)) which consolidated the app onto a single light theme with shared styles. I also reviewed [PR #569](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/569) as 2nd reviewer, which removed the Streamlit UI/runtime dependency and aligned docs and tests for the Next.js frontend — a significant cleanup step in the ongoing frontend migration.
+
+Overall, this week struck a good balance between shipping my own features and supporting the team through reviews. With the milestone 3 deadline approaching, the focus next week will shift toward finalizing the last UI elements and preparing the submission.
+
+---
+
+## 🧠 Reflection on Previous Cycle (Week 24)
+
+Week 24 was a productive week that balanced frontend polish, backend testing, and a pivotal architectural review. The dark theme fixes for alerts and select dropdowns (PR #517) addressed a long-standing visual inconsistency, while the DocumentStudio revamp (PR #522) restored critical document discovery functionality that users had lost. Expanding the backend API test suite with ~350 lines of new coverage (PR #524) helped solidify confidence in the system ahead of the final milestone. The most impactful contribution on the review side was evaluating the Streamlit-to-Next.js migration proposal (PR #495), which required weighing architectural trade-offs against the remaining project timeline. Overall, Week 24 set a strong foundation for the final push in Week 25.
 
 ---
