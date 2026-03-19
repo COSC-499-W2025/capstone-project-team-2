@@ -178,19 +178,19 @@ export default function RepresentationPage() {
               <>
                 <p className="muted">These preferences control project ordering and showcase emphasis across insights.</p>
                 <div className="settings-list">
-                  <div className="settings-row">
+                  <div className={`settings-row ${((currentRepresentation.project_order?.length || 0) > 0) ? "status-ok" : "status-missing"}`.trim()}>
                     <span className="settings-label">Ordered projects</span>
                     <strong className="settings-value">{currentRepresentation.project_order?.length || 0}</strong>
                   </div>
-                  <div className="settings-row">
+                  <div className="settings-row status-ok">
                     <span className="settings-label">Chronology corrections</span>
                     <strong className="settings-value">{chronologyCount}</strong>
                   </div>
-                  <div className="settings-row">
+                  <div className={`settings-row ${currentHighlightedSkills.length ? "status-ok" : "status-missing"}`.trim()}>
                     <span className="settings-label">Highlighted skills</span>
                     <strong className="settings-value">{currentHighlightedSkills.length ? currentHighlightedSkills.join(", ") : "Not set"}</strong>
                   </div>
-                  <div className="settings-row">
+                  <div className={`settings-row ${currentShowcaseProjects.length ? "status-ok" : "status-missing"}`.trim()}>
                     <span className="settings-label">Showcase projects</span>
                     <strong className="settings-value">{currentShowcaseProjects.length ? currentShowcaseProjects.join(", ") : "Not set"}</strong>
                   </div>

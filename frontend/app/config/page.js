@@ -113,11 +113,11 @@ export default function ConfigPage() {
             <GlassCard title="Current Settings">
               <p className="muted">Current persisted configuration values.</p>
               <div className="settings-list">
-                <div className="settings-row">
+                <div className={`settings-row ${currentExternalConsent === "Not set" ? "status-missing" : "status-ok"}`.trim()}>
                   <span className="settings-label">External tools</span>
                   <strong className="settings-value">{currentExternalConsent}</strong>
                 </div>
-                <div className="settings-row">
+                <div className={`settings-row ${fullName ? "status-ok" : "status-missing"}`.trim()}>
                   <span className="settings-label">Name</span>
                   <strong className="settings-value">{fullName || "Not set"}</strong>
                 </div>

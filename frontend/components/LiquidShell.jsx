@@ -27,7 +27,7 @@ const links = [
 ];
 
 /**
- * Shared page shell with floating navigation, theme handling, and
+ * Shared page shell with floating navigation and
  * consistent header/content composition.
  *
  * @param {{
@@ -46,35 +46,15 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
    * Persisted in localStorage as `viewMode`.
    */
   const [viewMode, setViewMode] = useState("private");
-  /**
-   * UI theme token used by document-level CSS variables.
-   * Persisted in localStorage as `uiTheme`.
-   */
-  const [theme, setTheme] = useState(() => {
-    if (typeof document !== "undefined") {
-      const current = document.documentElement.dataset.theme;
-      if (current === "dark" || current === "light") return current;
-    }
-    return "light";
-  });
 
   useEffect(() => {
     /**
-     * One-time hydration of persisted mode + theme preferences.
+     * One-time hydration of persisted navigation mode preference.
      */
     const storedViewMode = window.localStorage.getItem("viewMode");
     if (storedViewMode === "public" || storedViewMode === "private") {
       setViewMode(storedViewMode);
     }
-
-    const current = document.documentElement.dataset.theme;
-    if (current === "dark" || current === "light") {
-      setTheme(current);
-      return;
-    }
-    const stored = window.localStorage.getItem("uiTheme");
-    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    setTheme(stored === "dark" || stored === "light" ? stored : (systemPrefersDark ? "dark" : "light"));
   }, []);
 
   useEffect(() => {
@@ -85,16 +65,6 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
     window.localStorage.setItem("viewMode", viewMode);
     window.dispatchEvent(new CustomEvent("viewModeChange", { detail: viewMode }));
   }, [viewMode]);
-
-  useEffect(() => {
-    /**
-     * Applies theme directly on `<html>` so all CSS variable branches update
-     * consistently across current and future mounted subtrees.
-     */
-    document.documentElement.dataset.theme = theme;
-    document.documentElement.style.colorScheme = theme;
-    window.localStorage.setItem("uiTheme", theme);
-  }, [theme]);
 
   const filteredLinks = useMemo(
     () => links.filter((link) => link.modes.includes(viewMode)),
@@ -115,11 +85,6 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
 
   return (
     <div className="liquid-scene">
-      <div className="liquid-orb orb-amber" aria-hidden="true" />
-      <div className="liquid-orb orb-cyan" aria-hidden="true" />
-      <div className="liquid-orb orb-rose" aria-hidden="true" />
-
-      <div className="frost-noise" aria-hidden="true" />
       <div className="floating-nav-layer">
         <LiquidPillNav
           items={filteredLinks}
@@ -138,16 +103,6 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
                 />
               </div>
               {rightSlot ? <div>{rightSlot}</div> : null}
-              <button
-                type="button"
-                className="theme-toggle liquid-btn"
-                aria-label="Toggle color theme"
-                onClick={() => setTheme((prev) => (prev === "dark" ? "light" : "dark"))}
-              >
-                <span className="theme-icon" aria-hidden="true" suppressHydrationWarning>
-                  {theme === "dark" ? "☀" : "☾"}
-                </span>
-              </button>
             </div>
           }
         />
