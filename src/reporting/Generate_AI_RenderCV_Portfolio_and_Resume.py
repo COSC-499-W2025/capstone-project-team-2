@@ -869,7 +869,7 @@ class RenderCVDocument:
             self.sections['awards'] = []
             self.current_awards = self.sections['awards']
 
-        existing = [a['name'] for a in self.current_awards]
+        existing = [a.get('name') for a in self.current_awards]
         if award.name in existing:
             return f"Award '{award.name}' already exists"
 
@@ -899,7 +899,14 @@ class RenderCVDocument:
         if award is None:
             return f"Award '{award_name}' not found"
 
-        award[field] = new_value
+        if field == "website":
+            # Mirror the to_dict() logic: store website as "Link: ..." in highlights
+            highlights = [h for h in (award.get('highlights') or []) if not h.startswith("Link: ")]
+            if new_value:
+                highlights.append(f"Link: {new_value}")
+            award['highlights'] = highlights
+        else:
+            award[field] = new_value
         self._auto_save_if_enabled()
         return f"Successfully modified {field}"
 

@@ -40,7 +40,7 @@ import uuid
 import shutil
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
     RenderCVDocument,
     Project,
@@ -205,7 +205,7 @@ class AwardRequest(BaseModel):
         "website": "https://example.com/award",
     }})
     name: str
-    date: Optional[str] = None
+    date: Optional[str] = Field(default=None, pattern=r'^\d{4}-(0[1-9]|1[0-2])$')
     location: Optional[str] = None
     highlights: Optional[List[str]] = None
     website: Optional[str] = None
