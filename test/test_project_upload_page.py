@@ -1,5 +1,5 @@
 """
-Unit tests for the Upload Project Streamlit page logic.
+Unit tests for the Upload Project page logic.
 
 Tests cover:
 - ZIP upload flow (success, upload failure, analysis failure)
@@ -16,7 +16,7 @@ from unittest.mock import MagicMock, patch
 
 
 # ---------------------------------------------------------------------------
-# Helpers extracted from the page so they can be tested without Streamlit
+# Helpers extracted from the page so they can be tested independently
 # ---------------------------------------------------------------------------
 
 def build_folder_zip(folder_path: Path) -> tuple[io.BytesIO, str]:

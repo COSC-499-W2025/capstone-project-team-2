@@ -20,7 +20,7 @@ def reset_consent():
     _app_context_module.runtimeAppContext.data_consent = original_data
 
 class TestUserConfigurationIntegration(unittest.TestCase):
-    """Validate end-to-end config flow used by the Streamlit User Configuration page."""
+    """Validate end-to-end config flow used by the user configuration page."""
 
     def setUp(self) -> None:
         """Create test client, snapshot runtime consent, and seed a deterministic config."""
