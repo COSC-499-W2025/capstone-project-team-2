@@ -1440,7 +1440,7 @@ function DocumentStudio({ kind, mode }) {
                 <div className="button-row">
                   {recentIds.map((id) => {
                     const found = savedDocs.find((d) => d.id === id);
-                    const label = `${id}${found?.created_at ? ` (${new Date(found.created_at).toLocaleDateString()})` : ""}`;
+                    const label = `${found?.name ?? id}${found?.created_at ? ` (${new Date(found.created_at).toLocaleDateString()})` : ""}`;
                     return (
                       <button key={id} type="button" className="liquid-btn" onClick={() => { setIdInput(id); onLoad(id); }}>
                         {label}
