@@ -225,10 +225,10 @@ export default function ProjectsPage() {
                           title="Click to upload thumbnail"
                           onClick={() => onThumbClick(name)}
                           style={{
-                            width: 48, height: 48, borderRadius: 6, overflow: "hidden",
-                            border: "1px solid var(--border, #444)", cursor: "pointer",
+                            width: 80, height: 80, borderRadius: 5, overflow: "hidden",
+                            border: "1px solid var(--layer-border, #ccc)", cursor: "pointer",
                             display: "flex", alignItems: "center", justifyContent: "center",
-                            background: "var(--surface-alt, #1e1e1e)", flexShrink: 0,
+                            background: "var(--bg-2, #eef1f5)", flexShrink: 0,
                           }}
                         >
                           {thumbState[name] === "loading" || thumbState[name] === "loaded" ? (
@@ -240,7 +240,7 @@ export default function ProjectsPage() {
                               onError={() => setThumbState((prev) => ({ ...prev, [name]: "none" }))}
                             />
                           ) : (
-                            <span style={{ fontSize: "0.6rem", opacity: 0.5, textAlign: "center", lineHeight: 1.2, padding: "0 4px" }}>Click to Add thumbnail</span>
+                            <span style={{ fontSize: "0.8rem", color: "var(--ink-1, #515154)", textAlign: "center", lineHeight: 1.2, padding: "0 4px" }}>Click to Add thumbnail</span>
                           )}
                         </div>
                         {thumbState[name] === "loaded" ? (
@@ -250,7 +250,7 @@ export default function ProjectsPage() {
                             onClick={() => onThumbDelete(name)}
                             style={{
                               position: "absolute", top: -6, right: -6,
-                              width: 18, height: 18, borderRadius: "50%",
+                              width: 18, height: 18, minHeight: 18, borderRadius: "50%",
                               border: "none", background: "var(--danger, #c0392b)",
                               color: "#fff", fontSize: "0.65rem", cursor: "pointer",
                               display: "flex", alignItems: "center", justifyContent: "center",
