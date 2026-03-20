@@ -155,12 +155,11 @@ class FileMetadataExtractor:
         for path in content:
             try:
                 stat = path.stat()
-                created = datetime.datetime.fromtimestamp(stat.st_birthtime)  # Keep as datetime
                 modified = datetime.datetime.fromtimestamp(stat.st_mtime)      # Keep as datetime
                 size = stat.st_size
                 author = self.get_author(path)
             except Exception:
-                created = modified = None  # Use None instead of "N/A" for failed dates
+                modified = None  # Use None instead of "N/A" for failed dates
                 size = 0
                 author = "Unknown"
 
@@ -172,7 +171,6 @@ class FileMetadataExtractor:
                     "name": path.name,
                     "type": path.suffix.lstrip('.') or "FILE",
                     "size": size,
-                    "created": created,
                     "modified": modified,
                     "author": author,
                     "children": []
@@ -199,7 +197,7 @@ class FileMetadataExtractor:
         if node["type"] == "DIR":
             print(prefix + node["name"] + " [DIR]")
         else:
-            print(prefix + node["name"] + f" [{node['type']}] size: {node['size']}B, created: {node['created']}, modified: {node['modified']}, author: {node['author']}")
+            print(prefix + node["name"] + f" [{node['type']}] size: {node['size']}B, modified: {node['modified']}, author: {node['author']}")
 
         
         for i, child in enumerate(node["children"]):
