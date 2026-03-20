@@ -2115,7 +2115,7 @@ Overall, this week was a mix of targeted frontend improvements, backend test har
 # 📝 Personal Log – Week 25 (03/16/2026 – 03/22/2026)
 
 ## 📊 Peer Evaluation
-
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/03-06-2026.png)
 
 ---
 
@@ -2175,7 +2175,7 @@ Following Week 24's work on dark theme styling, the DocumentStudio revamp, and b
 
 ## 🎯 Next Week's Goals
 - implement the final UI element
-- Prepare for the milestone 3  submission
+- Prepare for the milestone 3  submission 
 
 ---
 
@@ -2193,8 +2193,8 @@ Overall, this week struck a good balance between shipping my own features and su
 
 ---
 
-## 🧠 Reflection on Previous Cycle (Week 24)
+## 🧠 Reflection on Previous Cycle (Week 25)
 
-Week 24 was a productive week that balanced frontend polish, backend testing, and a pivotal architectural review. The dark theme fixes for alerts and select dropdowns (PR #517) addressed a long-standing visual inconsistency, while the DocumentStudio revamp (PR #522) restored critical document discovery functionality that users had lost. Expanding the backend API test suite with ~350 lines of new coverage (PR #524) helped solidify confidence in the system ahead of the final milestone. The most impactful contribution on the review side was evaluating the Streamlit-to-Next.js migration proposal (PR #495), which required weighing architectural trade-offs against the remaining project timeline. Overall, Week 24 set a strong foundation for the final push in Week 25.
+Week 25 was focused on resolving a critical RenderCV rendering bug caused by the `created_at` field polluting generated YAML files, and extending the resume data model with an awards section backed by 7 new pytest cases. On the review side, it was one of the heavier weeks — I reviewed five PRs spanning thumbnail uploads, empty state fixes, button renaming, frontend UI unification, and the Streamlit-to-Next.js migration cleanup. Overall, the week struck a good balance between shipping features and supporting the team through reviews, setting the stage for the final milestone 3 push and the completion of the capstone project.
 
 ---
