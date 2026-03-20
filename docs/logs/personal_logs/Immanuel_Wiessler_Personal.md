@@ -2115,7 +2115,7 @@ Overall, this week was a mix of targeted frontend improvements, backend test har
 # 📝 Personal Log – Week 25 (03/16/2026 – 03/22/2026)
 
 ## 📊 Peer Evaluation
-
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/03-06-2026.png)
 
 ---
 
@@ -2142,6 +2142,7 @@ Following Week 24's work on dark theme styling, the DocumentStudio revamp, and b
 - Reviewed PR (1st Reviewer): [Updated preview button to say view template #562](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/562)
 - Reviewed PR (1st Reviewer): [Frontend UI unification: single light theme, shared styles, consistency and performance improvements #565](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/565)
 - Reviewed PR (2nd Reviewer): [Remove Streamlit UI/runtime dependency and align docs/tests for Next.js frontend #569](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/569)
+- Reviewed PR (2nd Reviewer): [thumbnail bug fix #574](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/574)
 
 ---
 
@@ -2157,10 +2158,14 @@ Following Week 24's work on dark theme styling, the DocumentStudio revamp, and b
 | Task/Issue | Status |
 |------------|--------|
 | **Fixed the issue with renderCV + data persistence + some minor UI fix (PR #554)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
-| **Add awards section to resume data model and UI API (PR #556)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Add awards section to resume data model and UI API (PR #570)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Debugged and fixed RenderCV validation error + validated YAML output and timestamps (PR #554)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 | **Reviewed Added thumbnail upload to frontend on project management page (PR #561)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 | **Reviewed Fix representation empty state API response and harden frontend save/refresh behavior (PR #550)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 | **Reviewed Updated preview button to say view template (PR #562)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Frontend UI unification: single light theme, shared styles, consistency and performance improvements (PR #565)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Remove Streamlit UI/runtime dependency and align docs/tests for Next.js frontend (PR #569)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed thumbnail bug fix (PR #574)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 
 ---
 
@@ -2175,7 +2180,7 @@ Following Week 24's work on dark theme styling, the DocumentStudio revamp, and b
 
 ## 🎯 Next Week's Goals
 - implement the final UI element
-- Prepare for the milestone 3  submission
+- Prepare for the milestone 3  submission 
 
 ---
 
@@ -2187,14 +2192,14 @@ The most impactful task was fixing the **RenderCV validation error** ([PR #554](
 
 The second coding task was adding the **awards section** to the resume data model and UI API ([PR #556](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/556)). This involved wiring up a new CRUD surface for awards — creation, modification, deletion — and backing it with 7 new pytest cases that cover the expected success paths as well as edge cases like duplicate 409 responses, empty name 400 validation, and 404 handling on missing awards and also in prepreation for the creation  of the UI implemenation in the final week of the capstone project.
 
-On the review side, this was one of the heavier review weeks. I served as 1st reviewer on four PRs — thumbnail upload on the project management page ([#561](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/561)), the representation empty state fix ([#550](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/550)), the preview-to-view-template button rename ([#562](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/562)), and the frontend UI unification PR ([#565](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/565)) which consolidated the app onto a single light theme with shared styles. I also reviewed [PR #569](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/569) as 2nd reviewer, which removed the Streamlit UI/runtime dependency and aligned docs and tests for the Next.js frontend — a significant cleanup step in the ongoing frontend migration.
+On the review side, this was one of the heavier review weeks. I served as 1st reviewer on four PRs — thumbnail upload on the project management page ([#561](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/561)), the representation empty state fix ([#550](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/550)), the preview-to-view-template button rename ([#562](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/562)), and the frontend UI unification PR ([#565](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/565)) which consolidated the app onto a single light theme with shared styles. I also reviewed [PR #569](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/569) as 2nd reviewer, which removed the Streamlit UI/runtime dependency and aligned docs and tests for the Next.js frontend — a significant cleanup step in the ongoing frontend migration. Additionally, I served as 2nd reviewer on [PR #574](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/574), which fixed thumbnail placeholders and delete buttons not rendering correctly after the theme changes, and increased thumbnail sizes for better visibility.
 
 Overall, this week struck a good balance between shipping my own features and supporting the team through reviews. With the milestone 3 deadline approaching, the focus next week will shift toward finalizing the last UI elements and preparing the submission.
 
 ---
 
-## 🧠 Reflection on Previous Cycle (Week 24)
+## 🧠 Reflection on Previous Cycle (Week 25)
 
-Week 24 was a productive week that balanced frontend polish, backend testing, and a pivotal architectural review. The dark theme fixes for alerts and select dropdowns (PR #517) addressed a long-standing visual inconsistency, while the DocumentStudio revamp (PR #522) restored critical document discovery functionality that users had lost. Expanding the backend API test suite with ~350 lines of new coverage (PR #524) helped solidify confidence in the system ahead of the final milestone. The most impactful contribution on the review side was evaluating the Streamlit-to-Next.js migration proposal (PR #495), which required weighing architectural trade-offs against the remaining project timeline. Overall, Week 24 set a strong foundation for the final push in Week 25.
+Week 25 was focused on resolving a critical RenderCV rendering bug caused by the `created_at` field polluting generated YAML files, and extending the resume data model with an awards section backed by 7 new pytest cases. On the review side, it was one of the heavier weeks — I reviewed six PRs spanning thumbnail uploads, empty state fixes, button renaming, frontend UI unification, the Streamlit-to-Next.js migration cleanup, and a thumbnail bug fix. Overall, the week struck a good balance between shipping features and supporting the team through reviews, setting the stage for the final milestone 3 push and the completion of the capstone project.
 
 ---
