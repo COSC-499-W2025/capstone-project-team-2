@@ -129,6 +129,33 @@ class Connections:
     to_dict = dataclass_to_dict
 
 @dataclass
+class Award:
+    """
+    Represents an award or recognition entry.
+
+    Attributes:
+        name: Name of the award or recognition
+        date: Date received in 'YYYY-MM' format
+        location: City, State or issuing organization
+        highlights: List of details about the award
+        website: URL for more information about the award (injected into highlights on serialization)
+    """
+    name: str
+    date: Optional[str] = None
+    location: Optional[str] = None
+    highlights: Optional[List[str]] = None
+    website: Optional[str] = None
+
+    def to_dict(self) -> dict:
+        data = {k: v for k, v in asdict(self).items()
+                if v is not None and k != 'website'}
+        if self.website:
+            highlights = list(data.get('highlights') or [])
+            highlights.append(f"Link: {self.website}")
+            data['highlights'] = highlights
+        return data
+
+@dataclass
 class Project:
     """
     Represents a project entry
@@ -190,6 +217,7 @@ class RenderCVDocument:
         self.current_education: Optional[List[dict]] = None
         self.current_connections: Optional[List[dict]] = None
         self.current_skills: Optional[List[dict]] = None
+        self.current_awards: Optional[List[dict]] = None
         self.sections: Optional[dict] = None
         self.name: Optional[str] = None
         self.data: Optional[dict] = None
@@ -369,6 +397,7 @@ class RenderCVDocument:
         # Shared sections for both resume and portfolio
         self.current_skills = self.sections.get('skills', [])
         self.summary = self.sections.get('summary', [])
+        self.current_awards = self.sections.get('awards', [])
 
         if self.doc_type == 'resume':
             self.current_education=self.sections.get('education', [])
@@ -817,6 +846,143 @@ class RenderCVDocument:
         self.current_projects = self.sections['projects']
         self._auto_save_if_enabled()
         return f"Successfully cleared {count} project(s)"
+
+    # ============== AWARDS (shared) ==============
+
+    @requires_data
+    def add_award(self, award: Award) -> str:
+        """
+        Add a new award entry to the awards section.
+        Available for both resume and portfolio document types. Creates the section if it doesn't exist.
+        Prevents duplicate award names.
+
+        Args:
+            award: Award dataclass instance with name (required), and optional date, location, highlights, website
+
+        Returns:
+            str: Success message with award name, or error if name is empty or duplicate
+        """
+        if not award.name or not award.name.strip():
+            return "Award name cannot be empty"
+
+        if 'awards' not in self.sections:
+            self.sections['awards'] = []
+            self.current_awards = self.sections['awards']
+
+        existing = [a.get('name') for a in self.current_awards]
+        if award.name in existing:
+            return f"Award '{award.name}' already exists"
+
+        self.current_awards.append(award.to_dict())
+        self._auto_save_if_enabled()
+        return f"Successfully added award '{award.name}'"
+
+    @requires_data
+    def modify_award(self, award_name: str, field: str, new_value) -> str:
+        """
+        Modify a specific field of an existing award entry.
+        Available for both resume and portfolio document types.
+
+        Args:
+            award_name: The exact name of the award to modify
+            field: The field to update (valid: "name", "date", "location", "highlights", "website")
+            new_value: The new value to set for the field
+
+        Returns:
+            str: Success message confirming the field was modified, or error if field is invalid or award not found
+        """
+        valid_fields = ["name", "date", "location", "highlights", "website"]
+        if field not in valid_fields:
+            return f"Invalid field '{field}'. Valid: {', '.join(valid_fields)}"
+
+        award = next((a for a in self.current_awards if a.get("name") == award_name), None)
+        if award is None:
+            return f"Award '{award_name}' not found"
+
+        if field == "website":
+            # Mirror the to_dict() logic: store website as "Link: ..." in highlights
+            highlights = [h for h in (award.get('highlights') or []) if not h.startswith("Link: ")]
+            if new_value:
+                highlights.append(f"Link: {new_value}")
+            award['highlights'] = highlights
+        else:
+            award[field] = new_value
+        self._auto_save_if_enabled()
+        return f"Successfully modified {field}"
+
+    @requires_data
+    def remove_award(self, award_name: str) -> str:
+        """
+        Remove an award entry by its name.
+        Available for both resume and portfolio document types.
+
+        Args:
+            award_name: The exact name of the award to remove
+
+        Returns:
+            str: Success message confirming deletion, or error if no awards exist or award not found
+        """
+        if 'awards' not in self.sections or not self.current_awards:
+            return "No awards to delete"
+
+        award = next((a for a in self.current_awards if a.get('name') == award_name), None)
+        if award is None:
+            return f"Award '{award_name}' not found"
+
+        self.current_awards.remove(award)
+        self._auto_save_if_enabled()
+        return f"Successfully deleted: {award_name}"
+
+    @requires_data
+    def get_awards(self) -> List[dict]:
+        """
+        Get all current award entries.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            List[dict]: List of award dictionaries with award details
+        """
+        return self.current_awards if self.current_awards else []
+
+    def count_awards(self) -> int:
+        """
+        Get the number of award entries in the document.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            int: Number of awards, or 0 if no data is loaded
+        """
+        if self.current_awards is None:
+            return 0
+        return len(self.current_awards)
+
+    def has_awards(self) -> bool:
+        """
+        Check if the document has any awards.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            bool: True if there are awards, False otherwise
+        """
+        return self.count_awards() > 0
+
+    @requires_data
+    def clear_awards(self) -> str:
+        """
+        Remove all awards from the document.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            str: Success message with number of awards removed
+        """
+        if not self.current_awards:
+            return "No awards to clear"
+
+        count = len(self.current_awards)
+        self.sections['awards'] = []
+        self.current_awards = self.sections['awards']
+        self._auto_save_if_enabled()
+        return f"Successfully cleared {count} award(s)"
 
     # ============== CONNECTIONS (shared) ==============
 

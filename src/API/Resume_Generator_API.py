@@ -7,23 +7,28 @@ by a unique ID (name + UUID suffix) returned in the X-Resume-ID header
 upon generation.
 
 Endpoints:
-    POST   /resume/generate                          - Create a new resume
-    GET    /resume/{id}                              - Retrieve full resume data as JSON
-    POST   /resume/{id}/render/{format}              - Re-render and return as file response
-    POST   /resume/{id}/export/{format}              - Render and export to default directory
-    POST   /resume/{id}/export/{format}/custom       - Render and export to a custom directory
-    POST   /resume/{id}/edit                         - Modify a field on an existing section item
-    POST   /resume/{id}/add/project/manual            - Add a project entry with manual data (no DB lookup)
-    POST   /resume/{id}/add/project/{project_name}   - Add a project entry from the database
-    DELETE /resume/{id}/project/{project_name}        - Remove a project entry
-    POST   /resume/{id}/add/education                - Add an education entry
-    DELETE /resume/{id}/education/{institution_name} - Remove an education entry
-    POST   /resume/{id}/add/experience               - Add an experience entry
-    DELETE /resume/{id}/experience/{company_name}    - Remove an experience entry
-    POST   /resume/{id}/add/skill                    - Add a new skill category
-    POST   /resume/{id}/skill/{label}/append         - Append items to an existing skill category
-    DELETE /resume/{id}/skill/{label}                - Remove a skill category
-    DELETE /resume/{id}                              - Delete the resume YAML file entirely
+    GET    /resumes                                          - List all saved resume documents
+    POST   /resume/generate                                  - Create a new resume
+    GET    /resume/{id}                                      - Retrieve full resume data as JSON
+    POST   /resume/{id}/render                               - Re-render and return as PDF (default format)
+    POST   /resume/{id}/render/{format}                      - Re-render and return as file response
+    POST   /resume/{id}/export/{format}                      - Render and export to default directory
+    POST   /resume/{id}/export/{format}/custom               - Render and export to a custom directory
+    POST   /resume/{id}/edit                                 - Modify a field on an existing section item
+    POST   /resume/{id}/add/project/manual                   - Add a project entry with manual data (no DB lookup)
+    POST   /resume/{id}/add/project/{project_name}           - Add a project entry from the database
+    POST   /resume/{id}/add/project/{project_name}/ai        - Add a project entry using AI-generated content
+    DELETE /resume/{id}/project/{project_name}               - Remove a project entry
+    POST   /resume/{id}/add/education                        - Add an education entry
+    DELETE /resume/{id}/education/{institution_name}         - Remove an education entry
+    POST   /resume/{id}/add/experience                       - Add an experience entry
+    DELETE /resume/{id}/experience/{company_name}            - Remove an experience entry
+    POST   /resume/{id}/add/skill                            - Add a new skill category
+    POST   /resume/{id}/skill/{label}/append                 - Append items to an existing skill category
+    DELETE /resume/{id}/skill/{label}                        - Remove a skill category
+    POST   /resume/{id}/add/award                            - Add a new award entry
+    DELETE /resume/{id}/award/{award_name}                   - Remove an award entry
+    DELETE /resume/{id}                                      - Delete the resume YAML file entirely
 """
 
 import re
@@ -35,7 +40,7 @@ import uuid
 import shutil
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
     RenderCVDocument,
     Project,
@@ -43,6 +48,7 @@ from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
     Experience,
     Skills,
     Connections,
+    Award,
 )
 from src.core.app_context import runtimeAppContext
 from src.reporting.Generate_Resume_AI_Ver2 import GenerateResumeAI_Ver2
@@ -188,6 +194,22 @@ class AppendSkillRequest(BaseModel):
     }}
     )
     details: str
+
+class AwardRequest(BaseModel):
+    """Payload for adding a new award entry."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "name": "Best Capstone Project",
+        "date": "2025-04",
+        "location": "University of British Columbia",
+        "highlights": ["Recognized for outstanding innovation", "Selected from 30+ competing teams"],
+        "website": "https://example.com/award",
+    }})
+    name: str
+    date: Optional[str] = Field(default=None, pattern=r'^\d{4}-(0[1-9]|1[0-2])$')
+    location: Optional[str] = None
+    highlights: Optional[List[str]] = None
+    website: Optional[str] = None
+
 
 class SaveRequest(BaseModel):
     """Payload for saving a rendered file to a custom location."""
@@ -363,6 +385,7 @@ def get_resume(id: str):
         "education": doc.get_education(),
         "projects": doc.get_projects(),
         "skills": doc.get_skills(),
+        "awards": doc.get_awards(),
         "connections": doc.get_connections(),
     }
 
@@ -425,6 +448,7 @@ def edit_resume(id: str, payload: EditResumeRequest):
         "experience": doc.modify_experience,
         "education": doc.modify_education,
         "projects": doc.modify_project,
+        "awards": doc.modify_award,
     }
     results = []
 
@@ -467,7 +491,7 @@ def edit_resume(id: str, payload: EditResumeRequest):
 
         else:
             raise HTTPException(status_code=400,
-                                detail=f"Unknown section '{section}'. Valid: experience, education, projects, skills, summary, contact, theme, connections",
+                                detail=f"Unknown section '{section}'. Valid: experience, education, projects, skills, awards, summary, contact, theme, connections",
             )
         results.append(result)
 
@@ -943,6 +967,59 @@ def remove_skill(id:str, label: str):
     return {"status": result}
 
 
+
+
+@resumeRouter.post("/resume/{id}/add/award")
+def add_award(id: str, payload: AwardRequest):
+    """Add a new award entry to an existing resume.
+
+    Args:
+        id: The resume identifier.
+        payload: AwardRequest with name (required), and optional date, location, highlights, website.
+
+    Returns:
+        dict: {"status": str} confirming the award was added.
+
+    Raises:
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 409 if an award with the same name already exists.
+        HTTPException: 400 if the award name is empty or the operation fails.
+    """
+    doc = _load_resume(id)
+    award = Award(
+        name=payload.name,
+        date=payload.date,
+        location=payload.location,
+        highlights=payload.highlights,
+        website=payload.website,
+    )
+    result = doc.add_award(award)
+    if "already exists" in result.lower():
+        raise HTTPException(status_code=409, detail=result)
+    if "successfully" not in result.lower():
+        raise HTTPException(status_code=400, detail=result)
+    return {"status": result}
+
+
+@resumeRouter.delete("/resume/{id}/award/{award_name}")
+def remove_award(id: str, award_name: str):
+    """Remove an award entry from an existing resume by award name.
+
+    Args:
+        id: The resume identifier.
+        award_name: The exact award name to remove.
+
+    Returns:
+        dict: {"status": str} confirming the award was removed.
+
+    Raises:
+        HTTPException: 404 if the resume or award does not exist.
+    """
+    doc = _load_resume(id)
+    result = doc.remove_award(award_name)
+    if "not found" in result.lower() or "no awards" in result.lower():
+        raise HTTPException(status_code=404, detail=result)
+    return {"status": result}
 
 
 @resumeRouter.delete("/resume/{id}")

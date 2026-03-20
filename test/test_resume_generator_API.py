@@ -76,7 +76,7 @@ class TestResumeFullWorkflow(_BaseResumeTest):
         resp = self.client.get(f"/resume/{resume_id}")
         self.assertEqual(resp.status_code, 200)
         for key in ["name", "contact", "theme", "summary", "experience",
-                     "education", "projects", "skills", "connections"]:
+                     "education", "projects", "skills", "awards", "connections"]:
             self.assertIn(key, resp.json())
 
         # 3. Edit resume — batch edit across all section types
@@ -84,6 +84,7 @@ class TestResumeFullWorkflow(_BaseResumeTest):
         self.mock_doc.modify_education.return_value = "Successfully modified area"
         self.mock_doc.modify_project.return_value = "Successfully modified project"
         self.mock_doc.modify_skill.return_value = "Successfully modified skill"
+        self.mock_doc.modify_award.return_value = "Successfully modified date"
         self.mock_doc.update_summary.return_value = "Successfully updated summary"
         self.mock_doc.update_theme.return_value = "Successfully updated theme"
 
@@ -92,12 +93,13 @@ class TestResumeFullWorkflow(_BaseResumeTest):
             {"section": "education", "item_name": "UBC", "field": "area", "new_value": "CS"},
             {"section": "projects", "item_name": "App", "field": "summary", "new_value": "New summary"},
             {"section": "skills", "item_name": "Python", "field": "", "new_value": "Python 3.12"},
+            {"section": "awards", "item_name": "Best Project", "field": "date", "new_value": "2025-05"},
             {"section": "summary", "item_name": "", "field": "", "new_value": "New text"},
             {"section": "contact", "item_name": "", "field": "email", "new_value": "a@b.com"},
             {"section": "theme", "item_name": "", "field": "", "new_value": "classic"},
         ]})
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(len(resp.json()["results"]), 7)
+        self.assertEqual(len(resp.json()["results"]), 8)
 
         # 4. Render resume in all supported formats
         format_cases = [
@@ -838,6 +840,108 @@ class TestAddProjectAI(_BaseResumeTest):
             resp = self.client.post("/resume/fake_id/add/project/WarframeFinderStreamlit/ai")
             self.assertEqual(resp.status_code, 404)
             MockAI.assert_not_called()
+
+
+class TestAwardEndpoints(_BaseResumeTest):
+    """Tests for POST /resume/{id}/add/award and DELETE /resume/{id}/award/{award_name}."""
+
+    def test_add_award_success(self):
+        """All fields provided returns 200 with success status."""
+        self.mock_doc.add_award.return_value = "Successfully added award 'Best Capstone Project Award'"
+        resp = self.client.post("/resume/test_abc123/add/award", json={
+            "name": "Best Capstone Project Award",
+            "date": "2025-04",
+            "location": "University of British Columbia",
+            "highlights": ["Selected from 30+ teams", "Recognised for innovation"],
+            "website": "https://example.com/award",
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+        self.mock_doc.add_award.assert_called_once()
+
+    def test_add_award_name_only(self):
+        """Only required field (name) provided returns 200."""
+        self.mock_doc.add_award.return_value = "Successfully added award 'Dean\\'s List'"
+        resp = self.client.post("/resume/test_abc123/add/award", json={"name": "Dean's List"})
+        self.assertEqual(resp.status_code, 200)
+
+    def test_add_award_missing_name_returns_422(self):
+        """Missing required name field returns 422."""
+        resp = self.client.post("/resume/test_abc123/add/award", json={
+            "date": "2025-04",
+            "location": "UBC",
+        })
+        self.assertEqual(resp.status_code, 422)
+
+    def test_add_award_duplicate_returns_409(self):
+        """Duplicate award name returns 409."""
+        self.mock_doc.add_award.return_value = "Award 'Best Project' already exists"
+        resp = self.client.post("/resume/test_abc123/add/award", json={"name": "Best Project"})
+        self.assertEqual(resp.status_code, 409)
+        self.assertIn("already exists", resp.json()["detail"])
+
+    def test_add_award_failure_returns_400(self):
+        """Non-success, non-duplicate result returns 400."""
+        self.mock_doc.add_award.return_value = "Award name cannot be empty"
+        resp = self.client.post("/resume/test_abc123/add/award", json={"name": "X"})
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Award name cannot be empty", resp.json()["detail"])
+
+    def test_add_award_resume_not_found(self):
+        """Returns 404 when resume does not exist."""
+        self._set_not_found()
+        resp = self.client.post("/resume/fake_id/add/award", json={"name": "Some Award"})
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+    def test_remove_award_success(self):
+        """Removing an existing award returns 200."""
+        self.mock_doc.remove_award.return_value = "Successfully deleted: Best Capstone Project Award"
+        resp = self.client.delete("/resume/test_abc123/award/Best%20Capstone%20Project%20Award")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+        self.mock_doc.remove_award.assert_called_once()
+
+    def test_remove_award_not_found(self):
+        """Removing a non-existent award returns 404."""
+        self.mock_doc.remove_award.return_value = "Award 'Unknown' not found"
+        resp = self.client.delete("/resume/test_abc123/award/Unknown")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+    def test_remove_award_no_awards(self):
+        """Removing when no awards exist returns 404."""
+        self.mock_doc.remove_award.return_value = "No awards to delete"
+        resp = self.client.delete("/resume/test_abc123/award/SomeAward")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("No awards", resp.json()["detail"])
+
+    def test_remove_award_resume_not_found(self):
+        """Returns 404 when resume does not exist."""
+        self._set_not_found()
+        resp = self.client.delete("/resume/fake_id/award/SomeAward")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+    def test_edit_award_via_edit_endpoint(self):
+        """Awards section is handled by modify_award via the /edit endpoint."""
+        self.mock_doc.modify_award.return_value = "Successfully modified date"
+        resp = self.client.post("/resume/test_abc123/edit", json={"edits": [
+            {"section": "awards", "item_name": "Best Project", "field": "date", "new_value": "2025-06"},
+        ]})
+        self.assertEqual(resp.status_code, 200)
+        self.mock_doc.modify_award.assert_called_once_with("Best Project", "date", "2025-06")
+
+    def test_get_resume_includes_awards(self):
+        """GET /resume/{id} response includes awards key."""
+        self.mock_doc.get_awards.return_value = [
+            {"name": "Best Project", "date": "2025-04", "location": "UBC"}
+        ]
+        resp = self.client.get("/resume/test_abc123")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("awards", resp.json())
+        self.assertEqual(len(resp.json()["awards"]), 1)
+        self.assertEqual(resp.json()["awards"][0]["name"], "Best Project")
 
 
 if __name__ == "__main__":
