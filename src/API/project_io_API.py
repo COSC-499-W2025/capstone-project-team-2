@@ -520,7 +520,7 @@ def delete_project_thumbnail(id: str) -> dict:
     }
 
 @projectsRouter.post("/{id}/duration")
-def update_project_duration(id: str, duration: str):
+def update_project_duration(id: str, duration: str) -> str:
     """
     API endpoint for updating the project duration of a given project
 
@@ -531,8 +531,18 @@ def update_project_duration(id: str, duration: str):
         duration (str): string representation of the duration to upload
 
     Returns:
-        None
+        str: Success message
+    
+    Raises:
+        404: When project is not found in database
     """
+
     dict_to_update: dict = runtimeAppContext.store.fetch_by_name(id)
+    if not dict_to_update:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Project not found",
+        )
     dict_to_update["duration_estimate"] = format_duration(pd.Timedelta(duration).to_pytimedelta())  #Converts project duration to timedelta using a pandas library
     runtimeAppContext.store.update(id, dict_to_update)
+    return "Project duration updated successfully"
