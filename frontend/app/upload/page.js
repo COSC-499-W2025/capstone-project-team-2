@@ -237,105 +237,63 @@ export default function UploadPage() {
     }
   }
 
-  function addBatchFiles(files) {
-    const fileArray = Array.from(files);
-     const groups = {};
-    for (const file of fileArray) {
-      const rel = file.webkitRelativePath || file.name;
-      const root = rel.includes("/") ? rel.split("/")[0] : file.name;
-      if (!groups[root]) groups[root] = [];
-      groups[root].push(file);
-    }
-    const entries = Object.entries(groups).map(([name, groupFiles]) => ({
-      name,
-      files: groupFiles,
-      isZip: groupFiles.length === 1 && name.endsWith(".zip"),
-    }));
-    setBatchFiles((prev) => [...prev, ...added]);
-    setBatchItems([]);
-    setBatchInsights([]);
-  }
- 
-  function onBatchDrop(e) {
-  e.preventDefault();
-  setDragOver(false);
-  const files = Array.from(e.dataTransfer.files || []);
-  if (!files.length) addBatchFiles(files);
-
-  // Group by root folder, or treat loose files individually
-  const groups = {};
-  for (const file of files) {
-    const rel = file.webkitRelativePath || file.name;
-    const root = rel.includes("/") ? rel.split("/")[0] : file.name;
-    if (!groups[root]) groups[root] = [];
-    groups[root].push(file);
-  }
-
-  const entries = Object.entries(groups).map(([name, groupFiles]) => ({
-    name,
-    file: groupFiles[0],
-  }));
-
-  setBatchFiles((prev) => [...prev, ...entries]);
+function addBatchFiles(files) {
+  const zips = Array.from(files).filter((f) => f.name.endsWith(".zip"));
+  setBatchFiles((prev) => [...prev, ...zips]);
   setBatchItems([]);
   setBatchInsights([]);
-  }
+}
 
-  async function onAnalyzeBatch() {
-    if (!batchFiles.length) { setError("Select at least one .zip file."); return; }
- 
-    // Initialise all rows as pending before the loop starts.
-    setBatchItems(batchFiles.map((f) => ({ name: f.name, status: BATCH_STATUS.PENDING, error: null })));
-    setBatchInsights([]);
-    setLoading(true);
-    setError("");
-    setSuccess("");
-    setInsight(null);
- 
-    /**
-     * Updates a single row without touching the others.
-     * @param {string} name
-     * @param {Partial<{ status: string, error: string }>} patch
-     */
-    const updateItem = (name, patch) =>
-      setBatchItems((prev) =>
-        prev.map((item) => (item.name === name ? { ...item, ...patch } : item))
-      );
- 
-    let doneCount  = 0;
-    let errorCount = 0;
- 
-    try {
-      for (const entry of batchFiles) {
-        updateItem(entry.name, { status: BATCH_STATUS.RUNNING });
- 
-        try {
-          // Identical to onAnalyzeZip — upload then trigger backend analysis.
-          const upload      = await uploadProjectZip(entry.file);
-          const projectName = upload?.project_name || entry.name.replace(/\.zip$/i, "");
-          const result      = await finalizeAnalysis(projectName);
- 
-          updateItem(entry.name, { status: BATCH_STATUS.DONE });
-          if (result) setBatchInsights((prev) => [...prev, result]);
-          doneCount++;
-        } catch (err) {
-          updateItem(entry.name, { status: BATCH_STATUS.ERROR, error: err.message || "Failed" });
-          errorCount++;
-        }
+function onBatchDrop(e) {
+  e.preventDefault();
+  setDragOver(false);
+  addBatchFiles(e.dataTransfer.files || []);
+}
+
+async function onAnalyzeBatch() {
+  if (!batchFiles.length) { setError("Select at least one .zip file."); return; }
+
+  setBatchItems(batchFiles.map((f) => ({ name: f.name, status: BATCH_STATUS.PENDING, error: null })));
+  setBatchInsights([]);
+  setLoading(true);
+  setError("");
+  setSuccess("");
+  setInsight(null);
+
+  const updateItem = (name, patch) =>
+    setBatchItems((prev) =>
+      prev.map((item) => (item.name === name ? { ...item, ...patch } : item))
+    );
+
+  let doneCount  = 0;
+  let errorCount = 0;
+
+  try {
+    for (const file of batchFiles) {
+      updateItem(file.name, { status: BATCH_STATUS.RUNNING });
+      try {
+        const upload = await uploadProjectZip(file);
+        const projectName = upload?.project_name || file.name.replace(/\.zip$/i, "");
+        const result = await finalizeAnalysis(projectName);
+        updateItem(file.name, { status: BATCH_STATUS.DONE });
+        if (result) setBatchInsights((prev) => [...prev, result]);
+        doneCount++;
+      } catch (err) {
+        updateItem(file.name, { status: BATCH_STATUS.ERROR, error: err.message || "Failed" });
+        errorCount++;
       }
- 
-      setSuccess(
-        errorCount
-          ? `Batch complete: ${doneCount} succeeded, ${errorCount} failed.`
-          : `Batch complete: all ${doneCount} project(s) analysed.`
-      );
-    } catch (err) {
-      setError(err.message || "Batch analysis failed.");
-    } finally {
-      setLoading(false);
     }
+    setSuccess(
+      errorCount
+        ? `Batch complete: ${doneCount} succeeded, ${errorCount} failed.`
+        : `Batch complete: all ${doneCount} project(s) analysed.`
+    );
+  } catch (err) {
+    setError(err.message || "Batch analysis failed.");
+  } finally {
+    setLoading(false);
   }
-
+}
 return (
     <LiquidShell
       title="Project Upload"
@@ -402,7 +360,7 @@ return (
           ) : (
             <GlassCard
               title="Batch ZIP Upload"
-              hint="Add ZIPs and/or folders. Drag and drop or browse to add projects."
+              hint="Add multiple ZIPs, Drag and drop or browse to add projects."
             >
               <label
                 className={`drop-zone${dragOver ? " drag-over" : ""}`}
