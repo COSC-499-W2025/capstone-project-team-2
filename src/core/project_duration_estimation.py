@@ -1,6 +1,6 @@
 import datetime
 
-def _format_duration(delta: datetime.timedelta) -> str:
+def format_duration(delta: datetime.timedelta) -> str:
     '''
     Formats a timedelta into a human-readable string.
 
