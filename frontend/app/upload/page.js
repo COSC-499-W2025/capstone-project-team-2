@@ -183,8 +183,7 @@ export default function UploadPage() {
           value={tab}
           onChange={setTab}
           options={[
-            { value: "zip", label: "ZIP Upload" },
-            { value: "folder", label: "Folder Upload" }
+            { value: "zip", label: "ZIP Upload" }
           ]}
         />
 

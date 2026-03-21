@@ -7,8 +7,6 @@ import uuid
 from fastapi import APIRouter, UploadFile, HTTPException, Query, status
 from fastapi.responses import FileResponse
 import zipfile
-from src.core.project_duration_estimation import format_duration
-import pandas as pd
 
 from src.storage import saved_projects
 from src.storage.saved_projects import list_saved_projects
