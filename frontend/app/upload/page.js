@@ -146,6 +146,7 @@ export default function UploadPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [insight, setInsight] = useState(null);
+  const [dragOver, setDragOver] = useState(false)
   const pipelineStateClass = loading || success ? "status-ok" : "status-missing";
 
   /**
@@ -237,20 +238,47 @@ export default function UploadPage() {
   }
 
   function addBatchFiles(files) {
-    const added = Array.from(files).map((f) => ({ name: f.name, file: f }));
+    const fileArray = Array.from(files);
+     const groups = {};
+    for (const file of fileArray) {
+      const rel = file.webkitRelativePath || file.name;
+      const root = rel.includes("/") ? rel.split("/")[0] : file.name;
+      if (!groups[root]) groups[root] = [];
+      groups[root].push(file);
+    }
+    const entries = Object.entries(groups).map(([name, groupFiles]) => ({
+      name,
+      files: groupFiles,
+      isZip: groupFiles.length === 1 && name.endsWith(".zip"),
+    }));
     setBatchFiles((prev) => [...prev, ...added]);
     setBatchItems([]);
     setBatchInsights([]);
   }
  
   function onBatchDrop(e) {
-    e.preventDefault();
-    setDragOver(false);
-    const items = Array.from(e.dataTransfer.items || []);
-    const files = items.length
-      ? items.filter((i) => i.kind === "file").map((i) => i.getAsFile()).filter(Boolean)
-      : Array.from(e.dataTransfer.files || []);
-    if (files.length) addBatchFiles(files);
+  e.preventDefault();
+  setDragOver(false);
+  const files = Array.from(e.dataTransfer.files || []);
+  if (!files.length) addBatchFiles(files);
+
+  // Group by root folder, or treat loose files individually
+  const groups = {};
+  for (const file of files) {
+    const rel = file.webkitRelativePath || file.name;
+    const root = rel.includes("/") ? rel.split("/")[0] : file.name;
+    if (!groups[root]) groups[root] = [];
+    groups[root].push(file);
+  }
+
+  const entries = Object.entries(groups).map(([name, groupFiles]) => ({
+    name,
+    file: groupFiles[0],
+  }));
+
+  setBatchFiles((prev) => [...prev, ...entries]);
+  setBatchItems([]);
+  setBatchInsights([]);
   }
 
   async function onAnalyzeBatch() {
@@ -278,20 +306,20 @@ export default function UploadPage() {
     let errorCount = 0;
  
     try {
-      for (const file of batchFiles) {
-        updateItem(file.name, { status: BATCH_STATUS.RUNNING });
+      for (const entry of batchFiles) {
+        updateItem(entry.name, { status: BATCH_STATUS.RUNNING });
  
         try {
           // Identical to onAnalyzeZip — upload then trigger backend analysis.
-          const upload      = await uploadProjectZip(file);
-          const projectName = upload?.project_name || file.name.replace(/\.zip$/i, "");
+          const upload      = await uploadProjectZip(entry.file);
+          const projectName = upload?.project_name || entry.name.replace(/\.zip$/i, "");
           const result      = await finalizeAnalysis(projectName);
  
-          updateItem(file.name, { status: BATCH_STATUS.DONE });
+          updateItem(entry.name, { status: BATCH_STATUS.DONE });
           if (result) setBatchInsights((prev) => [...prev, result]);
           doneCount++;
         } catch (err) {
-          updateItem(file.name, { status: BATCH_STATUS.ERROR, error: err.message || "Failed" });
+          updateItem(entry.name, { status: BATCH_STATUS.ERROR, error: err.message || "Failed" });
           errorCount++;
         }
       }
@@ -321,6 +349,7 @@ return (
             setError("");
             setSuccess("");
             setInsight(null);
+            setBatchFiles([]);
             setBatchItems([]);
             setBatchInsights([]);
           }}
@@ -373,36 +402,28 @@ return (
           ) : (
             <GlassCard
               title="Batch ZIP Upload"
-              hint="Select multiple .zip files. Each is submitted in turn; the backend handles concurrent analysis."
+              hint="Add ZIPs and/or folders. Drag and drop or browse to add projects."
             >
-              <label className="drop-zone">
+              <label
+                className={`drop-zone${dragOver ? " drag-over" : ""}`}
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={onBatchDrop}
+              >
                 <input
                   type="file"
-                  accept=".zip,application/zip"
                   multiple
-                  onChange={(e) => {
-                    setBatchFiles(Array.from(e.target.files || []));
-                    setBatchItems([]);
-                    setBatchInsights([]);
-                  }}
+                  onChange={(e) => addBatchFiles(e.target.files || [])}
                 />
                 <span>
-                  {batchFiles.length
-                    ? `${batchFiles.length} ZIP file(s) selected`
-                    : "Select one or more .zip files"}
+                  {dragOver
+                    ? "Drop to add"
+                    : batchFiles.length
+                    ? `${batchFiles.length} item(s) added`
+                    : "Drag ZIPs or folders here, or click to browse"}
                 </span>
               </label>
- 
-              {batchFiles.length > 0 && batchItems.length === 0 && (
-                <ul className="clean-list batch-file-preview">
-                  {batchFiles.map((f) => (
-                    <li key={f.name} className="muted" style={{ fontSize: "0.82rem" }}>
-                      {f.name}
-                    </li>
-                  ))}
-                </ul>
-              )}
- 
+              
               <div className="button-row">
                 <button
                   type="button"
