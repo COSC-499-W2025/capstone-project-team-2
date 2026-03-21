@@ -7,8 +7,6 @@ import uuid
 from fastapi import APIRouter, UploadFile, HTTPException, Query, status
 from fastapi.responses import FileResponse
 import zipfile
-from src.core.project_duration_estimation import format_duration
-import pandas as pd
 
 from src.storage import saved_projects
 from src.storage.saved_projects import list_saved_projects
@@ -518,21 +516,3 @@ def delete_project_thumbnail(id: str) -> dict:
         "project_id": resolved.insight_id,
         "project_name": resolved.project_name,
     }
-
-@projectsRouter.post("/{id}/duration")
-def update_project_duration(id: str, duration: str):
-    """
-    API endpoint for updating the project duration of a given project
-
-    API call is ''POST /projects/{id}/duration?duration=str
-
-    Args:
-        id (str): name of the project
-        duration (str): string representation of the duration to upload
-
-    Returns:
-        None
-    """
-    dict_to_update: dict = runtimeAppContext.store.fetch_by_name(id)
-    dict_to_update["duration_estimate"] = format_duration(pd.Timedelta(duration).to_pytimedelta())  #Converts project duration to timedelta using a pandas library
-    runtimeAppContext.store.update(id, dict_to_update)
