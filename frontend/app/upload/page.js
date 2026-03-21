@@ -378,7 +378,7 @@ return (
                     ? "Drop to add"
                     : batchFiles.length
                     ? `${batchFiles.length} item(s) added`
-                    : "Drag ZIPs or folders here, or click to browse"}
+                    : "Drag ZIPs here, or click to browse"}
                 </span>
               </label>
               
