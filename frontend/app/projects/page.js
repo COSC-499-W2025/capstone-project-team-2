@@ -18,6 +18,8 @@ import { deleteProject, deleteProjectThumbnail, fetchProjectByName, fetchProject
  */
 function ProjectDetail({ data }) {
   const item = data?.analysis?.resume_item ?? data?.analysis ?? {};
+  const [start_date, setStart] = useState(null);
+  const [end_date, setEnd] = useState(null);
 
   const chips = (arr) =>
     Array.isArray(arr) && arr.length
@@ -76,6 +78,17 @@ function ProjectDetail({ data }) {
         {data?.analysis?.duration_estimate ? (
           <div className="settings-row">
             <span className="settings-label">Duration</span>
+            <div>
+                  <form className="form-stack config-form">
+                    <label>Start Date:</label>
+                    <input type="date" className="settings-control"
+                    onChange={(e) => setStart(e.target.value)}/>
+                    <label>End Date:</label>
+                    <input type="date" className="settings-control"
+                    onChange={(e) => setEnd(e.target.value)}/>
+                    <input type="submit" className="liquid-btn solid"/>
+                  </form>
+            </div>
             <div className="button-row">
               <span className="data-chip">{data.analysis.duration_estimate}</span>
             </div>
