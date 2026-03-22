@@ -422,7 +422,6 @@ return (
             </div>
             {loading ? <AnalysisProgress /> : null}
             {error ? <p className="error">{error}</p> : null}
-            {error   ? <p className="error">{error}</p>   : null}
             {success ? <p className="success">{success}</p> : (!loading ? <p className="muted">No analysis run yet.</p> : null)}
           </GlassCard>
         </div>
