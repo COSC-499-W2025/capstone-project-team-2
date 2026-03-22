@@ -7,6 +7,7 @@ from functools import wraps
 from pathlib import Path
 from dataclasses import dataclass, asdict
 from typing import Optional, List, Literal, Iterable, Dict
+from uuid import uuid4
 import ruamel.yaml
 import orjson
 from src.reporting.Generate_AI_Resume import GenerateProjectResume
@@ -485,9 +486,13 @@ class RenderCVDocument:
                 removed_keys.append(str(key))
         return payload, removed_keys
 
-    def _get_output_dir(self) -> Path:
+    def _get_output_dir(self, unique: bool = False) -> Path:
         """
         Resolve the output directory used by RenderCV.
+
+        Args:
+            unique: If True, return a per-render unique directory to avoid
+                collisions across concurrent renders.
 
         Returns:
             Path: Absolute path to the output directory
@@ -496,6 +501,8 @@ class RenderCVDocument:
             raise ValueError("YAML file not set")
 
         yaml_parent = self.yaml_file.resolve().parent
+        if unique:
+            return yaml_parent / f"rendercv_output_{uuid4().hex[:8]}"
         return yaml_parent / "rendercv_output"
 
     def render_outputs(self, formats: Iterable[str]) -> tuple[str, Dict[str, List[Path]]]:
@@ -514,7 +521,7 @@ class RenderCVDocument:
             raise FileNotFoundError(f"YAML file {self.yaml_file} does not exist")
 
         selected_formats = self._normalize_formats(formats)
-        output_dir = self._get_output_dir()
+        output_dir = self._get_output_dir(unique=True)
         yaml_parent = self.yaml_file.resolve().parent
         cv_name = self.data.get('cv', {}).get('name', '').strip()
         cv_name_safe = self._sanitize_filename_component(cv_name) if cv_name else ""
@@ -531,7 +538,15 @@ class RenderCVDocument:
         with open(self.yaml_file, 'w') as f:
             self.yaml.dump(render_payload, f)
 
-        cmd = [sys.executable, "-m", "rendercv", "render", str(self.yaml_file)]
+        cmd = [
+            sys.executable,
+            "-m",
+            "rendercv",
+            "render",
+            "--output-folder",
+            str(output_dir),
+            str(self.yaml_file),
+        ]
         format_flags = {
             "pdf": "--dont-generate-pdf",
             "html": "--dont-generate-html",
