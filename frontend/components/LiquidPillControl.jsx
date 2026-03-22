@@ -280,7 +280,7 @@ function useBubbleController(items, selectedIndex) {
  * trailing content (mode toggle, theme button, etc.).
  *
  * @param {{
- *   items: Array<{href: string, label: string}>,
+ *   items: Array<{href: string, label: string, disabled?: boolean}>,
  *   activeHref: string,
  *   trailingContent?: import("react").ReactNode,
  *   className?: string
@@ -304,11 +304,16 @@ export function LiquidPillNav({ items, activeHref, trailingContent = null, class
           <Link
             key={item.href}
             href={item.href}
-            className={`liquid-pill-item ${selectedIndex != null && index === selectedIndex ? "active" : ""} ${hoverIndex != null && index === hoverIndex ? "mapped-hover" : ""}`.trim()}
+            className={`liquid-pill-item ${selectedIndex != null && index === selectedIndex ? "active" : ""} ${hoverIndex != null && index === hoverIndex ? "mapped-hover" : ""} ${item.disabled ? "disabled" : ""}`.trim()}
             ref={(el) => {
               itemRefs.current[index] = el;
             }}
             onPointerEnter={() => setHoverIndex(index)}
+            onClick={(event) => {
+              if (item.disabled) event.preventDefault();
+            }}
+            aria-disabled={item.disabled ? "true" : undefined}
+            tabIndex={item.disabled ? -1 : undefined}
           >
             <GlyphLabel
               label={item.label}
