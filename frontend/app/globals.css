@@ -79,11 +79,11 @@ body {
   font-family: "SF Pro Display", "Avenir Next", "Segoe UI", sans-serif;
   background: linear-gradient(
     180deg,
-    #ffffff 0%,
-    #f6f7f8 42%,
-    #d8dce2 72%,
-    #a8afb8 90%,
-    #838a94 100%
+    #fcfdfc 0%,
+    #f3f6f4 42%,
+    #e3e8e5 72%,
+    #cad2ce 90%,
+    #aeb8b3 100%
   );
 }
 
@@ -171,6 +171,21 @@ body {
   gap: 0.32rem;
 }
 
+.a11y-control {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.floating-a11y-control {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 40;
+  width: max-content;
+}
+
 .liquid-glass-toggle {
   position: relative;
   overflow: hidden;
@@ -209,6 +224,124 @@ body {
 
 .liquid-glass-toggle:active {
   transform: translateY(0) scale(0.985);
+}
+
+.a11y-trigger {
+  --a11y-green: #176c2e;
+  --a11y-green-dark: #0f5222;
+  min-height: var(--pill-h-segmented);
+  height: var(--pill-h-segmented);
+  padding: 0 calc(var(--control-px) + 0.1rem);
+  font-size: 0.92rem;
+  font-weight: 620;
+  line-height: 1;
+  align-self: flex-end;
+  gap: 0.4rem;
+  border: 2px solid var(--a11y-green);
+  background: var(--a11y-green);
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(15, 82, 34, 0.2);
+}
+.a11y-trigger.open {
+  border-color: var(--a11y-green-dark);
+  background: var(--a11y-green-dark);
+  box-shadow: 0 3px 10px rgba(10, 58, 24, 0.26);
+}
+.a11y-trigger:hover {
+  border-color: var(--a11y-green-dark);
+  background: var(--a11y-green-dark);
+}
+.a11y-trigger:focus-visible {
+  outline: 3px solid rgba(0, 113, 227, 0.45);
+  outline-offset: 2px;
+}
+.a11y-panel {
+  position: absolute;
+  bottom: calc(100% + 0.42rem);
+  right: 0;
+  left: auto;
+  z-index: 40;
+  width: min(24rem, calc(100vw - 1.4rem));
+  min-width: 20rem;
+  padding: 0.72rem;
+  border-radius: 16px;
+  background: var(--layer-card);
+  display: grid;
+  gap: 0.42rem;
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 34px rgba(10, 16, 24, 0.16);
+  transform-origin: bottom right;
+}
+
+.a11y-panel.glass-panel {
+  position: absolute;
+}
+
+.a11y-panel-header {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.2rem 0.34rem 0.5rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 26%, transparent);
+  position: relative;
+}
+
+.a11y-panel-kicker {
+  margin: 0;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-1);
+}
+
+.a11y-panel-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--ink-0);
+}
+
+.a11y-options-list {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.a11y-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.72rem;
+  font-size: 0.85rem;
+  color: var(--ink-0);
+  border-radius: 12px;
+  padding: 0.46rem 0.52rem;
+  border: 1px solid color-mix(in srgb, var(--line) 14%, transparent);
+  background: color-mix(in srgb, var(--layer-card) 88%, #ffffff 12%);
+}
+
+.a11y-option:hover {
+  background: color-mix(in srgb, var(--ink-0) 6%, transparent);
+}
+
+.a11y-option-label {
+  font-weight: 620;
+}
+
+.a11y-option-meta {
+  min-width: 0;
+  display: grid;
+  gap: 0.12rem;
+}
+
+.a11y-option-hint {
+  color: var(--ink-1);
+  font-size: 0.74rem;
+  line-height: 1.2;
+}
+
+.a11y-option-toggle {
+  --pill-h-segmented: 2.2rem;
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 /* ==========================================================================
@@ -969,14 +1102,14 @@ h3 {
 
 .form-grid > .liquid-btn,
 .form-stack > .liquid-btn,
-.form-grid > button:not(.liquid-pill-item),
-.form-stack > button:not(.liquid-pill-item) {
+.form-grid > button:not(.liquid-pill-item):not(.liquid-glass-toggle),
+.form-stack > button:not(.liquid-pill-item):not(.liquid-glass-toggle) {
   justify-self: end;
   width: auto;
   max-width: min(100%, 20rem);
 }
 
-button:not(.liquid-pill-item),
+button:not(.liquid-pill-item):not(.liquid-glass-toggle),
 .liquid-btn {
   --btn-text: var(--ink-0);
   --btn-border: #000000;
@@ -1009,11 +1142,11 @@ button:not(.liquid-pill-item),
   transition: color 140ms ease, border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
 }
 
-button:not(.liquid-pill-item):hover,
+button:not(.liquid-pill-item):not(.liquid-glass-toggle):hover,
 .liquid-btn:hover,
-button:not(.liquid-pill-item):focus-visible,
+button:not(.liquid-pill-item):not(.liquid-glass-toggle):focus-visible,
 .liquid-btn:focus-visible,
-button:not(.liquid-pill-item):active,
+button:not(.liquid-pill-item):not(.liquid-glass-toggle):active,
 .liquid-btn:active {
   font-size: 0.9rem;
   color: var(--btn-text-hover);
@@ -1023,13 +1156,13 @@ button:not(.liquid-pill-item):active,
   transform: scale(1.06);
 }
 
-button:not(.liquid-pill-item):active,
+button:not(.liquid-pill-item):not(.liquid-glass-toggle):active,
 .liquid-btn:active {
   font-size: 0.9rem;
   transform: scale(1.03);
 }
 
-button:not(.liquid-pill-item):disabled,
+button:not(.liquid-pill-item):not(.liquid-glass-toggle):disabled,
 .liquid-btn:disabled {
   opacity: 0.78;
   cursor: not-allowed;
@@ -1046,11 +1179,11 @@ button:not(.liquid-pill-item):disabled,
   filter: none;
 }
 
-button:not(.liquid-pill-item):disabled:hover,
+button:not(.liquid-pill-item):not(.liquid-glass-toggle):disabled:hover,
 .liquid-btn:disabled:hover,
-button:not(.liquid-pill-item):disabled:focus-visible,
+button:not(.liquid-pill-item):not(.liquid-glass-toggle):disabled:focus-visible,
 .liquid-btn:disabled:focus-visible,
-button:not(.liquid-pill-item):disabled:active,
+button:not(.liquid-pill-item):not(.liquid-glass-toggle):disabled:active,
 .liquid-btn:disabled:active {
   border-color: transparent;
   background:
@@ -1064,7 +1197,7 @@ button:not(.liquid-pill-item):disabled:active,
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.14);
 }
 
-button:not(.liquid-pill-item).solid,
+button:not(.liquid-pill-item):not(.liquid-glass-toggle).solid,
 .liquid-btn.solid {
   --btn-text: var(--success);
   --btn-border: color-mix(in srgb, var(--success) 55%, #000000 45%);
@@ -1075,7 +1208,7 @@ button:not(.liquid-pill-item).solid,
   --btn-ring-hover: transparent;
 }
 
-button:not(.liquid-pill-item).btn-danger,
+button:not(.liquid-pill-item):not(.liquid-glass-toggle).btn-danger,
 .liquid-btn.btn-danger {
   --btn-text: var(--danger);
   --btn-border: color-mix(in srgb, var(--danger) 55%, #000000 45%);
@@ -1086,7 +1219,7 @@ button:not(.liquid-pill-item).btn-danger,
   --btn-ring-hover: transparent;
 }
 
-button:not(.liquid-pill-item).btn-warning,
+button:not(.liquid-pill-item):not(.liquid-glass-toggle).btn-warning,
 .liquid-btn.btn-warning {
   --btn-text: #9a6a00;
   --btn-border: color-mix(in srgb, #9a6a00 58%, #000000 42%);
@@ -1858,6 +1991,18 @@ textarea::placeholder {
     margin-left: 0;
   }
 
+  .a11y-panel {
+    right: 0;
+    left: auto;
+    min-width: 0;
+    width: min(24rem, calc(100vw - 1.4rem));
+  }
+
+  .floating-a11y-control {
+    right: 0.7rem;
+    bottom: 0.7rem;
+  }
+
   .liquid-nav {
     flex-wrap: wrap;
   }
@@ -1945,6 +2090,98 @@ textarea::placeholder {
 /* ==========================================================================
    Motion and Accessibility
    ========================================================================== */
+html.a11y-text-scaling {
+  font-size: calc(100% + (var(--a11y-text-scale, 0) * 5%));
+}
+
+html.a11y-text-scaling .top-chrome,
+html.a11y-dyslexia-font .top-chrome {
+  width: min(1180px, 100%);
+}
+
+html.a11y-text-scaling .liquid-nav,
+html.a11y-dyslexia-font .liquid-nav {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 0.45rem;
+}
+
+html.a11y-text-scaling .liquid-nav-main,
+html.a11y-dyslexia-font .liquid-nav-main {
+  width: 100%;
+  min-width: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+html.a11y-text-scaling .liquid-nav-main::-webkit-scrollbar,
+html.a11y-dyslexia-font .liquid-nav-main::-webkit-scrollbar {
+  display: none;
+}
+
+html.a11y-text-scaling .liquid-nav-main::before,
+html.a11y-dyslexia-font .liquid-nav-main::before {
+  pointer-events: none;
+}
+
+html.a11y-text-scaling .liquid-nav-tail,
+html.a11y-dyslexia-font .liquid-nav-tail {
+  width: auto;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  margin-left: 0;
+  min-width: max-content;
+}
+
+html.a11y-dyslexia-font body,
+html.a11y-dyslexia-font button,
+html.a11y-dyslexia-font input,
+html.a11y-dyslexia-font select,
+html.a11y-dyslexia-font textarea {
+  font-family: "Atkinson Hyperlegible", "Lexend", "Verdana", "Trebuchet MS", sans-serif;
+  letter-spacing: 0.015em;
+}
+
+html.a11y-dyslexia-font p,
+html.a11y-dyslexia-font li {
+  line-height: 1.65;
+}
+
+html.a11y-reduced-motion *,
+html.a11y-reduced-motion *::before,
+html.a11y-reduced-motion *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+html.a11y-reduced-motion .liquid-glass-toggle:hover,
+html.a11y-reduced-motion .liquid-glass-toggle:active,
+html.a11y-reduced-motion .liquid-btn:hover,
+html.a11y-reduced-motion .liquid-btn:focus-visible,
+html.a11y-reduced-motion .liquid-btn:active,
+html.a11y-reduced-motion button:not(.liquid-pill-item):not(.liquid-glass-toggle):hover,
+html.a11y-reduced-motion button:not(.liquid-pill-item):not(.liquid-glass-toggle):focus-visible,
+html.a11y-reduced-motion button:not(.liquid-pill-item):not(.liquid-glass-toggle):active {
+  transform: none !important;
+}
+
+html.a11y-reduced-motion .liquid-pill-item:hover .pill-label,
+html.a11y-reduced-motion .liquid-pill-item:focus-visible .pill-label,
+html.a11y-reduced-motion .liquid-pill-item.mapped-hover .pill-label,
+html.a11y-reduced-motion .liquid-pill-item.active .pill-label {
+  transform: none !important;
+}
+
+html.a11y-reduced-motion .liquid-nav-main .liquid-pill-bubble,
+html.a11y-reduced-motion .liquid-segmented .liquid-pill-bubble {
+  border-color: #000000 !important;
+}
+
 @keyframes waveDrift {
   0% {
     background-position: 0 0, 0 0;
