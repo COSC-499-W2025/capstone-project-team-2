@@ -186,6 +186,45 @@ class TestRenderCVDocumentCore(BaseRenderCVTest):
         with self.assertRaises(ValueError):
             cv.render_outputs(["docx"])
 
+    def test_render_outputs_ignores_legacy_top_level_metadata(self):
+        """Render payload strips unsupported top-level keys like created_at."""
+        cv = self.create_loaded_cv()
+        cv.data["created_at"] = "2026-03-16T16:53:21.805794Z"
+        output_dir = cv.yaml_file.parent / "rendercv_output"
+        output_base = f"{cv.data['cv']['name'].replace(' ', '_')}_CV"
+
+        def fake_run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=None):
+            yaml_text = cv.yaml_file.read_text()
+            self.assertNotIn("created_at", yaml_text)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            (output_dir / f"{output_base}.pdf").write_text("pdf")
+            return MagicMock(returncode=0, stderr="", stdout="")
+
+        with patch('subprocess.run', side_effect=fake_run):
+            status, outputs = cv.render_outputs(["pdf"])
+
+        self.assertEqual(status, "successfully rendered")
+        self.assertIn("pdf", outputs)
+
+    def test_render_outputs_sanitizes_cv_name_for_output_lookup(self):
+        """Output lookup handles cv.name values containing path separators."""
+        cv = self.create_loaded_cv()
+        cv.data["cv"]["name"] = "user (3/21/2026)"
+        output_dir = cv.yaml_file.parent / "rendercv_output"
+        output_base = f"{cv._sanitize_filename_component(cv.data['cv']['name'])}_CV"
+
+        def fake_run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=None):
+            output_dir.mkdir(parents=True, exist_ok=True)
+            (output_dir / f"{output_base}.pdf").write_text("pdf")
+            return MagicMock(returncode=0, stderr="", stdout="")
+
+        with patch('subprocess.run', side_effect=fake_run):
+            status, outputs = cv.render_outputs(["pdf"])
+
+        self.assertEqual(status, "successfully rendered")
+        self.assertIn("pdf", outputs)
+        self.assertTrue((output_dir / f"{cv.name}_Resume.pdf").exists())
+
 class TestRequiresDataDecorator(BaseRenderCVTest):
     """Test that all data-requiring operations raise ValueError when data not loaded."""
 
