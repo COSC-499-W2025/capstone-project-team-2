@@ -68,7 +68,7 @@ function makePortfolio(id) {
 
 async function installApiMocks(page, options = {}) {
   const state = {
-    config: options.config ?? { consented: { external: false }, "First Name": "", "Last Name": "" },
+    config: options.config ?? { consented: { external: false, "Data consent": true }, "First Name": "", "Last Name": "" },
     projects: options.projects ?? [],
     insights: options.insights ?? [],
     resumes: options.resumes ?? [],
@@ -234,7 +234,7 @@ test("generates and loads a resume in the workspace", async ({ page }) => {
 
   await page.goto("/workspace");
 
-  await expect(page.getByRole("heading", { name: /Resume \+ Portfolio Workspace/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Resume \+ Portfolio Builder/ })).toBeVisible();
   await page.getByLabel("Full name").fill("Jane Doe");
   await page.getByLabel("Theme").selectOption("sb2nov");
   await page.getByRole("button", { name: /Generate Resume/ }).click();
@@ -257,7 +257,7 @@ test("generates and loads a portfolio in the workspace", async ({ page }) => {
   await expect(page.locator(".workspace-page .settings-row").filter({ hasText: "Active ID" })).toContainText("Jane_Doe_portfolio_001");
 });
 
-test("public mode hides private-only navigation items and redirects hidden routes", async ({ page }) => {
+test("public mode toggle persists on upload route", async ({ page }) => {
   await installApiMocks(page, { insights: [makeInsight("sample-project")] });
 
   await page.goto("/upload");
@@ -265,8 +265,9 @@ test("public mode hides private-only navigation items and redirects hidden route
 
   await page.getByRole("button", { name: "P u b l i c", exact: true }).click();
 
-  await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("heading", { name: /Project Workspace/ })).toBeVisible();
+  await expect(page).toHaveURL(/\/upload$/);
+  await expect(page.getByRole("heading", { name: /Project Upload/ })).toBeVisible();
   await expect(page.locator('a[href="/dashboard"]')).toBeVisible();
   await expect(page.locator('a[href="/workspace"]')).toBeVisible();
+  expect(await page.evaluate(() => window.localStorage.getItem("viewMode"))).toBe("public");
 });
