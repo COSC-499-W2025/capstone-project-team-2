@@ -25,7 +25,7 @@ const links = [
   { href: "/upload", label: "Upload", modes: ["public", "private"], requires: "consent" },
   { href: "/projects", label: "Projects", modes: ["public", "private"], requires: "consent" },
   { href: "/dashboard", label: "Dashboard", modes: ["public", "private"], requires: "projects" },
-  { href: "/workspace", label: "Builder", modes: ["public", "private"], requires: "projects" },
+  { href: "/workspace", label: "Builder", modes: ["public", "private"], requires: "consent" },
   { href: "/representation", label: "Project Settings", modes: ["public", "private"], requires: "projects" }
 ];
 
@@ -35,7 +35,7 @@ const flowSteps = [
   { href: "/upload", label: "Upload", requires: "consent" },
   { href: "/projects", label: "Projects", requires: "consent" },
   { href: "/dashboard", label: "Dashboard", requires: "projects" },
-  { href: "/workspace", label: "Builder", requires: "projects" },
+  { href: "/workspace", label: "Builder", requires: "consent" },
   { href: "/representation", label: "Project Settings", requires: "projects" }
 ];
 
