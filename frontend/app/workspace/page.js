@@ -92,13 +92,12 @@ function toMonthValue(input) {
  * @param {{
  *   doc: any,
  *   onRender: (format: string) => void,
- *   activeRenderAction: string
+ *   isActionActive: (action: string) => boolean
  * }} props
  * @returns {JSX.Element}
  */
-function PublicDocumentPreview({ doc, onRender, activeRenderAction }) {
+function PublicDocumentPreview({ doc, onRender, isActionActive }) {
   if (!doc) return <p className="muted">Load a document ID to view the document preview.</p>;
-  const isAnyRenderActive = Boolean(activeRenderAction);
 
   return (
     <div className="grid two-col">
@@ -127,10 +126,10 @@ function PublicDocumentPreview({ doc, onRender, activeRenderAction }) {
               key={format}
               type="button"
               className="liquid-btn"
-              disabled={activeRenderAction === `download:${format}`}
+              disabled={isActionActive(`download:${format}`)}
               onClick={() => onRender(format)}
             >
-              {activeRenderAction === `download:${format}` ? "Rendering..." : `Download ${format.toUpperCase()}`}
+              {isActionActive(`download:${format}`) ? "Rendering..." : `Download ${format.toUpperCase()}`}
             </button>
           ))}
         </div>
@@ -1101,10 +1100,32 @@ function DocumentStudio({ kind, mode }) {
   const [savedProjects, setSavedProjects] = useState([]);
   const [savedDocs, setSavedDocs] = useState([]);
 
-  const [activeRenderAction, setActiveRenderAction] = useState("");
+  const [activeRenderActions, setActiveRenderActions] = useState([]);
+  const activeRenderActionsRef = useRef(new Set());
   const [documentPreviewUrl, setDocumentPreviewUrl] = useState(null);
   const [isThemePreviewOpen, setIsThemePreviewOpen] = useState(false);
   const [downloadName, setDownloadName] = useState("");
+
+  function startRenderAction(action) {
+    if (activeRenderActionsRef.current.has(action)) return false;
+    const next = new Set(activeRenderActionsRef.current);
+    next.add(action);
+    activeRenderActionsRef.current = next;
+    setActiveRenderActions(Array.from(next));
+    return true;
+  }
+
+  function endRenderAction(action) {
+    if (!activeRenderActionsRef.current.has(action)) return;
+    const next = new Set(activeRenderActionsRef.current);
+    next.delete(action);
+    activeRenderActionsRef.current = next;
+    setActiveRenderActions(Array.from(next));
+  }
+
+  function isActionActive(action) {
+    return activeRenderActions.includes(action);
+  }
 
   useEffect(() => {
     if (!message) return;
@@ -1350,8 +1371,8 @@ function DocumentStudio({ kind, mode }) {
    * @returns {Promise<void>}
    */
   async function onRender(format) {
-    if (!docId || activeRenderAction) return;
-    setActiveRenderAction(`download:${format}`);
+    const action = `download:${format}`;
+    if (!docId || !startRenderAction(action)) return;
     setError("");
     try {
       const blob = isResume ? await renderResume(docId, format) : await renderPortfolio(docId, format);
@@ -1361,13 +1382,13 @@ function DocumentStudio({ kind, mode }) {
     } catch (err) {
       setError(err.message || "Render failed.");
     } finally {
-      setActiveRenderAction("");
+      endRenderAction(action);
     }
   }
 
   async function onDocumentPreview() {
-    if (!docId || activeRenderAction) return;
-    setActiveRenderAction("preview:pdf");
+    const action = "preview:pdf";
+    if (!docId || !startRenderAction(action)) return;
     setError("");
     try {
       const blob = isResume ? await renderResume(docId, "pdf") : await renderPortfolio(docId, "pdf");
@@ -1376,7 +1397,7 @@ function DocumentStudio({ kind, mode }) {
     } catch (err) {
       setError(err.message || "Document preview failed.");
     } finally {
-      setActiveRenderAction("");
+      endRenderAction(action);
     }
   }
 
@@ -1465,7 +1486,7 @@ function DocumentStudio({ kind, mode }) {
             {message ? <p className="success">{message}</p> : null}
           </GlassCard>
 
-          <PublicDocumentPreview doc={doc} onRender={onRender} activeRenderAction={activeRenderAction} />
+          <PublicDocumentPreview doc={doc} onRender={onRender} isActionActive={isActionActive} />
         </div>
       </div>
     );
@@ -1665,7 +1686,7 @@ function DocumentStudio({ kind, mode }) {
                 </div>
                 <div className="button-row">
                   {(() => {
-                    const isPreviewRendering = activeRenderAction === "preview:pdf";
+                    const isPreviewRendering = isActionActive("preview:pdf");
                     return (
                       <>
                         <button type="button" className="liquid-btn solid btn-success" disabled={isPreviewRendering} onClick={onDocumentPreview}>
@@ -1676,10 +1697,10 @@ function DocumentStudio({ kind, mode }) {
                             key={format}
                             type="button"
                             className="liquid-btn solid btn-success"
-                            disabled={activeRenderAction === `download:${format}`}
+                            disabled={isActionActive(`download:${format}`)}
                             onClick={() => onRender(format)}
                           >
-                            {activeRenderAction === `download:${format}` ? "Rendering..." : `Download ${format.toUpperCase()}`}
+                            {isActionActive(`download:${format}`) ? "Rendering..." : `Download ${format.toUpperCase()}`}
                           </button>
                         ))}
                       </>
