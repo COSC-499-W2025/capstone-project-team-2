@@ -17,7 +17,7 @@ import Link from "next/link";
 export default function HomePage() {
   return (
     <LiquidShell
-      title="Project Workspace"
+      title="Project Console"
       subtitle="Analyze repositories, review insights, and build resume/portfolio artifacts from one interface."
     >
       <div className="page-stack">
@@ -28,12 +28,12 @@ export default function HomePage() {
               <li>Upload a project archive or folder.</li>
               <li>Review and manage analyzed projects.</li>
               <li>Use dashboard insights to prioritize content.</li>
-              <li>Build resume and portfolio documents in Workspace.</li>
+              <li>Build resume and portfolio documents in Builder.</li>
             </ol>
             <div className="button-row">
               <Link href="/config" className="liquid-btn solid">Go to Settings</Link>
               <Link href="/upload" className="liquid-btn">Go to Upload</Link>
-              <Link href="/workspace" className="liquid-btn">Go to Workspace</Link>
+              <Link href="/workspace" className="liquid-btn">Go to Builder</Link>
             </div>
           </GlassCard>
 

@@ -7,7 +7,7 @@ import "./globals.css";
  * contexts and browser tabs.
  */
 export const metadata = {
-  title: "Project Workspace UI",
+  title: "Project Console UI",
   description: "Next.js frontend for project analysis and document workflows"
 };
 
