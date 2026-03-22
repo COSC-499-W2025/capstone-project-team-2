@@ -128,10 +128,12 @@ class TestRenderCVDocumentCore(BaseRenderCVTest):
     def test_render_outputs_pdf_html_markdown(self):
         """Test multi-format rendering and renaming."""
         cv = self.create_loaded_cv()
-        output_dir = cv.yaml_file.parent / "rendercv_output"
         output_base = f"{cv.name}_CV"
+        output_dir_holder = {}
 
         def fake_run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=None):
+            output_dir = Path(cmd[cmd.index("--output-folder") + 1])
+            output_dir_holder["path"] = output_dir
             output_dir.mkdir(parents=True, exist_ok=True)
             (output_dir / f"{output_base}.pdf").write_text("pdf")
             (output_dir / f"{output_base}.html").write_text("html")
@@ -145,6 +147,7 @@ class TestRenderCVDocumentCore(BaseRenderCVTest):
         self.assertIn("pdf", outputs)
         self.assertIn("html", outputs)
         self.assertIn("markdown", outputs)
+        output_dir = output_dir_holder["path"]
         self.assertTrue((output_dir / f"{cv.name}_Resume.pdf").exists())
         self.assertTrue((output_dir / f"{cv.name}_Resume.html").exists())
         self.assertTrue((output_dir / f"{cv.name}_Resume.md").exists())
@@ -158,10 +161,12 @@ class TestRenderCVDocumentCore(BaseRenderCVTest):
     def test_render_outputs_html_only(self):
         """Test HTML-only rendering keeps HTML and removes markdown."""
         cv = self.create_loaded_cv()
-        output_dir = cv.yaml_file.parent / "rendercv_output"
         output_base = f"{cv.name}_CV"
+        output_dir_holder = {}
 
         def fake_run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=None):
+            output_dir = Path(cmd[cmd.index("--output-folder") + 1])
+            output_dir_holder["path"] = output_dir
             output_dir.mkdir(parents=True, exist_ok=True)
             (output_dir / f"{output_base}.html").write_text("html")
             (output_dir / f"{output_base}.md").write_text("md")
@@ -173,6 +178,7 @@ class TestRenderCVDocumentCore(BaseRenderCVTest):
         self.assertEqual(status, "successfully rendered")
         self.assertIn("html", outputs)
         self.assertNotIn("markdown", outputs)
+        output_dir = output_dir_holder["path"]
         self.assertFalse((output_dir / f"{output_base}.md").exists())
 
         called_cmd = mock_run.call_args[0][0]
@@ -190,12 +196,14 @@ class TestRenderCVDocumentCore(BaseRenderCVTest):
         """Render payload strips unsupported top-level keys like created_at."""
         cv = self.create_loaded_cv()
         cv.data["created_at"] = "2026-03-16T16:53:21.805794Z"
-        output_dir = cv.yaml_file.parent / "rendercv_output"
         output_base = f"{cv.data['cv']['name'].replace(' ', '_')}_CV"
+        output_dir_holder = {}
 
         def fake_run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=None):
             yaml_text = cv.yaml_file.read_text()
             self.assertNotIn("created_at", yaml_text)
+            output_dir = Path(cmd[cmd.index("--output-folder") + 1])
+            output_dir_holder["path"] = output_dir
             output_dir.mkdir(parents=True, exist_ok=True)
             (output_dir / f"{output_base}.pdf").write_text("pdf")
             return MagicMock(returncode=0, stderr="", stdout="")
@@ -210,10 +218,12 @@ class TestRenderCVDocumentCore(BaseRenderCVTest):
         """Output lookup handles cv.name values containing path separators."""
         cv = self.create_loaded_cv()
         cv.data["cv"]["name"] = "user (3/21/2026)"
-        output_dir = cv.yaml_file.parent / "rendercv_output"
         output_base = f"{cv._sanitize_filename_component(cv.data['cv']['name'])}_CV"
+        output_dir_holder = {}
 
         def fake_run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=None):
+            output_dir = Path(cmd[cmd.index("--output-folder") + 1])
+            output_dir_holder["path"] = output_dir
             output_dir.mkdir(parents=True, exist_ok=True)
             (output_dir / f"{output_base}.pdf").write_text("pdf")
             return MagicMock(returncode=0, stderr="", stdout="")
@@ -223,6 +233,7 @@ class TestRenderCVDocumentCore(BaseRenderCVTest):
 
         self.assertEqual(status, "successfully rendered")
         self.assertIn("pdf", outputs)
+        output_dir = output_dir_holder["path"]
         self.assertTrue((output_dir / f"{cv.name}_Resume.pdf").exists())
 
 class TestRequiresDataDecorator(BaseRenderCVTest):
