@@ -10,7 +10,8 @@
     "prestart": "node scripts/ensure-canonical-files.mjs",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "framer-motion": "^11.18.2",
@@ -19,5 +20,8 @@
     "react": "19.1.1",
     "react-dom": "19.1.1"
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
+  }
 }
