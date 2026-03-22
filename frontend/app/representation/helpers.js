@@ -33,9 +33,14 @@ export function normalizeRepresentationPreferences(data) {
  * @returns {string[]}
  */
 export function mergeProjectOrder(preferred, projects) {
+  const available = new Set(
+    (Array.isArray(projects) ? projects : [])
+      .map((project) => project?.project_name)
+      .filter(Boolean)
+  );
   const merged = [];
   for (const name of Array.isArray(preferred) ? preferred : []) {
-    if (name && !merged.includes(name)) merged.push(name);
+    if (name && available.has(name) && !merged.includes(name)) merged.push(name);
   }
   for (const project of Array.isArray(projects) ? projects : []) {
     const name = project?.project_name;
