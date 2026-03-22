@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   DEFAULT_REPRESENTATION_PREFERENCES,
   buildChronologyPayload,
+  filterAvailableProjects,
   formatChronologyInputs,
   mergeProjectOrder,
   normalizeRepresentationPreferences,
@@ -48,6 +49,18 @@ test("mergeProjectOrder drops preferred projects that no longer exist", () => {
   );
 
   assert.deepEqual(merged, ["Project B", "Project A"]);
+});
+
+test("filterAvailableProjects drops deleted showcase entries and preserves order", () => {
+  const filtered = filterAvailableProjects(
+    ["Deleted Project", "Project B", "Project A", "Project B"],
+    [
+      { project_name: "Project A" },
+      { project_name: "Project B" }
+    ]
+  );
+
+  assert.deepEqual(filtered, ["Project B", "Project A"]);
 });
 
 test("parseListInput trims values and removes empty entries", () => {

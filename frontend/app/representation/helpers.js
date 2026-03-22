@@ -50,6 +50,28 @@ export function mergeProjectOrder(preferred, projects) {
 }
 
 /**
+ * Filters a saved project-name list against currently available projects.
+ *
+ * Preserves input order while dropping deleted/missing names and duplicates.
+ *
+ * @param {string[]} selected
+ * @param {Array<{ project_name?: string }>} projects
+ * @returns {string[]}
+ */
+export function filterAvailableProjects(selected, projects) {
+  const available = new Set(
+    (Array.isArray(projects) ? projects : [])
+      .map((project) => project?.project_name)
+      .filter(Boolean)
+  );
+  const filtered = [];
+  for (const name of Array.isArray(selected) ? selected : []) {
+    if (name && available.has(name) && !filtered.includes(name)) filtered.push(name);
+  }
+  return filtered;
+}
+
+/**
  * Converts a comma-separated skill input into a normalized array.
  *
  * @param {string} value
