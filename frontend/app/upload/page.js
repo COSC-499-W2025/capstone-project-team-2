@@ -313,7 +313,6 @@ return (
           }}
           options={[
             { value: "zip",    label: "ZIP Upload"    },
-            { value: "folder", label: "Folder Upload" },
             { value: "batch",  label: "Batch Upload"  },
           ]}
         />

@@ -1,6 +1,6 @@
 import shutil
 import zipfile
-import os
+import os, time
 import tempfile
 from pathlib import Path
 from fastapi import UploadFile
@@ -89,7 +89,17 @@ class extractInfo:
         temp_file_path = self._build_extraction_dir(file_name)
         with zipfile.ZipFile(file, 'r') as zip_ref:
             zip_ref.extractall(temp_file_path)
+        self.RestoreTimestampsOfZipContents(zip_file, temp_file_path)
         return temp_file_path
+
+    def RestoreTimestampsOfZipContents(self, zipname, extract_dir):
+        for f in zipfile.ZipFile(zipname, 'r').infolist():
+            # path to this extracted f-item
+            fullpath = os.path.join(extract_dir, f.filename)
+            # still need to adjust the dt o/w item will have the current dt
+            date_time = time.mktime(f.date_time + (0, 0, -1))
+            # update dt
+            os.utime(fullpath, (date_time, date_time))
 
     def verifyZIP(self, zip_file: Path | UploadFile) -> str | None:
         """

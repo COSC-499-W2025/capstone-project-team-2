@@ -12,17 +12,14 @@ class TestDurationEstimator(unittest.TestCase):
         "type": "DIR",
         "children": [{
             "type": "FILE",
-            "created": datetime.datetime(2003, 11, 22),
             "modified": datetime.datetime(2025, 11, 22)
         }, {
             "type": "DIR",
             "children": [{
                 "type": "FILE",
-                "created": datetime.datetime(2001, 9, 1),
                 "modified": datetime.datetime(2025, 9, 1)
             }, {
                 "type": "FILE",
-                "created": datetime.datetime(2000, 1, 1),
                 "modified": datetime.datetime(2025, 1, 1)
             }]
         }]
@@ -34,7 +31,7 @@ class TestDurationEstimator(unittest.TestCase):
     }
 
     correct_end_date = datetime.datetime(2025, 11, 22) #Correct latest last modified date of mock dictionary
-    correct_start_date = datetime.datetime(2000, 1, 1)  #Correct earliest creation date of mock dictionary
+    correct_start_date = datetime.datetime(2025, 1, 1)  #Correct earliest creation date of mock dictionary
     correct_duration = correct_end_date - correct_start_date    #Correct project duration of mock dictionary
 
     def setUp(self):
@@ -82,13 +79,11 @@ class TestDurationEstimator(unittest.TestCase):
             "type": "DIR",
             "children": [{
                 "type": "FILE",
-                "created": None,
                 "modified": latest_mod
             }, {
                 "type": "DIR",
                 "children": [{
                     "type": "FILE",
-                    "created": None,
                     "modified": earliest_mod
                 }]
             }]
@@ -98,32 +93,6 @@ class TestDurationEstimator(unittest.TestCase):
         self.assertEqual(estimator.end_estimate, latest_mod)
         self.assertEqual(estimator.get_duration(), latest_mod - earliest_mod)
 
-    def test_end_uses_latest_available_timestamp(self):
-        '''
-        Tests fallback when modified dates are missing: end should use latest created date.
-        '''
-        earliest_created = datetime.datetime(2019, 5, 10)
-        latest_created = datetime.datetime(2022, 12, 25)
-        missing_modified = {
-            "type": "DIR",
-            "children": [{
-                "type": "FILE",
-                "created": earliest_created,
-                "modified": None
-            }, {
-                "type": "DIR",
-                "children": [{
-                    "type": "FILE",
-                    "created": latest_created,
-                    "modified": None
-                }]
-            }]
-        }
-        estimator = Project_Duration_Estimator(missing_modified)
-        self.assertEqual(estimator.start_estimate, earliest_created)
-        self.assertEqual(estimator.end_estimate, latest_created)
-        self.assertEqual(estimator.get_duration(), latest_created - earliest_created)
-
     def test_no_dates_raises_exception(self):
         '''
         Tests that exception is raised when no created or modified dates exist.
@@ -132,7 +101,6 @@ class TestDurationEstimator(unittest.TestCase):
             "type": "DIR",
             "children": [{
                 "type": "FILE",
-                "created": None,
                 "modified": None
             }]
         }
@@ -143,14 +111,16 @@ class TestDurationEstimator(unittest.TestCase):
         '''
         Tests human-readable duration format without microseconds.
         '''
-        created = datetime.datetime(2026, 1, 1, 0, 0, 0)
-        modified = datetime.datetime(2026, 1, 2, 3, 4, 5)
+        early = datetime.datetime(2026, 1, 1, 0, 0, 0)
+        late = datetime.datetime(2026, 1, 2, 3, 4, 5)
         mock = {
             "type": "DIR",
             "children": [{
                 "type": "FILE",
-                "created": created,
-                "modified": modified
+                "modified": early
+            }, {
+                "type": "FILE",
+                "modified": late
             }]
         }
         estimator = Project_Duration_Estimator(mock)
@@ -160,14 +130,16 @@ class TestDurationEstimator(unittest.TestCase):
         '''
         Tests human-readable duration for sub-second deltas.
         '''
-        created = datetime.datetime(2026, 1, 1, 0, 0, 0, 0)
-        modified = datetime.datetime(2026, 1, 1, 0, 0, 0, 500)
+        early = datetime.datetime(2026, 1, 1, 0, 0, 0, 0)
+        late = datetime.datetime(2026, 1, 1, 0, 0, 0, 500)
         mock = {
             "type": "DIR",
             "children": [{
                 "type": "FILE",
-                "created": created,
-                "modified": modified
+                "modified": early
+            }, {
+                "type": "FILE",
+                "modified": late
             }]
         }
         estimator = Project_Duration_Estimator(mock)
@@ -182,7 +154,6 @@ class TestDurationEstimator(unittest.TestCase):
             "type": "DIR",
             "children": [{
                 "type": "FILE",
-                "created": same,
                 "modified": same
             }]
         }
@@ -199,14 +170,16 @@ class TestDurationEstimator(unittest.TestCase):
         '''
         Ensures human-readable duration does not include microseconds.
         '''
-        created = datetime.datetime(2026, 1, 1, 0, 0, 0, 0)
-        modified = datetime.datetime(2026, 1, 1, 0, 0, 1, 900000)
+        early = datetime.datetime(2026, 1, 1, 0, 0, 0, 0)
+        late = datetime.datetime(2026, 1, 1, 0, 0, 1, 900000)
         mock = {
             "type": "DIR",
             "children": [{
                 "type": "FILE",
-                "created": created,
-                "modified": modified
+                "modified": early
+            }, {
+                "type": "FILE",
+                "modified": late
             }]
         }
         estimator = Project_Duration_Estimator(mock)
