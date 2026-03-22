@@ -87,6 +87,36 @@ function toMonthValue(input) {
 }
 
 /**
+ * Creates a user-friendly default download filename.
+ *
+ * Format: <Name>_<Resume|Portfolio>_<YYYY-MM-DD_HHmm>
+ *
+ * @param {{ kind: "resume" | "portfolio", docId: string, doc: any }} args
+ * @returns {string}
+ */
+function buildDefaultDownloadName({ kind, docId, doc }) {
+  const label = kind === "resume" ? "Resume" : "Portfolio";
+  const rawName = doc?.contact?.name || docId || "Document";
+  const safeName = String(rawName)
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/[<>:"/\\|?*]+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  const baseName = safeName || "Document";
+
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  const hh = String(now.getHours()).padStart(2, "0");
+  const mi = String(now.getMinutes()).padStart(2, "0");
+  const stamp = `${yyyy}-${mm}-${dd}_${hh}${mi}`;
+
+  return `${baseName}_${label}_${stamp}`;
+}
+
+/**
  * Public-mode document preview section with read-only data and export actions.
  *
  * @param {{
@@ -1377,7 +1407,7 @@ function DocumentStudio({ kind, mode }) {
     try {
       const blob = isResume ? await renderResume(docId, format) : await renderPortfolio(docId, format);
       const ext = format === "markdown" ? "md" : format;
-      const base = downloadName.trim() || `${kind}_${docId}`;
+      const base = downloadName.trim() || buildDefaultDownloadName({ kind, docId, doc });
       downloadBlob(blob, `${base}.${ext}`);
     } catch (err) {
       setError(err.message || "Render failed.");
@@ -1679,7 +1709,7 @@ function DocumentStudio({ kind, mode }) {
                       className="settings-control"
                       value={downloadName}
                       onChange={(e) => setDownloadName(e.target.value)}
-                      placeholder={`${kind}_${docId} (default)`}
+                      placeholder={`${buildDefaultDownloadName({ kind, docId, doc })} (default)`}
                       style={{ minWidth: "300px" }}
                     />
                   </label>
