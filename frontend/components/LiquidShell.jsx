@@ -39,6 +39,13 @@ const flowSteps = [
   { href: "/representation", label: "Project Settings", requires: "projects" }
 ];
 
+const flowPhases = [
+  { label: "Setup", start: 0, end: 1 },
+  { label: "Analyze", start: 2, end: 3 },
+  { label: "Build", start: 4, end: 5 },
+  { label: "Refine", start: 6, end: 6 }
+];
+
 function hasConfiguredConsent(config) {
   const external = config?.consented?.external;
   const dataConsent = config?.consented?.["Data consent"] ?? config?.consented?.data_consent;
@@ -157,6 +164,14 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
     }
     return null;
   }, [currentStepIndex, consentReady, projectsReady]);
+  const progressPercent = currentStepIndex >= 0
+    ? ((currentStepIndex + 1) / flowSteps.length) * 100
+    : 0;
+  const flowBlocked = currentStepIndex >= 0 && currentStepIndex < flowSteps.length - 1 && !nextStep;
+  const blockedReason = !consentReady
+    ? "Complete Settings first."
+    : "Upload and analyze at least one project first.";
+  const activePhaseIndex = flowPhases.findIndex((phase) => currentStepIndex >= phase.start && currentStepIndex <= phase.end);
 
   return (
     <div className="liquid-scene">
@@ -194,40 +209,50 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
           <aside className="header-side-panel" aria-label="Workflow summary">
             {currentStep ? (
               <div className="flow-banner">
+                <span className="mode-pill flow-step-pill">
+                  Step {currentStepIndex + 1} of {flowSteps.length}
+                </span>
                 {nextStep ? (
                   <Link href={nextStep.href} className="liquid-btn solid flow-next-btn">
                     Continue to {nextStep.label}
                   </Link>
+                ) : flowBlocked ? (
+                  <span className="liquid-btn flow-next-btn flow-next-blocked" aria-disabled="true">
+                    Continue unavailable
+                  </span>
                 ) : (
                   <span className="mode-pill">Workflow complete</span>
                 )}
               </div>
             ) : null}
+            {flowBlocked ? <p className="flow-next-hint">{blockedReason}</p> : null}
             {flowError ? <p className="muted">{flowError}</p> : null}
           </aside>
         </header>
 
         <section className="content-wrap">
-          <nav className="flow-strip" aria-label="Workflow steps">
-            {flowSteps.map((step, index) => (
-              isRouteUnlocked(step) ? (
-                <Link
-                  key={step.href}
-                  href={step.href}
-                  className={`flow-step ${pathname === step.href ? "active" : ""}`.trim()}
-                  aria-current={pathname === step.href ? "page" : undefined}
+          <div className="flow-phase-strip" role="presentation">
+            {flowPhases.map((phase, index) => {
+              const complete = currentStepIndex > phase.end;
+              const active = index === activePhaseIndex;
+              const phaseStartUnlocked = isRouteUnlocked(flowSteps[phase.start]);
+              const locked = !complete && !active && !phaseStartUnlocked;
+              const marker = complete ? "✓" : (active ? "●" : String(index + 1));
+
+              return (
+                <span
+                  key={phase.label}
+                  className={`flow-phase-chip ${active ? "active" : ""} ${complete ? "complete" : ""} ${locked ? "locked" : ""}`.trim()}
                 >
-                  <span className="flow-step-index">{index + 1}</span>
-                  <span className="flow-step-label">{step.label}</span>
-                </Link>
-              ) : (
-                <span key={step.href} className="flow-step locked" aria-disabled="true">
-                  <span className="flow-step-index">{index + 1}</span>
-                  <span className="flow-step-label">{step.label}</span>
+                  <span className="flow-phase-marker">{marker}</span>
+                  <span>{phase.label}</span>
                 </span>
-              )
-            ))}
-          </nav>
+              );
+            })}
+          </div>
+          <div className="flow-progress-rail" aria-hidden="true">
+            <span className="flow-progress-fill" style={{ width: `${progressPercent}%` }} />
+          </div>
           {children}
         </section>
       </div>
