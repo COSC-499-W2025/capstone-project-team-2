@@ -89,11 +89,16 @@ function toMonthValue(input) {
 /**
  * Public-mode document preview section with read-only data and export actions.
  *
- * @param {{ doc: any, onRender: (format: string) => void, rendering: boolean }} props
+ * @param {{
+ *   doc: any,
+ *   onRender: (format: string) => void,
+ *   activeRenderAction: string
+ * }} props
  * @returns {JSX.Element}
  */
-function PublicDocumentPreview({ doc, onRender, rendering }) {
+function PublicDocumentPreview({ doc, onRender, activeRenderAction }) {
   if (!doc) return <p className="muted">Load a document ID to view the document preview.</p>;
+  const isAnyRenderActive = Boolean(activeRenderAction);
 
   return (
     <div className="grid two-col">
@@ -118,8 +123,14 @@ function PublicDocumentPreview({ doc, onRender, rendering }) {
       <GlassCard title="Download">
         <div className="button-row">
           {FORMATS.map((format) => (
-            <button key={format} type="button" className="liquid-btn" disabled={rendering} onClick={() => onRender(format)}>
-              {rendering ? "Rendering..." : `Download ${format.toUpperCase()}`}
+            <button
+              key={format}
+              type="button"
+              className="liquid-btn"
+              disabled={activeRenderAction === `download:${format}`}
+              onClick={() => onRender(format)}
+            >
+              {activeRenderAction === `download:${format}` ? "Rendering..." : `Download ${format.toUpperCase()}`}
             </button>
           ))}
         </div>
@@ -1090,7 +1101,7 @@ function DocumentStudio({ kind, mode }) {
   const [savedProjects, setSavedProjects] = useState([]);
   const [savedDocs, setSavedDocs] = useState([]);
 
-  const [rendering, setRendering] = useState(false);
+  const [activeRenderAction, setActiveRenderAction] = useState("");
   const [documentPreviewUrl, setDocumentPreviewUrl] = useState(null);
   const [isThemePreviewOpen, setIsThemePreviewOpen] = useState(false);
   const [downloadName, setDownloadName] = useState("");
@@ -1339,8 +1350,8 @@ function DocumentStudio({ kind, mode }) {
    * @returns {Promise<void>}
    */
   async function onRender(format) {
-    if (!docId) return;
-    setRendering(true);
+    if (!docId || activeRenderAction) return;
+    setActiveRenderAction(`download:${format}`);
     setError("");
     try {
       const blob = isResume ? await renderResume(docId, format) : await renderPortfolio(docId, format);
@@ -1350,13 +1361,13 @@ function DocumentStudio({ kind, mode }) {
     } catch (err) {
       setError(err.message || "Render failed.");
     } finally {
-      setRendering(false);
+      setActiveRenderAction("");
     }
   }
 
   async function onDocumentPreview() {
-    if (!docId) return;
-    setRendering(true);
+    if (!docId || activeRenderAction) return;
+    setActiveRenderAction("preview:pdf");
     setError("");
     try {
       const blob = isResume ? await renderResume(docId, "pdf") : await renderPortfolio(docId, "pdf");
@@ -1365,7 +1376,7 @@ function DocumentStudio({ kind, mode }) {
     } catch (err) {
       setError(err.message || "Document preview failed.");
     } finally {
-      setRendering(false);
+      setActiveRenderAction("");
     }
   }
 
@@ -1454,7 +1465,7 @@ function DocumentStudio({ kind, mode }) {
             {message ? <p className="success">{message}</p> : null}
           </GlassCard>
 
-          <PublicDocumentPreview doc={doc} onRender={onRender} rendering={rendering} />
+          <PublicDocumentPreview doc={doc} onRender={onRender} activeRenderAction={activeRenderAction} />
         </div>
       </div>
     );
@@ -1553,8 +1564,13 @@ function DocumentStudio({ kind, mode }) {
               </div>
             </div>
             <div className="button-row">
-              <button type="button" className="liquid-btn" onClick={() => { setDocId(""); setDoc(null); setIdInput(""); }}>
-                Close
+              <button
+                type="button"
+                className="liquid-btn"
+                disabled={!docId}
+                onClick={() => { setDocId(""); setDoc(null); setIdInput(""); }}
+              >
+                Clear Active
               </button>
               <button type="button" className="liquid-btn solid btn-danger" disabled={!docId || busy} onClick={onDelete}>
                 Delete Active
@@ -1648,14 +1664,27 @@ function DocumentStudio({ kind, mode }) {
                   </label>
                 </div>
                 <div className="button-row">
-                  <button type="button" className="liquid-btn solid btn-success" disabled={rendering} onClick={onDocumentPreview}>
-                    {rendering ? "Rendering..." : "Preview PDF"}
-                  </button>
-                  {FORMATS.map((format) => (
-                    <button key={format} type="button" className="liquid-btn solid btn-success" disabled={rendering} onClick={() => onRender(format)}>
-                      {rendering ? "Rendering..." : `Download ${format.toUpperCase()}`}
-                    </button>
-                  ))}
+                  {(() => {
+                    const isPreviewRendering = activeRenderAction === "preview:pdf";
+                    return (
+                      <>
+                        <button type="button" className="liquid-btn solid btn-success" disabled={isPreviewRendering} onClick={onDocumentPreview}>
+                          {isPreviewRendering ? "Rendering..." : "Preview PDF"}
+                        </button>
+                        {FORMATS.map((format) => (
+                          <button
+                            key={format}
+                            type="button"
+                            className="liquid-btn solid btn-success"
+                            disabled={activeRenderAction === `download:${format}`}
+                            onClick={() => onRender(format)}
+                          >
+                            {activeRenderAction === `download:${format}` ? "Rendering..." : `Download ${format.toUpperCase()}`}
+                          </button>
+                        ))}
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             </GlassCard>
