@@ -1733,8 +1733,8 @@ export default function WorkspacePage() {
 
   return (
     <LiquidShell
-      title="Resume + Portfolio Workspace"
-      subtitle="Create, edit, preview, and export resume or portfolio documents with public/private access modes."
+      title="Resume + Portfolio Builder"
+      subtitle="Create, edit, preview, and export your resume and portfolio documents."
     >
       <div className="page-stack workspace-page">
         <LiquidSegmentedControl
