@@ -86,6 +86,7 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
   const [hasHydratedA11y, setHasHydratedA11y] = useState(false);
   const a11yMenuRef = useRef(null);
   const a11yTriggerRef = useRef(null);
+  const hasOpenedA11yRef = useRef(false);
 
   function clampTextScale(value) {
     if (!Number.isFinite(value)) return 0;
@@ -171,10 +172,10 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
 
   useEffect(() => {
     if (!isA11yMenuOpen) {
-      if (a11yTriggerRef.current) a11yTriggerRef.current.focus();
+      if (hasOpenedA11yRef.current && a11yTriggerRef.current) a11yTriggerRef.current.focus();
       return undefined;
     }
-
+    hasOpenedA11yRef.current = true;
     const panelEl = document.getElementById("a11y-panel");
     if (!panelEl) return undefined;
 
@@ -207,8 +208,9 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
     document.addEventListener("keydown", onTrapTab);
     return () => document.removeEventListener("keydown", onTrapTab);
   }, [isA11yMenuOpen]);
-    let ignore = false;
 
+  useEffect(() => {
+    let ignore = false;
     async function loadFlowReadiness() {
       setFlowLoading(true);
       setFlowError("");
