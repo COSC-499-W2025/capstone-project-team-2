@@ -14,6 +14,17 @@ import { GlassCard, LiquidShell } from "../../components/LiquidShell";
 import { LiquidSegmentedControl } from "../../components/LiquidPillControl";
 import { analyzeUploadedProject, fetchProjectInsights, uploadProjectZip } from "../../lib/api";
 
+function AnalysisProgress() {
+  return (
+    <div className="analysis-progress" aria-live="polite">
+      <div className="analysis-progress-track" aria-hidden="true">
+        <div className="analysis-progress-fill" />
+      </div>
+      <p className="muted analysis-progress-label">Analyzing project. This can take a moment.</p>
+    </div>
+  );
+}
+
 /**
  * Renders the analysis summary widgets once a project insight object
  * is available from the backend pipeline.
@@ -234,6 +245,7 @@ export default function UploadPage() {
                 </strong>
               </div>
             </div>
+            {loading ? <AnalysisProgress /> : null}
             {error ? <p className="error">{error}</p> : null}
             {success ? <p className="success">{success}</p> : (!loading ? <p className="muted">No analysis run yet.</p> : null)}
           </GlassCard>

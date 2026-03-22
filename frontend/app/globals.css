@@ -1090,6 +1090,42 @@ input[type="radio"] {
   color: var(--ink-1);
 }
 
+.analysis-progress {
+  margin-top: 0.75rem;
+}
+
+.analysis-progress-track {
+  position: relative;
+  width: 100%;
+  height: 0.65rem;
+  overflow: hidden;
+  border-radius: 999px;
+  border: 1px solid rgba(31, 143, 58, 0.24);
+  background: rgba(31, 143, 58, 0.1);
+}
+
+.analysis-progress-fill {
+  position: absolute;
+  inset: 0 auto 0 -42%;
+  width: 42%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(31, 143, 58, 0.18), rgba(31, 143, 58, 0.75), rgba(31, 143, 58, 0.18));
+  animation: analysis-progress-slide 1.2s ease-in-out infinite;
+}
+
+.analysis-progress-label {
+  margin-top: 0.45rem;
+}
+
+@keyframes analysis-progress-slide {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(340%);
+  }
+}
+
 .heatmap-table-wrap {
   overflow-x: auto;
 }
