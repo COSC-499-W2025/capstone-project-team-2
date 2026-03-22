@@ -140,6 +140,7 @@ function GlyphLabel({ label, bubbleX, bubbleW, railRef, itemRefs, itemIndex, act
  *
  * @param {Array<{label?: string}>} items
  * @param {number | null} selectedIndex
+ * @param {boolean} [reduceMotion=false]
  * @returns {{
  *   railRef: import("react").MutableRefObject<HTMLElement | null>,
  *   itemRefs: import("react").MutableRefObject<Array<HTMLElement | null>>,
@@ -153,7 +154,7 @@ function GlyphLabel({ label, bubbleX, bubbleW, railRef, itemRefs, itemIndex, act
  *   setHoverIndex: (index: number | null) => void
  * }}
  */
-function useBubbleController(items, selectedIndex) {
+function useBubbleController(items, selectedIndex, reduceMotion = false) {
   const railRef = useRef(null);
   const itemRefs = useRef([]);
   const hoverIndexRef = useRef(null);
@@ -205,8 +206,31 @@ function useBubbleController(items, selectedIndex) {
   useEffect(() => {
     if (selectedIndex == null) return;
     const targetIndex = hoverIndex == null ? selectedIndex : hoverIndex;
-    moveToIndex(targetIndex, false);
-  }, [hoverIndex, selectedIndex]);
+    moveToIndex(targetIndex, reduceMotion);
+  }, [hoverIndex, selectedIndex, reduceMotion]);
+
+  useLayoutEffect(() => {
+    const railEl = railRef.current;
+    if (!railEl) return undefined;
+    const syncBubblePosition = () => {
+      if (selectedIndex == null) return;
+      const targetIndex = hoverIndexRef.current == null ? selectedIndex : hoverIndexRef.current;
+      moveToIndex(targetIndex, true);
+    };
+    const resizeObserver = new ResizeObserver(() => {
+      syncBubblePosition();
+    });
+    resizeObserver.observe(railEl);
+    itemRefs.current.forEach((itemEl) => {
+      if (itemEl) resizeObserver.observe(itemEl);
+    });
+    syncBubblePosition();
+    window.addEventListener("resize", syncBubblePosition);
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", syncBubblePosition);
+    };
+  }, [items.length, selectedIndex]);
 
   /**
    * Tracks pointer position across the rail and chooses nearest item center
@@ -216,6 +240,7 @@ function useBubbleController(items, selectedIndex) {
    * @returns {void}
    */
   const onPointerMove = (event) => {
+    if (reduceMotion) return;
     const railEl = railRef.current;
     if (!railEl) return;
 
@@ -283,14 +308,15 @@ function useBubbleController(items, selectedIndex) {
  *   items: Array<{href: string, label: string}>,
  *   activeHref: string,
  *   trailingContent?: import("react").ReactNode,
+ *   reducedMotion?: boolean,
  *   className?: string
  * }} props
  * @returns {JSX.Element}
  */
-export function LiquidPillNav({ items, activeHref, trailingContent = null, className = "" }) {
+export function LiquidPillNav({ items, activeHref, trailingContent = null, reducedMotion = false, className = "" }) {
   const matchedIndex = items.findIndex((item) => item.href === activeHref);
   const selectedIndex = matchedIndex >= 0 ? matchedIndex : null;
-  const { railRef, itemRefs, bubbleX, bubbleW, leadEdge, trailEdge, isPositioned, hoverIndex, onPointerMove, onPointerLeave, setHoverIndex } = useBubbleController(items, selectedIndex);
+  const { railRef, itemRefs, bubbleX, bubbleW, leadEdge, trailEdge, isPositioned, hoverIndex, onPointerMove, onPointerLeave, setHoverIndex } = useBubbleController(items, selectedIndex, reducedMotion);
 
   return (
     <nav className={`liquid-pill-rail liquid-nav ${className}`.trim()}>
@@ -335,17 +361,26 @@ export function LiquidPillNav({ items, activeHref, trailingContent = null, class
  *   options: Array<{value: string, label: string}>,
  *   value: string,
  *   onChange: (value: string) => void,
+ *   reducedMotion?: boolean,
+ *   ariaLabel?: string,
  *   className?: string
  * }} props
  * @returns {JSX.Element}
  */
-export function LiquidSegmentedControl({ options, value, onChange, className = "" }) {
+export function LiquidSegmentedControl({ options, value, onChange, reducedMotion = false, ariaLabel, className = "" }) {
   const matchedIndex = options.findIndex((item) => item.value === value);
   const selectedIndex = matchedIndex >= 0 ? matchedIndex : 0;
-  const { railRef, itemRefs, bubbleX, bubbleW, leadEdge, trailEdge, isPositioned, hoverIndex, onPointerMove, onPointerLeave, setHoverIndex } = useBubbleController(options, selectedIndex);
+  const { railRef, itemRefs, bubbleX, bubbleW, leadEdge, trailEdge, isPositioned, hoverIndex, onPointerMove, onPointerLeave, setHoverIndex } = useBubbleController(options, selectedIndex, reducedMotion);
 
   return (
-    <div className={`liquid-pill-rail liquid-segmented ${className}`.trim()} ref={railRef} onPointerMove={onPointerMove} onPointerLeave={onPointerLeave}>
+    <div
+      className={`liquid-pill-rail liquid-segmented ${className}`.trim()}
+      ref={railRef}
+      onPointerMove={onPointerMove}
+      onPointerLeave={onPointerLeave}
+      role="group"
+      aria-label={ariaLabel}
+    >
       <motion.span
         className="liquid-pill-bubble"
         style={{ x: bubbleX, width: bubbleW, opacity: isPositioned ? 1 : 0, "--lead-edge": leadEdge, "--trail-edge": trailEdge }}
