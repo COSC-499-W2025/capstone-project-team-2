@@ -25,18 +25,18 @@ const links = [
   { href: "/upload", label: "Upload", modes: ["public", "private"], requires: "consent" },
   { href: "/projects", label: "Projects", modes: ["public", "private"], requires: "consent" },
   { href: "/dashboard", label: "Dashboard", modes: ["public", "private"], requires: "projects" },
-  { href: "/workspace", label: "Workspace", modes: ["public", "private"], requires: "projects" },
-  { href: "/representation", label: "Representation", modes: ["public", "private"], requires: "projects" }
+  { href: "/workspace", label: "Builder", modes: ["public", "private"], requires: "projects" },
+  { href: "/representation", label: "Project Settings", modes: ["public", "private"], requires: "projects" }
 ];
 
 const flowSteps = [
   { href: "/", label: "Start", requires: "none" },
-  { href: "/config", label: "Consent", requires: "none" },
+  { href: "/config", label: "Settings", requires: "none" },
   { href: "/upload", label: "Upload", requires: "consent" },
-  { href: "/projects", label: "Review", requires: "consent" },
-  { href: "/dashboard", label: "Insights", requires: "projects" },
-  { href: "/workspace", label: "Build Docs", requires: "projects" },
-  { href: "/representation", label: "Tune Output", requires: "projects" }
+  { href: "/projects", label: "Projects", requires: "consent" },
+  { href: "/dashboard", label: "Dashboard", requires: "projects" },
+  { href: "/workspace", label: "Builder", requires: "projects" },
+  { href: "/representation", label: "Project Settings", requires: "projects" }
 ];
 
 function hasConfiguredConsent(config) {
@@ -167,7 +167,7 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
           className="top-chrome"
           trailingContent={
             <div className="top-right-slot top-actions">
-              <div className="nav-mode-toggle" role="group" aria-label="Workspace access mode">
+              <div className="nav-mode-toggle" role="group" aria-label="View mode">
                 <LiquidSegmentedControl
                   options={[
                     { value: "private", label: "Private" },
