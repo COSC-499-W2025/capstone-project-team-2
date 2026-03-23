@@ -244,7 +244,7 @@ function useBubbleController(items, selectedIndex, reduceMotion = false) {
     const railEl = railRef.current;
     if (!railEl) return;
 
-    const x = event.clientX - railEl.getBoundingClientRect().left;
+    const x = event.clientX - railEl.getBoundingClientRect().left + railEl.scrollLeft;
     let nearest = selectedIndex ?? 0;
     let nearestDistance = Number.POSITIVE_INFINITY;
 
@@ -383,7 +383,7 @@ export function LiquidSegmentedControl({ options, value, onChange, reducedMotion
       ref={railRef}
       onPointerMove={onPointerMove}
       onPointerLeave={onPointerLeave}
-      role="group"
+      role="radiogroup"
       aria-label={ariaLabel}
     >
       <motion.span
@@ -395,6 +395,8 @@ export function LiquidSegmentedControl({ options, value, onChange, reducedMotion
         <button
           key={item.value}
           type="button"
+          role="radio"
+          aria-checked={index === selectedIndex}
           className={`liquid-pill-item ${index === selectedIndex ? "active" : ""} ${hoverIndex != null && index === hoverIndex ? "mapped-hover" : ""}`.trim()}
           ref={(el) => {
             itemRefs.current[index] = el;
