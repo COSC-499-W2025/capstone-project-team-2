@@ -13,6 +13,18 @@ import { LiquidPillNav, LiquidSegmentedControl } from "./LiquidPillControl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { fetchConfig, fetchProjects } from "../lib/api";
+import {
+  A11Y_STORAGE_KEY,
+  DEFAULT_A11Y,
+  clampTextScale,
+  findNextUnlockedStep,
+  findPreviousUnlockedStep,
+  flowSteps,
+  getFlowSegmentState,
+  hasConfiguredConsent,
+  hydrateA11yPrefs,
+  isRouteUnlocked
+} from "./liquid-shell-helpers";
 
 /**
  * Route definitions for top-level navigation.
@@ -28,32 +40,6 @@ const links = [
   { href: "/workspace", label: "Builder", modes: ["public", "private"], requires: "consent" },
   { href: "/representation", label: "Project Settings", modes: ["public", "private"], requires: "projects" }
 ];
-
-const DEFAULT_A11Y = {
-  textScale: 0,
-  reduceMotion: false,
-  dyslexiaFont: false,
-  darkMode: false
-};
-const A11Y_STORAGE_KEY = "a11yPrefs";
-const MIN_TEXT_SCALE = -2;
-const MAX_TEXT_SCALE = 4;
-
-const flowSteps = [
-  { href: "/", label: "Start", cue: "Review workflow and key capabilities", requires: "none" },
-  { href: "/config", label: "Settings", cue: "Set consent and profile preferences", requires: "none" },
-  { href: "/upload", label: "Upload", cue: "Upload repositories and run analysis", requires: "consent" },
-  { href: "/projects", label: "Projects", cue: "Review, update, and manage project records", requires: "consent" },
-  { href: "/dashboard", label: "Dashboard", cue: "Inspect skill, activity, and trend insights", requires: "projects" },
-  { href: "/workspace", label: "Builder", cue: "Create, edit, and export resume/portfolio drafts", requires: "consent" },
-  { href: "/representation", label: "Project Settings", cue: "Finalize ordering, highlights, and chronology details", requires: "projects" }
-];
-
-function hasConfiguredConsent(config) {
-  const external = config?.consented?.external;
-  const dataConsent = config?.consented?.["Data consent"] ?? config?.consented?.data_consent;
-  return (external === true || external === false) && dataConsent === true;
-}
 
 /**
  * Shared page shell with floating navigation and
@@ -82,10 +68,6 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
   const a11yTriggerRef = useRef(null);
   const hasOpenedA11yRef = useRef(false);
 
-  function clampTextScale(value) {
-    if (!Number.isFinite(value)) return 0;
-    return Math.max(MIN_TEXT_SCALE, Math.min(MAX_TEXT_SCALE, value));
-  }
   const [flowLoading, setFlowLoading] = useState(true);
   const [flowError, setFlowError] = useState("");
   const [consentReady, setConsentReady] = useState(false);
@@ -108,20 +90,8 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
       return;
     }
 
-    try {
-      const parsed = JSON.parse(rawPrefs);
-      const parsedTextScale = typeof parsed?.textScale === "number" ? parsed.textScale : 0;
-      setA11yPrefs({
-        textScale: clampTextScale(parsedTextScale),
-        reduceMotion: Boolean(parsed?.reduceMotion),
-        dyslexiaFont: Boolean(parsed?.dyslexiaFont),
-        darkMode: Boolean(parsed?.darkMode)
-      });
-    } catch {
-      setA11yPrefs(DEFAULT_A11Y);
-    } finally {
-      setHasHydratedA11y(true);
-    }
+    setA11yPrefs(hydrateA11yPrefs(rawPrefs));
+    setHasHydratedA11y(true);
   }, []);
 
   useEffect(() => {
@@ -235,18 +205,10 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
     };
   }, []);
 
-  function isRouteUnlocked(route) {
-    if (!route) return false;
-    if (route.requires === "none" || !route.requires) return true;
-    if (route.requires === "consent") return consentReady;
-    if (route.requires === "projects") return consentReady && projectsReady;
-    return true;
-  }
-
   useEffect(() => {
     if (flowLoading || flowError) return;
     const currentRoute = [...links, ...flowSteps].find((route) => route.href === pathname);
-    if (currentRoute && !isRouteUnlocked(currentRoute)) {
+    if (currentRoute && !isRouteUnlocked(currentRoute, consentReady, projectsReady)) {
       if (!consentReady) {
         router.replace("/config");
         return;
@@ -260,25 +222,20 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
   const filteredLinks = useMemo(
     () => links
       .filter((link) => link.modes.includes(viewMode))
-      .map((link) => ({ ...link, disabled: flowLoading ? false : !isRouteUnlocked(link) })),
+      .map((link) => ({
+        ...link,
+        disabled: flowLoading ? false : !isRouteUnlocked(link, consentReady, projectsReady)
+      })),
     [viewMode, flowLoading, consentReady, projectsReady]
   );
 
   const currentStepIndex = flowSteps.findIndex((step) => step.href === pathname);
   const currentStep = currentStepIndex >= 0 ? flowSteps[currentStepIndex] : null;
   const nextStep = useMemo(() => {
-    if (currentStepIndex < 0) return null;
-    for (let index = currentStepIndex + 1; index < flowSteps.length; index += 1) {
-      if (isRouteUnlocked(flowSteps[index])) return flowSteps[index];
-    }
-    return null;
+    return findNextUnlockedStep(currentStepIndex, consentReady, projectsReady, flowSteps);
   }, [currentStepIndex, consentReady, projectsReady]);
   const previousStep = useMemo(() => {
-    if (currentStepIndex <= 0) return null;
-    for (let index = currentStepIndex - 1; index >= 0; index -= 1) {
-      if (isRouteUnlocked(flowSteps[index])) return flowSteps[index];
-    }
-    return null;
+    return findPreviousUnlockedStep(currentStepIndex, consentReady, projectsReady, flowSteps);
   }, [currentStepIndex, consentReady, projectsReady]);
   const flowBlocked = !flowLoading && currentStepIndex >= 0 && currentStepIndex < flowSteps.length - 1 && !nextStep;
   const blockedReason = !consentReady
@@ -374,18 +331,12 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
               </div>
               <div className="flow-status-track" aria-hidden="true">
                 {flowSteps.map((step, index) => {
-                  const complete = currentStepIndex > index;
-                  const active = index === currentStepIndex;
-                  const locked = !complete && !active && !isRouteUnlocked(step);
-                  const stateClass = atLastStep
-                    ? "complete"
-                    : complete
-                      ? "complete"
-                      : active
-                        ? "active"
-                        : locked
-                          ? "locked"
-                          : "pending";
+                  const stateClass = getFlowSegmentState(
+                    index,
+                    currentStepIndex,
+                    isRouteUnlocked(step, consentReady, projectsReady),
+                    atLastStep
+                  );
                   return (
                     <span
                       key={step.href}
