@@ -13,6 +13,18 @@ import { LiquidPillNav, LiquidSegmentedControl } from "./LiquidPillControl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { fetchConfig, fetchProjects } from "../lib/api";
+import {
+  A11Y_STORAGE_KEY,
+  DEFAULT_A11Y,
+  clampTextScale,
+  findNextUnlockedStep,
+  findPreviousUnlockedStep,
+  flowSteps,
+  getFlowSegmentState,
+  hasConfiguredConsent,
+  hydrateA11yPrefs,
+  isRouteUnlocked
+} from "./liquid-shell-helpers";
 
 /**
  * Route definitions for top-level navigation.
@@ -28,38 +40,6 @@ const links = [
   { href: "/workspace", label: "Builder", modes: ["public", "private"], requires: "consent" },
   { href: "/representation", label: "Project Settings", modes: ["public", "private"], requires: "projects" }
 ];
-
-const DEFAULT_A11Y = {
-  textScale: 0,
-  reduceMotion: false,
-  dyslexiaFont: false
-};
-const A11Y_STORAGE_KEY = "a11yPrefs";
-const MIN_TEXT_SCALE = -2;
-const MAX_TEXT_SCALE = 4;
-
-const flowSteps = [
-  { href: "/", label: "Start", requires: "none" },
-  { href: "/config", label: "Settings", requires: "none" },
-  { href: "/upload", label: "Upload", requires: "consent" },
-  { href: "/projects", label: "Projects", requires: "consent" },
-  { href: "/dashboard", label: "Dashboard", requires: "projects" },
-  { href: "/workspace", label: "Builder", requires: "consent" },
-  { href: "/representation", label: "Project Settings", requires: "projects" }
-];
-
-const flowPhases = [
-  { label: "Setup", start: 0, end: 1 },
-  { label: "Analyze", start: 2, end: 3 },
-  { label: "Build", start: 4, end: 5 },
-  { label: "Refine", start: 6, end: 6 }
-];
-
-function hasConfiguredConsent(config) {
-  const external = config?.consented?.external;
-  const dataConsent = config?.consented?.["Data consent"] ?? config?.consented?.data_consent;
-  return (external === true || external === false) && dataConsent === true;
-}
 
 /**
  * Shared page shell with floating navigation and
@@ -88,10 +68,6 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
   const a11yTriggerRef = useRef(null);
   const hasOpenedA11yRef = useRef(false);
 
-  function clampTextScale(value) {
-    if (!Number.isFinite(value)) return 0;
-    return Math.max(MIN_TEXT_SCALE, Math.min(MAX_TEXT_SCALE, value));
-  }
   const [flowLoading, setFlowLoading] = useState(true);
   const [flowError, setFlowError] = useState("");
   const [consentReady, setConsentReady] = useState(false);
@@ -114,19 +90,8 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
       return;
     }
 
-    try {
-      const parsed = JSON.parse(rawPrefs);
-      const parsedTextScale = typeof parsed?.textScale === "number" ? parsed.textScale : 0;
-      setA11yPrefs({
-        textScale: clampTextScale(parsedTextScale),
-        reduceMotion: Boolean(parsed?.reduceMotion),
-        dyslexiaFont: Boolean(parsed?.dyslexiaFont)
-      });
-    } catch {
-      setA11yPrefs(DEFAULT_A11Y);
-    } finally {
-      setHasHydratedA11y(true);
-    }
+    setA11yPrefs(hydrateA11yPrefs(rawPrefs));
+    setHasHydratedA11y(true);
   }, []);
 
   useEffect(() => {
@@ -144,6 +109,8 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
     root.classList.toggle("a11y-text-scaling", a11yPrefs.textScale !== 0);
     root.classList.toggle("a11y-reduced-motion", a11yPrefs.reduceMotion);
     root.classList.toggle("a11y-dyslexia-font", a11yPrefs.dyslexiaFont);
+    root.setAttribute("data-theme", a11yPrefs.darkMode ? "dark" : "light");
+    root.style.colorScheme = a11yPrefs.darkMode ? "dark" : "light";
     root.style.setProperty("--a11y-text-scale", String(a11yPrefs.textScale));
     window.localStorage.setItem(A11Y_STORAGE_KEY, JSON.stringify(a11yPrefs));
   }, [a11yPrefs, hasHydratedA11y]);
@@ -238,18 +205,10 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
     };
   }, []);
 
-  function isRouteUnlocked(route) {
-    if (!route) return false;
-    if (route.requires === "none" || !route.requires) return true;
-    if (route.requires === "consent") return consentReady;
-    if (route.requires === "projects") return consentReady && projectsReady;
-    return true;
-  }
-
   useEffect(() => {
     if (flowLoading || flowError) return;
     const currentRoute = [...links, ...flowSteps].find((route) => route.href === pathname);
-    if (currentRoute && !isRouteUnlocked(currentRoute)) {
+    if (currentRoute && !isRouteUnlocked(currentRoute, consentReady, projectsReady)) {
       if (!consentReady) {
         router.replace("/config");
         return;
@@ -263,27 +222,26 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
   const filteredLinks = useMemo(
     () => links
       .filter((link) => link.modes.includes(viewMode))
-      .map((link) => ({ ...link, disabled: flowLoading ? false : !isRouteUnlocked(link) })),
+      .map((link) => ({
+        ...link,
+        disabled: flowLoading ? false : !isRouteUnlocked(link, consentReady, projectsReady)
+      })),
     [viewMode, flowLoading, consentReady, projectsReady]
   );
 
   const currentStepIndex = flowSteps.findIndex((step) => step.href === pathname);
   const currentStep = currentStepIndex >= 0 ? flowSteps[currentStepIndex] : null;
   const nextStep = useMemo(() => {
-    if (currentStepIndex < 0) return null;
-    for (let index = currentStepIndex + 1; index < flowSteps.length; index += 1) {
-      if (isRouteUnlocked(flowSteps[index])) return flowSteps[index];
-    }
-    return null;
+    return findNextUnlockedStep(currentStepIndex, consentReady, projectsReady, flowSteps);
   }, [currentStepIndex, consentReady, projectsReady]);
-  const progressPercent = currentStepIndex >= 0
-    ? ((currentStepIndex + 1) / flowSteps.length) * 100
-    : 0;
-  const flowBlocked = currentStepIndex >= 0 && currentStepIndex < flowSteps.length - 1 && !nextStep;
+  const previousStep = useMemo(() => {
+    return findPreviousUnlockedStep(currentStepIndex, consentReady, projectsReady, flowSteps);
+  }, [currentStepIndex, consentReady, projectsReady]);
+  const flowBlocked = !flowLoading && currentStepIndex >= 0 && currentStepIndex < flowSteps.length - 1 && !nextStep;
   const blockedReason = !consentReady
     ? "Complete Settings first."
     : "Upload and analyze at least one project first.";
-  const activePhaseIndex = flowPhases.findIndex((phase) => currentStepIndex >= phase.start && currentStepIndex <= phase.end);
+  const atLastStep = currentStepIndex === flowSteps.length - 1;
 
   useEffect(() => {
     setIsA11yMenuOpen(false);
@@ -294,6 +252,7 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
     : `Current: ${a11yPrefs.textScale > 0 ? "+" : ""}${a11yPrefs.textScale * 5}%`;
 
   const binaryRows = [
+    { key: "darkMode", label: "Dark mode", hint: "Use high-contrast dark surfaces" },
     { key: "reduceMotion", label: "Reduced motion", hint: "Limit movement and transitions" },
     { key: "dyslexiaFont", label: "Readable font", hint: "Use dyslexia-friendly typeface" }
   ];
@@ -336,20 +295,7 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
           <aside className="header-side-panel" aria-label="Workflow summary">
             {currentStep ? (
               <div className="flow-banner">
-                <span className="mode-pill flow-step-pill">
-                  Step {currentStepIndex + 1} of {flowSteps.length}
-                </span>
-                {nextStep ? (
-                  <Link href={nextStep.href} className="liquid-btn solid flow-next-btn">
-                    Continue to {nextStep.label}
-                  </Link>
-                ) : flowBlocked ? (
-                  <span className="liquid-btn flow-next-btn flow-next-blocked" aria-disabled="true">
-                    Continue unavailable
-                  </span>
-                ) : (
-                  <span className="mode-pill">Workflow complete</span>
-                )}
+                {flowLoading ? <span className="mode-pill">Checking prerequisites...</span> : null}
               </div>
             ) : null}
             {flowBlocked ? <p className="flow-next-hint">{blockedReason}</p> : null}
@@ -358,27 +304,66 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
         </header>
 
         <section className="content-wrap">
-          <div className="flow-phase-strip" role="presentation">
-            {flowPhases.map((phase, index) => {
-              const complete = currentStepIndex > phase.end;
-              const active = index === activePhaseIndex;
-              const phaseStartUnlocked = isRouteUnlocked(flowSteps[phase.start]);
-              const locked = !complete && !active && !phaseStartUnlocked;
-              const marker = complete ? "✓" : (active ? "●" : String(index + 1));
-
-              return (
-                <span
-                  key={phase.label}
-                  className={`flow-phase-chip ${active ? "active" : ""} ${complete ? "complete" : ""} ${locked ? "locked" : ""}`.trim()}
-                >
-                  <span className="flow-phase-marker">{marker}</span>
-                  <span>{phase.label}</span>
+          <div className="flow-status-row" role="status" aria-live="polite">
+            <div className="flow-status-nav">
+              {flowLoading ? (
+                <span className="liquid-btn flow-mini-btn" aria-disabled="true">Previous</span>
+              ) : (
+                <>
+                  {previousStep ? (
+                    <Link href={previousStep.href} className="liquid-btn flow-mini-btn">
+                      Previous
+                    </Link>
+                  ) : (
+                    <span className="liquid-btn flow-mini-btn" aria-disabled="true">Previous</span>
+                  )}
+                </>
+              )}
+            </div>
+            <div className="flow-status-center">
+              <div className="flow-status-head">
+                <span className="mode-pill flow-step-count">
+                  Step {Math.max(currentStepIndex + 1, 1)} / {flowSteps.length}
                 </span>
-              );
-            })}
-          </div>
-          <div className="flow-progress-rail" aria-hidden="true">
-            <span className="flow-progress-fill" style={{ width: `${progressPercent}%` }} />
+                <span className="flow-status-title">
+                  {currentStep ? `${currentStep.label} - ${currentStep.cue}` : "Workflow start"}
+                </span>
+              </div>
+              <div className="flow-status-track" aria-hidden="true">
+                {flowSteps.map((step, index) => {
+                  const stateClass = getFlowSegmentState(
+                    index,
+                    currentStepIndex,
+                    isRouteUnlocked(step, consentReady, projectsReady),
+                    atLastStep
+                  );
+                  return (
+                    <span
+                      key={step.href}
+                      className={`flow-status-segment ${stateClass}`}
+                      title={`${step.label}: ${step.cue}`}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+            <span className="flow-status-next-slot">
+              {!atLastStep ? (
+                <span className="flow-status-next">
+                  {flowLoading ? (
+                    <span className="liquid-btn flow-mini-btn" aria-disabled="true">Next</span>
+                  ) : nextStep ? (
+                    <Link href={nextStep.href} className="liquid-btn solid flow-mini-btn">
+                      Next
+                    </Link>
+                  ) : (
+                    <span className="liquid-btn flow-mini-btn" aria-disabled="true">Next</span>
+                  )}
+                </span>
+              ) : (
+                <span className="flow-status-next-spacer" aria-hidden="true" />
+              )}
+            </span>
           </div>
           {children}
         </section>
