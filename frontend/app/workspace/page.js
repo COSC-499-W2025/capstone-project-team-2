@@ -1107,7 +1107,7 @@ function SkillsEditor({ doc, onAddSkill, onAppendSkill, onRemoveSkill, onUpdateS
                       <option value="Advanced">Advanced</option>
                     </select>
                   </label>
-                  <div style={{ display: "flex", justifyContent: "flex-start" }}>
+                  <div style={{ display: "flex", justifyContent: "flex-end" }}>
                     <button
                       type="button"
                       className="liquid-btn solid"
@@ -1144,7 +1144,7 @@ function SkillsEditor({ doc, onAddSkill, onAppendSkill, onRemoveSkill, onUpdateS
                   ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }}
                 />
               </label>
-              <div style={{ display: "flex", justifyContent: "flex-start" }}>
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
                 <button
                   type="button"
                   className="liquid-btn solid"
@@ -1325,7 +1325,7 @@ function AwardsEditor({ doc, onAddAward, onRemoveAward, onApply }) {
                     : <textarea rows={3} value={modifyValue} onChange={(e) => setModifyValue(e.target.value)} />
                 }
               </label>
-              <div style={{ display: "flex", justifyContent: "flex-start" }}>
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
                 <button type="button" className="liquid-btn solid" onClick={() => {
                   const value = modifyField === "highlights" ? parseHighlights(modifyValue) : modifyValue;
                   onApply([{ section: "awards", item_name: selectedAward, field: modifyField, new_value: value }]);
@@ -1341,7 +1341,7 @@ function AwardsEditor({ doc, onAddAward, onRemoveAward, onApply }) {
           {awardNames.length ? (
             <>
               <label>Award entry<select value={selectedAward} onChange={(e) => setSelectedAward(e.target.value)}>{awardNames.map((n) => <option key={n}>{n}</option>)}</select></label>
-              <div style={{ display: "flex", justifyContent: "flex-start" }}>
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
                 <button type="button" className="liquid-btn btn-danger" onClick={() => onRemoveAward(selectedAward)}>Remove ({selectedAward})</button>
               </div>
             </>
