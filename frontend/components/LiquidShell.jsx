@@ -32,27 +32,21 @@ const links = [
 const DEFAULT_A11Y = {
   textScale: 0,
   reduceMotion: false,
-  dyslexiaFont: false
+  dyslexiaFont: false,
+  darkMode: false
 };
 const A11Y_STORAGE_KEY = "a11yPrefs";
 const MIN_TEXT_SCALE = -2;
 const MAX_TEXT_SCALE = 4;
 
 const flowSteps = [
-  { href: "/", label: "Start", requires: "none" },
-  { href: "/config", label: "Settings", requires: "none" },
-  { href: "/upload", label: "Upload", requires: "consent" },
-  { href: "/projects", label: "Projects", requires: "consent" },
-  { href: "/dashboard", label: "Dashboard", requires: "projects" },
-  { href: "/workspace", label: "Builder", requires: "consent" },
-  { href: "/representation", label: "Project Settings", requires: "projects" }
-];
-
-const flowPhases = [
-  { label: "Setup", start: 0, end: 1 },
-  { label: "Analyze", start: 2, end: 3 },
-  { label: "Build", start: 4, end: 5 },
-  { label: "Refine", start: 6, end: 6 }
+  { href: "/", label: "Start", cue: "Review workflow and key capabilities", requires: "none" },
+  { href: "/config", label: "Settings", cue: "Set consent and profile preferences", requires: "none" },
+  { href: "/upload", label: "Upload", cue: "Upload repositories and run analysis", requires: "consent" },
+  { href: "/projects", label: "Projects", cue: "Review, update, and manage project records", requires: "consent" },
+  { href: "/dashboard", label: "Dashboard", cue: "Inspect skill, activity, and trend insights", requires: "projects" },
+  { href: "/workspace", label: "Builder", cue: "Create, edit, and export resume/portfolio drafts", requires: "consent" },
+  { href: "/representation", label: "Project Settings", cue: "Finalize ordering, highlights, and chronology details", requires: "projects" }
 ];
 
 function hasConfiguredConsent(config) {
@@ -120,7 +114,8 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
       setA11yPrefs({
         textScale: clampTextScale(parsedTextScale),
         reduceMotion: Boolean(parsed?.reduceMotion),
-        dyslexiaFont: Boolean(parsed?.dyslexiaFont)
+        dyslexiaFont: Boolean(parsed?.dyslexiaFont),
+        darkMode: Boolean(parsed?.darkMode)
       });
     } catch {
       setA11yPrefs(DEFAULT_A11Y);
@@ -144,6 +139,8 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
     root.classList.toggle("a11y-text-scaling", a11yPrefs.textScale !== 0);
     root.classList.toggle("a11y-reduced-motion", a11yPrefs.reduceMotion);
     root.classList.toggle("a11y-dyslexia-font", a11yPrefs.dyslexiaFont);
+    root.setAttribute("data-theme", a11yPrefs.darkMode ? "dark" : "light");
+    root.style.colorScheme = a11yPrefs.darkMode ? "dark" : "light";
     root.style.setProperty("--a11y-text-scale", String(a11yPrefs.textScale));
     window.localStorage.setItem(A11Y_STORAGE_KEY, JSON.stringify(a11yPrefs));
   }, [a11yPrefs, hasHydratedA11y]);
@@ -276,14 +273,18 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
     }
     return null;
   }, [currentStepIndex, consentReady, projectsReady]);
-  const progressPercent = currentStepIndex >= 0
-    ? ((currentStepIndex + 1) / flowSteps.length) * 100
-    : 0;
-  const flowBlocked = currentStepIndex >= 0 && currentStepIndex < flowSteps.length - 1 && !nextStep;
+  const previousStep = useMemo(() => {
+    if (currentStepIndex <= 0) return null;
+    for (let index = currentStepIndex - 1; index >= 0; index -= 1) {
+      if (isRouteUnlocked(flowSteps[index])) return flowSteps[index];
+    }
+    return null;
+  }, [currentStepIndex, consentReady, projectsReady]);
+  const flowBlocked = !flowLoading && currentStepIndex >= 0 && currentStepIndex < flowSteps.length - 1 && !nextStep;
   const blockedReason = !consentReady
     ? "Complete Settings first."
     : "Upload and analyze at least one project first.";
-  const activePhaseIndex = flowPhases.findIndex((phase) => currentStepIndex >= phase.start && currentStepIndex <= phase.end);
+  const atLastStep = currentStepIndex === flowSteps.length - 1;
 
   useEffect(() => {
     setIsA11yMenuOpen(false);
@@ -294,6 +295,7 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
     : `Current: ${a11yPrefs.textScale > 0 ? "+" : ""}${a11yPrefs.textScale * 5}%`;
 
   const binaryRows = [
+    { key: "darkMode", label: "Dark mode", hint: "Use high-contrast dark surfaces" },
     { key: "reduceMotion", label: "Reduced motion", hint: "Limit movement and transitions" },
     { key: "dyslexiaFont", label: "Readable font", hint: "Use dyslexia-friendly typeface" }
   ];
@@ -336,20 +338,7 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
           <aside className="header-side-panel" aria-label="Workflow summary">
             {currentStep ? (
               <div className="flow-banner">
-                <span className="mode-pill flow-step-pill">
-                  Step {currentStepIndex + 1} of {flowSteps.length}
-                </span>
-                {nextStep ? (
-                  <Link href={nextStep.href} className="liquid-btn solid flow-next-btn">
-                    Continue to {nextStep.label}
-                  </Link>
-                ) : flowBlocked ? (
-                  <span className="liquid-btn flow-next-btn flow-next-blocked" aria-disabled="true">
-                    Continue unavailable
-                  </span>
-                ) : (
-                  <span className="mode-pill">Workflow complete</span>
-                )}
+                {flowLoading ? <span className="mode-pill">Checking prerequisites...</span> : null}
               </div>
             ) : null}
             {flowBlocked ? <p className="flow-next-hint">{blockedReason}</p> : null}
@@ -358,27 +347,72 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
         </header>
 
         <section className="content-wrap">
-          <div className="flow-phase-strip" role="presentation">
-            {flowPhases.map((phase, index) => {
-              const complete = currentStepIndex > phase.end;
-              const active = index === activePhaseIndex;
-              const phaseStartUnlocked = isRouteUnlocked(flowSteps[phase.start]);
-              const locked = !complete && !active && !phaseStartUnlocked;
-              const marker = complete ? "✓" : (active ? "●" : String(index + 1));
-
-              return (
-                <span
-                  key={phase.label}
-                  className={`flow-phase-chip ${active ? "active" : ""} ${complete ? "complete" : ""} ${locked ? "locked" : ""}`.trim()}
-                >
-                  <span className="flow-phase-marker">{marker}</span>
-                  <span>{phase.label}</span>
+          <div className="flow-status-row" role="status" aria-live="polite">
+            <div className="flow-status-nav">
+              {flowLoading ? (
+                <span className="liquid-btn flow-mini-btn" aria-disabled="true">Previous</span>
+              ) : (
+                <>
+                  {previousStep ? (
+                    <Link href={previousStep.href} className="liquid-btn flow-mini-btn">
+                      Previous
+                    </Link>
+                  ) : (
+                    <span className="liquid-btn flow-mini-btn" aria-disabled="true">Previous</span>
+                  )}
+                </>
+              )}
+            </div>
+            <div className="flow-status-center">
+              <div className="flow-status-head">
+                <span className="mode-pill flow-step-count">
+                  Step {Math.max(currentStepIndex + 1, 1)} / {flowSteps.length}
                 </span>
-              );
-            })}
-          </div>
-          <div className="flow-progress-rail" aria-hidden="true">
-            <span className="flow-progress-fill" style={{ width: `${progressPercent}%` }} />
+                <span className="flow-status-title">
+                  {currentStep ? `${currentStep.label} - ${currentStep.cue}` : "Workflow start"}
+                </span>
+              </div>
+              <div className="flow-status-track" aria-hidden="true">
+                {flowSteps.map((step, index) => {
+                  const complete = currentStepIndex > index;
+                  const active = index === currentStepIndex;
+                  const locked = !complete && !active && !isRouteUnlocked(step);
+                  const stateClass = atLastStep
+                    ? "complete"
+                    : complete
+                      ? "complete"
+                      : active
+                        ? "active"
+                        : locked
+                          ? "locked"
+                          : "pending";
+                  return (
+                    <span
+                      key={step.href}
+                      className={`flow-status-segment ${stateClass}`}
+                      title={`${step.label}: ${step.cue}`}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+            <span className="flow-status-next-slot">
+              {!atLastStep ? (
+                <span className="flow-status-next">
+                  {flowLoading ? (
+                    <span className="liquid-btn flow-mini-btn" aria-disabled="true">Next</span>
+                  ) : nextStep ? (
+                    <Link href={nextStep.href} className="liquid-btn solid flow-mini-btn">
+                      Next
+                    </Link>
+                  ) : (
+                    <span className="liquid-btn flow-mini-btn" aria-disabled="true">Next</span>
+                  )}
+                </span>
+              ) : (
+                <span className="flow-status-next-spacer" aria-hidden="true" />
+              )}
+            </span>
           </div>
           {children}
         </section>
