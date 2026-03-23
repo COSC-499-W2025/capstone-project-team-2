@@ -18,6 +18,7 @@ import {
 import {
   DEFAULT_REPRESENTATION_PREFERENCES,
   buildChronologyPayload,
+  filterAvailableProjects,
   formatChronologyInputs,
   formatDateLabel,
   mergeProjectOrder,
@@ -64,11 +65,17 @@ export default function RepresentationPage() {
         if (ignore) return;
 
         const projects = Array.isArray(projectPayload?.projects) ? projectPayload.projects : [];
-        setCurrentRepresentation(preferences);
         setRepresentationProjects(projects);
-        setProjectOrder(mergeProjectOrder(preferences.project_order, projects));
+        const mergedProjectOrder = mergeProjectOrder(preferences.project_order, projects);
+        const filteredShowcaseProjects = filterAvailableProjects(preferences.showcase_projects, projects);
+        setCurrentRepresentation({
+          ...preferences,
+          project_order: mergedProjectOrder,
+          showcase_projects: filteredShowcaseProjects
+        });
+        setProjectOrder(mergedProjectOrder);
         setHighlightSkillsInput((preferences.highlight_skills || []).join(", "));
-        setShowcaseProjects(Array.isArray(preferences.showcase_projects) ? preferences.showcase_projects : []);
+        setShowcaseProjects(filteredShowcaseProjects);
         setChronologyInputs(formatChronologyInputs(preferences.chronology_corrections));
       } catch (err) {
         if (!ignore) setError(err.message || "Failed to load project preferences.");
@@ -103,11 +110,17 @@ export default function RepresentationPage() {
       }
 
       const projects = Array.isArray(projectPayload?.projects) ? projectPayload.projects : [];
-      setCurrentRepresentation(updated);
       setRepresentationProjects(projects);
-      setProjectOrder(mergeProjectOrder(updated.project_order, projects));
+      const mergedProjectOrder = mergeProjectOrder(updated.project_order, projects);
+      const filteredShowcaseProjects = filterAvailableProjects(updated.showcase_projects, projects);
+      setCurrentRepresentation({
+        ...updated,
+        project_order: mergedProjectOrder,
+        showcase_projects: filteredShowcaseProjects
+      });
+      setProjectOrder(mergedProjectOrder);
       setHighlightSkillsInput((updated.highlight_skills || []).join(", "));
-      setShowcaseProjects(Array.isArray(updated.showcase_projects) ? updated.showcase_projects : []);
+      setShowcaseProjects(filteredShowcaseProjects);
       setChronologyInputs(formatChronologyInputs(updated.chronology_corrections));
       if (warning) {
         setProjectsWarning(warning);
