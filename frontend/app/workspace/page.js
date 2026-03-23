@@ -232,7 +232,9 @@ function EditContact({ doc, onApply }) {
           <input className="settings-control" value={form[field]} onChange={(e) => setForm((p) => ({ ...p, [field]: e.target.value }))} />
         </label>
       ))}
-      <button type="submit" className="liquid-btn solid btn-success">Save Contact</button>
+      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <button type="submit" className="liquid-btn solid btn-success">Save Contact</button>
+      </div>
     </form>
   );
 }
@@ -411,35 +413,39 @@ function ConnectionsEditor({ doc, onApply }) {
       ) : null}
 
       {action === "edit" ? (
-        <>
-          <label>
-            Existing connection
-            <select className="settings-control" value={network} onChange={(e) => setNetwork(e.target.value)}>
-              {names.map((name) => <option key={name}>{name}</option>)}
-            </select>
-          </label>
-          <label>
-            New username
-            <input className="settings-control" value={username} onChange={(e) => setUsername(e.target.value)} />
-          </label>
-          <button type="button" className="liquid-btn solid" onClick={() => onApply([{ section: "connections", item_name: network, field: "username", new_value: username }])}>
-            Update Connection
-          </button>
-        </>
+        names.length ? (
+          <>
+            <label>
+              Existing connection
+              <select className="settings-control" value={network} onChange={(e) => setNetwork(e.target.value)}>
+                {names.map((name) => <option key={name}>{name}</option>)}
+              </select>
+            </label>
+            <label>
+              New username
+              <input className="settings-control" value={username} onChange={(e) => setUsername(e.target.value)} />
+            </label>
+            <button type="button" className="liquid-btn solid" onClick={() => onApply([{ section: "connections", item_name: network, field: "username", new_value: username }])}>
+              Update Connection
+            </button>
+          </>
+        ) : <p className="warning">No connections to modify. Add one first.</p>
       ) : null}
 
       {action === "remove" ? (
-        <>
-          <label>
-            Remove connection
-            <select className="settings-control" value={network} onChange={(e) => setNetwork(e.target.value)}>
-              {names.map((name) => <option key={name}>{name}</option>)}
-            </select>
-          </label>
-          <button type="button" className="liquid-btn solid btn-danger" onClick={() => onApply([{ section: "connections", item_name: network, field: "delete", new_value: "" }])}>
-            Remove Connection
-          </button>
-        </>
+        names.length ? (
+          <>
+            <label>
+              Remove connection
+              <select className="settings-control" value={network} onChange={(e) => setNetwork(e.target.value)}>
+                {names.map((name) => <option key={name}>{name}</option>)}
+              </select>
+            </label>
+            <button type="button" className="liquid-btn solid btn-danger" onClick={() => onApply([{ section: "connections", item_name: network, field: "delete", new_value: "" }])}>
+              Remove Connection
+            </button>
+          </>
+        ) : <p className="warning">No connections to remove.</p>
       ) : null}
     </div>
   );
