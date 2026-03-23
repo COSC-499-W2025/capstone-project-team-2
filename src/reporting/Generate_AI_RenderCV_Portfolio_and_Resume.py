@@ -304,9 +304,9 @@ class RenderCVDocument:
                         'highlights': ['Key feature 1', 'Key feature 2']
                     }],
                     'skills': [
-                        {'label': 'Languages', 'details': 'Python, JavaScript, etc.'},
-                        {'label': 'Frameworks', 'details': 'React, Django, etc.'},
-                        {'label': 'Tools', 'details': 'Git, Docker, etc.'}
+                        {'label': 'Languages', 'details': 'Python, JavaScript'},
+                        {'label': 'Frameworks', 'details': 'React, Django'},
+                        {'label': 'Tools', 'details': 'Git, Docker'}
                     ]
                 }
             else:
@@ -322,9 +322,9 @@ class RenderCVDocument:
                         'highlights': ['Key feature 1', 'Key feature 2']
                     }],
                     'skills': [
-                        {'label': 'Languages', 'details': 'Python, JavaScript, etc.'},
-                        {'label': 'Technologies', 'details': 'React, Docker, AWS, etc.'},
-                        {'label': 'Tools', 'details': 'Git, VS Code, etc.'}
+                        {'label': 'Languages', 'details': 'Python, JavaScript'},
+                        {'label': 'Technologies', 'details': 'React, Docker, AWS'},
+                        {'label': 'Tools', 'details': 'Git, VS Code'}
                     ]
                 }
             return base_template
