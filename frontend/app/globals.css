@@ -2298,7 +2298,7 @@ textarea::placeholder {
 /* ==========================================================================
    Responsive Adjustments
    ========================================================================== */
-@media (max-width: 760px) {
+@media (max-width: 930px) {
   .liquid-scene {
     --floating-nav-offset: 0;
   }
