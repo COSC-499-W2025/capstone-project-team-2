@@ -2186,8 +2186,11 @@ textarea::placeholder {
 }
 
 .workspace-page .form-grid > .liquid-btn,
-.workspace-page .form-stack > .liquid-btn {
-  justify-self: end;
+.workspace-page .form-stack > .liquid-btn,
+.workspace-page .form-grid > button:not(.liquid-pill-item):not(.liquid-glass-toggle),
+.workspace-page .form-stack > button:not(.liquid-pill-item):not(.liquid-glass-toggle) {
+  justify-self: start;
+  grid-column: 1;
   width: auto;
   max-width: min(100%, 20rem);
 }
