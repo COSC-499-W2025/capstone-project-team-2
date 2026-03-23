@@ -2189,8 +2189,7 @@ textarea::placeholder {
 .workspace-page .form-stack > .liquid-btn,
 .workspace-page .form-grid > button:not(.liquid-pill-item):not(.liquid-glass-toggle),
 .workspace-page .form-stack > button:not(.liquid-pill-item):not(.liquid-glass-toggle) {
-  justify-self: start;
-  grid-column: 1;
+  justify-self: end;
   width: auto;
   max-width: min(100%, 20rem);
 }
