@@ -190,7 +190,7 @@ function ActivityHeatmap({ projects }) {
           <tr>
             <th>Activity</th>
             {matrix.months.map((m) => (
-              <th key={m}>{m}</th>
+              <th key={m}>{m} (count)</th>
             ))}
           </tr>
         </thead>
@@ -282,7 +282,7 @@ export default function DashboardPage() {
               <GlassCard title="Skills Timeline" hint="Project-level skill count progression.">
                 <TimelineBars projects={projects} />
               </GlassCard>
-              <GlassCard title="Activity Heatmap" hint="Code, test, design, document, and other buckets.">
+              <GlassCard title="Activity Heatmap" hint="Code, test, design, document, and other buckets. Values are counts of detected artifacts for the selected month.">
                 <ActivityHeatmap projects={projects} />
               </GlassCard>
             </div>

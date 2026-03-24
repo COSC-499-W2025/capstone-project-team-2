@@ -18,6 +18,7 @@ import {
 import {
   DEFAULT_REPRESENTATION_PREFERENCES,
   buildChronologyPayload,
+  filterAvailableProjects,
   formatChronologyInputs,
   formatDateLabel,
   mergeProjectOrder,
@@ -64,14 +65,20 @@ export default function RepresentationPage() {
         if (ignore) return;
 
         const projects = Array.isArray(projectPayload?.projects) ? projectPayload.projects : [];
-        setCurrentRepresentation(preferences);
         setRepresentationProjects(projects);
-        setProjectOrder(mergeProjectOrder(preferences.project_order, projects));
+        const mergedProjectOrder = mergeProjectOrder(preferences.project_order, projects);
+        const filteredShowcaseProjects = filterAvailableProjects(preferences.showcase_projects, projects);
+        setCurrentRepresentation({
+          ...preferences,
+          project_order: mergedProjectOrder,
+          showcase_projects: filteredShowcaseProjects
+        });
+        setProjectOrder(mergedProjectOrder);
         setHighlightSkillsInput((preferences.highlight_skills || []).join(", "));
-        setShowcaseProjects(Array.isArray(preferences.showcase_projects) ? preferences.showcase_projects : []);
+        setShowcaseProjects(filteredShowcaseProjects);
         setChronologyInputs(formatChronologyInputs(preferences.chronology_corrections));
       } catch (err) {
-        if (!ignore) setError(err.message || "Failed to load representation preferences.");
+        if (!ignore) setError(err.message || "Failed to load project preferences.");
       } finally {
         if (!ignore) setLoading(false);
       }
@@ -103,20 +110,26 @@ export default function RepresentationPage() {
       }
 
       const projects = Array.isArray(projectPayload?.projects) ? projectPayload.projects : [];
-      setCurrentRepresentation(updated);
       setRepresentationProjects(projects);
-      setProjectOrder(mergeProjectOrder(updated.project_order, projects));
+      const mergedProjectOrder = mergeProjectOrder(updated.project_order, projects);
+      const filteredShowcaseProjects = filterAvailableProjects(updated.showcase_projects, projects);
+      setCurrentRepresentation({
+        ...updated,
+        project_order: mergedProjectOrder,
+        showcase_projects: filteredShowcaseProjects
+      });
+      setProjectOrder(mergedProjectOrder);
       setHighlightSkillsInput((updated.highlight_skills || []).join(", "));
-      setShowcaseProjects(Array.isArray(updated.showcase_projects) ? updated.showcase_projects : []);
+      setShowcaseProjects(filteredShowcaseProjects);
       setChronologyInputs(formatChronologyInputs(updated.chronology_corrections));
       if (warning) {
         setProjectsWarning(warning);
-        setMessage("Representation preferences saved with warnings.");
+        setMessage("Project preferences saved with warnings.");
       } else {
-        setMessage("Representation preferences saved.");
+        setMessage("Project preferences saved.");
       }
     } catch (err) {
-      setError(err.message || "Failed to save representation preferences.");
+      setError(err.message || "Failed to save project preferences.");
     } finally {
       setSaving(false);
     }
@@ -192,20 +205,20 @@ export default function RepresentationPage() {
 
   return (
     <LiquidShell
-      title="Representation Preferences"
-      subtitle="Control project order, chronology corrections, highlighted skills, and showcase selections."
+      title="Project Preferences"
+      subtitle="Choose project order, fix timeline details, and pick the projects/skills to highlight."
     >
       <div className="page-stack representation-page">
-        {loading ? <p className="muted">Loading representation preferences...</p> : null}
+        {loading ? <p className="muted">Loading project preferences...</p> : null}
         {error ? <p className="error">{error}</p> : null}
         {projectsWarning ? <p className="muted">{projectsWarning}</p> : null}
         {message ? <p className="success">{message}</p> : null}
 
         <div className="grid two-col config-grid">
-          <GlassCard title="Current Representation">
+          <GlassCard title="Current Preferences">
             {!loading ? (
               <>
-                <p className="muted">These preferences control project ordering and showcase emphasis across insights.</p>
+                <p className="muted">These settings control ordering and highlight choices across dashboard and documents.</p>
                 <div className="settings-list">
                   <div className={`settings-row ${((currentRepresentation.project_order?.length || 0) > 0) ? "status-ok" : "status-missing"}`.trim()}>
                     <span className="settings-label">Ordered projects</span>
@@ -229,7 +242,7 @@ export default function RepresentationPage() {
           </GlassCard>
 
           <GlassCard title="Highlighted Skills">
-            <p className="muted">Choose the skills that should be emphasized across representation views.</p>
+            <p className="muted">Choose skills to emphasize in your documents and project summaries.</p>
             <form onSubmit={onSaveSkills} className="form-stack">
               <label>
                 Highlighted skills (comma-separated)
@@ -263,7 +276,7 @@ export default function RepresentationPage() {
 
               <div className="button-row">
                 <button type="submit" className="liquid-btn solid" disabled={loading || saving}>
-                  {saving ? "Saving..." : "Save Representation Preferences"}
+                  {saving ? "Saving..." : "Save Project Preferences"}
                 </button>
               </div>
             </form>
@@ -343,7 +356,7 @@ export default function RepresentationPage() {
 
               <div className="button-row">
                 <button type="submit" className="liquid-btn solid" disabled={loading || saving}>
-                  {saving ? "Saving..." : "Save Representation Preferences"}
+                  {saving ? "Saving..." : "Save Project Preferences"}
                 </button>
               </div>
             </form>

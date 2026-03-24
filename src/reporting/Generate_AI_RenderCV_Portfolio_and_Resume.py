@@ -2,10 +2,12 @@ import re
 import subprocess
 import shutil
 import sys
+from copy import deepcopy
 from functools import wraps
 from pathlib import Path
 from dataclasses import dataclass, asdict
 from typing import Optional, List, Literal, Iterable, Dict
+from uuid import uuid4
 import ruamel.yaml
 import orjson
 from src.reporting.Generate_AI_Resume import GenerateProjectResume
@@ -186,6 +188,7 @@ class RenderCVDocument:
     Supports both resume and portfolio document types with a single interface.
     """
     SUPPORTED_FORMATS = {"pdf", "html", "markdown"}
+    RENDER_INPUT_TOP_LEVEL_KEYS = {"cv", "design", "locale", "rendercv_settings"}
     THEMES = {
         'classic': 'Classic CV theme',
         'engineeringclassic': 'Engineering-focused CV theme',
@@ -462,9 +465,34 @@ class RenderCVDocument:
 
         return normalized or ["pdf"]
 
-    def _get_output_dir(self) -> Path:
+    @staticmethod
+    def _sanitize_filename_component(value: str) -> str:
+        """Return a filesystem-safe filename component."""
+        normalized = (value or "").strip().replace(" ", "_")
+        normalized = re.sub(r'[<>:"/\\|?*]+', "_", normalized)
+        normalized = re.sub(r"_+", "_", normalized).strip("._")
+        return normalized or "document"
+
+    def _build_render_payload(self) -> tuple[dict, list[str]]:
+        """
+        Build a schema-safe payload for RenderCV by removing unknown
+        top-level metadata keys (for example, legacy 'created_at').
+        """
+        payload = deepcopy(self.data or {})
+        removed_keys: list[str] = []
+        for key in list(payload.keys()):
+            if key not in self.RENDER_INPUT_TOP_LEVEL_KEYS:
+                payload.pop(key, None)
+                removed_keys.append(str(key))
+        return payload, removed_keys
+
+    def _get_output_dir(self, unique: bool = False) -> Path:
         """
         Resolve the output directory used by RenderCV.
+
+        Args:
+            unique: If True, return a per-render unique directory to avoid
+                collisions across concurrent renders.
 
         Returns:
             Path: Absolute path to the output directory
@@ -473,6 +501,8 @@ class RenderCVDocument:
             raise ValueError("YAML file not set")
 
         yaml_parent = self.yaml_file.resolve().parent
+        if unique:
+            return yaml_parent / f"rendercv_output_{uuid4().hex[:8]}"
         return yaml_parent / "rendercv_output"
 
     def render_outputs(self, formats: Iterable[str]) -> tuple[str, Dict[str, List[Path]]]:
@@ -491,21 +521,32 @@ class RenderCVDocument:
             raise FileNotFoundError(f"YAML file {self.yaml_file} does not exist")
 
         selected_formats = self._normalize_formats(formats)
-        output_dir = self._get_output_dir()
+        output_dir = self._get_output_dir(unique=True)
         yaml_parent = self.yaml_file.resolve().parent
-        cv_name = self.data.get('cv', {}).get('name', '').strip().replace(" ", "_")
-        output_base = f"{cv_name}_CV" if cv_name else f"{self.name}_CV"
+        cv_name = self.data.get('cv', {}).get('name', '').strip()
+        cv_name_safe = self._sanitize_filename_component(cv_name) if cv_name else ""
+        safe_doc_name = self._sanitize_filename_component(self.name or "")
+        output_base = f"{cv_name_safe}_CV" if cv_name_safe else f"{safe_doc_name}_CV"
         doc_type_label = "Resume" if self.doc_type == 'resume' else "Portfolio"
 
         if output_dir.exists():
             shutil.rmtree(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Sync in-memory data (cv.name has UUID stripped) to disk before running
-        # RenderCV so the output filename matches what render_outputs() expects.
-        self.save()
+        # Sync schema-safe in-memory data to disk before running RenderCV.
+        render_payload, removed_keys = self._build_render_payload()
+        with open(self.yaml_file, 'w') as f:
+            self.yaml.dump(render_payload, f)
 
-        cmd = [sys.executable, "-m", "rendercv", "render", str(self.yaml_file)]
+        cmd = [
+            sys.executable,
+            "-m",
+            "rendercv",
+            "render",
+            "--output-folder",
+            str(output_dir),
+            str(self.yaml_file),
+        ]
         format_flags = {
             "pdf": "--dont-generate-pdf",
             "html": "--dont-generate-html",
@@ -542,7 +583,7 @@ class RenderCVDocument:
                 if not source_file.exists():
                     errors.append(f"{fmt} not found at {source_file}")
                     continue
-                renamed = output_dir / f"{self.name}_{doc_type_label}.{ext}"
+                renamed = output_dir / f"{safe_doc_name}_{doc_type_label}.{ext}"
                 if renamed.exists():
                     renamed.unlink()
                 source_file.rename(renamed)
@@ -558,6 +599,8 @@ class RenderCVDocument:
             if not details and result.stdout:
                 details = result.stdout.strip()
             errors.insert(0, f"render failed (code {result.returncode}): {details}")
+            if removed_keys:
+                errors.append(f"ignored unsupported top-level keys: {', '.join(sorted(removed_keys))}")
 
         status = "successfully rendered" if not errors else "; ".join(errors)
         return status, outputs
