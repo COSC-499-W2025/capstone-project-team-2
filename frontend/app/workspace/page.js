@@ -1133,6 +1133,7 @@ function DocumentStudio({ kind, mode }) {
   const [activeRenderActions, setActiveRenderActions] = useState([]);
   const activeRenderActionsRef = useRef(new Set());
   const [documentPreviewUrl, setDocumentPreviewUrl] = useState(null);
+  const documentPreviewUrlRef = useRef(null);
   const [isThemePreviewOpen, setIsThemePreviewOpen] = useState(false);
   const [downloadName, setDownloadName] = useState("");
   const documentModalRef = useRef(null);
@@ -1161,6 +1162,19 @@ function DocumentStudio({ kind, mode }) {
 
   function isActionActive(action) {
     return activeRenderActions.includes(action);
+  }
+
+  function replaceDocumentPreviewUrl(blob) {
+    const nextUrl = URL.createObjectURL(blob);
+    if (documentPreviewUrlRef.current) URL.revokeObjectURL(documentPreviewUrlRef.current);
+    documentPreviewUrlRef.current = nextUrl;
+    setDocumentPreviewUrl(nextUrl);
+  }
+
+  function clearDocumentPreviewUrl() {
+    if (documentPreviewUrlRef.current) URL.revokeObjectURL(documentPreviewUrlRef.current);
+    documentPreviewUrlRef.current = null;
+    setDocumentPreviewUrl(null);
   }
 
   const isAnyModalOpen = Boolean(documentPreviewUrl) || isThemePreviewOpen;
@@ -1487,8 +1501,7 @@ function DocumentStudio({ kind, mode }) {
     setError("");
     try {
       const blob = isResume ? await renderResume(docId, "pdf") : await renderPortfolio(docId, "pdf");
-      if (documentPreviewUrl) URL.revokeObjectURL(documentPreviewUrl);
-      setDocumentPreviewUrl(URL.createObjectURL(blob));
+      replaceDocumentPreviewUrl(blob);
     } catch (err) {
       setError(err.message || "Document preview failed.");
     } finally {
@@ -1497,8 +1510,7 @@ function DocumentStudio({ kind, mode }) {
   }
 
   function closeDocumentPreview() {
-    if (documentPreviewUrl) URL.revokeObjectURL(documentPreviewUrl);
-    setDocumentPreviewUrl(null);
+    clearDocumentPreviewUrl();
   }
 
   function openThemePreview() {
@@ -1509,11 +1521,10 @@ function DocumentStudio({ kind, mode }) {
     setIsThemePreviewOpen(false);
   }
 
-  useEffect(() => {
-    return () => {
-      if (documentPreviewUrl) URL.revokeObjectURL(documentPreviewUrl);
-    };
-  }, [documentPreviewUrl]);
+  useEffect(() => () => {
+    if (documentPreviewUrlRef.current) URL.revokeObjectURL(documentPreviewUrlRef.current);
+    documentPreviewUrlRef.current = null;
+  }, []);
 
   const [recentIds, setRecentIds] = useState([]);
 
