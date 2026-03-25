@@ -23,6 +23,7 @@ class PreferencesPayload(BaseModel):
     comparison_attributes: Optional[List[str]] = None
     highlight_skills: Optional[List[str]] = None
     showcase_projects: Optional[List[str]] = None
+    project_overrides: Optional[Dict[str, Dict[str, str]]] = None
 
 @representationRouter.get("/preferences")
 def get_preferences() -> Dict[str, Any]:

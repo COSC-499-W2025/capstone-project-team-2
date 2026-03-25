@@ -23,6 +23,7 @@ DEFAULT_PREFERENCES: Dict[str, Any] = {
     "comparison_attributes": ["languages", "frameworks", "duration_estimate"],
     "highlight_skills": [],
     "showcase_projects": [],
+    "project_overrides": {},
 }
 
 def _ensure_parent(path: Path) -> None:
@@ -164,13 +165,33 @@ def apply_preferences(
                 others.append(ins)
         ordered = showcased + others
 
+    project_overrides = prefs.get("project_overrides") or {}
+    hydrated_projects: List[Dict[str, Any]] = []
+    for insight in ordered:
+        entry = insight.to_dict()
+        overrides = project_overrides.get(insight.project_name, {})
+        if isinstance(overrides, dict):
+            override_type = str(overrides.get("contribution_type", "") or "").strip()
+            override_duration = str(overrides.get("duration_estimate", "") or "").strip()
+            if override_type:
+                entry["project_type"] = override_type
+                entry["contribution_type"] = override_type
+            else:
+                entry["contribution_type"] = entry.get("project_type", "unknown")
+            if override_duration:
+                entry["duration_estimate"] = override_duration
+        else:
+            entry["contribution_type"] = entry.get("project_type", "unknown")
+        hydrated_projects.append(entry)
+
     response = {
-        "projects": [ins.to_dict() for ins in ordered],
+        "projects": hydrated_projects,
         "project_order": order_list,
         "chronology_corrections": chronology,
         "comparison_attributes": prefs.get("comparison_attributes", []),
         "highlight_skills": prefs.get("highlight_skills", []),
         "showcase_projects": list(showcase_set),
+        "project_overrides": project_overrides,
     }
 
     return response
