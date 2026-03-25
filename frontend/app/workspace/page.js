@@ -1320,7 +1320,18 @@ function AwardsEditor({ doc, onAddAward, onRemoveAward, onApply }) {
               <label>Field<select value={modifyField} onChange={(e) => { setModifyField(e.target.value); setModifyValue(""); }}>{AWARD_FIELDS.map((f) => <option key={f}>{f}</option>)}</select></label>
               <label>
                 Current value
-                <input type="text" readOnly style={{ opacity: 0.6, cursor: "default" }} value={(() => { const entry = awards.find((a) => a.name === selectedAward); const v = entry?.[modifyField]; return Array.isArray(v) ? v.join("\n") : (v ?? "—"); })()} />
+                <input type="text" readOnly style={{ opacity: 0.6, cursor: "default" }} value={(() => {
+                  const entry = awards.find((a) => a.name === selectedAward);
+                  if (modifyField === "website") {
+                    const link = (entry?.highlights || []).find((h) => h.startsWith("Link: "));
+                    return link ? link.replace("Link: ", "") : "—";
+                  }
+                  if (modifyField === "highlights") {
+                    return (entry?.highlights || []).filter((h) => !h.startsWith("Link: ")).join("\n") || "—";
+                  }
+                  const v = entry?.[modifyField];
+                  return Array.isArray(v) ? v.join("\n") : (v ?? "—");
+                })()} />
               </label>
               <label>
                 New value
