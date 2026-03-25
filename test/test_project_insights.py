@@ -19,6 +19,7 @@ from pathlib import Path
 from src.reporting.project_insights import (
     list_project_insights,
     list_skill_history,
+    summarize_project_evolution,
     rank_projects_by_contribution,
     record_project_insight,
     summaries_for_top_ranked_projects,
@@ -405,6 +406,117 @@ class TestProjectInsights(unittest.TestCase):
         self.assertIn("contributors", summaries[0])
         self.assertIn("score", summaries[0])
         self.assertGreater(summaries[0]["score"], 0)
+
+    def test_summarize_project_evolution_single_snapshot(self) -> None:
+        """Single-snapshot projects should produce a minimal evolution summary."""
+        self._announce("Summarizing evolution for a single project snapshot.")
+
+        record_project_insight(
+            _analysis_payload("Solo", skills=["Python", "Testing"]),
+            storage_path=self.storage,
+            analyzed_at=datetime(2025, 5, 1, tzinfo=timezone.utc),
+            insight_id="solo-1",
+        )
+
+        history = [item for item in list_project_insights(self.storage) if item.project_name == "Solo"]
+        summary = summarize_project_evolution(history)
+
+        self.assertEqual(summary["project_name"], "Solo")
+        self.assertEqual(summary["snapshot_count"], 1)
+        self.assertEqual(summary["new_skills"], [])
+        self.assertEqual(summary["new_languages"], [])
+        self.assertEqual(summary["file_count_delta"], 0)
+        self.assertFalse(summary["summary_changed"])
+        self.assertFalse(summary["project_type_changed"])
+
+    def test_summarize_project_evolution_detects_growth_between_snapshots(self) -> None:
+        """Later snapshots should surface added skills, languages, and file-count growth."""
+        self._announce("Summarizing evolution across multiple project snapshots.")
+
+        ts1 = datetime(2025, 5, 1, tzinfo=timezone.utc)
+        ts2 = ts1 + timedelta(days=7)
+
+        early_hierarchy = {
+            "name": "Evolving",
+            "type": "DIR",
+            "children": [
+                {
+                    "name": "main.py",
+                    "type": "PY",
+                    "size": 256,
+                    "created": "2024-01-01 00:00:00",
+                    "modified": "2024-01-01 00:00:00",
+                    "children": [],
+                }
+            ],
+        }
+        later_hierarchy = {
+            "name": "Evolving",
+            "type": "DIR",
+            "children": [
+                {
+                    "name": "main.py",
+                    "type": "PY",
+                    "size": 256,
+                    "created": "2024-01-01 00:00:00",
+                    "modified": "2024-01-01 00:00:00",
+                    "children": [],
+                },
+                {
+                    "name": "worker.ts",
+                    "type": "TS",
+                    "size": 128,
+                    "created": "2024-01-02 00:00:00",
+                    "modified": "2024-01-02 00:00:00",
+                    "children": [],
+                },
+                {
+                    "name": "README.md",
+                    "type": "MD",
+                    "size": 64,
+                    "created": "2024-01-03 00:00:00",
+                    "modified": "2024-01-03 00:00:00",
+                    "children": [],
+                },
+            ],
+        }
+
+        record_project_insight(
+            _analysis_payload(
+                "Evolving",
+                summary="Initial prototype.",
+                languages=["Python"],
+                skills=["Python", "Testing"],
+                hierarchy=early_hierarchy,
+            ),
+            storage_path=self.storage,
+            analyzed_at=ts1,
+            insight_id="evolving-1",
+        )
+        record_project_insight(
+            _analysis_payload(
+                "Evolving",
+                summary="Expanded into a multi-language workflow.",
+                languages=["Python", "TypeScript"],
+                skills=["Python", "Testing", "CI/CD", "TypeScript"],
+                hierarchy=later_hierarchy,
+            ),
+            storage_path=self.storage,
+            analyzed_at=ts2,
+            insight_id="evolving-2",
+        )
+
+        history = [item for item in list_project_insights(self.storage) if item.project_name == "Evolving"]
+        summary = summarize_project_evolution(history)
+
+        self.assertEqual(summary["snapshot_count"], 2)
+        self.assertEqual(summary["first_analyzed_at"], ts1.isoformat())
+        self.assertEqual(summary["latest_analyzed_at"], ts2.isoformat())
+        self.assertEqual(summary["new_skills"], ["CI/CD", "TypeScript"])
+        self.assertEqual(summary["new_languages"], ["TypeScript"])
+        self.assertEqual(summary["file_count_delta"], 2)
+        self.assertTrue(summary["summary_changed"])
+        self.assertFalse(summary["project_type_changed"])
 
     def test_corrupted_storage_is_preserved_before_rewrite(self) -> None:
         """Ensure corrupted logs get saved aside before being replaced."""

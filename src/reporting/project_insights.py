@@ -675,6 +675,54 @@ def list_skill_history(storage_path: PathLike = DEFAULT_STORAGE) -> List[Dict[st
     ]
 
 
+def summarize_project_evolution(project_history: List[ProjectInsight]) -> Dict[str, Any]:
+    """
+    Summarize how a project's snapshots changed over time.
+
+    Args:
+        project_history: Snapshot entries for one project.
+
+    Returns:
+        Lightweight evolution evidence comparing the earliest and latest snapshot.
+    """
+    if not project_history:
+        return {
+            "project_name": "",
+            "snapshot_count": 0,
+            "first_analyzed_at": None,
+            "latest_analyzed_at": None,
+            "new_skills": [],
+            "new_languages": [],
+            "file_count_delta": 0,
+            "summary_changed": False,
+            "project_type_changed": False,
+        }
+
+    ordered = sorted(project_history, key=lambda item: _parse_analyzed_at(item.analyzed_at))
+    first = ordered[0]
+    latest = ordered[-1]
+
+    first_skills = set(first.skills or [])
+    latest_skills = set(latest.skills or [])
+    first_languages = set(first.languages or [])
+    latest_languages = set(latest.languages or [])
+
+    first_file_count = _safe_int((first.file_analysis or {}).get("file_count", 0))
+    latest_file_count = _safe_int((latest.file_analysis or {}).get("file_count", 0))
+
+    return {
+        "project_name": latest.project_name,
+        "snapshot_count": len(ordered),
+        "first_analyzed_at": first.analyzed_at,
+        "latest_analyzed_at": latest.analyzed_at,
+        "new_skills": sorted(latest_skills - first_skills),
+        "new_languages": sorted(latest_languages - first_languages),
+        "file_count_delta": latest_file_count - first_file_count,
+        "summary_changed": (first.summary or "").strip() != (latest.summary or "").strip(),
+        "project_type_changed": (first.project_type or "unknown") != (latest.project_type or "unknown"),
+    }
+
+
 def summaries_for_top_ranked_projects(
     *,
     storage_path: PathLike = DEFAULT_STORAGE,
@@ -840,6 +888,7 @@ __all__ = [
     "list_project_insights",
     "rank_projects_by_contribution",
     "list_skill_history",
+    "summarize_project_evolution",
     "summaries_for_top_ranked_projects",
     "update_thumbnail_in_insights",      
     "remove_thumbnail_from_insights", 
