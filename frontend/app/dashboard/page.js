@@ -497,8 +497,9 @@ export default function DashboardPage() {
                     topProjects.map((project, index) => (
                       <div className="sub-card" key={`${project.project_name || "project"}-${index}`}>
                         <h3>{project.project_name || "Unknown"}</h3>
-                        <p className="muted">{String(project.project_type || "unknown")}</p>
+                        <p className="muted">{String(project.contribution_type || project.project_type || "unknown")}</p>
                         <p>{String(project.summary || "No summary available.").slice(0, 220)}</p>
+                        <p className="hint">Duration: {project.duration_estimate || "Unknown"}</p>
                         {highlightSkills.length ? (
                           <p className="hint">
                             Highlighted: {

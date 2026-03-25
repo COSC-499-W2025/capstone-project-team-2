@@ -43,6 +43,7 @@ export default function RepresentationPage() {
   const [highlightSkillsInput, setHighlightSkillsInput] = useState("");
   const [showcaseProjects, setShowcaseProjects] = useState([]);
   const [chronologyInputs, setChronologyInputs] = useState({});
+  const [projectOverrides, setProjectOverrides] = useState({});
 
   useEffect(() => {
     let ignore = false;
@@ -77,6 +78,7 @@ export default function RepresentationPage() {
         setHighlightSkillsInput((preferences.highlight_skills || []).join(", "));
         setShowcaseProjects(filteredShowcaseProjects);
         setChronologyInputs(formatChronologyInputs(preferences.chronology_corrections));
+        setProjectOverrides(preferences.project_overrides || {});
       } catch (err) {
         if (!ignore) setError(err.message || "Failed to load project preferences.");
       } finally {
@@ -122,6 +124,7 @@ export default function RepresentationPage() {
       setHighlightSkillsInput((updated.highlight_skills || []).join(", "));
       setShowcaseProjects(filteredShowcaseProjects);
       setChronologyInputs(formatChronologyInputs(updated.chronology_corrections));
+      setProjectOverrides(updated.project_overrides || {});
       if (warning) {
         setProjectsWarning(warning);
         setMessage("Project preferences saved with warnings.");
@@ -145,10 +148,23 @@ export default function RepresentationPage() {
 
   async function onSaveProjects(event) {
     event.preventDefault();
+    const normalizedOverrides = {};
+    for (const projectName of projectOrder) {
+      const raw = projectOverrides?.[projectName];
+      if (!raw || typeof raw !== "object") continue;
+      const contributionType = String(raw.contribution_type || "").trim();
+      const durationEstimate = String(raw.duration_estimate || "").trim();
+      if (!contributionType && !durationEstimate) continue;
+      normalizedOverrides[projectName] = {
+        contribution_type: contributionType,
+        duration_estimate: durationEstimate
+      };
+    }
     const payload = {
       project_order: projectOrder,
       chronology_corrections: buildChronologyPayload(chronologyInputs),
-      showcase_projects: showcaseProjects
+      showcase_projects: showcaseProjects,
+      project_overrides: normalizedOverrides
     };
     await savePreferences(payload);
   }
@@ -181,6 +197,16 @@ export default function RepresentationPage() {
     setHighlightSkillsInput(next.join(", "));
   }
 
+  function setProjectOverride(projectName, field, value) {
+    setProjectOverrides((current) => ({
+      ...current,
+      [projectName]: {
+        ...(current?.[projectName] || {}),
+        [field]: value
+      }
+    }));
+  }
+
   const projectMeta = useMemo(() => {
     const meta = new Map();
     for (const project of representationProjects) {
@@ -202,6 +228,7 @@ export default function RepresentationPage() {
   const currentHighlightedSkills = currentRepresentation.highlight_skills || [];
   const currentShowcaseProjects = currentRepresentation.showcase_projects || [];
   const chronologyCount = Object.keys(currentRepresentation.chronology_corrections || {}).length;
+  const projectOverrideCount = Object.keys(currentRepresentation.project_overrides || {}).length;
 
   return (
     <LiquidShell
@@ -235,6 +262,10 @@ export default function RepresentationPage() {
                   <div className={`settings-row ${currentShowcaseProjects.length ? "status-ok" : "status-missing"}`.trim()}>
                     <span className="settings-label">Showcase projects</span>
                     <strong className="settings-value">{currentShowcaseProjects.length ? currentShowcaseProjects.join(", ") : "Not set"}</strong>
+                  </div>
+                  <div className={`settings-row ${projectOverrideCount ? "status-ok" : "status-missing"}`.trim()}>
+                    <span className="settings-label">Manual project overrides</span>
+                    <strong className="settings-value">{projectOverrideCount || "Not set"}</strong>
                   </div>
                 </div>
               </>
@@ -350,6 +381,27 @@ export default function RepresentationPage() {
                         }))}
                       />
                     </label>
+
+                    <div className="settings-list compact">
+                      <label className="settings-row settings-field-row">
+                        <span className="settings-label">Contribution type override</span>
+                        <input
+                          className="settings-control"
+                          value={projectOverrides?.[projectName]?.contribution_type || ""}
+                          placeholder="e.g., collaborative, individual, design"
+                          onChange={(e) => setProjectOverride(projectName, "contribution_type", e.target.value)}
+                        />
+                      </label>
+                      <label className="settings-row settings-field-row">
+                        <span className="settings-label">Duration override</span>
+                        <input
+                          className="settings-control"
+                          value={projectOverrides?.[projectName]?.duration_estimate || ""}
+                          placeholder="e.g., 6 months"
+                          onChange={(e) => setProjectOverride(projectName, "duration_estimate", e.target.value)}
+                        />
+                      </label>
+                    </div>
                   </div>
                 );
               })}

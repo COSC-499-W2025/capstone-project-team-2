@@ -6,7 +6,8 @@ export const DEFAULT_REPRESENTATION_PREFERENCES = {
   chronology_corrections: {},
   comparison_attributes: ["languages", "frameworks", "duration_estimate"],
   highlight_skills: [],
-  showcase_projects: []
+  showcase_projects: [],
+  project_overrides: {}
 };
 
 /**
