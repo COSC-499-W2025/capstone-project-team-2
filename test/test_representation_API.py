@@ -63,6 +63,29 @@ def test_set_preferences_and_persist(client: TestClient, tmp_path: Path):
     disk = _read_json(pref_file)
     assert disk["highlight_skills"] == ["Python"]
 
+
+def test_set_preferences_persists_project_overrides(client: TestClient, tmp_path: Path):
+    """Project-level manual overrides should persist via representation preferences."""
+    payload = {
+        "project_overrides": {
+            "Alpha": {
+                "contribution_type": "team leadership",
+                "duration_estimate": "8 months",
+            }
+        }
+    }
+
+    resp = client.post("/representation/preferences", json=payload)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["project_overrides"]["Alpha"]["contribution_type"] == "team leadership"
+    assert body["project_overrides"]["Alpha"]["duration_estimate"] == "8 months"
+
+    pref_file = tmp_path / "representation_preferences.json"
+    disk = _read_json(pref_file)
+    assert disk["project_overrides"]["Alpha"]["contribution_type"] == "team leadership"
+    assert disk["project_overrides"]["Alpha"]["duration_estimate"] == "8 months"
+
 def test_projects_endpoint_empty_without_insights(client: TestClient):
     """
     Confirm /projects returns an empty payload when no insights exist.
@@ -121,3 +144,49 @@ def test_projects_filters_by_snapshot_label(client: TestClient, tmp_path: Path, 
     body = resp.json()
     assert len(body["projects"]) == 1
     assert body["projects"][0]["analyzed_at"].startswith("2024-02")
+
+
+def test_projects_apply_manual_overrides(client: TestClient, tmp_path: Path, monkeypatch):
+    """Manual representation overrides should update contribution type and duration."""
+    insights_path = tmp_path / "project_insights.json"
+    sample = [
+        {
+            "id": "1",
+            "project_name": "Alpha",
+            "summary": "",
+            "analyzed_at": "2024-01-01T00:00:00Z",
+            "project_type": "unknown",
+            "duration_estimate": "unavailable",
+        }
+    ]
+    insights_path.write_text(json.dumps(sample), encoding="utf-8")
+
+    pref_path = tmp_path / "representation_preferences.json"
+    pref_path.write_text(
+        json.dumps({
+            "project_order": ["Alpha"],
+            "chronology_corrections": {},
+            "comparison_attributes": [],
+            "highlight_skills": [],
+            "showcase_projects": [],
+            "project_overrides": {
+                "Alpha": {
+                    "contribution_type": "collaborative",
+                    "duration_estimate": "6 months",
+                }
+            },
+        }),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(prefs, "PREFERENCES_PATH", pref_path)
+    from src.reporting import project_insights
+    monkeypatch.setattr(project_insights, "DEFAULT_STORAGE", insights_path)
+
+    resp = client.get("/representation/projects")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert len(body["projects"]) == 1
+    assert body["projects"][0]["project_type"] == "collaborative"
+    assert body["projects"][0]["contribution_type"] == "collaborative"
+    assert body["projects"][0]["duration_estimate"] == "6 months"

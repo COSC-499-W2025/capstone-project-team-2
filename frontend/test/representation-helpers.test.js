@@ -26,6 +26,11 @@ test("normalizeRepresentationPreferences fills missing defaults", () => {
   });
 });
 
+test("normalizeRepresentationPreferences includes project_overrides default object", () => {
+  const normalized = normalizeRepresentationPreferences({});
+  assert.deepEqual(normalized.project_overrides, {});
+});
+
 test("mergeProjectOrder preserves preferred order and appends new projects once", () => {
   const merged = mergeProjectOrder(
     ["Project B", "Project A", "Project B"],

@@ -343,3 +343,41 @@ test("dashboard public mode persists and workspace remains authoring", async ({ 
   await expect(page.getByRole("heading", { name: /Resume \+ Portfolio Builder/ })).toBeVisible();
   await expect(page.getByLabel("Full name")).toBeVisible();
 });
+
+test("project settings updates reflect in dashboard cards", async ({ page }) => {
+  await installApiMocks(page, {
+    insights: [
+      {
+        ...makeInsight("Alpha"),
+        project_type: "individual",
+        duration_estimate: "2 months"
+      },
+      {
+        ...makeInsight("Beta"),
+        project_type: "collaborative",
+        duration_estimate: "1 month"
+      }
+    ]
+  });
+
+  await page.goto("/representation");
+  await expect(page.getByRole("heading", { name: /Project Preferences/ })).toBeVisible();
+
+  const alphaRow = page.locator(".representation-project-row", { hasText: "Alpha" });
+  await alphaRow.getByRole("button", { name: "Move Down" }).click();
+
+  const betaRow = page.locator(".representation-project-row", { hasText: "Beta" });
+  await betaRow.getByLabel("Showcase").check();
+  await betaRow.getByPlaceholder(/e\.g\., collaborative, individual, design/).fill("team leadership");
+  await betaRow.getByPlaceholder(/e\.g\., 6 months/).fill("8 months");
+
+  await page.getByRole("button", { name: "Save Project Preferences" }).last().click();
+
+  await page.goto("/dashboard");
+  await page.getByRole("button", { name: "P u b l i c", exact: true }).click();
+
+  const firstCard = page.locator(".sub-card").first();
+  await expect(firstCard.locator("h3")).toContainText("Beta");
+  await expect(firstCard).toContainText("team leadership");
+  await expect(firstCard).toContainText("Duration: 8 months");
+});
