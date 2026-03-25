@@ -10,7 +10,8 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { GlassCard, LiquidShell } from "../../components/LiquidShell";
-import { fetchProjectInsights } from "../../lib/api";
+import { LiquidSegmentedControl } from "../../components/LiquidPillControl";
+import { fetchRepresentationProjects } from "../../lib/api";
 
 /**
  * Extension and naming heuristics used to classify hierarchy files
@@ -32,6 +33,7 @@ const DESIGN_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".svg", ".gif", ".we
 const DOC_EXTENSIONS = new Set([".md", ".txt", ".pdf", ".doc", ".docx", ".ppt", ".pptx"]);
 /** Render order and labels for activity heatmap rows. */
 const ACTIVITY_TYPES = ["code", "test", "design", "document", "other"];
+const DASHBOARD_MODE_KEY = "dashboardMode";
 
 /**
  * Parses an ISO-like date string safely.
@@ -104,12 +106,12 @@ function classify(path, nodeType = "") {
  * @param {any} project
  * @returns {number}
  */
-function scoreProject(project) {
+function scoreProject(project, weights = { countWeight: 100, percentWeight: 1, skillWeight: 3 }) {
   const stats = project?.stats || {};
   const topCount = Number(stats.top_contribution_count || 0);
   const topPct = Number(stats.top_contribution_percentage || 0);
   const skillCount = Number(stats.skill_count || (project.skills || []).length || 0);
-  return topCount * 100 + topPct + skillCount * 3;
+  return topCount * weights.countWeight + topPct * weights.percentWeight + skillCount * weights.skillWeight;
 }
 
 /**
@@ -221,8 +223,32 @@ function ActivityHeatmap({ projects }) {
  */
 export default function DashboardPage() {
   const [projects, setProjects] = useState([]);
+  const [highlightSkills, setHighlightSkills] = useState([]);
+  const [showcaseProjects, setShowcaseProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [mode, setMode] = useState("private");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [skillFilter, setSkillFilter] = useState("all");
+  const [topProjectCount, setTopProjectCount] = useState(3);
+  const [countWeight, setCountWeight] = useState(100);
+  const [percentWeight, setPercentWeight] = useState(1);
+  const [skillWeight, setSkillWeight] = useState(3);
+  const [showTimeline, setShowTimeline] = useState(true);
+  const [showHeatmap, setShowHeatmap] = useState(true);
+  const [showTopProjects, setShowTopProjects] = useState(true);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem(DASHBOARD_MODE_KEY);
+    if (stored === "private" || stored === "public") {
+      setMode(stored);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(DASHBOARD_MODE_KEY, mode);
+  }, [mode]);
 
   useEffect(() => {
     let ignore = false;
@@ -236,8 +262,12 @@ export default function DashboardPage() {
       setLoading(true);
       setError("");
       try {
-        const data = await fetchProjectInsights();
-        if (!ignore) setProjects(Array.isArray(data) ? data : []);
+        const payload = await fetchRepresentationProjects();
+        if (!ignore) {
+          setProjects(Array.isArray(payload?.projects) ? payload.projects : []);
+          setHighlightSkills(Array.isArray(payload?.highlight_skills) ? payload.highlight_skills : []);
+          setShowcaseProjects(Array.isArray(payload?.showcase_projects) ? payload.showcase_projects : []);
+        }
       } catch (err) {
         if (!ignore) setError(err.message || "Failed to load insights.");
       } finally {
@@ -250,10 +280,52 @@ export default function DashboardPage() {
     };
   }, []);
 
-  const sortedDates = projects.map((p) => parseDate(p.analyzed_at)).filter(Boolean).sort((a, b) => b - a);
+  const availableTypes = useMemo(() => {
+    return Array.from(new Set(projects.map((p) => String(p.project_type || "unknown")))).sort();
+  }, [projects]);
+
+  const availableSkills = useMemo(() => {
+    return Array.from(new Set(projects.flatMap((p) => (Array.isArray(p.skills) ? p.skills : [])))).sort();
+  }, [projects]);
+
+  const filteredProjects = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    return projects.filter((project) => {
+      const name = String(project.project_name || "").toLowerCase();
+      const summary = String(project.summary || "").toLowerCase();
+      const pType = String(project.project_type || "unknown");
+      const pSkills = Array.isArray(project.skills) ? project.skills : [];
+
+      const queryMatch = !normalizedQuery || name.includes(normalizedQuery) || summary.includes(normalizedQuery);
+      const typeMatch = typeFilter === "all" || pType === typeFilter;
+      const skillMatch = skillFilter === "all" || pSkills.includes(skillFilter);
+      return queryMatch && typeMatch && skillMatch;
+    });
+  }, [projects, searchQuery, typeFilter, skillFilter]);
+
+  const sortedDates = filteredProjects.map((p) => parseDate(p.analyzed_at)).filter(Boolean).sort((a, b) => b - a);
   const latestDate = sortedDates[0] ? sortedDates[0].toISOString().slice(0, 10) : "Unknown";
-  const uniqueSkills = new Set(projects.flatMap((p) => (Array.isArray(p.skills) ? p.skills : [])));
-  const topProjects = [...projects].sort((a, b) => scoreProject(b) - scoreProject(a)).slice(0, 3);
+  const uniqueSkills = new Set(filteredProjects.flatMap((p) => (Array.isArray(p.skills) ? p.skills : [])));
+  const scoringWeights = mode === "private"
+    ? { countWeight, percentWeight, skillWeight }
+    : { countWeight: 100, percentWeight: 1, skillWeight: 3 };
+  const effectiveTopCount = mode === "private" ? Math.max(1, Math.min(10, Number(topProjectCount) || 3)) : 3;
+  const showcaseSet = new Set(showcaseProjects);
+  const showcasedProjectsInOrder = filteredProjects.filter((project) => showcaseSet.has(project.project_name));
+  const nonShowcasedProjects = filteredProjects.filter((project) => !showcaseSet.has(project.project_name));
+  const rankedProjects = [...filteredProjects].sort(
+    (a, b) => scoreProject(b, scoringWeights) - scoreProject(a, scoringWeights)
+  );
+  const rankedNonShowcased = [...nonShowcasedProjects].sort(
+    (a, b) => scoreProject(b, scoringWeights) - scoreProject(a, scoringWeights)
+  );
+  const topProjects = (mode === "public"
+    ? (showcasedProjectsInOrder.length ? showcasedProjectsInOrder : filteredProjects)
+    : (showcasedProjectsInOrder.length ? [...showcasedProjectsInOrder, ...rankedNonShowcased] : rankedProjects)
+  ).slice(0, effectiveTopCount);
+  const showTimelinePanel = mode === "private" ? showTimeline : true;
+  const showHeatmapPanel = mode === "private" ? showHeatmap : true;
+  const showTopProjectsPanel = mode === "private" ? showTopProjects : true;
 
   return (
     <LiquidShell
@@ -261,14 +333,124 @@ export default function DashboardPage() {
       subtitle="Timeline, activity heatmap, and top projects from project insight history."
     >
       <div className="page-stack">
+        <div className="button-row" style={{ justifyContent: "flex-start" }}>
+          <LiquidSegmentedControl
+            ariaLabel="Dashboard mode"
+            options={[
+              { value: "private", label: "Private" },
+              { value: "public", label: "Public" }
+            ]}
+            value={mode}
+            onChange={setMode}
+          />
+        </div>
+
         {loading ? <p className="muted">Loading insights...</p> : null}
         {error ? <p className="error">{error}</p> : null}
 
         {!loading && !error ? (
           <>
+            <GlassCard
+              title={mode === "private" ? "Dashboard Controls (Private)" : "Dashboard Filters (Public)"}
+              hint={mode === "private" ? "Private mode allows customization and filtering." : "Public mode allows search and filter only."}
+            >
+              <div className="settings-list compact">
+                <label className="settings-row settings-field-row">
+                  <span className="settings-label">Search</span>
+                  <input
+                    className="settings-control"
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    placeholder="Find by project name or summary"
+                  />
+                </label>
+                <label className="settings-row settings-field-row">
+                  <span className="settings-label">Type</span>
+                  <select className="settings-control" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)}>
+                    <option value="all">All</option>
+                    {availableTypes.map((projectType) => (
+                      <option key={projectType} value={projectType}>{projectType}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="settings-row settings-field-row">
+                  <span className="settings-label">Skill</span>
+                  <select className="settings-control" value={skillFilter} onChange={(event) => setSkillFilter(event.target.value)}>
+                    <option value="all">All</option>
+                    {availableSkills.map((skill) => (
+                      <option key={skill} value={skill}>{skill}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <p className="muted">Showing {filteredProjects.length} of {projects.length} project(s).</p>
+            </GlassCard>
+
+            {mode === "private" ? (
+              <GlassCard title="Customization" hint="Tune ranking and section visibility before publishing.">
+                <div className="settings-list compact">
+                  <label className="settings-row settings-field-row">
+                    <span className="settings-label">Top projects shown</span>
+                    <input
+                      className="settings-control"
+                      type="number"
+                      min={1}
+                      max={10}
+                      value={topProjectCount}
+                      onChange={(event) => setTopProjectCount(event.target.value)}
+                    />
+                  </label>
+                  <label className="settings-row settings-field-row">
+                    <span className="settings-label">Contribution count weight</span>
+                    <input
+                      className="settings-control"
+                      type="number"
+                      min={0}
+                      value={countWeight}
+                      onChange={(event) => setCountWeight(Number(event.target.value))}
+                    />
+                  </label>
+                  <label className="settings-row settings-field-row">
+                    <span className="settings-label">Contribution percent weight</span>
+                    <input
+                      className="settings-control"
+                      type="number"
+                      min={0}
+                      value={percentWeight}
+                      onChange={(event) => setPercentWeight(Number(event.target.value))}
+                    />
+                  </label>
+                  <label className="settings-row settings-field-row">
+                    <span className="settings-label">Skill count weight</span>
+                    <input
+                      className="settings-control"
+                      type="number"
+                      min={0}
+                      value={skillWeight}
+                      onChange={(event) => setSkillWeight(Number(event.target.value))}
+                    />
+                  </label>
+                </div>
+                <div className="settings-list compact">
+                  <label className="settings-row settings-field-row">
+                    <span className="settings-label">Show Skills Timeline</span>
+                    <input type="checkbox" checked={showTimeline} onChange={(event) => setShowTimeline(event.target.checked)} />
+                  </label>
+                  <label className="settings-row settings-field-row">
+                    <span className="settings-label">Show Activity Heatmap</span>
+                    <input type="checkbox" checked={showHeatmap} onChange={(event) => setShowHeatmap(event.target.checked)} />
+                  </label>
+                  <label className="settings-row settings-field-row">
+                    <span className="settings-label">Show Top Projects</span>
+                    <input type="checkbox" checked={showTopProjects} onChange={(event) => setShowTopProjects(event.target.checked)} />
+                  </label>
+                </div>
+              </GlassCard>
+            ) : null}
+
             <div className="grid three-col">
               <GlassCard title="Projects">
-                <p className="metric-value">{projects.length}</p>
+                <p className="metric-value">{filteredProjects.length}</p>
               </GlassCard>
               <GlassCard title="Unique Skills">
                 <p className="metric-value">{uniqueSkills.size}</p>
@@ -278,31 +460,63 @@ export default function DashboardPage() {
               </GlassCard>
             </div>
 
-            <div className="grid two-col">
-              <GlassCard title="Skills Timeline" hint="Project-level skill count progression.">
-                <TimelineBars projects={projects} />
+            {highlightSkills.length ? (
+              <GlassCard title="Highlighted Skills" hint="Configured in Project Settings and emphasized in showcase cards.">
+                <div className="button-row">
+                  {highlightSkills.map((skill) => (
+                    <span key={skill} className="data-chip">{skill}</span>
+                  ))}
+                </div>
               </GlassCard>
-              <GlassCard title="Activity Heatmap" hint="Code, test, design, document, and other buckets. Values are counts of detected artifacts for the selected month.">
-                <ActivityHeatmap projects={projects} />
-              </GlassCard>
-            </div>
+            ) : null}
 
-            <GlassCard title="Top 3 Projects" hint="Ranked by contribution and skill signal.">
-              <div className="grid three-col">
-                {topProjects.length ? (
-                  topProjects.map((project, index) => (
-                    <div className="sub-card" key={`${project.project_name || "project"}-${index}`}>
-                      <h3>{project.project_name || "Unknown"}</h3>
-                      <p className="muted">{String(project.project_type || "unknown")}</p>
-                      <p>{String(project.summary || "No summary available.").slice(0, 220)}</p>
-                      <p className="hint">Skills: {(project.skills || []).length}</p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="muted">No projects available.</p>
-                )}
+            {showTimelinePanel || showHeatmapPanel ? (
+              <div className="grid two-col">
+                {showTimelinePanel ? (
+                  <GlassCard title="Skills Timeline" hint="Project-level skill count progression.">
+                    <TimelineBars projects={filteredProjects} />
+                  </GlassCard>
+                ) : null}
+                {showHeatmapPanel ? (
+                  <GlassCard title="Activity Heatmap" hint="Code, test, design, document, and other buckets. Values are counts of detected artifacts for the selected month.">
+                    <ActivityHeatmap projects={filteredProjects} />
+                  </GlassCard>
+                ) : null}
               </div>
-            </GlassCard>
+            ) : null}
+
+            {showTopProjectsPanel ? (
+              <GlassCard
+                title={`Top ${effectiveTopCount} Projects`}
+                hint={showcasedProjectsInOrder.length
+                  ? "Showcase selections from Project Settings are prioritized."
+                  : "Ranked by contribution and skill signal."}
+              >
+                <div className="grid three-col">
+                  {topProjects.length ? (
+                    topProjects.map((project, index) => (
+                      <div className="sub-card" key={`${project.project_name || "project"}-${index}`}>
+                        <h3>{project.project_name || "Unknown"}</h3>
+                        <p className="muted">{String(project.project_type || "unknown")}</p>
+                        <p>{String(project.summary || "No summary available.").slice(0, 220)}</p>
+                        {highlightSkills.length ? (
+                          <p className="hint">
+                            Highlighted: {
+                              (Array.isArray(project.skills) ? project.skills : [])
+                                .filter((skill) => highlightSkills.includes(skill))
+                                .join(", ") || "None"
+                            }
+                          </p>
+                        ) : null}
+                        <p className="hint">Skills: {(project.skills || []).length}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="muted">No projects available.</p>
+                  )}
+                </div>
+              </GlassCard>
+            ) : null}
           </>
         ) : null}
       </div>
