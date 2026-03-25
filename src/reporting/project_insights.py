@@ -675,6 +675,24 @@ def list_skill_history(storage_path: PathLike = DEFAULT_STORAGE) -> List[Dict[st
     ]
 
 
+def group_project_histories(
+    storage_path: PathLike = DEFAULT_STORAGE,
+) -> Dict[str, List[ProjectInsight]]:
+    """
+    Group stored project insights into chronological histories by project name.
+
+    Args:
+        storage_path: Where insights are stored.
+
+    Returns:
+        Mapping of project name to that project's snapshots in chronological order.
+    """
+    grouped: Dict[str, List[ProjectInsight]] = {}
+    for insight in list_project_insights(storage_path):
+        grouped.setdefault(insight.project_name, []).append(insight)
+    return grouped
+
+
 def summarize_project_evolution(project_history: List[ProjectInsight]) -> Dict[str, Any]:
     """
     Summarize how a project's snapshots changed over time.
@@ -888,6 +906,7 @@ __all__ = [
     "list_project_insights",
     "rank_projects_by_contribution",
     "list_skill_history",
+    "group_project_histories",
     "summarize_project_evolution",
     "summaries_for_top_ranked_projects",
     "update_thumbnail_in_insights",      

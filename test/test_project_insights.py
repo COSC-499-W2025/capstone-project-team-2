@@ -17,6 +17,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from src.reporting.project_insights import (
+    group_project_histories,
     list_project_insights,
     list_skill_history,
     summarize_project_evolution,
@@ -517,6 +518,46 @@ class TestProjectInsights(unittest.TestCase):
         self.assertEqual(summary["file_count_delta"], 2)
         self.assertTrue(summary["summary_changed"])
         self.assertFalse(summary["project_type_changed"])
+
+    def test_group_project_histories_groups_snapshots_by_name(self) -> None:
+        """Snapshots with the same project name should be grouped together chronologically."""
+        self._announce("Grouping snapshots into per-project histories.")
+
+        ts1 = datetime(2025, 5, 1, tzinfo=timezone.utc)
+        ts2 = ts1 + timedelta(days=1)
+        ts3 = ts1 + timedelta(days=2)
+
+        record_project_insight(
+            _analysis_payload("Alpha", summary="First alpha snapshot."),
+            storage_path=self.storage,
+            analyzed_at=ts2,
+            insight_id="alpha-2",
+        )
+        record_project_insight(
+            _analysis_payload("Beta", summary="Only beta snapshot."),
+            storage_path=self.storage,
+            analyzed_at=ts3,
+            insight_id="beta-1",
+        )
+        record_project_insight(
+            _analysis_payload("Alpha", summary="Initial alpha snapshot."),
+            storage_path=self.storage,
+            analyzed_at=ts1,
+            insight_id="alpha-1",
+        )
+
+        grouped = group_project_histories(storage_path=self.storage)
+
+        self.assertEqual(sorted(grouped.keys()), ["Alpha", "Beta"])
+        self.assertEqual([item.id for item in grouped["Alpha"]], ["alpha-1", "alpha-2"])
+        self.assertEqual([item.id for item in grouped["Beta"]], ["beta-1"])
+
+    def test_group_project_histories_returns_empty_mapping_for_empty_storage(self) -> None:
+        """Grouping should return an empty dict when there are no stored insights."""
+        self._announce("Grouping histories from empty storage.")
+
+        grouped = group_project_histories(storage_path=self.storage)
+        self.assertEqual(grouped, {})
 
     def test_corrupted_storage_is_preserved_before_rewrite(self) -> None:
         """Ensure corrupted logs get saved aside before being replaced."""
