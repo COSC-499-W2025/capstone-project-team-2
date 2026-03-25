@@ -114,7 +114,6 @@ def representation_preferences_menu() -> None:
         print(f"Current project order: {prefs.get('project_order') or 'not set'}")
         print(f"Showcase projects: {prefs.get('showcase_projects') or 'none'}")
         print(f"Highlight skills: {prefs.get('highlight_skills') or 'none'}")
-        print(f"Manual project overrides: {prefs.get('project_overrides') or 'none'}")
         if available:
             print(f"Available projects: {', '.join(available)}")
         else:
@@ -123,8 +122,7 @@ def representation_preferences_menu() -> None:
         print("2) Set showcase projects (comma-separated names)")
         print("3) Set highlight skills (comma-separated list)")
         print("4) Add/Update chronology override (project, ISO datetime)")
-        print("5) Add/Update manual project override (project, contribution type, duration)")
-        print("6) Reset to defaults")
+        print("5) Reset to defaults")
         print("0) Back")
 
         choice = input("Select an option: ").strip()
@@ -154,36 +152,18 @@ def representation_preferences_menu() -> None:
             prefs.setdefault("chronology_corrections", {})[proj] = {"analyzed_at": ts}
             save_preferences(prefs)
         elif choice == "5":
-            proj = input("Project name to override: ").strip()
-            if proj not in available:
-                print(f"[WARN] Unknown project '{proj}'. Choose one from available projects.")
-                continue
-            contribution_type = input("Contribution type (blank keeps existing): ").strip()
-            duration_estimate = input("Duration estimate (blank keeps existing): ").strip()
-            current = dict((prefs.get("project_overrides") or {}).get(proj, {}))
-            if contribution_type:
-                current["contribution_type"] = contribution_type
-            if duration_estimate:
-                current["duration_estimate"] = duration_estimate
-            if not current:
-                print("[INFO] No override values provided.")
-                continue
-            prefs.setdefault("project_overrides", {})[proj] = current
-            save_preferences(prefs)
-        elif choice == "6":
             prefs = {
                 "project_order": [],
                 "chronology_corrections": {},
                 "comparison_attributes": ["languages", "frameworks", "duration_estimate"],
                 "highlight_skills": [],
                 "showcase_projects": [],
-                "project_overrides": {},
             }
             save_preferences(prefs)
         elif choice == "0":
             return
         else:
-            print("Please choose a valid option (0-6).")
+            print("Please choose a valid option (0-5).")
 
 
 def toggle_external_services() -> None:
