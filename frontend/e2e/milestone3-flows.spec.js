@@ -256,18 +256,3 @@ test("generates and loads a portfolio in the workspace", async ({ page }) => {
   await expect(page.getByText("Portfolio created.")).toBeVisible();
   await expect(page.locator(".workspace-page .settings-row").filter({ hasText: "Active ID" })).toContainText("Jane_Doe_portfolio_001");
 });
-
-test("public mode toggle persists on upload route", async ({ page }) => {
-  await installApiMocks(page, { insights: [makeInsight("sample-project")] });
-
-  await page.goto("/upload");
-  await expect(page.locator('a[href="/upload"]')).toBeVisible();
-
-  await page.getByRole("button", { name: "P u b l i c", exact: true }).click();
-
-  await expect(page).toHaveURL(/\/upload$/);
-  await expect(page.getByRole("heading", { name: /Project Upload/ })).toBeVisible();
-  await expect(page.locator('a[href="/dashboard"]')).toBeVisible();
-  await expect(page.locator('a[href="/workspace"]')).toBeVisible();
-  expect(await page.evaluate(() => window.localStorage.getItem("viewMode"))).toBe("public");
-});

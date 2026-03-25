@@ -6,7 +6,7 @@
  * This file contains:
  * - shared editor/document-preview subcomponents for resume and portfolio documents,
  * - document lifecycle handlers (generate/load/delete/edit/render),
- * - and mode-aware rendering for private/public access behavior.
+ * - and authoring controls for resume and portfolio outputs.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -114,58 +114,6 @@ function buildDefaultDownloadName({ kind, docId, doc }) {
   const stamp = `${yyyy}-${mm}-${dd}_${hh}${mi}`;
 
   return `${baseName}_${label}_${stamp}`;
-}
-
-/**
- * Public-mode document preview section with read-only data and export actions.
- *
- * @param {{
- *   doc: any,
- *   onRender: (format: string) => void,
- *   isActionActive: (action: string) => boolean
- * }} props
- * @returns {JSX.Element}
- */
-function PublicDocumentPreview({ doc, onRender, isActionActive }) {
-  if (!doc) return <p className="muted">Load a document ID to view the document preview.</p>;
-
-  return (
-    <div className="grid two-col">
-      <GlassCard title="Contact">
-        <pre className="json-box">{JSON.stringify(doc.contact || {}, null, 2)}</pre>
-      </GlassCard>
-      <GlassCard title="Summary">
-        <p>{doc.summary || "No summary available."}</p>
-      </GlassCard>
-      <GlassCard title="Connections">
-        <pre className="json-box">{JSON.stringify(doc.connections || [], null, 2)}</pre>
-      </GlassCard>
-      <GlassCard title="Sections">
-        <pre className="json-box">{JSON.stringify({
-          education: doc.education || [],
-          experience: doc.experience || [],
-          projects: doc.projects || [],
-          skills: doc.skills || []
-        }, null, 2)}</pre>
-      </GlassCard>
-
-      <GlassCard title="Download">
-        <div className="button-row">
-          {FORMATS.map((format) => (
-            <button
-              key={format}
-              type="button"
-              className="liquid-btn"
-              disabled={isActionActive(`download:${format}`)}
-              onClick={() => onRender(format)}
-            >
-              {isActionActive(`download:${format}`) ? "Rendering..." : `Download ${format.toUpperCase()}`}
-            </button>
-          ))}
-        </div>
-      </GlassCard>
-    </div>
-  );
 }
 
 /**
@@ -1103,10 +1051,10 @@ function SkillsEditor({ doc, onAddSkill, onAppendSkill, onRemoveSkill, onApply }
  * Core workspace studio for one document kind (resume or portfolio).
  * Handles lifecycle actions, edits, project operations, and rendering.
  *
- * @param {{ kind: "resume" | "portfolio", mode: "public" | "private" }} props
+ * @param {{ kind: "resume" | "portfolio" }} props
  * @returns {JSX.Element}
  */
-function DocumentStudio({ kind, mode }) {
+function DocumentStudio({ kind }) {
   const isResume = kind === "resume";
 
   /**
@@ -1472,56 +1420,6 @@ function DocumentStudio({ kind, mode }) {
   const hasActiveId = Boolean(docId);
   const hasCreatedAt = Boolean(activeDoc?.created_at);
 
-  if (mode === "public") {
-    return (
-      <div className="page-stack workspace-page">
-        <div className="grid two-col">
-          <GlassCard title={`${isResume ? "Resume" : "Portfolio"} ID`} hint="Public mode is view + download only.">
-            <div className="form-stack">
-              <div className="settings-list compact">
-                <label className="settings-row settings-field-row">
-                  <span className="settings-label">Name</span>
-                  <select
-                    className="settings-control"
-                    value={idInput}
-                    onChange={(e) => setIdInput(e.target.value)}
-                  >
-                    <option value="">{SELECT_PLACEHOLDER}</option>
-                    {savedDocs.map((doc) => (
-                      <option key={doc.id} value={doc.id}>{doc.name}{doc.created_at ? ` (${new Date(doc.created_at).toLocaleDateString()})` : ""}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <div className="button-row">
-                <button type="button" className="liquid-btn solid" disabled={busy} onClick={() => onLoad(idInput)}>
-                  {busy ? "Loading..." : `Load ${isResume ? "Resume" : "Portfolio"}`}
-                </button>
-              </div>
-              {recentIds.length ? (
-                <div className="button-row">
-                  {recentIds.map((id) => {
-                    const found = savedDocs.find((d) => d.id === id);
-                    const label = `${found?.name ?? id}${found?.created_at ? ` (${new Date(found.created_at).toLocaleDateString()})` : ""}`;
-                    return (
-                      <button key={id} type="button" className="liquid-btn" onClick={() => { setIdInput(id); onLoad(id); }}>
-                        {label}
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : null}
-            </div>
-            {error ? <p className="error">{error}</p> : null}
-            {message ? <p className="success">{message}</p> : null}
-          </GlassCard>
-
-          <PublicDocumentPreview doc={doc} onRender={onRender} isActionActive={isActionActive} />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="page-stack workspace-page">
       <div className="grid two-col workspace-control-grid">
@@ -1608,10 +1506,6 @@ function DocumentStudio({ kind, mode }) {
               <div className={`settings-row ${hasCreatedAt ? "status-ok" : "status-missing"}`.trim()}>
                 <span className="settings-label">Created</span>
                 <strong className="settings-value">{createdAtText}</strong>
-              </div>
-              <div className="settings-row status-ok">
-                <span className="settings-label">Mode</span>
-                <strong className="settings-value">{mode === "private" ? "Private" : "Public"}</strong>
               </div>
             </div>
             <div className="button-row">
@@ -1782,7 +1676,6 @@ function DocumentStudio({ kind, mode }) {
  */
 export default function WorkspacePage() {
   const [tab, setTab] = useState("resume");
-  const [mode, setMode] = useState("private");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -1790,25 +1683,6 @@ export default function WorkspacePage() {
     if (fromQuery === "portfolio" || fromQuery === "resume") {
       setTab(fromQuery);
     }
-
-    const stored = window.localStorage.getItem("viewMode");
-    if (stored === "public" || stored === "private") setMode(stored);
-
-    /**
-     * Syncs workspace mode when nav-level visibility mode changes.
-     *
-     * @param {CustomEvent<"public" | "private">} event
-     * @returns {void}
-     */
-    const onViewModeChange = (event) => {
-      const nextMode = event?.detail;
-      if (nextMode === "public" || nextMode === "private") {
-        setMode(nextMode);
-      }
-    };
-
-    window.addEventListener("viewModeChange", onViewModeChange);
-    return () => window.removeEventListener("viewModeChange", onViewModeChange);
   }, []);
 
   return (
@@ -1826,8 +1700,8 @@ export default function WorkspacePage() {
           ]}
         />
 
-        {tab === "resume" ? <DocumentStudio kind="resume" mode={mode} /> : null}
-        {tab === "portfolio" ? <DocumentStudio kind="portfolio" mode={mode} /> : null}
+        {tab === "resume" ? <DocumentStudio kind="resume" /> : null}
+        {tab === "portfolio" ? <DocumentStudio kind="portfolio" /> : null}
       </div>
     </LiquidShell>
   );
