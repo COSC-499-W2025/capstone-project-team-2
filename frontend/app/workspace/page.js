@@ -1764,56 +1764,6 @@ function DocumentStudio({ kind }) {
   const hasActiveId = Boolean(docId);
   const hasCreatedAt = Boolean(activeDoc?.created_at);
 
-  if (mode === "public") {
-    return (
-      <div className="page-stack workspace-page">
-        <div className="grid two-col">
-          <GlassCard title={`${isResume ? "Resume" : "Portfolio"} ID`} hint="Public mode is view + download only.">
-            <div className="form-stack">
-              <div className="settings-list compact">
-                <label className="settings-row settings-field-row">
-                  <span className="settings-label">Name</span>
-                  <select
-                    className="settings-control"
-                    value={idInput}
-                    onChange={(e) => setIdInput(e.target.value)}
-                  >
-                    <option value="">{SELECT_PLACEHOLDER}</option>
-                    {savedDocs.map((doc) => (
-                      <option key={doc.id} value={doc.id}>{displayName(doc.name)}{doc.created_at ? ` (${new Date(doc.created_at).toLocaleDateString()})` : ""}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <div className="button-row">
-                <button type="button" className="liquid-btn solid" disabled={busy} onClick={() => onLoad(idInput)}>
-                  {busy ? "Loading..." : `Load ${isResume ? "Resume" : "Portfolio"}`}
-                </button>
-              </div>
-              {recentIds.length ? (
-                <div className="button-row">
-                  {recentIds.map((id) => {
-                    const found = savedDocs.find((d) => d.id === id);
-                    const label = `${displayName(found?.name) || id}${found?.created_at ? ` (${new Date(found.created_at).toLocaleDateString()})` : ""}`;
-                    return (
-                      <button key={id} type="button" className="liquid-btn" onClick={() => { setIdInput(id); onLoad(id); }}>
-                        {label}
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : null}
-            </div>
-            {error ? <p className="error">{error}</p> : null}
-            {message ? <p className="success">{message}</p> : null}
-          </GlassCard>
-
-          <PublicDocumentPreview doc={doc} onRender={onRender} isActionActive={isActionActive} />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="page-stack workspace-page">
       <div className="grid two-col workspace-control-grid">
