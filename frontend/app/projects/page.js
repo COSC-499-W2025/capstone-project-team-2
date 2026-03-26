@@ -20,7 +20,7 @@ import { LiquidSegmentedControl } from "../../components/LiquidPillControl";
 function ProjectDetail({ data }) {
   const item = data?.analysis?.resume_item ?? data?.analysis ?? {};
   const [typing, setTyping] = useState(item?.project_type);
-  const [persistedTyping, setPersistedTyping] = useState(item?.project_type);
+  const [persistedTyping, setPersistedTyping] = useState(item?.project_type ?? "Unknown");
   const [typingMessage, setTypingMessage] = useState(null);
 
 
@@ -40,7 +40,10 @@ function ProjectDetail({ data }) {
    * @returns {Promise<void>}
    */
   async function updateType() {
-    if (typing == persistedTyping) return;
+    if (typing == persistedTyping) {
+      setTypingMessage("Type Unchanged");
+      return;
+    }
     try {
     const dict = await updateProjectType(data.project_name, typing);
     setTypingMessage(dict.message);
