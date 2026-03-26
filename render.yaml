@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: capstone-backend
+    env: docker
+    dockerfilePath: ./Dockerfile.backend
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: CORS_ORIGINS
+        value: https://capstone-frontend.onrender.com
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+
+  - type: web
+    name: capstone-frontend
+    env: docker
+    dockerfilePath: ./Dockerfile.frontend
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: NEXT_PUBLIC_API_BASE
+        value: https://capstone-backend.onrender.com

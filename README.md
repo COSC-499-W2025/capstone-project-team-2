@@ -253,6 +253,45 @@ npm install
 npm run dev
 ```
 
+## Bonus Deployment (Milestone 3)
+
+Deployment is listed as a bonus in Milestone 3. This repository now includes
+containerized deployment files for backend + frontend:
+
+- `Dockerfile.backend`
+- `Dockerfile.frontend`
+- `docker-compose.deploy.yml`
+- `render.yaml` (Render Blueprint)
+
+Detailed steps are in [`docs/DEPLOYMENT_BONUS.md`](docs/DEPLOYMENT_BONUS.md).
+
+### Run Both Services Locally with Docker
+
+From the repository root:
+
+```bash
+docker compose -f docker-compose.deploy.yml up --build
+```
+
+Then open:
+
+- Frontend: `http://localhost:3000`
+- Backend API docs: `http://localhost:8000/docs`
+
+### Deploy on Render (Bonus)
+
+1. Push this repository to GitHub.
+2. In Render, create a new **Blueprint** and select this repo.
+3. Render will detect `render.yaml` and create:
+   - `capstone-backend`
+   - `capstone-frontend`
+4. Set secrets when prompted:
+   - `GOOGLE_API_KEY` (optional if using AI features)
+   - `GITHUB_TOKEN` (optional for GitHub contributor analysis)
+5. After deploy, update values if needed:
+   - Backend `CORS_ORIGINS` should include frontend URL.
+   - Frontend `NEXT_PUBLIC_API_BASE` should point to backend URL.
+
 ## API Documentation
 
 All API endpoints are documented in one reference:
