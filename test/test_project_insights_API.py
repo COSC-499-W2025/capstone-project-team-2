@@ -152,3 +152,55 @@ def test_return_top_project_histories_respects_top_n():
     assert response.status_code == 200
     assert len(body) == 1
     assert body[0]["project_name"] == "One"
+
+
+def test_return_top_project_histories_prefers_skills_then_recency_on_ties():
+    """Ensures top-project endpoint breaks equal contribution ties by skills, then recency."""
+    root_folder = Path(__file__).absolute().resolve().parents[1]
+    runtimeAppContext.legacy_save_dir = root_folder / "User_config_files"
+    runtimeAppContext.default_save_dir = runtimeAppContext.legacy_save_dir / "project_insights"
+    testclient = TestClient(app)
+    storage_path = Path(runtimeAppContext.legacy_save_dir / "project_insights.json")
+
+    sample = [
+        {
+            "id": "older-1",
+            "project_name": "OlderNoSkills",
+            "summary": "Older project without detected skills.",
+            "analyzed_at": "2025-05-01T00:00:00+00:00",
+            "languages": [],
+            "skills": [],
+            "project_type": "collaborative",
+            "stats": {"top_contribution_count": 5},
+            "file_analysis": {"file_count": 1},
+        },
+        {
+            "id": "newer-1",
+            "project_name": "NewerPython",
+            "summary": "Newer project with Python skill.",
+            "analyzed_at": "2025-05-03T00:00:00+00:00",
+            "languages": ["Python"],
+            "skills": ["Python"],
+            "project_type": "collaborative",
+            "stats": {"top_contribution_count": 5},
+            "file_analysis": {"file_count": 1},
+        },
+        {
+            "id": "newest-1",
+            "project_name": "NewestPython",
+            "summary": "Newest project with same skill count.",
+            "analyzed_at": "2025-05-04T00:00:00+00:00",
+            "languages": ["Python"],
+            "skills": ["Python"],
+            "project_type": "collaborative",
+            "stats": {"top_contribution_count": 5},
+            "file_analysis": {"file_count": 1},
+        },
+    ]
+    storage_path.write_text(json.dumps(sample), encoding="utf-8")
+
+    response = testclient.get("/insights/top-projects")
+    body = response.json()
+
+    assert response.status_code == 200
+    assert [entry["project_name"] for entry in body] == ["NewestPython", "NewerPython", "OlderNoSkills"]

@@ -781,11 +781,12 @@ def summarize_top_project_histories(
     ranked = sorted(
         project_cards,
         key=lambda item: (
-            item["score"],
-            _safe_int((item["latest"].get("stats") or {}).get("top_contribution_count", 0)),
-            item["project_name"],
+            -float(item["score"]),
+            -len((item["latest"].get("skills") or [])),
+            -_parse_analyzed_at(item["latest"].get("analyzed_at")).timestamp(),
+            -_safe_int((item["latest"].get("stats") or {}).get("top_contribution_count", 0)),
+            str(item["project_name"]).lower(),
         ),
-        reverse=True,
     )
     return ranked[:top_n]
 

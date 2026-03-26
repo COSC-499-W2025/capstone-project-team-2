@@ -185,6 +185,7 @@ Router prefix: `/insights`
 
 ### `GET /insights/top-projects`
 - Purpose: return the top unique projects using the latest snapshot for ranking and attach evolution evidence from snapshot history.
+- Ranking: sorts by latest snapshot contribution score first, then latest skill count, then latest analysis recency.
 - Query:
   - `top_n` (optional integer, default `3`) — max number of unique projects to return
   - `contributor` (optional string) — rank by a specific contributor's contribution score

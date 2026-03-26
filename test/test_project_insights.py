@@ -637,6 +637,76 @@ class TestProjectInsights(unittest.TestCase):
         self.assertEqual(len(summaries), 1)
         self.assertEqual(summaries[0]["project_name"], "One")
 
+    def test_summarize_top_project_histories_prefers_skill_signal_when_scores_tie(self) -> None:
+        """Equal contribution scores should rank projects with richer latest skills higher."""
+        self._announce("Breaking top-project ties using latest skill signal.")
+
+        ts1 = datetime(2025, 5, 1, tzinfo=timezone.utc)
+        ts2 = ts1 + timedelta(days=1)
+
+        record_project_insight(
+            _analysis_payload(
+                "NoSkills",
+                languages=[],
+                frameworks=[],
+                skills=[],
+            ),
+            storage_path=self.storage,
+            analyzed_at=ts1,
+            contributors={"Lead": {"file_count": 5}},
+            insight_id="no-skills-1",
+        )
+        record_project_insight(
+            _analysis_payload(
+                "PythonProject",
+                languages=["Python"],
+                frameworks=[],
+                skills=["Python", "Automation"],
+            ),
+            storage_path=self.storage,
+            analyzed_at=ts2,
+            contributors={"Lead": {"file_count": 5}},
+            insight_id="python-project-1",
+        )
+
+        summaries = summarize_top_project_histories(storage_path=self.storage, top_n=2)
+        self.assertEqual([item["project_name"] for item in summaries], ["PythonProject", "NoSkills"])
+
+    def test_summarize_top_project_histories_prefers_newer_snapshot_when_score_and_skills_tie(self) -> None:
+        """Equal score and skill count should break ties by latest analyzed_at recency."""
+        self._announce("Breaking top-project ties using latest snapshot recency.")
+
+        ts1 = datetime(2025, 5, 1, tzinfo=timezone.utc)
+        ts2 = ts1 + timedelta(days=2)
+
+        record_project_insight(
+            _analysis_payload(
+                "Older",
+                languages=["Python"],
+                frameworks=[],
+                skills=["Python"],
+            ),
+            storage_path=self.storage,
+            analyzed_at=ts1,
+            contributors={"Lead": {"file_count": 5}},
+            insight_id="older-1",
+        )
+        record_project_insight(
+            _analysis_payload(
+                "Newer",
+                languages=["Python"],
+                frameworks=[],
+                skills=["Python"],
+            ),
+            storage_path=self.storage,
+            analyzed_at=ts2,
+            contributors={"Lead": {"file_count": 5}},
+            insight_id="newer-1",
+        )
+
+        summaries = summarize_top_project_histories(storage_path=self.storage, top_n=2)
+        self.assertEqual([item["project_name"] for item in summaries], ["Newer", "Older"])
+
     def test_corrupted_storage_is_preserved_before_rewrite(self) -> None:
         """Ensure corrupted logs get saved aside before being replaced."""
         self._announce("Preserving corrupted insight logs before rewriting.")

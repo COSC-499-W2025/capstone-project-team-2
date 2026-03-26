@@ -10,7 +10,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { GlassCard, LiquidShell } from "../../components/LiquidShell";
-import { fetchProjectInsights } from "../../lib/api";
+import { fetchProjectInsights, fetchProjects, fetchTopProjectHistories } from "../../lib/api";
 
 /**
  * Extension and naming heuristics used to classify hierarchy files
@@ -99,17 +99,67 @@ function classify(path, nodeType = "") {
 }
 
 /**
- * Produces a rank score for project ordering.
+ * Formats an evolution date range for the top-project card.
  *
- * @param {any} project
- * @returns {number}
+ * @param {any} evolution
+ * @returns {string}
  */
-function scoreProject(project) {
-  const stats = project?.stats || {};
-  const topCount = Number(stats.top_contribution_count || 0);
-  const topPct = Number(stats.top_contribution_percentage || 0);
-  const skillCount = Number(stats.skill_count || (project.skills || []).length || 0);
-  return topCount * 100 + topPct + skillCount * 3;
+function formatEvolutionDateRange(evolution) {
+  const first = evolution?.first_analyzed_at ? String(evolution.first_analyzed_at).slice(0, 10) : "";
+  const latest = evolution?.latest_analyzed_at ? String(evolution.latest_analyzed_at).slice(0, 10) : "";
+  if (!first && !latest) return "No history dates available.";
+  if (first && latest && first !== latest) return `${first} to ${latest}`;
+  return first || latest;
+}
+
+/**
+ * Builds short, readable evolution evidence lines for one top project.
+ *
+ * @param {any} item
+ * @returns {string[]}
+ */
+function buildEvolutionHighlights(item) {
+  const evolution = item?.evolution || {};
+  const snapshotCount = Number(item?.snapshot_count || 0);
+  const highlights = [];
+
+  if (snapshotCount > 1) {
+    highlights.push(`${snapshotCount} snapshots across ${formatEvolutionDateRange(evolution)}`);
+  } else {
+    highlights.push("No evolution history yet");
+  }
+
+  if (Array.isArray(evolution.new_skills) && evolution.new_skills.length) {
+    highlights.push(`Added skills: ${evolution.new_skills.slice(0, 3).join(", ")}`);
+  }
+
+  if (Array.isArray(evolution.new_languages) && evolution.new_languages.length) {
+    highlights.push(`Expanded languages: ${evolution.new_languages.slice(0, 3).join(", ")}`);
+  }
+
+  if (Number.isFinite(evolution.file_count_delta) && evolution.file_count_delta > 0) {
+    highlights.push(`File count grew by ${evolution.file_count_delta}`);
+  }
+
+  if (evolution.summary_changed) {
+    highlights.push("Project summary changed over time");
+  }
+
+  if (evolution.project_type_changed) {
+    highlights.push("Project type changed across snapshots");
+  }
+
+  return highlights;
+}
+
+/**
+ * Normalizes project names before comparing API payloads from different sources.
+ *
+ * @param {any} value
+ * @returns {string}
+ */
+function normalizeProjectName(value) {
+  return String(value || "").trim().toLowerCase();
 }
 
 /**
@@ -220,7 +270,9 @@ function ActivityHeatmap({ projects }) {
  * @returns {JSX.Element}
  */
 export default function DashboardPage() {
+  const [projectNames, setProjectNames] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [topProjects, setTopProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -236,8 +288,24 @@ export default function DashboardPage() {
       setLoading(true);
       setError("");
       try {
-        const data = await fetchProjectInsights();
-        if (!ignore) setProjects(Array.isArray(data) ? data : []);
+        const [projectData, insightData, topProjectData] = await Promise.all([
+          fetchProjects(),
+          fetchProjectInsights(),
+          fetchTopProjectHistories({ topN: 50 })
+        ]);
+        if (!ignore) {
+          const currentProjectNames = Array.isArray(projectData) ? projectData : [];
+          const currentProjectSet = new Set(currentProjectNames.map(normalizeProjectName));
+          const currentInsights = (Array.isArray(insightData) ? insightData : [])
+            .filter((item) => currentProjectSet.has(normalizeProjectName(item?.project_name)));
+          setProjectNames(currentProjectNames);
+          setProjects(currentInsights);
+          setTopProjects(
+            (Array.isArray(topProjectData) ? topProjectData : [])
+              .filter((item) => currentProjectSet.has(normalizeProjectName(item?.project_name)))
+              .slice(0, 3)
+          );
+        }
       } catch (err) {
         if (!ignore) setError(err.message || "Failed to load insights.");
       } finally {
@@ -253,7 +321,6 @@ export default function DashboardPage() {
   const sortedDates = projects.map((p) => parseDate(p.analyzed_at)).filter(Boolean).sort((a, b) => b - a);
   const latestDate = sortedDates[0] ? sortedDates[0].toISOString().slice(0, 10) : "Unknown";
   const uniqueSkills = new Set(projects.flatMap((p) => (Array.isArray(p.skills) ? p.skills : [])));
-  const topProjects = [...projects].sort((a, b) => scoreProject(b) - scoreProject(a)).slice(0, 3);
 
   return (
     <LiquidShell
@@ -268,7 +335,7 @@ export default function DashboardPage() {
           <>
             <div className="grid three-col">
               <GlassCard title="Projects">
-                <p className="metric-value">{projects.length}</p>
+                <p className="metric-value">{projectNames.length}</p>
               </GlassCard>
               <GlassCard title="Unique Skills">
                 <p className="metric-value">{uniqueSkills.size}</p>
@@ -290,14 +357,25 @@ export default function DashboardPage() {
             <GlassCard title="Top 3 Projects" hint="Ranked by contribution and skill signal.">
               <div className="grid three-col">
                 {topProjects.length ? (
-                  topProjects.map((project, index) => (
-                    <div className="sub-card" key={`${project.project_name || "project"}-${index}`}>
-                      <h3>{project.project_name || "Unknown"}</h3>
-                      <p className="muted">{String(project.project_type || "unknown")}</p>
-                      <p>{String(project.summary || "No summary available.").slice(0, 220)}</p>
-                      <p className="hint">Skills: {(project.skills || []).length}</p>
-                    </div>
-                  ))
+                  topProjects.map((item, index) => {
+                    const latest = item?.latest || {};
+                    const evolutionHighlights = buildEvolutionHighlights(item);
+                    return (
+                      <div className="sub-card" key={`${item.project_name || "project"}-${index}`}>
+                        <h3>{item.project_name || "Unknown"}</h3>
+                        <p className="muted">{String(latest.project_type || "unknown")}</p>
+                        <p>{String(latest.summary || "No summary available.").slice(0, 220)}</p>
+                        <p className="hint">Current skills: {(latest.skills || []).length}</p>
+                        <div className="settings-list compact">
+                          {evolutionHighlights.map((line) => (
+                            <div className="settings-row" key={`${item.project_name || "project"}-${line}`}>
+                              <span className="settings-value">{line}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })
                 ) : (
                   <p className="muted">No projects available.</p>
                 )}
