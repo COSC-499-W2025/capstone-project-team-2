@@ -2225,7 +2225,7 @@ Following Week 25's goals to implement the final UI elements and prepare for the
   - Implemented full CRUD UI for awards management in the resume workspace
   - Added skill proficiency level endpoints and inline controls for both resume and portfolio APIs
   - Added optional date override parameters (`start_date`/`end_date`) for AI-generated project entries
-  - Removed trailing "etc." artifacts from AI-rendered skill details for cleaner CV/portfolio output
+  - Removed trailing "etc." artifacts from AI-rendered skill details for cleaner resume/portfolio output
   - UI refinements: button alignment, section spacing, and layout consistency across the workspace page
   - Updated `API_ENDPOINTS.md` to document all new endpoints and clarify field types
 
@@ -2288,6 +2288,7 @@ On the review side, I served as 1st reviewer on three PRs — the WCAG 2.2 docum
 
 ## 🧠 Reflection on Previous Cycle (Week 25)
 
-
+Last was a very interesting week because we went through peer testing and identify some issue including that of the renderCV issue where files would 
+not be able to render propely due some werid old file pathing which was fixed by a team member(@Puneet-Maan) which I very gratefull for his contribution towards fix the problem, which I would have not seen because it was edge case that was rare to encounter and also but my fix solved the main problem of the renderCV issue.
 
 ---
