@@ -117,4 +117,4 @@ class Project_Duration_Estimator:
         '''
         Returns a human-readable duration estimate without microseconds.
         '''
-        return _format_duration(self.get_duration())
+        return format_duration(self.get_duration())

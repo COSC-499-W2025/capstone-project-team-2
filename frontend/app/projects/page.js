@@ -8,7 +8,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { GlassCard, LiquidShell } from "../../components/LiquidShell";
-import { deleteProject, deleteProjectThumbnail, fetchProjectByName, fetchProjects, projectThumbnailUrl, uploadProjectThumbnail } from "../../lib/api";
+import { deleteProject, deleteProjectThumbnail, fetchProjectByName, fetchProjects, projectThumbnailUrl, uploadProjectThumbnail, updateProjectDuration } from "../../lib/api";
 
 /**
  * Inline detail panel showing human-readable fields from a project's resume_item.
@@ -18,8 +18,11 @@ import { deleteProject, deleteProjectThumbnail, fetchProjectByName, fetchProject
  */
 function ProjectDetail({ data }) {
   const item = data?.analysis?.resume_item ?? data?.analysis ?? {};
+  const [updateingDuration, setUpdatingDuration] = useState(null);
   const [start_date, setStart] = useState(null);
   const [end_date, setEnd] = useState(null);
+  const [durationMessage, setDurationMessage] = useState(null);
+  const [duration, setDuration] = useState(data.analysis.duration_estimate);
 
   const chips = (arr) =>
     Array.isArray(arr) && arr.length
@@ -29,6 +32,26 @@ function ProjectDetail({ data }) {
           </span>
         ))
       : <span className="muted">None</span>;
+
+  /**
+   * Persists the new duration and sets the current value to the new value. Also closes the updating section.
+   *
+   * @param {import("react").FormEvent<HTMLFormElement>} event
+   * @returns {Promise<void>}
+   */
+  async function updateDuration(event) {
+    event.preventDefault();
+    if (!start_date || !end_date) return;
+    try {
+    const dict = await updateProjectDuration(data.project_name, start_date, end_date);
+    setDurationMessage(dict.message);
+    setDuration(dict.dur);
+    setUpdatingDuration(null);
+    }
+    catch(err) {
+      setDurationMessage(err.message);
+    }
+  }
 
   return (
     <div className="form-stack" style={{ marginTop: "0.75rem" }}>
@@ -75,22 +98,39 @@ function ProjectDetail({ data }) {
             </div>
           </div>
         ) : null}
-        {data?.analysis?.duration_estimate ? (
+        {duration ? (
           <div className="settings-row">
             <span className="settings-label">Duration</span>
+            {durationMessage ? <p className="success">{durationMessage}</p> : null}
             <div>
-                  <form className="form-stack config-form">
-                    <label>Start Date:</label>
+              {updateingDuration === "" ? (
+                  <form className="form-stack config-form"
+                  onSubmit={updateDuration}
+                  >
+                    <label>
+                      <span className="settings-label">Start Date:</span>
                     <input type="date" className="settings-control"
                     onChange={(e) => setStart(e.target.value)}/>
-                    <label>End Date:</label>
+                    </label>
+                    <label>
+                      <span className="settings-label">End Date:</span>
                     <input type="date" className="settings-control"
                     onChange={(e) => setEnd(e.target.value)}/>
-                    <input type="submit" className="liquid-btn solid"/>
+                    </label>
+                    <button type="submit" className="liquid-btn solid">Update Duration</button>
                   </form>
+              ) : (
+                <button
+                  type="button"
+                  className="liquid-btn solid"
+                  onClick={() => setUpdatingDuration("")}
+                >
+                  Update Duration
+                </button>
+              )}
             </div>
             <div className="button-row">
-              <span className="data-chip">{data.analysis.duration_estimate}</span>
+              <span className="data-chip">{duration}</span>
             </div>
           </div>
         ) : null}

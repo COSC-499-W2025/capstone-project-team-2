@@ -1,3 +1,4 @@
+import datetime
 import json
 import io
 import tempfile
@@ -520,29 +521,44 @@ def delete_project_thumbnail(id: str) -> dict:
     }
 
 @projectsRouter.post("/{id}/duration")
-def update_project_duration(id: str, duration: str) -> str:
+def update_project_duration(id: str, start: str, end: str) -> dict:
     """
-    API endpoint for updating the project duration of a given project
+    API endpoint for updating the project duration of a given project with start and end dates
 
-    API call is ''POST /projects/{id}/duration?duration=str
+    API call is ''POST /projects/{id}/duration?start=str&end=str
 
     Args:
         id (str): name of the project
-        duration (str): string representation of the duration to upload
+        start (str): string representation of the start date
+        end (str): string representation of the end date
 
     Returns:
-        str: Success message
+        dict: Success message and new duration
     
     Raises:
         404: When project is not found in database
+        400: When formatting date and converting to timedelta fails OR when start date is later than end date
     """
 
+    id = id if id.endswith(".json") else f"{id}.json"
     dict_to_update: dict = runtimeAppContext.store.fetch_by_name(id)
     if not dict_to_update:
         raise HTTPException(
             status_code=404,
-            detail=f"Project not found",
+            detail=f"Project {id} not found",
         )
-    dict_to_update["duration_estimate"] = format_duration(pd.Timedelta(duration).to_pytimedelta())  #Converts project duration to timedelta using a pandas library
+    try:
+        if datetime.datetime.strptime(end, '%Y-%m-%d').date() < datetime.datetime.strptime(start, '%Y-%m-%d').date():
+            raise HTTPException(
+            status_code=400,
+            detail=f"Start date must be before end date",
+            )
+        duration = format_duration(datetime.datetime.strptime(end, '%Y-%m-%d').date() - datetime.datetime.strptime(start, '%Y-%m-%d').date())
+        dict_to_update["duration_estimate"] = duration  #Converts project duration to timedelta using a pandas library
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
     runtimeAppContext.store.update(id, dict_to_update)
-    return "Project duration updated successfully"
+    return {"message": "Updated successfully", "dur": duration}

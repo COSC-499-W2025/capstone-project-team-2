@@ -738,3 +738,16 @@ export function deleteProjectThumbnail(projectName) {
 export function projectThumbnailUrl(projectName) {
   return `${API_BASE}/projects/${encodeURIComponent(projectName)}/thumbnail/image`;
 }
+
+/**
+ * Returns a success message and the updated duration created by the start and end dates
+ *
+ * @param {string} id
+ * @param {string} start
+ * @param {string} end
+ * @returns {string}
+ */
+export function updateProjectDuration(id, start, end) {
+  const query = start && end ? `?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}` : "";
+  return request(`/projects/${encodeURIComponent(id)}/duration${query}`, {method: "POST"});
+}
