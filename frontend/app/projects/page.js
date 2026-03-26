@@ -99,6 +99,7 @@ export default function ProjectsPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [viewing, setViewing] = useState(null);
+  const [openNames, setOpenNames] = useState([]);
   const [viewData, setViewData] = useState({});
   // thumbnail state: { [name]: "loading" | "loaded" | "none" }
   const [thumbState, setThumbState] = useState({});
@@ -157,12 +158,17 @@ export default function ProjectsPage() {
     }
   }
 
+  const MAX_OPEN = 3;
+
   async function onToggleView(name) {
     if (viewing === name) {
       setViewing(null);
+      setOpenNames((prev) => prev.filter((n) => n !== name));
       return;
     }
     setViewing(name);
+    if (openNames.length >= MAX_OPEN) setOpenNames((prev) => prev.slice(1));
+    setOpenNames((prev) => prev.includes(name) ? prev : [...prev, name]);
     if (viewData[name] && !viewData[name]._error) return;
     try {
       const data = await fetchProjectByName(name);
@@ -267,7 +273,7 @@ export default function ProjectsPage() {
                         className="liquid-btn solid btn-success"
                         onClick={() => onToggleView(name)}
                       >
-                        {viewing === name ? "Hide" : "View"}
+                        {openNames.includes(name) ? "Hide" : "View"}
                       </button>
                        {confirmDelete === name ? (
                           <>
@@ -300,7 +306,7 @@ export default function ProjectsPage() {
                       )}
                     </div>
                   </div>
-                  {viewing === name ? (
+                  {openNames.includes(name) ? (
                     viewData[name]?._error ? (
                       <p className="error" style={{ marginLeft: "1rem" }}>{viewData[name]._error}</p>
                     ) : viewData[name] ? (
