@@ -11,7 +11,9 @@
     "start": "next start",
     "lint": "next lint",
     "test": "node --test test/*.test.js",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:a11y": "playwright test e2e/accessibility.spec.js",
+    "test:signoff": "playwright test e2e/wcag22-signoff.spec.js"
   },
   "dependencies": {
     "framer-motion": "^11.18.2",
@@ -22,6 +24,7 @@
   },
   "type": "module",
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
     "@playwright/test": "^1.58.2"
   }
 }

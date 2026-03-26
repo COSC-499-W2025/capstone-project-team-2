@@ -17,7 +17,7 @@ import { analyzeUploadedProject, fetchProjectInsights, uploadProjectZip } from "
 function AnalysisProgress() {
   return (
     <div className="analysis-progress" aria-live="polite">
-      <div className="analysis-progress-track" aria-hidden="true">
+      <div className="analysis-progress-track" role="progressbar" aria-label="Analysis in progress" aria-valuetext="In progress">
         <div className="analysis-progress-fill" />
       </div>
       <p className="muted analysis-progress-label">Analyzing project. This can take a moment.</p>
@@ -100,7 +100,7 @@ function BatchProgressPanel({ items }) {
   return (
     <GlassCard title={`Batch Progress — ${done + error} / ${total}`}>
       {/* Overall bar */}
-      <div className="batch-progress-track" aria-label={`${pct}% complete`}>
+      <div className="batch-progress-track" role="progressbar" aria-label="Batch analysis progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
         <div
           className="batch-progress-fill"
           style={{ width: `${pct}%` }}
@@ -334,6 +334,7 @@ return (
                 <input
                   type="file"
                   accept=".zip,application/zip"
+                  aria-label="Choose ZIP file"
                   onChange={(e) => setZipFile(e.target.files?.[0] || null)}
                 />
                 <span>{zipFile ? zipFile.name : "Drop .zip or click to browse"}</span>
@@ -352,6 +353,7 @@ return (
                   webkitdirectory="true"
                   directory="true"
                   multiple
+                  aria-label="Choose folder"
                   onChange={(e) => setFolderFiles(Array.from(e.target.files || []))}
                 />
                 <span>
@@ -380,6 +382,7 @@ return (
                 <input
                   type="file"
                   multiple
+                  aria-label="Choose files for batch upload"
                   onChange={(e) => addBatchFiles(e.target.files || [])}
                 />
                 <span>
