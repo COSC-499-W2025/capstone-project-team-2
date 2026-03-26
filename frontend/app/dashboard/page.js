@@ -238,17 +238,34 @@ export default function DashboardPage() {
   const [showTimeline, setShowTimeline] = useState(true);
   const [showHeatmap, setShowHeatmap] = useState(true);
   const [showTopProjects, setShowTopProjects] = useState(true);
+  const [isDockOpen, setIsDockOpen] = useState(false);
+  const [hasHydratedMode, setHasHydratedMode] = useState(false);
 
   useEffect(() => {
     const stored = window.localStorage.getItem(DASHBOARD_MODE_KEY);
     if (stored === "private" || stored === "public") {
       setMode(stored);
     }
+    setHasHydratedMode(true);
   }, []);
 
   useEffect(() => {
+    if (!hasHydratedMode) return;
     window.localStorage.setItem(DASHBOARD_MODE_KEY, mode);
-  }, [mode]);
+  }, [mode, hasHydratedMode]);
+
+  useEffect(() => {
+    if (mode === "public" && isDockOpen) setIsDockOpen(false);
+  }, [mode, isDockOpen]);
+
+  useEffect(() => {
+    if (!isDockOpen) return undefined;
+    function onKeyDown(event) {
+      if (event.key === "Escape") setIsDockOpen(false);
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [isDockOpen]);
 
   useEffect(() => {
     let ignore = false;
@@ -287,6 +304,15 @@ export default function DashboardPage() {
   const availableSkills = useMemo(() => {
     return Array.from(new Set(projects.flatMap((p) => (Array.isArray(p.skills) ? p.skills : [])))).sort();
   }, [projects]);
+
+  const projectNameSuggestions = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const names = Array.from(
+      new Set(projects.map((project) => String(project?.project_name || "").trim()).filter(Boolean))
+    ).sort((a, b) => a.localeCompare(b));
+    if (!normalizedQuery) return names.slice(0, 8);
+    return names.filter((name) => name.toLowerCase().includes(normalizedQuery)).slice(0, 8);
+  }, [projects, searchQuery]);
 
   const filteredProjects = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -345,109 +371,58 @@ export default function DashboardPage() {
           />
         </div>
 
+        <div className="sub-card dashboard-inline-search-row">
+          <label className="dashboard-inline-search-field">
+            <span className="dashboard-inline-search-label">Search</span>
+            <input
+              className="settings-control"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Find by project name or summary"
+              list="dashboard-project-suggestions"
+            />
+            <datalist id="dashboard-project-suggestions">
+              {projectNameSuggestions.map((projectName) => (
+                <option key={projectName} value={projectName} />
+              ))}
+            </datalist>
+          </label>
+          <label className="dashboard-inline-select-field">
+            <span className="dashboard-inline-search-label">Type</span>
+            <select className="settings-control" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)}>
+              <option value="all">All</option>
+              {availableTypes.map((projectType) => (
+                <option key={projectType} value={projectType}>{projectType}</option>
+              ))}
+            </select>
+          </label>
+          <label className="dashboard-inline-select-field">
+            <span className="dashboard-inline-search-label">Skill</span>
+            <select className="settings-control" value={skillFilter} onChange={(event) => setSkillFilter(event.target.value)}>
+              <option value="all">All</option>
+              {availableSkills.map((skill) => (
+                <option key={skill} value={skill}>{skill}</option>
+              ))}
+            </select>
+          </label>
+          {mode === "private" ? (
+            <button
+              type="button"
+              className="liquid-btn solid"
+              aria-expanded={isDockOpen}
+              aria-controls="dashboard-filter-modal"
+              onClick={() => setIsDockOpen((prev) => !prev)}
+            >
+              {isDockOpen ? "Close Filters" : "Open Filters"}
+            </button>
+          ) : null}
+        </div>
+
         {loading ? <p className="muted">Loading insights...</p> : null}
         {error ? <p className="error">{error}</p> : null}
 
         {!loading && !error ? (
           <>
-            <GlassCard
-              title={mode === "private" ? "Dashboard Controls (Private)" : "Dashboard Filters (Public)"}
-              hint={mode === "private" ? "Private mode allows customization and filtering." : "Public mode allows search and filter only."}
-            >
-              <div className="settings-list compact">
-                <label className="settings-row settings-field-row">
-                  <span className="settings-label">Search</span>
-                  <input
-                    className="settings-control"
-                    value={searchQuery}
-                    onChange={(event) => setSearchQuery(event.target.value)}
-                    placeholder="Find by project name or summary"
-                  />
-                </label>
-                <label className="settings-row settings-field-row">
-                  <span className="settings-label">Type</span>
-                  <select className="settings-control" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)}>
-                    <option value="all">All</option>
-                    {availableTypes.map((projectType) => (
-                      <option key={projectType} value={projectType}>{projectType}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="settings-row settings-field-row">
-                  <span className="settings-label">Skill</span>
-                  <select className="settings-control" value={skillFilter} onChange={(event) => setSkillFilter(event.target.value)}>
-                    <option value="all">All</option>
-                    {availableSkills.map((skill) => (
-                      <option key={skill} value={skill}>{skill}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <p className="muted">Showing {filteredProjects.length} of {projects.length} project(s).</p>
-            </GlassCard>
-
-            {mode === "private" ? (
-              <GlassCard title="Customization" hint="Tune ranking and section visibility before publishing.">
-                <div className="settings-list compact">
-                  <label className="settings-row settings-field-row">
-                    <span className="settings-label">Top projects shown</span>
-                    <input
-                      className="settings-control"
-                      type="number"
-                      min={1}
-                      max={10}
-                      value={topProjectCount}
-                      onChange={(event) => setTopProjectCount(event.target.value)}
-                    />
-                  </label>
-                  <label className="settings-row settings-field-row">
-                    <span className="settings-label">Contribution count weight</span>
-                    <input
-                      className="settings-control"
-                      type="number"
-                      min={0}
-                      value={countWeight}
-                      onChange={(event) => setCountWeight(Number(event.target.value))}
-                    />
-                  </label>
-                  <label className="settings-row settings-field-row">
-                    <span className="settings-label">Contribution percent weight</span>
-                    <input
-                      className="settings-control"
-                      type="number"
-                      min={0}
-                      value={percentWeight}
-                      onChange={(event) => setPercentWeight(Number(event.target.value))}
-                    />
-                  </label>
-                  <label className="settings-row settings-field-row">
-                    <span className="settings-label">Skill count weight</span>
-                    <input
-                      className="settings-control"
-                      type="number"
-                      min={0}
-                      value={skillWeight}
-                      onChange={(event) => setSkillWeight(Number(event.target.value))}
-                    />
-                  </label>
-                </div>
-                <div className="settings-list compact">
-                  <label className="settings-row settings-field-row">
-                    <span className="settings-label">Show Skills Timeline</span>
-                    <input type="checkbox" checked={showTimeline} onChange={(event) => setShowTimeline(event.target.checked)} />
-                  </label>
-                  <label className="settings-row settings-field-row">
-                    <span className="settings-label">Show Activity Heatmap</span>
-                    <input type="checkbox" checked={showHeatmap} onChange={(event) => setShowHeatmap(event.target.checked)} />
-                  </label>
-                  <label className="settings-row settings-field-row">
-                    <span className="settings-label">Show Top Projects</span>
-                    <input type="checkbox" checked={showTopProjects} onChange={(event) => setShowTopProjects(event.target.checked)} />
-                  </label>
-                </div>
-              </GlassCard>
-            ) : null}
-
             <div className="grid three-col">
               <GlassCard title="Projects">
                 <p className="metric-value">{filteredProjects.length}</p>
@@ -516,6 +491,99 @@ export default function DashboardPage() {
                   )}
                 </div>
               </GlassCard>
+            ) : null}
+
+            {mode === "private" ? (
+              <>
+                <div
+                  className={`dashboard-drawer-backdrop ${isDockOpen ? "open" : ""}`.trim()}
+                  onClick={() => setIsDockOpen(false)}
+                  aria-hidden={!isDockOpen}
+                />
+                <aside
+                  id="dashboard-filter-modal"
+                  className={`dashboard-drawer glass-panel ${isDockOpen ? "open" : ""}`.trim()}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Dashboard controls"
+                  aria-hidden={!isDockOpen}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <div className="dashboard-drawer-header">
+                    <h3>Filters & Controls</h3>
+                    <button type="button" className="liquid-btn btn-danger" onClick={() => setIsDockOpen(false)}>
+                      Close
+                    </button>
+                  </div>
+                  <p className="muted">Popup controls for dashboard tuning.</p>
+                  <p className="dashboard-results-summary">Results: {filteredProjects.length} / {projects.length}</p>
+                  <div className="dashboard-filter-grid">
+                    <div className="sub-card dashboard-filter-card dashboard-ranking-card">
+                      <p className="dashboard-filter-title">Ranking</p>
+                      <div className="settings-list compact">
+                        <label className="settings-row settings-field-row">
+                          <span className="settings-label">Top projects shown</span>
+                          <input
+                            className="settings-control"
+                            type="number"
+                            min={1}
+                            max={10}
+                            value={topProjectCount}
+                            onChange={(event) => setTopProjectCount(event.target.value)}
+                          />
+                        </label>
+                        <label className="settings-row settings-field-row">
+                          <span className="settings-label">Contribution count weight</span>
+                          <input
+                            className="settings-control"
+                            type="number"
+                            min={0}
+                            value={countWeight}
+                            onChange={(event) => setCountWeight(Number(event.target.value))}
+                          />
+                        </label>
+                        <label className="settings-row settings-field-row">
+                          <span className="settings-label">Contribution percent weight</span>
+                          <input
+                            className="settings-control"
+                            type="number"
+                            min={0}
+                            value={percentWeight}
+                            onChange={(event) => setPercentWeight(Number(event.target.value))}
+                          />
+                        </label>
+                        <label className="settings-row settings-field-row">
+                          <span className="settings-label">Skill count weight</span>
+                          <input
+                            className="settings-control"
+                            type="number"
+                            min={0}
+                            value={skillWeight}
+                            onChange={(event) => setSkillWeight(Number(event.target.value))}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                    <div className="sub-card dashboard-filter-card dashboard-visibility-card">
+                      <p className="dashboard-filter-title">Visibility</p>
+                      <div className="settings-list compact">
+                        <label className="settings-row settings-field-row">
+                          <span className="settings-label">Show Skills Timeline</span>
+                          <input type="checkbox" checked={showTimeline} onChange={(event) => setShowTimeline(event.target.checked)} />
+                        </label>
+                        <label className="settings-row settings-field-row">
+                          <span className="settings-label">Show Activity Heatmap</span>
+                          <input type="checkbox" checked={showHeatmap} onChange={(event) => setShowHeatmap(event.target.checked)} />
+                        </label>
+                        <label className="settings-row settings-field-row">
+                          <span className="settings-label">Show Top Projects</span>
+                          <input type="checkbox" checked={showTopProjects} onChange={(event) => setShowTopProjects(event.target.checked)} />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </aside>
+              </>
             ) : null}
           </>
         ) : null}
