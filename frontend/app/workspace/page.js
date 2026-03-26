@@ -1272,7 +1272,7 @@ function AwardsEditor({ doc, onAddAward, onRemoveAward, onApply }) {
   const [modifyField, setModifyField] = useState("name");
   const [modifyValue, setModifyValue] = useState("");
 
-  useEffect(() => { setSelectedAward((prev) => awardNames.includes(prev) ? prev : (awardNames[0] || "")); }, [doc]);
+  useEffect(() => { setSelectedAward(awardNames[0] || ""); }, [doc]);
 
   function parseHighlights(val) {
     return val.split("\n").map((x) => x.trim()).filter(Boolean);
@@ -1317,42 +1317,21 @@ function AwardsEditor({ doc, onAddAward, onRemoveAward, onApply }) {
           {awardNames.length ? (
             <>
               <label>Award entry<select value={selectedAward} onChange={(e) => setSelectedAward(e.target.value)}>{awardNames.map((n) => <option key={n}>{n}</option>)}</select></label>
-              <label>Field<select value={modifyField} onChange={(e) => {
-                const f = e.target.value;
-                setModifyField(f);
-                const entry = awards.find((a) => a.name === selectedAward);
-                if (f === "website") {
-                  const link = (entry?.highlights || []).find((h) => h.startsWith("Link: "));
-                  setModifyValue(link ? link.replace("Link: ", "") : "");
-                } else if (f === "highlights") {
-                  setModifyValue((entry?.highlights || []).filter((h) => !h.startsWith("Link: ")).join("\n"));
-                } else {
-                  const v = entry?.[f];
-                  setModifyValue(Array.isArray(v) ? v.join("\n") : (v ?? ""));
-                }
-              }}>{AWARD_FIELDS.map((f) => <option key={f}>{f}</option>)}</select></label>
+              <label>Field<select value={modifyField} onChange={(e) => { setModifyField(e.target.value); setModifyValue(""); }}>{AWARD_FIELDS.map((f) => <option key={f}>{f}</option>)}</select></label>
               <label>
                 Current value
-                {modifyField === "highlights"
-                  ? <textarea rows={3} readOnly style={{ opacity: 0.6, cursor: "default" }} className="settings-control" value={(() => {
-                      const entry = awards.find((a) => a.name === selectedAward);
-                      return (entry?.highlights || []).filter((h) => !h.startsWith("Link: ")).join("\n") || "—";
-                    })()} />
-                  : <input type="text" readOnly style={{ opacity: 0.6, cursor: "default" }} value={(() => {
-                      const entry = awards.find((a) => a.name === selectedAward);
-                      if (modifyField === "website") {
-                        const link = (entry?.highlights || []).find((h) => h.startsWith("Link: "));
-                        return link ? link.replace("Link: ", "") : "—";
-                      }
-                      if (modifyField === "date" && entry?.date) {
-                        const [y, m] = entry.date.split("-");
-                        const monthName = new Date(y, m - 1).toLocaleString("default", { month: "long" });
-                        return `${monthName} ${y}`;
-                      }
-                      const v = entry?.[modifyField];
-                      return Array.isArray(v) ? v.join("\n") : (v ?? "—");
-                    })()} />
-                }
+                <input type="text" readOnly style={{ opacity: 0.6, cursor: "default" }} value={(() => {
+                  const entry = awards.find((a) => a.name === selectedAward);
+                  if (modifyField === "website") {
+                    const link = (entry?.highlights || []).find((h) => h.startsWith("Link: "));
+                    return link ? link.replace("Link: ", "") : "—";
+                  }
+                  if (modifyField === "highlights") {
+                    return (entry?.highlights || []).filter((h) => !h.startsWith("Link: ")).join("\n") || "—";
+                  }
+                  const v = entry?.[modifyField];
+                  return Array.isArray(v) ? v.join("\n") : (v ?? "—");
+                })()} />
               </label>
               <label>
                 New value
