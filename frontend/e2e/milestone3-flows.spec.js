@@ -201,13 +201,16 @@ test("saves config consent and profile details", async ({ page }) => {
   await page.goto("/config");
 
   await expect(page.getByRole("heading", { name: "User Configuration" })).toBeVisible();
-  await page.getByRole("button", { name: "A l l o w", exact: true }).click();
+  // Scope to the external consent control (second .config-consent-control) to avoid
+  // matching the local consent "Allow" button
+  await page.locator(".config-consent-control").nth(1).locator("button").first().click();
   await page.getByLabel("Full name").fill("Jane Doe");
   await page.getByRole("button", { name: "Save Configuration" }).click();
 
   await expect(page.getByText("Configuration saved.")).toBeVisible();
-  await expect(page.locator(".config-grid .settings-row").nth(0)).toContainText("Allow");
-  await expect(page.locator(".config-grid .settings-row").nth(1)).toContainText("Jane Doe");
+  // nth(0) = full name input row (Update Settings), nth(1) = local, nth(2) = external, nth(3) = name
+  await expect(page.locator(".config-grid .settings-row").nth(2)).toContainText("Allow");
+  await expect(page.locator(".config-grid .settings-row").nth(3)).toContainText("Jane Doe");
 });
 
 test("uploads and analyzes a zip, then shows it on the dashboard", async ({ page }) => {
@@ -237,7 +240,7 @@ test("generates and loads a resume in the workspace", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /Resume \+ Portfolio Builder/ })).toBeVisible();
   await page.getByLabel("Full name").fill("Jane Doe");
   await page.getByLabel("Theme").selectOption("sb2nov");
-  await page.getByRole("button", { name: /Generate Resume/ }).click();
+  await page.getByRole("button", { name: "Generate Resume", exact: true }).click();
 
   await expect(page.getByText("Resume created.")).toBeVisible();
   await expect(page.locator(".workspace-page .settings-row").filter({ hasText: "Active ID" })).toContainText("Jane_Doe_resume_001");
@@ -251,7 +254,7 @@ test("generates and loads a portfolio in the workspace", async ({ page }) => {
 
   await page.getByLabel("Full name").fill("Jane Doe");
   await page.getByLabel("Theme").selectOption("sb2nov");
-  await page.getByRole("button", { name: /Generate Portfolio/ }).click();
+  await page.getByRole("button", { name: "Generate Portfolio", exact: true }).click();
 
   await expect(page.getByText("Portfolio created.")).toBeVisible();
   await expect(page.locator(".workspace-page .settings-row").filter({ hasText: "Active ID" })).toContainText("Jane_Doe_portfolio_001");
@@ -270,4 +273,83 @@ test("public mode toggle persists on upload route", async ({ page }) => {
   await expect(page.locator('a[href="/dashboard"]')).toBeVisible();
   await expect(page.locator('a[href="/workspace"]')).toBeVisible();
   expect(await page.evaluate(() => window.localStorage.getItem("viewMode"))).toBe("public");
+});
+
+test("first-time user with no consent is redirected to config and sees consent document expanded", async ({ page }) => {
+  await installApiMocks(page, {
+    config: { "First Name": "", "Last Name": "" }
+  });
+
+  await page.goto("/dashboard");
+
+  await expect(page).toHaveURL(/\/config$/);
+  await expect(page.getByRole("heading", { name: "Data Consent Agreement" })).toBeVisible();
+  await expect(page.locator(".consent-document")).toBeVisible();
+  await expect(page.getByRole("button", { name: /Collapse/ })).toBeVisible();
+});
+
+test("returning user with consent set sees consent document collapsed", async ({ page }) => {
+  await installApiMocks(page, {
+    config: { consented: { external: true, "Data consent": true }, "First Name": "Jane", "Last Name": "Doe" }
+  });
+
+  await page.goto("/config");
+
+  await expect(page.getByRole("heading", { name: "Data Consent Agreement" })).toBeVisible();
+  await expect(page.locator(".consent-document")).not.toBeVisible();
+  await expect(page.getByRole("button", { name: /View agreement/ })).toBeVisible();
+});
+
+test("local consent deny warning appears when set to do not allow", async ({ page }) => {
+  await installApiMocks(page, {
+    config: { consented: { external: true, "Data consent": true }, "First Name": "", "Last Name": "" }
+  });
+
+  await page.goto("/config");
+
+  // Switch local consent to "Do not allow" — first .config-consent-control, last button
+  await page.locator(".config-consent-control").first().locator("button").last().click();
+
+  await expect(page.locator(".consent-deny-warning").first()).toBeVisible();
+  await expect(page.locator(".consent-deny-warning").first()).toContainText("Local consent must be allowed");
+});
+
+test("external consent deny warning appears when set to do not allow", async ({ page }) => {
+  await installApiMocks(page, {
+    config: { consented: { external: true, "Data consent": true }, "First Name": "", "Last Name": "" }
+  });
+
+  await page.goto("/config");
+
+  // Switch external consent to "Do not allow" — second .config-consent-control, last button
+  await page.locator(".config-consent-control").nth(1).locator("button").last().click();
+
+  await expect(page.locator(".consent-deny-warning").last()).toBeVisible();
+  await expect(page.locator(".consent-deny-warning").last()).toContainText("External tools are disabled");
+});
+
+test("generate with AI button is disabled when external consent is off", async ({ page }) => {
+  await installApiMocks(page, {
+    config: { consented: { external: false, "Data consent": true }, "First Name": "", "Last Name": "" }
+  });
+
+  await page.goto("/workspace");
+
+  await expect(page.getByRole("button", { name: /Generate Resume with AI/ })).toBeDisabled();
+});
+
+test("generate with AI button is enabled when external consent is on", async ({ page }) => {
+  await installApiMocks(page, {
+    config: { consented: { external: true, "Data consent": true }, "First Name": "", "Last Name": "" }
+  });
+
+  await page.goto("/workspace");
+  await expect(page.getByRole("heading", { name: /Resume \+ Portfolio Builder/ })).toBeVisible();
+  // Wait for initial fetches (config, projects, docs) to complete so state is settled
+  // before interacting with the controlled select — avoids a race where setExternalAllowed
+  // re-render overwrites the DOM select value set by selectOption before onChange propagates
+  await page.waitForLoadState("networkidle");
+  await page.getByLabel("Theme").selectOption("sb2nov");
+
+  await expect(page.getByRole("button", { name: /Generate Resume with AI/ })).toBeEnabled();
 });
