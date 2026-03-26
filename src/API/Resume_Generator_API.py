@@ -195,6 +195,16 @@ class AppendSkillRequest(BaseModel):
     )
     details: str
 
+class UpdateSkillLevelRequest(BaseModel):
+    """Payload for updating the proficiency level of an individual skill."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "skill_name": "Python",
+        "level": "Advanced"
+    }})
+    skill_name: str
+    level: str
+
+
 class AwardRequest(BaseModel):
     """Payload for adding a new award entry."""
     model_config = ConfigDict(json_schema_extra={"example": {
@@ -702,8 +712,18 @@ def add_project(id: str, project_name: str, payload: Optional[ProjectRequest] = 
     return {"status": result}
 
 
+class AIProjectOverrides(BaseModel):
+    """Optional date overrides for AI-generated project entries."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "start_date": "2025-03",
+        "end_date": "2026-03"
+    }})
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+
+
 @resumeRouter.post("/resume/{id}/add/project/{project_name}/ai")
-def add_project_ai(id: str, project_name: str):
+def add_project_ai(id: str, project_name: str, overrides: Optional[AIProjectOverrides] = None):
     """Add a project entry to a resume using AI-generated content.
 
     Fetches the project from the database, generates a polished resume entry
@@ -712,6 +732,7 @@ def add_project_ai(id: str, project_name: str):
     Args:
         id: The resume identifier.
         project_name: The name of the analysed project in the database.
+        overrides: Optional date overrides (start_date, end_date).
 
     Returns:
         dict: {"status": str} confirming the project was added.
@@ -747,6 +768,8 @@ def add_project_ai(id: str, project_name: str):
         name=ai_entry.project_title,
         summary=summary,
         highlights=ai_entry.key_responsibilities,
+        start_date=overrides.start_date if overrides and overrides.start_date else None,
+        end_date=overrides.end_date if overrides and overrides.end_date else None,
     )
     try:
         result = _check_result(doc.add_project(proj))
@@ -967,6 +990,52 @@ def remove_skill(id:str, label: str):
     return {"status": result}
 
 
+
+
+@resumeRouter.post("/resume/{id}/skill/{label}/level")
+def update_skill_level(id: str, label: str, payload: UpdateSkillLevelRequest):
+    """Update the proficiency level of an individual skill within a category.
+
+    Parses the details string to find the skill by name, then updates or adds
+    a (Level) suffix. For example, "Python" becomes "Python (Advanced)".
+
+    Args:
+        id: The resume identifier.
+        label: The skill category label (e.g., "Languages").
+        payload: UpdateSkillLevelRequest with skill_name and level.
+
+    Returns:
+        dict: {"status": str, "details": str} with the updated details string.
+
+    Raises:
+        HTTPException: 404 if the resume, skill category, or individual skill is not found.
+    """
+    doc = _load_resume(id)
+    skill = next((s for s in (doc.get_skills() or []) if s.get("label") == label), None)
+    if skill is None:
+        raise HTTPException(status_code=404, detail=f"Skill category '{label}' not found")
+
+    details = skill.get("details", "")
+    parts = [p.strip() for p in details.split(",")]
+    found = False
+    updated = []
+    for part in parts:
+        # Strip existing (Level) suffix to get the base name
+        base = re.sub(r"\s*\(.*?\)\s*$", "", part).strip()
+        if base.lower() == payload.skill_name.strip().lower():
+            updated.append(f"{base} (**{payload.level.strip()}**)")
+            found = True
+        else:
+            updated.append(part)
+
+    if not found:
+        raise HTTPException(status_code=404, detail=f"Skill '{payload.skill_name}' not found in category '{label}'")
+
+    new_details = ", ".join(updated)
+    result = doc.modify_skill(label, new_details)
+    if "not found" in result.lower():
+        raise HTTPException(status_code=404, detail=result)
+    return {"status": result, "details": new_details}
 
 
 @resumeRouter.post("/resume/{id}/add/award")
