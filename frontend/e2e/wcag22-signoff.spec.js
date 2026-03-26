@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 async function installApiMocks(page) {
+  const pathIs = (pathname, target) => pathname === target || pathname === `${target}/`;
   const state = {
     config: {
       consented: {
@@ -32,19 +33,19 @@ async function installApiMocks(page) {
       body: JSON.stringify(body)
     });
 
-    if (pathname === "/config/get" && method === "GET") return json(200, state.config);
-    if (pathname === "/projects/" && method === "GET") return json(200, state.projects);
-    if (pathname === "/insights/projects" && method === "GET") return json(200, state.insights);
-    if (pathname === "/representation/preferences" && method === "GET") return json(200, state.representation);
-    if (pathname === "/representation/preferences" && method === "POST") {
+    if (pathIs(pathname, "/config/get") && method === "GET") return json(200, state.config);
+    if (pathIs(pathname, "/projects") && method === "GET") return json(200, state.projects);
+    if (pathIs(pathname, "/insights/projects") && method === "GET") return json(200, state.insights);
+    if (pathIs(pathname, "/representation/preferences") && method === "GET") return json(200, state.representation);
+    if (pathIs(pathname, "/representation/preferences") && method === "POST") {
       const payload = request.postDataJSON();
       state.representation = { ...state.representation, ...payload };
       return json(200, state.representation);
     }
-    if (pathname === "/representation/projects" && method === "GET") return json(200, state.projects);
+    if (pathIs(pathname, "/representation/projects") && method === "GET") return json(200, state.projects);
     if (pathname.startsWith("/projects/") && method === "GET") return json(200, { analysis: {} });
-    if (pathname === "/resumes" && method === "GET") return json(200, []);
-    if (pathname === "/portfolios" && method === "GET") return json(200, []);
+    if (pathIs(pathname, "/resumes") && method === "GET") return json(200, []);
+    if (pathIs(pathname, "/portfolios") && method === "GET") return json(200, []);
     return json(200, { ok: true });
   });
 }
