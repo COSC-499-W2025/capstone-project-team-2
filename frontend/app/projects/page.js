@@ -8,7 +8,8 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { GlassCard, LiquidShell } from "../../components/LiquidShell";
-import { deleteProject, deleteProjectThumbnail, fetchProjectByName, fetchProjects, projectThumbnailUrl, uploadProjectThumbnail } from "../../lib/api";
+import { deleteProject, deleteProjectThumbnail, fetchProjectByName, fetchProjects, projectThumbnailUrl, uploadProjectThumbnail, updateProjectType } from "../../lib/api";
+import { LiquidSegmentedControl } from "../../components/LiquidPillControl";
 
 /**
  * Inline detail panel showing human-readable fields from a project's resume_item.
@@ -18,6 +19,10 @@ import { deleteProject, deleteProjectThumbnail, fetchProjectByName, fetchProject
  */
 function ProjectDetail({ data }) {
   const item = data?.analysis?.resume_item ?? data?.analysis ?? {};
+  const [typing, setTyping] = useState(item?.project_type);
+  const [persistedTyping, setPersistedTyping] = useState(item?.project_type);
+  const [typingMessage, setTypingMessage] = useState(null);
+
 
   const chips = (arr) =>
     Array.isArray(arr) && arr.length
@@ -27,6 +32,24 @@ function ProjectDetail({ data }) {
           </span>
         ))
       : <span className="muted">None</span>;
+
+  /**
+   * Persists the new project type and sets the current visual project type to reflect this
+   *
+   * @param {import("react").FormEvent<HTMLFormElement>} event
+   * @returns {Promise<void>}
+   */
+  async function updateType() {
+    if (typing == persistedTyping) return;
+    try {
+    const dict = await updateProjectType(data.project_name, typing);
+    setTypingMessage(dict.message);
+    setPersistedTyping(dict.type);
+    }
+    catch(err) {
+      setTypingMessage(err.message);
+    }
+  }
 
   return (
     <div className="form-stack" style={{ marginTop: "0.75rem" }}>
@@ -65,11 +88,29 @@ function ProjectDetail({ data }) {
             <div className="button-row">{chips(item.skills)}</div>
           </div>
         ) : null}
-        {item.project_type ? (
+        {persistedTyping ? (
           <div className="settings-row">
             <span className="settings-label">Project type</span>
+            {typingMessage ? <p className="success">{typingMessage}</p> : null}
+            <div>
+            <label>
+              Change Project Type
+              <LiquidSegmentedControl
+                className="config-consent-control"
+                value={typing}
+                onChange={setTyping}
+                options={[
+                  { value: "individual", label: "Individual" },
+                  { value: "collaborative", label: "Collaborative" }
+                ]}
+              />
+            </label>
+            </div>
+            <div>
+            <button type="button" className="liquid-btn solid" onClick={updateType}>Confirm</button>
+            </div>
             <div className="button-row">
-              <span className="data-chip">{item.project_type}</span>
+              <span className="data-chip">{persistedTyping}</span>
             </div>
           </div>
         ) : null}
