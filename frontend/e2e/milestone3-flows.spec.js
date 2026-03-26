@@ -335,8 +335,10 @@ test("dashboard public mode persists and workspace remains authoring", async ({ 
 
   await page.getByRole("button", { name: "P u b l i c", exact: true }).click();
 
-  await expect(page.getByRole("heading", { name: /Dashboard Filters \(Public\)/ })).toBeVisible();
-  await expect(page.getByRole("heading", { name: /Customization/ })).toHaveCount(0);
+  await expect(page.getByLabel("Search")).toBeVisible();
+  await expect(page.getByLabel("Type")).toBeVisible();
+  await expect(page.getByLabel("Skill")).toBeVisible();
+  await expect(page.getByRole("button", { name: /Open Filters/i })).toHaveCount(0);
   expect(await page.evaluate(() => window.localStorage.getItem("dashboardMode"))).toBe("public");
 
   await page.goto("/workspace");
