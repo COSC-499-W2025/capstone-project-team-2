@@ -6,7 +6,7 @@
  * This file contains:
  * - shared editor/document-preview subcomponents for resume and portfolio documents,
  * - document lifecycle handlers (generate/load/delete/edit/render),
- * - and mode-aware rendering for private/public access behavior.
+ * - and authoring controls for resume and portfolio outputs.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -1373,10 +1373,10 @@ function AwardsEditor({ doc, onAddAward, onRemoveAward, onApply }) {
  * Core workspace studio for one document kind (resume or portfolio).
  * Handles lifecycle actions, edits, project operations, and rendering.
  *
- * @param {{ kind: "resume" | "portfolio", mode: "public" | "private" }} props
+ * @param {{ kind: "resume" | "portfolio" }} props
  * @returns {JSX.Element}
  */
-function DocumentStudio({ kind, mode }) {
+function DocumentStudio({ kind }) {
   const isResume = kind === "resume";
 
   /**
@@ -1901,10 +1901,6 @@ function DocumentStudio({ kind, mode }) {
                 <span className="settings-label">Created</span>
                 <strong className="settings-value">{createdAtText}</strong>
               </div>
-              <div className="settings-row status-ok">
-                <span className="settings-label">Mode</span>
-                <strong className="settings-value">{mode === "private" ? "Private" : "Public"}</strong>
-              </div>
             </div>
             <div className="button-row">
               <button
@@ -2078,7 +2074,6 @@ function DocumentStudio({ kind, mode }) {
  */
 export default function WorkspacePage() {
   const [tab, setTab] = useState("resume");
-  const [mode, setMode] = useState("private");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -2086,25 +2081,6 @@ export default function WorkspacePage() {
     if (fromQuery === "portfolio" || fromQuery === "resume") {
       setTab(fromQuery);
     }
-
-    const stored = window.localStorage.getItem("viewMode");
-    if (stored === "public" || stored === "private") setMode(stored);
-
-    /**
-     * Syncs workspace mode when nav-level visibility mode changes.
-     *
-     * @param {CustomEvent<"public" | "private">} event
-     * @returns {void}
-     */
-    const onViewModeChange = (event) => {
-      const nextMode = event?.detail;
-      if (nextMode === "public" || nextMode === "private") {
-        setMode(nextMode);
-      }
-    };
-
-    window.addEventListener("viewModeChange", onViewModeChange);
-    return () => window.removeEventListener("viewModeChange", onViewModeChange);
   }, []);
 
   return (
@@ -2122,8 +2098,8 @@ export default function WorkspacePage() {
           ]}
         />
 
-        {tab === "resume" ? <DocumentStudio kind="resume" mode={mode} /> : null}
-        {tab === "portfolio" ? <DocumentStudio kind="portfolio" mode={mode} /> : null}
+        {tab === "resume" ? <DocumentStudio kind="resume" /> : null}
+        {tab === "portfolio" ? <DocumentStudio kind="portfolio" /> : null}
       </div>
     </LiquidShell>
   );
