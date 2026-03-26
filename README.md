@@ -60,8 +60,8 @@ The platforms target users are **graduating students** and **early career profes
 - 🎨 **User Interface** — Streamlined UI with intuitive navigation
 - 📄 **Documentation** — Comprehensive WBS, DFDs, and architecture diagrams
 - 🔄 **CI/CD Pipelines** — Automated deployment workflows
-- 🗄️ **Database** — MySQL integration with Docker containerization
-- 🤖 **AI Integration** — Ollama (local LLM) and Google Gemini for code analysis
+- 🗄️ **Database** — SQLite integration
+- 🤖 **AI Integration** — Google Gemini for resume/portfolio generation
 - 🔍 **Local Analysis** — Offline code analysis without AI dependencies
 - 📝 **Resume Generator** — PDF resume and portfolio generation (AI-powered or offline)
 - 🧹 **Cross-Upload Deduplication** — Hash-based index to keep only one copy of duplicate files across snapshots
@@ -117,76 +117,19 @@ git clone -b development https://github.com/COSC-499-W2025/capstone-project-team
 git clone -b development https://github.com/COSC-499-W2025/capstone-project-team-2.git your-folder-name
 ```
 
-Please look at our [video](https://youtu.be/zAoHiW9vn-U) demo otherwise follow the steps below:
-
-
-### Docker Setup
-
-#### Step-by-Step Instructions
-
-1. **Remove previous containers and volumes:**
-   ```bash
-   docker-compose down -v
-   ```
-
-2. **Build the Docker containers:**
-   ```bash
-   docker-compose build --no-cache
-   ```
-
-3. **Start the Ollama container:**
-   ```bash
-   docker-compose up -d ollama2
-   ```
-
-4. **Pull the LLM model:**
-   ```bash
-   docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b
-   ```
-
-5. **Verify the model is installed:**
-   ```bash
-   docker exec -it ollama2 ollama list
-   ```
-   You should see `qwen2.5-coder:1.5b` in the list:
-   
-   ![alt text](image.png)
-
-6. **Start the database container:**
-   ```bash
-   docker-compose up -d app_database
-   ```
-
-7. **Verify all containers are running:**
-   ```bash
-   docker ps
-   ```
-   Expected output:
-   ```
-   CONTAINER ID   IMAGE                  COMMAND                  CREATED          STATUS                    PORTS                               NAMES
-   42a2e9017194   ollama/ollama:latest   "/bin/ollama serve"      17 minutes ago   Up 17 minutes             0.0.0.0:11434->11434/tcp            ollama2
-   9c42d7048399   mysql:8.0.44           "docker-entrypoint.s…"   17 minutes ago   Up 17 minutes (healthy)   33060/tcp, 0.0.0.0:3308->3306/tcp   app_database
-   ```
-
 ---
 
+### Prerequisite Installations
 
-#### Quick Setup (Single Command) Docker Setup
+1. **Ensure python is installed**
 
-Alternatively, run everything in one command:
+   https://www.python.org/downloads/
 
-**CMD / macOS / Linux:**
-```bash
-docker-compose down -v && docker-compose build --no-cache && docker-compose up -d ollama2 && sleep 5 && docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b && docker-compose up -d app_database
-```
+2. **Ensure Node.js is installed with npm**
 
-**Windows PowerShell:**
-```powershell
-docker-compose down -v; docker-compose build --no-cache; docker-compose up -d ollama2; Start-Sleep 5; docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b; docker-compose up -d app_database
-```
+   https://nodejs.org/en/download
 
-
-
+   ![alt text](image-2.png)
 
 ---
 
@@ -257,13 +200,18 @@ cd capstone-project-team-2
 
 2. **Install dependencies:**
 ```bash
-pip install -r src/requirements.txt
+python -m pip install -r src/requirements.txt
 ```
 
 3. **Run the application:**
 ```bash
-python -m src.main
+python -m src.cli.main
 ```
+
+4. **Open the webpage**
+   
+   - ctrl+click (or cmnd+click on Mac) the local address
+   - 
 
 ## API Documentation
 
