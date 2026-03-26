@@ -741,6 +741,55 @@ def summarize_project_evolution(project_history: List[ProjectInsight]) -> Dict[s
     }
 
 
+def summarize_top_project_histories(
+    *,
+    storage_path: PathLike = DEFAULT_STORAGE,
+    contributor: Optional[str] = None,
+    top_n: int = 3,
+) -> List[Dict[str, Any]]:
+    """
+    Build top-project summaries using the latest snapshot plus evolution evidence.
+
+    Args:
+        storage_path: Where insights are stored.
+        contributor: Optional contributor-specific ranking basis.
+        top_n: Maximum number of unique projects to return.
+
+    Returns:
+        List of dictionaries, one per unique project.
+    """
+    if top_n <= 0:
+        return []
+
+    grouped = group_project_histories(storage_path=storage_path)
+    if not grouped:
+        return []
+
+    project_cards: List[Dict[str, Any]] = []
+    for project_name, history in grouped.items():
+        ordered = sorted(history, key=lambda item: _parse_analyzed_at(item.analyzed_at))
+        latest = ordered[-1]
+        evolution = summarize_project_evolution(ordered)
+        project_cards.append({
+            "project_name": project_name,
+            "snapshot_count": len(ordered),
+            "score": latest.contribution_score(contributor),
+            "latest": latest.to_dict(),
+            "evolution": evolution,
+        })
+
+    ranked = sorted(
+        project_cards,
+        key=lambda item: (
+            item["score"],
+            _safe_int((item["latest"].get("stats") or {}).get("top_contribution_count", 0)),
+            item["project_name"],
+        ),
+        reverse=True,
+    )
+    return ranked[:top_n]
+
+
 def summaries_for_top_ranked_projects(
     *,
     storage_path: PathLike = DEFAULT_STORAGE,
@@ -908,6 +957,7 @@ __all__ = [
     "list_skill_history",
     "group_project_histories",
     "summarize_project_evolution",
+    "summarize_top_project_histories",
     "summaries_for_top_ranked_projects",
     "update_thumbnail_in_insights",      
     "remove_thumbnail_from_insights", 

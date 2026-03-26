@@ -183,6 +183,25 @@ Router prefix: `/insights`
   - `since_str` (optional string) — only entries analyzed after this date
 - Returns `200`: list of skill-history dictionaries in chronological order.
 
+### `GET /insights/top-projects`
+- Purpose: return the top unique projects using the latest snapshot for ranking and attach evolution evidence from snapshot history.
+- Query:
+  - `top_n` (optional integer, default `3`) — max number of unique projects to return
+  - `contributor` (optional string) — rank by a specific contributor's contribution score
+- Returns `200`: list of dictionaries, each including:
+  - `project_name` (string)
+  - `snapshot_count` (integer)
+  - `score` (number) — contribution score used for ranking
+  - `latest` (object) — latest stored project insight snapshot
+  - `evolution` (object), including:
+    - `first_analyzed_at`
+    - `latest_analyzed_at`
+    - `new_skills`
+    - `new_languages`
+    - `file_count_delta`
+    - `summary_changed`
+    - `project_type_changed`
+
 ## Resume
 
 ### `GET /resumes`

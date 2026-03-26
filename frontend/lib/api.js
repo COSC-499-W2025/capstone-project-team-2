@@ -167,6 +167,20 @@ export function fetchProjectInsights() {
 }
 
 /**
+ * Fetches top unique projects with latest snapshot data and evolution evidence.
+ *
+ * @param {{ topN?: number, contributor?: string }} [options={}]
+ * @returns {Promise<any>}
+ */
+export function fetchTopProjectHistories(options = {}) {
+  const params = new URLSearchParams();
+  if (Number.isFinite(options.topN)) params.set("top_n", String(options.topN));
+  if (options.contributor) params.set("contributor", options.contributor);
+  const query = params.toString();
+  return request(`/insights/top-projects${query ? `?${query}` : ""}`);
+}
+
+/**
  * Fetches persisted user configuration.
  *
  * @returns {Promise<any>}

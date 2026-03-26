@@ -20,6 +20,7 @@ from src.reporting.project_insights import (
     group_project_histories,
     list_project_insights,
     list_skill_history,
+    summarize_top_project_histories,
     summarize_project_evolution,
     rank_projects_by_contribution,
     record_project_insight,
@@ -558,6 +559,83 @@ class TestProjectInsights(unittest.TestCase):
 
         grouped = group_project_histories(storage_path=self.storage)
         self.assertEqual(grouped, {})
+
+    def test_summarize_top_project_histories_returns_unique_projects(self) -> None:
+        """Top-project summaries should collapse multiple snapshots into one card per project."""
+        self._announce("Summarizing top unique projects with evolution evidence.")
+
+        ts1 = datetime(2025, 5, 1, tzinfo=timezone.utc)
+        ts2 = ts1 + timedelta(days=1)
+        ts3 = ts1 + timedelta(days=2)
+
+        record_project_insight(
+            _analysis_payload(
+                "Alpha",
+                summary="Alpha first snapshot.",
+                languages=["Python"],
+                skills=["Python"],
+            ),
+            storage_path=self.storage,
+            analyzed_at=ts1,
+            contributors={"Lead": {"file_count": 3}},
+            insight_id="alpha-1",
+        )
+        record_project_insight(
+            _analysis_payload(
+                "Alpha",
+                summary="Alpha evolved snapshot.",
+                languages=["Python", "TypeScript"],
+                skills=["Python", "TypeScript"],
+            ),
+            storage_path=self.storage,
+            analyzed_at=ts2,
+            contributors={"Lead": {"file_count": 9}},
+            insight_id="alpha-2",
+        )
+        record_project_insight(
+            _analysis_payload(
+                "Beta",
+                summary="Beta only snapshot.",
+                languages=["Go"],
+                skills=["Go", "Docker"],
+            ),
+            storage_path=self.storage,
+            analyzed_at=ts3,
+            contributors={"Lead": {"file_count": 5}},
+            insight_id="beta-1",
+        )
+
+        summaries = summarize_top_project_histories(storage_path=self.storage, top_n=2)
+
+        self.assertEqual(len(summaries), 2)
+        self.assertEqual([item["project_name"] for item in summaries], ["Alpha", "Beta"])
+        self.assertEqual(summaries[0]["snapshot_count"], 2)
+        self.assertEqual(summaries[0]["evolution"]["new_languages"], ["TypeScript"])
+        self.assertEqual(summaries[0]["latest"]["summary"], "Alpha evolved snapshot.")
+        self.assertEqual(summaries[1]["snapshot_count"], 1)
+
+    def test_summarize_top_project_histories_respects_top_n_and_empty(self) -> None:
+        """Top unique project summaries should handle empty storage and top_n limits."""
+        self._announce("Constraining top unique project summaries.")
+
+        self.assertEqual(summarize_top_project_histories(storage_path=self.storage, top_n=3), [])
+
+        record_project_insight(
+            _analysis_payload("One"),
+            storage_path=self.storage,
+            contributors={"Lead": {"file_count": 10}},
+            insight_id="one-1",
+        )
+        record_project_insight(
+            _analysis_payload("Two"),
+            storage_path=self.storage,
+            contributors={"Lead": {"file_count": 2}},
+            insight_id="two-1",
+        )
+
+        summaries = summarize_top_project_histories(storage_path=self.storage, top_n=1)
+        self.assertEqual(len(summaries), 1)
+        self.assertEqual(summaries[0]["project_name"], "One")
 
     def test_corrupted_storage_is_preserved_before_rewrite(self) -> None:
         """Ensure corrupted logs get saved aside before being replaced."""
