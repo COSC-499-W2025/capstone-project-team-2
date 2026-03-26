@@ -58,15 +58,28 @@ test.describe("WCAG 2.2 sign-off checks", () => {
     for (const route of routes) {
       await page.goto(route);
 
-      // Move focus into document by keyboard only.
-      await page.keyboard.press("Tab");
-      const hasFocusable = await page.evaluate(() => {
-        const active = document.activeElement;
-        if (!active || active === document.body) return false;
-        const tag = active.tagName.toLowerCase();
-        return ["a", "button", "input", "select", "textarea"].includes(tag) || active.hasAttribute("tabindex");
-      });
-      expect(hasFocusable, `No keyboard-focusable element reached on ${route}`).toBeTruthy();
+      // Move focus by keyboard only until the page content section is reached.
+      let reachedContentSectionControl = false;
+      for (let i = 0; i < 30; i += 1) {
+        await page.keyboard.press("Tab");
+        reachedContentSectionControl = await page.evaluate(() => {
+          const active = document.activeElement;
+          if (!active || active === document.body) return false;
+
+          const contentSection = document.querySelector(".content-wrap");
+          if (!contentSection || !contentSection.contains(active)) return false;
+
+          const tag = active.tagName.toLowerCase();
+          return ["a", "button", "input", "select", "textarea"].includes(tag) || active.hasAttribute("tabindex");
+        });
+
+        if (reachedContentSectionControl) break;
+      }
+
+      expect(
+        reachedContentSectionControl,
+        `No keyboard-focusable control reached inside the page content section on ${route}`
+      ).toBeTruthy();
     }
   });
 
