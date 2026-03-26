@@ -13,7 +13,11 @@
  * 2. Let this module handle fetch + parse + error translation.
  * 3. Keep UI files focused on state and rendering.
  */
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+const isRenderHost =
+  typeof window !== "undefined" && window.location.hostname.endsWith(".onrender.com");
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE ||
+  (isRenderHost ? "https://capstone-project-team-2-1d25.onrender.com" : "http://localhost:8000");
 
 /**
  * Converts backend error payloads into a readable string.
