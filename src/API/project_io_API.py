@@ -548,17 +548,18 @@ def update_project_duration(id: str, start: str, end: str) -> dict:
             detail=f"Project {id} not found",
         )
     try:
-        if datetime.datetime.strptime(end, '%Y-%m-%d').date() < datetime.datetime.strptime(start, '%Y-%m-%d').date():
-            raise HTTPException(
-            status_code=400,
-            detail=f"Start date must be before end date",
-            )
-        duration = format_duration(datetime.datetime.strptime(end, '%Y-%m-%d').date() - datetime.datetime.strptime(start, '%Y-%m-%d').date())
-        dict_to_update["duration_estimate"] = duration  #Converts project duration to timedelta using a pandas library
+        duration = datetime.datetime.strptime(end, '%Y-%m-%d').date() - datetime.datetime.strptime(start, '%Y-%m-%d').date()
+        str_duration = format_duration(duration)
+        dict_to_update["duration_estimate"] = str_duration  #Converts project duration to timedelta using a pandas library
     except Exception as e:
         raise HTTPException(
             status_code=400,
             detail=str(e),
         )
+    if duration < datetime.timedelta(seconds=0):
+            raise HTTPException(
+            status_code=400,
+            detail=f"Start date must be before end date",
+            )
     runtimeAppContext.store.update(id, dict_to_update)
-    return {"message": "Updated successfully", "dur": duration}
+    return {"message": "Updated successfully", "dur": str_duration}

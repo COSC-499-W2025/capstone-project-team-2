@@ -360,3 +360,25 @@ def test_update_project_duration_normal(monkeypatch):
 
     assert response.status_code == 200
     assert response.json()["dur"] == "1 day"
+
+def test_update_project_duration_empty(monkeypatch):
+    """
+    Confirms status code 200 and correct duration returned when normal input and project exists
+    """
+    expected = {"name": ""}
+
+    class MockAppContext:
+        def fetch_by_name(id):
+            return expected
+
+        def update(id, dur):
+            pass
+
+    monkeypatch.setattr(
+        "src.core.app_context.runtimeAppContext.store",
+        MockAppContext
+    )
+    response = test_client.post("/projects/this/duration?start=2020-01-01&end=2020-01-02")
+
+    assert response.status_code == 200
+    assert response.json()["dur"] == "1 day"

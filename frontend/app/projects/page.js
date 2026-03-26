@@ -22,7 +22,7 @@ function ProjectDetail({ data }) {
   const [start_date, setStart] = useState(null);
   const [end_date, setEnd] = useState(null);
   const [durationMessage, setDurationMessage] = useState(null);
-  const [duration, setDuration] = useState(data.analysis.duration_estimate);
+  const [duration, setDuration] = useState(data?.analysis?.duration_estimate ?? "Unknown");
 
   const chips = (arr) =>
     Array.isArray(arr) && arr.length
@@ -41,7 +41,10 @@ function ProjectDetail({ data }) {
    */
   async function updateDuration(event) {
     event.preventDefault();
-    if (!start_date || !end_date) return;
+    if (!start_date || !end_date) {
+      setDurationMessage("Please enter both dates")
+      return;
+    }
     try {
     const dict = await updateProjectDuration(data.project_name, start_date, end_date);
     setDurationMessage(dict.message);
@@ -51,6 +54,8 @@ function ProjectDetail({ data }) {
     catch(err) {
       setDurationMessage(err.message);
     }
+    setStart(null);
+    setEnd(null);
   }
 
   return (
