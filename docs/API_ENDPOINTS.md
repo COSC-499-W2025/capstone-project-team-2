@@ -80,6 +80,19 @@ When the app is running:
   - `404` project insight not found
   - `500` linked metadata update failed
 
+### `Post /projects/{id}/duration`
+ - Purpose: Update duration of project in database
+ - Path:
+  - `id` = project name, with or without `.json`
+ - Query:
+  - `start` (str): starting date of project
+  - `end` (str): ending date of project
+ - Returns `200`:
+  - `{"message": "Updated successfully", "dur": duration (string representation of project duration)}`
+ - Errors:
+  - `404` project not found
+  - `400` start date later than end date OR error converting string dates to datetime objects then timedelta object
+
 ### `GET /projects/{id}/thumbnail`
 - Purpose: get thumbnail metadata.
 - Path:
