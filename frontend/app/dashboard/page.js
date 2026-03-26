@@ -291,7 +291,7 @@ export default function DashboardPage() {
         const [projectData, insightData, topProjectData] = await Promise.all([
           fetchProjects(),
           fetchProjectInsights(),
-          fetchTopProjectHistories({ topN: 50 })
+          fetchTopProjectHistories({ topN: 3, activeOnly: true })
         ]);
         if (!ignore) {
           const currentProjectNames = Array.isArray(projectData) ? projectData : [];
@@ -303,7 +303,6 @@ export default function DashboardPage() {
           setTopProjects(
             (Array.isArray(topProjectData) ? topProjectData : [])
               .filter((item) => currentProjectSet.has(normalizeProjectName(item?.project_name)))
-              .slice(0, 3)
           );
         }
       } catch (err) {

@@ -204,3 +204,46 @@ def test_return_top_project_histories_prefers_skills_then_recency_on_ties():
 
     assert response.status_code == 200
     assert [entry["project_name"] for entry in body] == ["NewestPython", "NewerPython", "OlderNoSkills"]
+
+
+def test_return_top_project_histories_active_only_filters_to_saved_projects():
+    """Ensures active_only returns only projects that still exist in saved project storage."""
+    root_folder = Path(__file__).absolute().resolve().parents[1]
+    runtimeAppContext.legacy_save_dir = root_folder / "User_config_files"
+    runtimeAppContext.default_save_dir = runtimeAppContext.legacy_save_dir / "project_insights"
+    Path(runtimeAppContext.default_save_dir).mkdir(parents=True, exist_ok=True)
+    testclient = TestClient(app)
+    storage_path = Path(runtimeAppContext.legacy_save_dir / "project_insights.json")
+
+    sample = [
+        {
+            "id": "active-1",
+            "project_name": "ActiveProject",
+            "summary": "Current project.",
+            "analyzed_at": "2025-05-02T00:00:00+00:00",
+            "languages": ["Python"],
+            "skills": ["Python"],
+            "project_type": "collaborative",
+            "stats": {"top_contribution_count": 6},
+            "file_analysis": {"file_count": 1},
+        },
+        {
+            "id": "stale-1",
+            "project_name": "StaleProject",
+            "summary": "Deleted historical project.",
+            "analyzed_at": "2025-05-03T00:00:00+00:00",
+            "languages": ["Go"],
+            "skills": ["Go"],
+            "project_type": "collaborative",
+            "stats": {"top_contribution_count": 9},
+            "file_analysis": {"file_count": 1},
+        },
+    ]
+    storage_path.write_text(json.dumps(sample), encoding="utf-8")
+    (Path(runtimeAppContext.default_save_dir) / "ActiveProject.json").write_text("{}", encoding="utf-8")
+
+    response = testclient.get("/insights/top-projects?top_n=3&active_only=true")
+    body = response.json()
+
+    assert response.status_code == 200
+    assert [entry["project_name"] for entry in body] == ["ActiveProject"]

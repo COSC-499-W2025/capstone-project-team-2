@@ -144,7 +144,13 @@ async function installApiMocks(page, options = {}) {
     if (pathname === "/insights/top-projects" && method === "GET") {
       const topN = Number(searchParams.get("top_n") || "3");
       const limit = Number.isFinite(topN) && topN > 0 ? topN : 3;
-      const topProjects = state.insights.slice(0, limit).map((item) => ({
+      const activeOnly = searchParams.get("active_only") === "true";
+      const allowedProjects = new Set((state.projects || []).map((name) => String(name).trim().toLowerCase()));
+      const rankedInsights = (state.insights || []).filter((item) => {
+        if (!activeOnly) return true;
+        return allowedProjects.has(String(item.project_name || "").trim().toLowerCase());
+      });
+      const topProjects = rankedInsights.slice(0, limit).map((item) => ({
         project_name: item.project_name,
         snapshot_count: 1,
         score: item?.stats?.top_contribution_count || 0,

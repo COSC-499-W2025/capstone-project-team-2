@@ -94,18 +94,18 @@ test("fetchProjectInsights calls /insights/projects", async () => {
   assert.equal(calls[0], "http://localhost:8000/insights/projects");
 });
 
-test("fetchTopProjectHistories encodes top_n and contributor query params", async () => {
+test("fetchTopProjectHistories encodes top_n, contributor, and active_only query params", async () => {
   const calls = [];
   global.fetch = async (url) => {
     calls.push(url);
     return makeResponse({ json: [] });
   };
 
-  await fetchTopProjectHistories({ topN: 3, contributor: "Jane Doe" });
+  await fetchTopProjectHistories({ topN: 3, contributor: "Jane Doe", activeOnly: true });
 
   assert.equal(
     calls[0],
-    "http://localhost:8000/insights/top-projects?top_n=3&contributor=Jane+Doe"
+    "http://localhost:8000/insights/top-projects?top_n=3&contributor=Jane+Doe&active_only=true"
   );
 });
 

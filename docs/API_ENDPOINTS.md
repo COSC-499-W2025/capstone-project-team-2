@@ -189,6 +189,7 @@ Router prefix: `/insights`
 - Query:
   - `top_n` (optional integer, default `3`) — max number of unique projects to return
   - `contributor` (optional string) — rank by a specific contributor's contribution score
+  - `active_only` (optional boolean, default `false`) — when `true`, include only projects that still exist in saved project storage
 - Returns `200`: list of dictionaries, each including:
   - `project_name` (string)
   - `snapshot_count` (integer)

@@ -746,6 +746,7 @@ def summarize_top_project_histories(
     storage_path: PathLike = DEFAULT_STORAGE,
     contributor: Optional[str] = None,
     top_n: int = 3,
+    allowed_project_names: Optional[Iterable[str]] = None,
 ) -> List[Dict[str, Any]]:
     """
     Build top-project summaries using the latest snapshot plus evolution evidence.
@@ -754,6 +755,7 @@ def summarize_top_project_histories(
         storage_path: Where insights are stored.
         contributor: Optional contributor-specific ranking basis.
         top_n: Maximum number of unique projects to return.
+        allowed_project_names: Optional set/list of project names to include.
 
     Returns:
         List of dictionaries, one per unique project.
@@ -764,6 +766,18 @@ def summarize_top_project_histories(
     grouped = group_project_histories(storage_path=storage_path)
     if not grouped:
         return []
+
+    allowed_names_normalized = None
+    if allowed_project_names is not None:
+        allowed_names_normalized = {
+            str(name).strip().lower() for name in allowed_project_names if str(name).strip()
+        }
+        grouped = {
+            project_name: history for project_name, history in grouped.items()
+            if str(project_name).strip().lower() in allowed_names_normalized
+        }
+        if not grouped:
+            return []
 
     project_cards: List[Dict[str, Any]] = []
     for project_name, history in grouped.items():
