@@ -269,25 +269,25 @@ export default function ProjectsPage() {
                       >
                         {viewing === name ? "Hide" : "View"}
                       </button>
-                      {confirmDelete === name ? (
-                        <>
-                          <button
-                            type="button"
-                            className="liquid-btn solid btn-danger"
-                            disabled={busy}
-                            onClick={() => onDelete(name)}
-                          >
-                            Confirm Delete
-                          </button>
-                          <button
-                            type="button"
-                            className="liquid-btn"
-                            disabled={busy}
-                            onClick={() => setConfirmDelete(null)}
-                          >
-                            Cancel
-                          </button>
-                        </>
+                       {confirmDelete === name ? (
+                          <>
+                            <button
+                              type="button"
+                              className="liquid-btn btn-danger"
+                              disabled={busy}
+                              onClick={() => onDelete(name)}
+                            >
+                              Confirm delete
+                            </button>
+                            <button
+                              type="button"
+                              className="liquid-btn"
+                              disabled={busy}
+                              onClick={() => setConfirmDelete(null)}
+                            >
+                              Cancel
+                            </button>
+                          </>
                       ) : (
                         <button
                           type="button"
