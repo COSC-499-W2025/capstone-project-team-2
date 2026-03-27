@@ -285,6 +285,24 @@ async function onBulkDelete() {
               {bulkMode ? "Cancel" : "Select to delete"}
             </button>
 
+            {bulkMode && (
+              <>
+                <button
+                  type="button"
+                  className="liquid-btn"
+                  onClick={() => setSelected(new Set(projects))}
+                >
+                  Select all
+                </button>
+                <button
+                  type="button"
+                  className="liquid-btn"
+                  onClick={() => setSelected(new Set())}
+                >
+                  Deselect all
+                </button>
+              </>
+            )}
             {bulkMode && selected.size > 0 && (
               <>
                 {confirmBulkDelete ? (
@@ -337,7 +355,7 @@ async function onBulkDelete() {
                       <div style={{ position: "relative", flexShrink: 0 }}>
                         <div
                           title="Click to upload thumbnail"
-                          onClick={() => onThumbClick(name)}
+                          onClick={(e) => { if (bulkMode) return; e.stopPropagation(); onThumbClick(name); }}
                           style={{
                             width: 80, height: 80, borderRadius: 5, overflow: "hidden",
                             border: "1px solid var(--layer-border, #ccc)", cursor: "pointer",
