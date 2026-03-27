@@ -400,12 +400,8 @@ async function onBulkDelete() {
                         <button
                           type="button"
                           title="Click to upload thumbnail"
-<<<<<<< Projects-page-QoL-changes
                           onClick={(e) => { if (bulkMode) return; e.stopPropagation(); onThumbClick(name); }}
-=======
                           aria-label={`Upload thumbnail for ${name}`}
-                          onClick={() => onThumbClick(name)}
->>>>>>> development
                           style={{
                             width: 80, height: 80, borderRadius: 5, overflow: "hidden",
                             border: "1px solid var(--layer-border, #ccc)", cursor: "pointer",
