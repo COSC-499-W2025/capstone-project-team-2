@@ -2240,6 +2240,7 @@ Following Week 25's goals to implement the final UI elements and prepare for the
 - Reviewed PR (1st Reviewer): [Refactor mode scope: dashboard-only private/public, builder authoring-only #618](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/618)
 - Reviewed PR (1st Reviewer): [Sync Project Settings with Dashboard and Redesign Dashboard Controls UX #619](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/619)
 - Reviewed PR (1st Reviewer): [Made consent form viewable and fixed controls to include consent status #627](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/627)
+- Reviewed PR (2nd Reviewer): [Sanitize generated resume/portfolio IDs and add regressions #632](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/632)
 
 ---
 
@@ -2262,6 +2263,7 @@ Following Week 25's goals to implement the final UI elements and prepare for the
 | **Reviewed Refactor mode scope: dashboard-only private/public, builder authoring-only (PR #618)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 | **Reviewed Sync Project Settings with Dashboard and Redesign Dashboard Controls UX (PR #619)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 | **Reviewed Made consent form viewable and fixed controls to include consent status (PR #627)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Sanitize generated resume/portfolio IDs and add regressions (PR #632)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 
 ---
 
