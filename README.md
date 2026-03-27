@@ -60,8 +60,8 @@ The platforms target users are **graduating students** and **early career profes
 - 🎨 **User Interface** — Streamlined UI with intuitive navigation
 - 📄 **Documentation** — Comprehensive WBS, DFDs, and architecture diagrams
 - 🔄 **CI/CD Pipelines** — Automated deployment workflows
-- 🗄️ **Database** — MySQL integration with Docker containerization
-- 🤖 **AI Integration** — Ollama (local LLM) and Google Gemini for code analysis
+- 🗄️ **Database** — SQLite integration
+- 🤖 **AI Integration** — Google Gemini for resume/portfolio generation
 - 🔍 **Local Analysis** — Offline code analysis without AI dependencies
 - 📝 **Resume Generator** — PDF resume and portfolio generation (AI-powered or offline)
 - 🧹 **Cross-Upload Deduplication** — Hash-based index to keep only one copy of duplicate files across snapshots
@@ -117,76 +117,19 @@ git clone -b development https://github.com/COSC-499-W2025/capstone-project-team
 git clone -b development https://github.com/COSC-499-W2025/capstone-project-team-2.git your-folder-name
 ```
 
-Please look at our [video](https://youtu.be/zAoHiW9vn-U) demo otherwise follow the steps below:
-
-
-### Docker Setup
-
-#### Step-by-Step Instructions
-
-1. **Remove previous containers and volumes:**
-   ```bash
-   docker-compose down -v
-   ```
-
-2. **Build the Docker containers:**
-   ```bash
-   docker-compose build --no-cache
-   ```
-
-3. **Start the Ollama container:**
-   ```bash
-   docker-compose up -d ollama2
-   ```
-
-4. **Pull the LLM model:**
-   ```bash
-   docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b
-   ```
-
-5. **Verify the model is installed:**
-   ```bash
-   docker exec -it ollama2 ollama list
-   ```
-   You should see `qwen2.5-coder:1.5b` in the list:
-   
-   ![alt text](image.png)
-
-6. **Start the database container:**
-   ```bash
-   docker-compose up -d app_database
-   ```
-
-7. **Verify all containers are running:**
-   ```bash
-   docker ps
-   ```
-   Expected output:
-   ```
-   CONTAINER ID   IMAGE                  COMMAND                  CREATED          STATUS                    PORTS                               NAMES
-   42a2e9017194   ollama/ollama:latest   "/bin/ollama serve"      17 minutes ago   Up 17 minutes             0.0.0.0:11434->11434/tcp            ollama2
-   9c42d7048399   mysql:8.0.44           "docker-entrypoint.s…"   17 minutes ago   Up 17 minutes (healthy)   33060/tcp, 0.0.0.0:3308->3306/tcp   app_database
-   ```
-
 ---
 
+### Prerequisite Installations
 
-#### Quick Setup (Single Command) Docker Setup
+1. **Ensure python is installed**
 
-Alternatively, run everything in one command:
+   https://www.python.org/downloads/
 
-**CMD / macOS / Linux:**
-```bash
-docker-compose down -v && docker-compose build --no-cache && docker-compose up -d ollama2 && sleep 5 && docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b && docker-compose up -d app_database
-```
+2. **Ensure Node.js is installed with npm**
 
-**Windows PowerShell:**
-```powershell
-docker-compose down -v; docker-compose build --no-cache; docker-compose up -d ollama2; Start-Sleep 5; docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b; docker-compose up -d app_database
-```
+   https://nodejs.org/en/download
 
-
-
+   ![alt text](image-2.png)
 
 ---
 
@@ -257,13 +200,18 @@ cd capstone-project-team-2
 
 2. **Install dependencies:**
 ```bash
-pip install -r src/requirements.txt
+python -m pip install -r src/requirements.txt
 ```
 
 3. **Run the application:**
 ```bash
-python -m src.main
+python -m src.cli.main
 ```
+
+4. **Open the webpage and enjoy!**
+   
+   - ctrl+click (or cmd+click on Mac) the local http address
+   - ![alt text](image-3.png)
 
 ## API Documentation
 
@@ -279,22 +227,21 @@ If you run the FastAPI app, interactive docs are also available at:
 
 ## Key Components
 
-- **Frontend (Presentation Layer)**: Built using **Streamlit**, offering an intuitive menu-driven interface for users to navigate and interact with the application. Key features include:
-  - **Interactive menus**: For project analysis, viewing saved projects, portfolio generation, and configuration management.
+- **Frontend (Presentation Layer)**: Built using **Next.js and React**, offering an intuitive menu-driven interface for users to navigate and interact with the application. Key features include:
+  - **Interactive menus**: For project analysis, viewing saved projects, resume and portfolio generation, and configuration management.
   - **User consent workflow**: Guides users through the process of providing consent and configuring permissions for external services permissions
   - **Portfolio generation**: Enables users to generate a portfolio-ready resume or portfolio 
 
 - **Backend (Application Layer)**: The backend powers the core analysis engine, leveraging multiple technologies for comprehensive project insights
   - **File Processing**: Handles ZIP extraction, directory traversal, and metadata collection achieved using `os`, `shutil`, `zipfile`, and `pathlib`.
-  - **Multi-language OOP Analysis**: Analyzes Python source files via the `ast` module and for Java source files via the `javalang` module. Returning unified metrics on **inheritance**, **encapsulation**, **polymorphism**, and **code complexity**
-  - **AI-Powered Analysis**: Integrates with **Ollama** (via LangChain library) for local LLM-based code review and **Google Gemini** for improved code review and for generating prototype-ready project summaries
+  - **Multi-language OOP Analysis**: Analyzes Python source files via the `ast` module, Java source files via the `javalang` module, Javascript source files via the `esprima` module, and C (as well as C++ and C#) files via various `tree_sitter` derivative modules. Returning unified metrics on **inheritance**, **encapsulation**, **polymorphism**, and **code complexity**
   - **Contributor Detection**: Identifies project collaborators through git history (via **GitPython** and **PyGithub**) or file metadata analysis for non-git projects
   - **Stack Detection**: Automatically identifies programming languages, frameworks, and skills through scanning dependency files (`requirements.txt`, `package.json`, `composer.json`) and source file extensions
 
 - **Database (Storage Layer)**: 
-  - The application uses **MySQL** as its primary database for persistent storage and data management.
+  - The application uses **SQLite** as its primary database for persistent storage and data management.
   - **Project Data Storage**: Stores analyzed project metadata, JSON analysis reports, and file blobs for later retrieval.
-  - **Containerized Deployment**: MySQL runs within a Docker container (`app_database`), with connection details dynamically set and found in the `DockerFinder` utility.
+  - **Non-containerized Deployment**: SQLite runs without a Docker container, saving the contents locally and without a resource intensive container.
 
 - **External Services Integration**:
   - **Google Gemini API**: Powers AI-generated resume summaries and project descriptions (requires `GOOGLE_API_KEY`)
