@@ -548,7 +548,11 @@ def update_project_duration(id: str, start: str, end: str) -> dict:
             detail=f"Project {id} not found",
         )
     try:
-        duration = datetime.datetime.strptime(end, '%Y-%m-%d').date() - datetime.datetime.strptime(start, '%Y-%m-%d').date()
+        end_date = datetime.datetime.strptime(end, '%Y-%m-%d').date()
+        start_date = datetime.datetime.strptime(start, '%Y-%m-%d').date()
+        if end_date == start_date:
+            end_date += datetime.timedelta(days=1)
+        duration = end_date - start_date
         str_duration = format_duration(duration)
         dict_to_update["duration_estimate"] = str_duration  #Converts project duration to timedelta using a pandas library
     except Exception as e:
