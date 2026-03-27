@@ -92,6 +92,20 @@ class TestGeneratePortfolio(_BasePortfolioTest):
         self.assertEqual(response.status_code, 400)
         self.assertIn("Invalid theme", response.json()["detail"])
 
+    def test_sanitizes_name_for_document_id(self):
+        """Slash characters in display names should not appear in generated IDs."""
+        self.mock_doc.generate.return_value = "Generated"
+
+        response = self.client.post("/portfolio/generate", json={"name": "Sam/http"})
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertNotIn("/", body["portfolio_id"])
+        self.assertIn("Sam_http_", body["portfolio_id"])
+
+        called_name = self.mock_doc.generate.call_args.kwargs["name"]
+        self.assertNotIn("/", called_name)
+        self.assertTrue(called_name.startswith("Sam_http_"))
+
 
 class TestGetPortfolio(_BasePortfolioTest):
     """Tests for GET /portfolio/{id}."""

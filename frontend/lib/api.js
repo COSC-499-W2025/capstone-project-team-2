@@ -810,3 +810,15 @@ export function deleteProjectThumbnail(projectName) {
 export function projectThumbnailUrl(projectName) {
   return `${API_BASE}/projects/${encodeURIComponent(projectName)}/thumbnail/image`;
 }
+
+/**
+ * Returns a success message and the updated project type
+ *
+ * @param {string} id
+ * @param {string} type
+ * @returns {string}
+ */
+export function updateProjectType(id, type) {
+  const query = type ? `?project_type=${encodeURIComponent(type)}` : "";
+  return request(`/projects/${encodeURIComponent(id)}/type${query}`, {method: "POST"});
+}

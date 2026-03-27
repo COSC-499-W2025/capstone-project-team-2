@@ -8,7 +8,8 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { GlassCard, LiquidShell } from "../../components/LiquidShell";
-import { deleteProject, deleteProjectThumbnail, fetchProjectByName, fetchProjects, projectThumbnailUrl, uploadProjectThumbnail } from "../../lib/api";
+import { deleteProject, deleteProjectThumbnail, fetchProjectByName, fetchProjects, projectThumbnailUrl, uploadProjectThumbnail, updateProjectType } from "../../lib/api";
+import { LiquidSegmentedControl } from "../../components/LiquidPillControl";
 
 /**
  * Inline detail panel showing human-readable fields from a project's resume_item.
@@ -18,6 +19,10 @@ import { deleteProject, deleteProjectThumbnail, fetchProjectByName, fetchProject
  */
 function ProjectDetail({ data }) {
   const item = data?.analysis?.resume_item ?? data?.analysis ?? {};
+  const [typing, setTyping] = useState(item?.project_type);
+  const [persistedTyping, setPersistedTyping] = useState(item?.project_type ?? "Unknown");
+  const [typingMessage, setTypingMessage] = useState(null);
+
 
   const chips = (arr) =>
     Array.isArray(arr) && arr.length
@@ -27,6 +32,27 @@ function ProjectDetail({ data }) {
           </span>
         ))
       : <span className="muted">None</span>;
+
+  /**
+   * Persists the new project type and sets the current visual project type to reflect this
+   *
+   * @param {import("react").FormEvent<HTMLFormElement>} event
+   * @returns {Promise<void>}
+   */
+  async function updateType() {
+    if (typing == persistedTyping) {
+      setTypingMessage("Type Unchanged");
+      return;
+    }
+    try {
+    const dict = await updateProjectType(data.project_name, typing);
+    setTypingMessage(dict.message);
+    setPersistedTyping(dict.type);
+    }
+    catch(err) {
+      setTypingMessage(err.message);
+    }
+  }
 
   return (
     <div className="form-stack" style={{ marginTop: "0.75rem" }}>
@@ -65,11 +91,29 @@ function ProjectDetail({ data }) {
             <div className="button-row">{chips(item.skills)}</div>
           </div>
         ) : null}
-        {item.project_type ? (
+        {persistedTyping ? (
           <div className="settings-row">
             <span className="settings-label">Project type</span>
+            {typingMessage ? <p className="success">{typingMessage}</p> : null}
+            <div>
+            <label>
+              Change Project Type
+              <LiquidSegmentedControl
+                className="config-consent-control"
+                value={typing}
+                onChange={setTyping}
+                options={[
+                  { value: "individual", label: "Individual" },
+                  { value: "collaborative", label: "Collaborative" }
+                ]}
+              />
+            </label>
+            </div>
+            <div>
+            <button type="button" className="liquid-btn solid" onClick={updateType}>Confirm</button>
+            </div>
             <div className="button-row">
-              <span className="data-chip">{item.project_type}</span>
+              <span className="data-chip">{persistedTyping}</span>
             </div>
           </div>
         ) : null}
@@ -353,14 +397,21 @@ async function onBulkDelete() {
                     <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                       {/* Thumbnail slot */}
                       <div style={{ position: "relative", flexShrink: 0 }}>
-                        <div
+                        <button
+                          type="button"
                           title="Click to upload thumbnail"
+<<<<<<< Projects-page-QoL-changes
                           onClick={(e) => { if (bulkMode) return; e.stopPropagation(); onThumbClick(name); }}
+=======
+                          aria-label={`Upload thumbnail for ${name}`}
+                          onClick={() => onThumbClick(name)}
+>>>>>>> development
                           style={{
                             width: 80, height: 80, borderRadius: 5, overflow: "hidden",
                             border: "1px solid var(--layer-border, #ccc)", cursor: "pointer",
                             display: "flex", alignItems: "center", justifyContent: "center",
                             background: "var(--bg-2, #eef1f5)", flexShrink: 0,
+                            padding: 0,
                           }}
                         >
                           {thumbState[name] === "loading" || thumbState[name] === "loaded" ? (
@@ -374,7 +425,7 @@ async function onBulkDelete() {
                           ) : (
                             <span style={{ fontSize: "0.8rem", color: "var(--ink-1, #515154)", textAlign: "center", lineHeight: 1.2, padding: "0 4px" }}>Click to Add thumbnail</span>
                           )}
-                        </div>
+                        </button>
                         {thumbState[name] === "loaded" ? (
                           <button
                             type="button"
@@ -382,7 +433,7 @@ async function onBulkDelete() {
                             onClick={(e) => { e.stopPropagation(); onThumbDelete(name); }}
                             style={{
                               position: "absolute", top: -6, right: -6,
-                              width: 18, height: 18, minHeight: 18, borderRadius: "50%",
+                              width: 24, height: 24, minHeight: 24, borderRadius: "50%",
                               border: "none", background: "var(--danger, #c0392b)",
                               color: "#fff", fontSize: "0.65rem", cursor: "pointer",
                               display: "flex", alignItems: "center", justifyContent: "center",
