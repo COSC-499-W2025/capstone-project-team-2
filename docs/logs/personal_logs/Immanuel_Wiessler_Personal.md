@@ -2239,6 +2239,7 @@ Following Week 25's goals to implement the final UI elements and prepare for the
 - Reviewed PR (1st Reviewer): [Publish WCAG 2.2 evidence and sign-off documentation #612](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/612)
 - Reviewed PR (1st Reviewer): [Refactor mode scope: dashboard-only private/public, builder authoring-only #618](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/618)
 - Reviewed PR (1st Reviewer): [Sync Project Settings with Dashboard and Redesign Dashboard Controls UX #619](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/619)
+- Reviewed PR (1st Reviewer): [Made consent form viewable and fixed controls to include consent status #627](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/627)
 
 ---
 
@@ -2260,6 +2261,7 @@ Following Week 25's goals to implement the final UI elements and prepare for the
 | **Reviewed Publish WCAG 2.2 evidence and sign-off documentation (PR #612)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 | **Reviewed Refactor mode scope: dashboard-only private/public, builder authoring-only (PR #618)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 | **Reviewed Sync Project Settings with Dashboard and Redesign Dashboard Controls UX (PR #619)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Made consent form viewable and fixed controls to include consent status (PR #627)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
 
 ---
 
@@ -2282,7 +2284,7 @@ Following Week 25's goals to implement the final UI elements and prepare for the
 
 One lesson from this week was the importance of keeping PR descriptions aligned with the actual implementation scope. My initial description for PR #608 stated awards were added to both resume and portfolio, but the implementation was resume-only. A reviewer caught this, which required me to clarify the scope and fix an inconsistency with the award website/highlights field handling before the PR could be approved. It was a good reminder to double-check PR descriptions against the code before submitting.
 
-On the review side, I served as 1st reviewer on three PRs — the WCAG 2.2 documentation ([#612](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/612)), the mode scope refactor ([#618](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/618)), and the dashboard controls UX redesign ([#619](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/619)). Overall, this week felt like a strong close to the development phase of the capstone, with the remaining focus shifting to final submission preparation and beginn wind down 
+On the review side, I served as 1st reviewer on four PRs — the WCAG 2.2 documentation ([#612](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/612)), the mode scope refactor ([#618](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/618)), the dashboard controls UX redesign ([#619](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/619)), and the consent form visibility and controls fix ([#627](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/627)). Overall, this week felt like a strong close to the development phase of the capstone, with the remaining focus shifting to final submission preparation and beginn wind down 
 
 ---
 
