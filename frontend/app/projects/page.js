@@ -164,14 +164,14 @@ export default function ProjectsPage() {
   const MAX_OPEN = 3;
 
   async function onToggleView(name) {
-    if (viewing === name) {
-      setViewing(null);
+    if (openNames.includes(name)) {
       setOpenNames((prev) => prev.filter((n) => n !== name));
       return;
     }
-    setViewing(name);
-    if (openNames.length >= MAX_OPEN) setOpenNames((prev) => prev.slice(1));
-    setOpenNames((prev) => prev.includes(name) ? prev : [...prev, name]);
+    setOpenNames((prev) => {
+      const trimmed = prev.length >= MAX_OPEN ? prev.slice(1) : prev;
+      return [...trimmed, name];
+    });
     if (viewData[name] && !viewData[name]._error) return;
     try {
       const data = await fetchProjectByName(name);
@@ -379,7 +379,7 @@ async function onBulkDelete() {
                           <button
                             type="button"
                             title="Remove thumbnail"
-                            onClick={() => onThumbDelete(name)}
+                            onClick={(e) => { e.stopPropagation(); onThumbDelete(name); }}
                             style={{
                               position: "absolute", top: -6, right: -6,
                               width: 18, height: 18, minHeight: 18, borderRadius: "50%",
