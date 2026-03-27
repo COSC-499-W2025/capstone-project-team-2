@@ -149,6 +149,36 @@ async function installApiMocks(page, options = {}) {
       return;
     }
 
+    if (pathname === "/insights/top-projects" && method === "GET") {
+      const topN = Number(searchParams.get("top_n") || "3");
+      const limit = Number.isFinite(topN) && topN > 0 ? topN : 3;
+      const activeOnly = searchParams.get("active_only") === "true";
+      const allowedProjects = new Set((state.projects || []).map((name) => String(name).trim().toLowerCase()));
+      const rankedInsights = (state.insights || []).filter((item) => {
+        if (!activeOnly) return true;
+        return allowedProjects.has(String(item.project_name || "").trim().toLowerCase());
+      });
+      const topProjects = rankedInsights.slice(0, limit).map((item) => ({
+        project_name: item.project_name,
+        snapshot_count: 1,
+        score: item?.stats?.top_contribution_count || 0,
+        latest: item,
+        evolution: {
+          project_name: item.project_name,
+          snapshot_count: 1,
+          first_analyzed_at: item.analyzed_at,
+          latest_analyzed_at: item.analyzed_at,
+          new_skills: [],
+          new_languages: [],
+          file_count_delta: 0,
+          summary_changed: false,
+          project_type_changed: false
+        }
+      }));
+      await json(200, topProjects);
+      return;
+    }
+
     if (pathname === "/representation/projects" && method === "GET") {
       const projectMap = new Map();
       for (const insight of state.insights) {
@@ -297,6 +327,38 @@ test("uploads and analyzes a zip, then shows it on the dashboard", async ({ page
   await expect(page.getByRole("heading", { name: /Top 3 Projects/ })).toBeVisible();
   await expect(page.getByText("sample-project")).toBeVisible();
   await expect(page.getByText("3").first()).toBeVisible();
+});
+
+test("dashboard excludes deleted projects from current metrics and top cards", async ({ page }) => {
+  const alpha = makeInsight("Alpha");
+  alpha.stats.top_contribution_count = 12;
+  alpha.summary = "Alpha current project.";
+
+  const beta = makeInsight("Beta");
+  beta.stats.top_contribution_count = 10;
+  beta.summary = "Beta current project.";
+
+  const gamma = makeInsight("Gamma");
+  gamma.stats.top_contribution_count = 8;
+  gamma.summary = "Gamma current project.";
+
+  const deleted = makeInsight("Deleted Project");
+  deleted.stats.top_contribution_count = 99;
+  deleted.summary = "Historical project that should not render.";
+
+  await installApiMocks(page, {
+    projects: ["Alpha", "Beta", "Gamma"],
+    insights: [deleted, alpha, beta, gamma]
+  });
+
+  await page.goto("/dashboard");
+
+  await expect(page.getByRole("heading", { name: /Dashboard/ })).toBeVisible();
+  await expect(page.locator(".metric-value").first()).toHaveText("3");
+  await expect(page.getByText("Deleted Project")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Alpha" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Beta" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Gamma" })).toBeVisible();
 });
 
 test("generates and loads a resume in the workspace", async ({ page }) => {

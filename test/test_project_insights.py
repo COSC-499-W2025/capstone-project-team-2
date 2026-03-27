@@ -17,8 +17,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from src.reporting.project_insights import (
+    group_project_histories,
     list_project_insights,
     list_skill_history,
+    summarize_top_project_histories,
+    summarize_project_evolution,
     rank_projects_by_contribution,
     record_project_insight,
     summaries_for_top_ranked_projects,
@@ -405,6 +408,304 @@ class TestProjectInsights(unittest.TestCase):
         self.assertIn("contributors", summaries[0])
         self.assertIn("score", summaries[0])
         self.assertGreater(summaries[0]["score"], 0)
+
+    def test_summarize_project_evolution_single_snapshot(self) -> None:
+        """Single-snapshot projects should produce a minimal evolution summary."""
+        self._announce("Summarizing evolution for a single project snapshot.")
+
+        record_project_insight(
+            _analysis_payload("Solo", skills=["Python", "Testing"]),
+            storage_path=self.storage,
+            analyzed_at=datetime(2025, 5, 1, tzinfo=timezone.utc),
+            insight_id="solo-1",
+        )
+
+        history = [item for item in list_project_insights(self.storage) if item.project_name == "Solo"]
+        summary = summarize_project_evolution(history)
+
+        self.assertEqual(summary["project_name"], "Solo")
+        self.assertEqual(summary["snapshot_count"], 1)
+        self.assertEqual(summary["new_skills"], [])
+        self.assertEqual(summary["new_languages"], [])
+        self.assertEqual(summary["file_count_delta"], 0)
+        self.assertFalse(summary["summary_changed"])
+        self.assertFalse(summary["project_type_changed"])
+
+    def test_summarize_project_evolution_detects_growth_between_snapshots(self) -> None:
+        """Later snapshots should surface added skills, languages, and file-count growth."""
+        self._announce("Summarizing evolution across multiple project snapshots.")
+
+        ts1 = datetime(2025, 5, 1, tzinfo=timezone.utc)
+        ts2 = ts1 + timedelta(days=7)
+
+        early_hierarchy = {
+            "name": "Evolving",
+            "type": "DIR",
+            "children": [
+                {
+                    "name": "main.py",
+                    "type": "PY",
+                    "size": 256,
+                    "created": "2024-01-01 00:00:00",
+                    "modified": "2024-01-01 00:00:00",
+                    "children": [],
+                }
+            ],
+        }
+        later_hierarchy = {
+            "name": "Evolving",
+            "type": "DIR",
+            "children": [
+                {
+                    "name": "main.py",
+                    "type": "PY",
+                    "size": 256,
+                    "created": "2024-01-01 00:00:00",
+                    "modified": "2024-01-01 00:00:00",
+                    "children": [],
+                },
+                {
+                    "name": "worker.ts",
+                    "type": "TS",
+                    "size": 128,
+                    "created": "2024-01-02 00:00:00",
+                    "modified": "2024-01-02 00:00:00",
+                    "children": [],
+                },
+                {
+                    "name": "README.md",
+                    "type": "MD",
+                    "size": 64,
+                    "created": "2024-01-03 00:00:00",
+                    "modified": "2024-01-03 00:00:00",
+                    "children": [],
+                },
+            ],
+        }
+
+        record_project_insight(
+            _analysis_payload(
+                "Evolving",
+                summary="Initial prototype.",
+                languages=["Python"],
+                skills=["Python", "Testing"],
+                hierarchy=early_hierarchy,
+            ),
+            storage_path=self.storage,
+            analyzed_at=ts1,
+            insight_id="evolving-1",
+        )
+        record_project_insight(
+            _analysis_payload(
+                "Evolving",
+                summary="Expanded into a multi-language workflow.",
+                languages=["Python", "TypeScript"],
+                skills=["Python", "Testing", "CI/CD", "TypeScript"],
+                hierarchy=later_hierarchy,
+            ),
+            storage_path=self.storage,
+            analyzed_at=ts2,
+            insight_id="evolving-2",
+        )
+
+        history = [item for item in list_project_insights(self.storage) if item.project_name == "Evolving"]
+        summary = summarize_project_evolution(history)
+
+        self.assertEqual(summary["snapshot_count"], 2)
+        self.assertEqual(summary["first_analyzed_at"], ts1.isoformat())
+        self.assertEqual(summary["latest_analyzed_at"], ts2.isoformat())
+        self.assertEqual(summary["new_skills"], ["CI/CD", "TypeScript"])
+        self.assertEqual(summary["new_languages"], ["TypeScript"])
+        self.assertEqual(summary["file_count_delta"], 2)
+        self.assertTrue(summary["summary_changed"])
+        self.assertFalse(summary["project_type_changed"])
+
+    def test_group_project_histories_groups_snapshots_by_name(self) -> None:
+        """Snapshots with the same project name should be grouped together chronologically."""
+        self._announce("Grouping snapshots into per-project histories.")
+
+        ts1 = datetime(2025, 5, 1, tzinfo=timezone.utc)
+        ts2 = ts1 + timedelta(days=1)
+        ts3 = ts1 + timedelta(days=2)
+
+        record_project_insight(
+            _analysis_payload("Alpha", summary="First alpha snapshot."),
+            storage_path=self.storage,
+            analyzed_at=ts2,
+            insight_id="alpha-2",
+        )
+        record_project_insight(
+            _analysis_payload("Beta", summary="Only beta snapshot."),
+            storage_path=self.storage,
+            analyzed_at=ts3,
+            insight_id="beta-1",
+        )
+        record_project_insight(
+            _analysis_payload("Alpha", summary="Initial alpha snapshot."),
+            storage_path=self.storage,
+            analyzed_at=ts1,
+            insight_id="alpha-1",
+        )
+
+        grouped = group_project_histories(storage_path=self.storage)
+
+        self.assertEqual(sorted(grouped.keys()), ["Alpha", "Beta"])
+        self.assertEqual([item.id for item in grouped["Alpha"]], ["alpha-1", "alpha-2"])
+        self.assertEqual([item.id for item in grouped["Beta"]], ["beta-1"])
+
+    def test_group_project_histories_returns_empty_mapping_for_empty_storage(self) -> None:
+        """Grouping should return an empty dict when there are no stored insights."""
+        self._announce("Grouping histories from empty storage.")
+
+        grouped = group_project_histories(storage_path=self.storage)
+        self.assertEqual(grouped, {})
+
+    def test_summarize_top_project_histories_returns_unique_projects(self) -> None:
+        """Top-project summaries should collapse multiple snapshots into one card per project."""
+        self._announce("Summarizing top unique projects with evolution evidence.")
+
+        ts1 = datetime(2025, 5, 1, tzinfo=timezone.utc)
+        ts2 = ts1 + timedelta(days=1)
+        ts3 = ts1 + timedelta(days=2)
+
+        record_project_insight(
+            _analysis_payload(
+                "Alpha",
+                summary="Alpha first snapshot.",
+                languages=["Python"],
+                skills=["Python"],
+            ),
+            storage_path=self.storage,
+            analyzed_at=ts1,
+            contributors={"Lead": {"file_count": 3}},
+            insight_id="alpha-1",
+        )
+        record_project_insight(
+            _analysis_payload(
+                "Alpha",
+                summary="Alpha evolved snapshot.",
+                languages=["Python", "TypeScript"],
+                skills=["Python", "TypeScript"],
+            ),
+            storage_path=self.storage,
+            analyzed_at=ts2,
+            contributors={"Lead": {"file_count": 9}},
+            insight_id="alpha-2",
+        )
+        record_project_insight(
+            _analysis_payload(
+                "Beta",
+                summary="Beta only snapshot.",
+                languages=["Go"],
+                skills=["Go", "Docker"],
+            ),
+            storage_path=self.storage,
+            analyzed_at=ts3,
+            contributors={"Lead": {"file_count": 5}},
+            insight_id="beta-1",
+        )
+
+        summaries = summarize_top_project_histories(storage_path=self.storage, top_n=2)
+
+        self.assertEqual(len(summaries), 2)
+        self.assertEqual([item["project_name"] for item in summaries], ["Alpha", "Beta"])
+        self.assertEqual(summaries[0]["snapshot_count"], 2)
+        self.assertEqual(summaries[0]["evolution"]["new_languages"], ["TypeScript"])
+        self.assertEqual(summaries[0]["latest"]["summary"], "Alpha evolved snapshot.")
+        self.assertEqual(summaries[1]["snapshot_count"], 1)
+
+    def test_summarize_top_project_histories_respects_top_n_and_empty(self) -> None:
+        """Top unique project summaries should handle empty storage and top_n limits."""
+        self._announce("Constraining top unique project summaries.")
+
+        self.assertEqual(summarize_top_project_histories(storage_path=self.storage, top_n=3), [])
+
+        record_project_insight(
+            _analysis_payload("One"),
+            storage_path=self.storage,
+            contributors={"Lead": {"file_count": 10}},
+            insight_id="one-1",
+        )
+        record_project_insight(
+            _analysis_payload("Two"),
+            storage_path=self.storage,
+            contributors={"Lead": {"file_count": 2}},
+            insight_id="two-1",
+        )
+
+        summaries = summarize_top_project_histories(storage_path=self.storage, top_n=1)
+        self.assertEqual(len(summaries), 1)
+        self.assertEqual(summaries[0]["project_name"], "One")
+
+    def test_summarize_top_project_histories_prefers_skill_signal_when_scores_tie(self) -> None:
+        """Equal contribution scores should rank projects with richer latest skills higher."""
+        self._announce("Breaking top-project ties using latest skill signal.")
+
+        ts1 = datetime(2025, 5, 1, tzinfo=timezone.utc)
+        ts2 = ts1 + timedelta(days=1)
+
+        record_project_insight(
+            _analysis_payload(
+                "NoSkills",
+                languages=[],
+                frameworks=[],
+                skills=[],
+            ),
+            storage_path=self.storage,
+            analyzed_at=ts1,
+            contributors={"Lead": {"file_count": 5}},
+            insight_id="no-skills-1",
+        )
+        record_project_insight(
+            _analysis_payload(
+                "PythonProject",
+                languages=["Python"],
+                frameworks=[],
+                skills=["Python", "Automation"],
+            ),
+            storage_path=self.storage,
+            analyzed_at=ts2,
+            contributors={"Lead": {"file_count": 5}},
+            insight_id="python-project-1",
+        )
+
+        summaries = summarize_top_project_histories(storage_path=self.storage, top_n=2)
+        self.assertEqual([item["project_name"] for item in summaries], ["PythonProject", "NoSkills"])
+
+    def test_summarize_top_project_histories_prefers_newer_snapshot_when_score_and_skills_tie(self) -> None:
+        """Equal score and skill count should break ties by latest analyzed_at recency."""
+        self._announce("Breaking top-project ties using latest snapshot recency.")
+
+        ts1 = datetime(2025, 5, 1, tzinfo=timezone.utc)
+        ts2 = ts1 + timedelta(days=2)
+
+        record_project_insight(
+            _analysis_payload(
+                "Older",
+                languages=["Python"],
+                frameworks=[],
+                skills=["Python"],
+            ),
+            storage_path=self.storage,
+            analyzed_at=ts1,
+            contributors={"Lead": {"file_count": 5}},
+            insight_id="older-1",
+        )
+        record_project_insight(
+            _analysis_payload(
+                "Newer",
+                languages=["Python"],
+                frameworks=[],
+                skills=["Python"],
+            ),
+            storage_path=self.storage,
+            analyzed_at=ts2,
+            contributors={"Lead": {"file_count": 5}},
+            insight_id="newer-1",
+        )
+
+        summaries = summarize_top_project_histories(storage_path=self.storage, top_n=2)
+        self.assertEqual([item["project_name"] for item in summaries], ["Newer", "Older"])
 
     def test_corrupted_storage_is_preserved_before_rewrite(self) -> None:
         """Ensure corrupted logs get saved aside before being replaced."""
