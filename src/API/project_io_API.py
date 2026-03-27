@@ -520,6 +520,37 @@ def delete_project_thumbnail(id: str) -> dict:
         "project_name": resolved.project_name,
     }
 
+
+@projectsRouter.post("/{id}/type")
+def update_project_type(id: str, project_type: str) -> dict:
+    """
+    API endpoint for updating the project type of a given project
+
+    API call is ''POST /projects/{id}/type?project_type=str
+
+    Args:
+        id (str): name of the project
+        project_type (str): individual or collaborative project type
+
+    Returns:
+        dict: Success message and new project type
+    
+    Raises:
+        404: When project is not found in database
+    """
+
+    id = id if id.endswith(".json") else f"{id}.json"
+    dict_to_update: dict = runtimeAppContext.store.fetch_by_name(id)
+    if not dict_to_update:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Project {id} not found",
+        )
+    dict_to_update["resume_item"]["project_type"] = project_type
+    runtimeAppContext.store.update(id, dict_to_update)
+    return {"message": "Updated successfully", "type": project_type}
+
+
 @projectsRouter.post("/{id}/duration")
 def update_project_duration(id: str, start: str, end: str) -> dict:
     """

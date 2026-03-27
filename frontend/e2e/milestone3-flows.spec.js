@@ -71,6 +71,14 @@ async function installApiMocks(page, options = {}) {
     config: options.config ?? { consented: { external: false, "Data consent": true }, "First Name": "", "Last Name": "" },
     projects: options.projects ?? [],
     insights: options.insights ?? [],
+    representation: options.representation ?? {
+      project_order: (options.insights ?? []).map((item) => item.project_name).filter(Boolean),
+      chronology_corrections: {},
+      comparison_attributes: ["languages", "frameworks", "duration_estimate"],
+      highlight_skills: [],
+      showcase_projects: [],
+      project_overrides: {}
+    },
     resumes: options.resumes ?? [],
     portfolios: options.portfolios ?? [],
     resumeDocs: options.resumeDocs ?? {},
@@ -138,6 +146,98 @@ async function installApiMocks(page, options = {}) {
 
     if (pathname === "/insights/projects" && method === "GET") {
       await json(200, state.insights);
+      return;
+    }
+
+    if (pathname === "/insights/top-projects" && method === "GET") {
+      const topN = Number(searchParams.get("top_n") || "3");
+      const limit = Number.isFinite(topN) && topN > 0 ? topN : 3;
+      const activeOnly = searchParams.get("active_only") === "true";
+      const allowedProjects = new Set((state.projects || []).map((name) => String(name).trim().toLowerCase()));
+      const rankedInsights = (state.insights || []).filter((item) => {
+        if (!activeOnly) return true;
+        return allowedProjects.has(String(item.project_name || "").trim().toLowerCase());
+      });
+      const topProjects = rankedInsights.slice(0, limit).map((item) => ({
+        project_name: item.project_name,
+        snapshot_count: 1,
+        score: item?.stats?.top_contribution_count || 0,
+        latest: item,
+        evolution: {
+          project_name: item.project_name,
+          snapshot_count: 1,
+          first_analyzed_at: item.analyzed_at,
+          latest_analyzed_at: item.analyzed_at,
+          new_skills: [],
+          new_languages: [],
+          file_count_delta: 0,
+          summary_changed: false,
+          project_type_changed: false
+        }
+      }));
+      await json(200, topProjects);
+      return;
+    }
+
+    if (pathname === "/representation/projects" && method === "GET") {
+      const projectMap = new Map();
+      for (const insight of state.insights) {
+        if (insight?.project_name) projectMap.set(insight.project_name, insight);
+      }
+      const preferredOrder = Array.isArray(state.representation?.project_order) ? state.representation.project_order : [];
+      const orderedNames = [];
+      for (const name of preferredOrder) {
+        if (projectMap.has(name) && !orderedNames.includes(name)) orderedNames.push(name);
+      }
+      for (const name of projectMap.keys()) {
+        if (!orderedNames.includes(name)) orderedNames.push(name);
+      }
+
+      let orderedProjects = orderedNames.map((name) => {
+        const source = projectMap.get(name);
+        const overrides = state.representation?.project_overrides?.[name] || {};
+        return {
+          ...source,
+          project_type: overrides.contribution_type || source.project_type,
+          contribution_type: overrides.contribution_type || source.project_type,
+          duration_estimate: overrides.duration_estimate || source.duration_estimate
+        };
+      });
+
+      const showcaseSet = new Set(Array.isArray(state.representation?.showcase_projects) ? state.representation.showcase_projects : []);
+      const onlyShowcase = searchParams.get("only_showcase") === "true";
+      if (onlyShowcase && showcaseSet.size > 0) {
+        orderedProjects = orderedProjects.filter((project) => showcaseSet.has(project.project_name));
+      } else if (showcaseSet.size > 0) {
+        const showcased = orderedProjects.filter((project) => showcaseSet.has(project.project_name));
+        const others = orderedProjects.filter((project) => !showcaseSet.has(project.project_name));
+        orderedProjects = [...showcased, ...others];
+      }
+
+      await json(200, {
+        projects: orderedProjects,
+        project_order: state.representation.project_order || [],
+        chronology_corrections: state.representation.chronology_corrections || {},
+        comparison_attributes: state.representation.comparison_attributes || ["languages", "frameworks", "duration_estimate"],
+        highlight_skills: state.representation.highlight_skills || [],
+        showcase_projects: state.representation.showcase_projects || [],
+        project_overrides: state.representation.project_overrides || {}
+      });
+      return;
+    }
+
+    if (pathname === "/representation/preferences" && method === "GET") {
+      await json(200, state.representation);
+      return;
+    }
+
+    if (pathname === "/representation/preferences" && method === "POST") {
+      const body = request.postDataJSON();
+      state.representation = {
+        ...state.representation,
+        ...body
+      };
+      await json(200, state.representation);
       return;
     }
 
@@ -229,6 +329,38 @@ test("uploads and analyzes a zip, then shows it on the dashboard", async ({ page
   await expect(page.getByText("3").first()).toBeVisible();
 });
 
+test("dashboard excludes deleted projects from current metrics and top cards", async ({ page }) => {
+  const alpha = makeInsight("Alpha");
+  alpha.stats.top_contribution_count = 12;
+  alpha.summary = "Alpha current project.";
+
+  const beta = makeInsight("Beta");
+  beta.stats.top_contribution_count = 10;
+  beta.summary = "Beta current project.";
+
+  const gamma = makeInsight("Gamma");
+  gamma.stats.top_contribution_count = 8;
+  gamma.summary = "Gamma current project.";
+
+  const deleted = makeInsight("Deleted Project");
+  deleted.stats.top_contribution_count = 99;
+  deleted.summary = "Historical project that should not render.";
+
+  await installApiMocks(page, {
+    projects: ["Alpha", "Beta", "Gamma"],
+    insights: [deleted, alpha, beta, gamma]
+  });
+
+  await page.goto("/dashboard");
+
+  await expect(page.getByRole("heading", { name: /Dashboard/ })).toBeVisible();
+  await expect(page.locator(".metric-value").first()).toHaveText("3");
+  await expect(page.getByText("Deleted Project")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Alpha" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Beta" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Gamma" })).toBeVisible();
+});
+
 test("generates and loads a resume in the workspace", async ({ page }) => {
   await installApiMocks(page);
 
@@ -257,17 +389,21 @@ test("generates and loads a portfolio in the workspace", async ({ page }) => {
   await expect(page.locator(".workspace-page .settings-row").filter({ hasText: "Active ID" })).toContainText("Jane_Doe_portfolio_001");
 });
 
-test("public mode toggle persists on upload route", async ({ page }) => {
+test("dashboard public mode persists and workspace remains authoring", async ({ page }) => {
   await installApiMocks(page, { insights: [makeInsight("sample-project")] });
 
-  await page.goto("/upload");
-  await expect(page.locator('a[href="/upload"]')).toBeVisible();
+  await page.goto("/dashboard");
+  await expect(page.getByRole("heading", { name: /Dashboard/ })).toBeVisible();
 
   await page.getByRole("button", { name: "P u b l i c", exact: true }).click();
 
-  await expect(page).toHaveURL(/\/upload$/);
-  await expect(page.getByRole("heading", { name: /Project Upload/ })).toBeVisible();
-  await expect(page.locator('a[href="/dashboard"]')).toBeVisible();
-  await expect(page.locator('a[href="/workspace"]')).toBeVisible();
-  expect(await page.evaluate(() => window.localStorage.getItem("viewMode"))).toBe("public");
+  await expect(page.getByLabel("Search")).toBeVisible();
+  await expect(page.getByLabel("Type")).toBeVisible();
+  await expect(page.getByLabel("Skill")).toBeVisible();
+  await expect(page.getByRole("button", { name: /Open Filters/i })).toHaveCount(0);
+  expect(await page.evaluate(() => window.localStorage.getItem("dashboardMode"))).toBe("public");
+
+  await page.goto("/workspace");
+  await expect(page.getByRole("heading", { name: /Resume \+ Portfolio Builder/ })).toBeVisible();
+  await expect(page.getByLabel("Full name")).toBeVisible();
 });

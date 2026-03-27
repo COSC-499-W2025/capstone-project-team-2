@@ -167,6 +167,21 @@ export function fetchProjectInsights() {
 }
 
 /**
+ * Fetches top unique projects with latest snapshot data and evolution evidence.
+ *
+ * @param {{ topN?: number, contributor?: string, activeOnly?: boolean }} [options={}]
+ * @returns {Promise<any>}
+ */
+export function fetchTopProjectHistories(options = {}) {
+  const params = new URLSearchParams();
+  if (Number.isFinite(options.topN)) params.set("top_n", String(options.topN));
+  if (options.contributor) params.set("contributor", options.contributor);
+  if (options.activeOnly) params.set("active_only", "true");
+  const query = params.toString();
+  return request(`/insights/top-projects${query ? `?${query}` : ""}`);
+}
+
+/**
  * Fetches persisted user configuration.
  *
  * @returns {Promise<any>}
@@ -322,8 +337,13 @@ export function addResumeProject(id, projectName, payload) {
  * @param {string} projectName
  * @returns {Promise<any>}
  */
-export function addResumeProjectAI(id, projectName) {
-  return request(`/resume/${encodeURIComponent(id)}/add/project/${encodeURIComponent(projectName)}/ai`, { method: "POST" });
+export function addResumeProjectAI(id, projectName, payload) {
+  const opts = { method: "POST" };
+  if (payload) {
+    opts.headers = { "Content-Type": "application/json" };
+    opts.body = JSON.stringify(payload);
+  }
+  return request(`/resume/${encodeURIComponent(id)}/add/project/${encodeURIComponent(projectName)}/ai`, opts);
 }
 
 /**
@@ -480,6 +500,68 @@ export function removeResumeSkill(id, label) {
 }
 
 /**
+ * Adds a new award entry to an existing resume.
+ *
+ * @param {string} id
+ * @param {{ name: string, date?: string, location?: string, highlights?: string[], website?: string }} payload
+ * @returns {Promise<any>}
+ */
+export function addResumeAward(id, payload) {
+  return request(`/resume/${encodeURIComponent(id)}/add/award`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+}
+
+/**
+ * Removes an award entry from an existing resume by award name.
+ *
+ * @param {string} id
+ * @param {string} awardName
+ * @returns {Promise<any>}
+ */
+export function removeResumeAward(id, awardName) {
+  return request(`/resume/${encodeURIComponent(id)}/award/${encodeURIComponent(awardName)}`, {
+    method: "DELETE"
+  });
+}
+
+/**
+ * Updates the proficiency level of an individual skill within a resume skill category.
+ *
+ * @param {string} id
+ * @param {string} label Category label (e.g., "Languages")
+ * @param {string} skillName Individual skill name (e.g., "Python")
+ * @param {string} level New level (e.g., "Advanced")
+ * @returns {Promise<any>}
+ */
+export function updateResumeSkillLevel(id, label, skillName, level) {
+  return request(`/resume/${encodeURIComponent(id)}/skill/${encodeURIComponent(label)}/level`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ skill_name: skillName, level })
+  });
+}
+
+/**
+ * Updates the proficiency level of an individual skill within a portfolio skill category.
+ *
+ * @param {string} id
+ * @param {string} label Category label (e.g., "Languages")
+ * @param {string} skillName Individual skill name (e.g., "Python")
+ * @param {string} level New level (e.g., "Advanced")
+ * @returns {Promise<any>}
+ */
+export function updatePortfolioSkillLevel(id, label, skillName, level) {
+  return request(`/portfolio/${encodeURIComponent(id)}/skill/${encodeURIComponent(label)}/level`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ skill_name: skillName, level })
+  });
+}
+
+/**
  * Fetches all saved portfolio IDs and display names.
  *
  * @returns {Promise<Array<{id: string, name: string}>>}
@@ -593,8 +675,13 @@ export function addPortfolioProject(id, projectName, payload) {
  * @param {string} projectName
  * @returns {Promise<any>}
  */
-export function addPortfolioProjectAI(id, projectName) {
-  return request(`/portfolio/${encodeURIComponent(id)}/add/project/${encodeURIComponent(projectName)}/ai`, { method: "POST" });
+export function addPortfolioProjectAI(id, projectName, payload) {
+  const opts = { method: "POST" };
+  if (payload) {
+    opts.headers = { "Content-Type": "application/json" };
+    opts.body = JSON.stringify(payload);
+  }
+  return request(`/portfolio/${encodeURIComponent(id)}/add/project/${encodeURIComponent(projectName)}/ai`, opts);
 }
 
 export function renderPortfolio(id, format) {
@@ -750,4 +837,16 @@ export function projectThumbnailUrl(projectName) {
 export function updateProjectDuration(id, start, end) {
   const query = start && end ? `?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}` : "";
   return request(`/projects/${encodeURIComponent(id)}/duration${query}`, {method: "POST"});
+}
+
+  /*
+ * Returns a success message and the updated project type
+ *
+ * @param {string} id
+ * @param {string} type
+ * @returns {string}
+ */
+export function updateProjectType(id, type) {
+  const query = type ? `?project_type=${encodeURIComponent(type)}` : "";
+  return request(`/projects/${encodeURIComponent(id)}/type${query}`, {method: "POST"});
 }

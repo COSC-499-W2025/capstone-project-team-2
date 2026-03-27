@@ -21,6 +21,10 @@ import {
   appendResumeSkill,
   removeResumeSkill,
   removeResumeProject,
+  addResumeAward,
+  removeResumeAward,
+  updateResumeSkillLevel,
+  updatePortfolioSkillLevel,
   fetchPortfolios,
   generatePortfolio,
   fetchPortfolio,
@@ -708,4 +712,134 @@ test("getPortfolioShowcaseRole calls GET /portfolio-showcase/:name/role", async 
 
   assert.equal(calls[0], "http://localhost:8000/portfolio-showcase/My%20Project/role");
   assert.deepEqual(result, { role: "Lead Developer" });
+});
+
+// ---------------------------------------------------------------------------
+// Resume award endpoints
+// ---------------------------------------------------------------------------
+
+test("addResumeAward calls POST /resume/:id/add/award with JSON body", async () => {
+  const calls = [];
+  global.fetch = async (url, init) => {
+    calls.push({ url, method: init?.method, body: init?.body });
+    return makeResponse({ json: { status: "Award added." } });
+  };
+
+  const result = await addResumeAward("test 123", {
+    name: "Best Project",
+    date: "2025-04",
+    location: "UBC",
+  });
+
+  assert.equal(calls[0].url, "http://localhost:8000/resume/test%20123/add/award");
+  assert.equal(calls[0].method, "POST");
+  const body = JSON.parse(calls[0].body);
+  assert.equal(body.name, "Best Project");
+  assert.equal(body.date, "2025-04");
+  assert.deepEqual(result, { status: "Award added." });
+});
+
+test("removeResumeAward calls DELETE /resume/:id/award/:name", async () => {
+  const calls = [];
+  global.fetch = async (url, init) => {
+    calls.push({ url, method: init?.method });
+    return makeResponse({ json: { status: "Award removed." } });
+  };
+
+  await removeResumeAward("test 123", "Best Project");
+
+  assert.equal(calls[0].url, "http://localhost:8000/resume/test%20123/award/Best%20Project");
+  assert.equal(calls[0].method, "DELETE");
+});
+
+// ---------------------------------------------------------------------------
+// Skill level update endpoints
+// ---------------------------------------------------------------------------
+
+test("updateResumeSkillLevel calls POST /resume/:id/skill/:label/level", async () => {
+  const calls = [];
+  global.fetch = async (url, init) => {
+    calls.push({ url, method: init?.method, body: init?.body });
+    return makeResponse({ json: { status: "Updated", details: "Python (**Advanced**)" } });
+  };
+
+  const result = await updateResumeSkillLevel("test 123", "Languages", "Python", "Advanced");
+
+  assert.equal(calls[0].url, "http://localhost:8000/resume/test%20123/skill/Languages/level");
+  assert.equal(calls[0].method, "POST");
+  const body = JSON.parse(calls[0].body);
+  assert.equal(body.skill_name, "Python");
+  assert.equal(body.level, "Advanced");
+  assert.deepEqual(result, { status: "Updated", details: "Python (**Advanced**)" });
+});
+
+test("updatePortfolioSkillLevel calls POST /portfolio/:id/skill/:label/level", async () => {
+  const calls = [];
+  global.fetch = async (url, init) => {
+    calls.push({ url, method: init?.method, body: init?.body });
+    return makeResponse({ json: { status: "Updated", details: "Python (**Advanced**)" } });
+  };
+
+  const result = await updatePortfolioSkillLevel("test 123", "Languages", "Python", "Advanced");
+
+  assert.equal(calls[0].url, "http://localhost:8000/portfolio/test%20123/skill/Languages/level");
+  assert.equal(calls[0].method, "POST");
+  const body = JSON.parse(calls[0].body);
+  assert.equal(body.skill_name, "Python");
+  assert.equal(body.level, "Advanced");
+});
+
+// ---------------------------------------------------------------------------
+// AI project with date overrides
+// ---------------------------------------------------------------------------
+
+test("addResumeProjectAI sends date overrides when provided", async () => {
+  const calls = [];
+  global.fetch = async (url, init) => {
+    calls.push({ url, method: init?.method, body: init?.body });
+    return makeResponse({ json: { status: "Project added with AI." } });
+  };
+
+  await addResumeProjectAI("test 123", "MyProject", {
+    start_date: "2025-03",
+    end_date: "2026-03",
+  });
+
+  assert.equal(calls[0].url, "http://localhost:8000/resume/test%20123/add/project/MyProject/ai");
+  assert.equal(calls[0].method, "POST");
+  const body = JSON.parse(calls[0].body);
+  assert.equal(body.start_date, "2025-03");
+  assert.equal(body.end_date, "2026-03");
+});
+
+test("addResumeProjectAI works without payload", async () => {
+  const calls = [];
+  global.fetch = async (url, init) => {
+    calls.push({ url, method: init?.method, body: init?.body });
+    return makeResponse({ json: { status: "Project added with AI." } });
+  };
+
+  await addResumeProjectAI("test 123", "MyProject");
+
+  assert.equal(calls[0].method, "POST");
+  assert.equal(calls[0].body, undefined);
+});
+
+test("addPortfolioProjectAI sends date overrides when provided", async () => {
+  const calls = [];
+  global.fetch = async (url, init) => {
+    calls.push({ url, method: init?.method, body: init?.body });
+    return makeResponse({ json: { status: "Project added with AI." } });
+  };
+
+  await addPortfolioProjectAI("test 123", "MyProject", {
+    start_date: "2025-03",
+    end_date: "2026-03",
+  });
+
+  assert.equal(calls[0].url, "http://localhost:8000/portfolio/test%20123/add/project/MyProject/ai");
+  assert.equal(calls[0].method, "POST");
+  const body = JSON.parse(calls[0].body);
+  assert.equal(body.start_date, "2025-03");
+  assert.equal(body.end_date, "2026-03");
 });

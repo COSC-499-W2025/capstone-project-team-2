@@ -92,6 +92,20 @@ class TestGeneratePortfolio(_BasePortfolioTest):
         self.assertEqual(response.status_code, 400)
         self.assertIn("Invalid theme", response.json()["detail"])
 
+    def test_sanitizes_name_for_document_id(self):
+        """Slash characters in display names should not appear in generated IDs."""
+        self.mock_doc.generate.return_value = "Generated"
+
+        response = self.client.post("/portfolio/generate", json={"name": "Sam/http"})
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertNotIn("/", body["portfolio_id"])
+        self.assertIn("Sam_http_", body["portfolio_id"])
+
+        called_name = self.mock_doc.generate.call_args.kwargs["name"]
+        self.assertNotIn("/", called_name)
+        self.assertTrue(called_name.startswith("Sam_http_"))
+
 
 class TestGetPortfolio(_BasePortfolioTest):
     """Tests for GET /portfolio/{id}."""
@@ -784,6 +798,123 @@ class TestAddProjectAI(_BasePortfolioTest):
 
             # Must NOT double-append .json
             MockAI.assert_called_once_with("WarframeFinderStreamlit.json")
+
+
+class TestUpdateSkillLevel(_BasePortfolioTest):
+    """Tests for POST /portfolio/{id}/skill/{label}/level."""
+
+    def test_update_level_success(self):
+        """Updates an individual skill level with bold markdown formatting."""
+        self.mock_doc.get_skills.return_value = [
+            {"label": "Languages", "details": "Python, Java, C++"}
+        ]
+        self.mock_doc.modify_skill.return_value = "Successfully updated skill 'Languages'"
+        resp = self.client.post("/portfolio/test_abc123/skill/Languages/level", json={
+            "skill_name": "Python",
+            "level": "Advanced",
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+        self.assertIn("Python (**Advanced**)", resp.json()["details"])
+        self.mock_doc.modify_skill.assert_called_once_with(
+            "Languages", "Python (**Advanced**), Java, C++"
+        )
+
+    def test_update_level_replaces_existing(self):
+        """Replaces an existing level suffix on the skill."""
+        self.mock_doc.get_skills.return_value = [
+            {"label": "Languages", "details": "Python (Beginner), Java"}
+        ]
+        self.mock_doc.modify_skill.return_value = "Successfully updated skill 'Languages'"
+        resp = self.client.post("/portfolio/test_abc123/skill/Languages/level", json={
+            "skill_name": "Python",
+            "level": "Advanced",
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Python (**Advanced**)", resp.json()["details"])
+
+    def test_update_level_skill_not_found(self):
+        """Returns 404 when the individual skill name doesn't exist."""
+        self.mock_doc.get_skills.return_value = [
+            {"label": "Languages", "details": "Python, Java"}
+        ]
+        resp = self.client.post("/portfolio/test_abc123/skill/Languages/level", json={
+            "skill_name": "Rust",
+            "level": "Advanced",
+        })
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("Rust", resp.json()["detail"])
+
+    def test_update_level_category_not_found(self):
+        """Returns 404 when the skill category label doesn't exist."""
+        self.mock_doc.get_skills.return_value = []
+        resp = self.client.post("/portfolio/test_abc123/skill/Unknown/level", json={
+            "skill_name": "Python",
+            "level": "Advanced",
+        })
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("Unknown", resp.json()["detail"])
+
+    def test_update_level_portfolio_not_found(self):
+        """Returns 404 when the portfolio doesn't exist."""
+        self._set_not_found()
+        resp = self.client.post("/portfolio/fake_id/skill/Languages/level", json={
+            "skill_name": "Python",
+            "level": "Advanced",
+        })
+        self.assertEqual(resp.status_code, 404)
+
+
+class TestAddProjectAIWithOverrides(_BasePortfolioTest):
+    """Tests for POST /portfolio/{id}/add/project/{project_name}/ai with date overrides."""
+
+    def setUp(self):
+        super().setUp()
+        patcher = patch(CTX_PATCH)
+        self.mock_ctx = patcher.start()
+        self.mock_ctx.store.project_exists.return_value = True
+        self.addCleanup(patcher.stop)
+
+    def _make_ai_entry(self):
+        entry = MagicMock()
+        entry.one_sentence_summary = "Built a REST API."
+        entry.tech_stack = "Python, FastAPI"
+        entry.project_title = "MyProject"
+        entry.key_responsibilities = ["Built endpoints"]
+        return entry
+
+    def test_ai_with_date_overrides(self):
+        """Date overrides from request body are passed through to the Project."""
+        with patch(AI_PATCH) as MockAI:
+            mock_gen = MagicMock()
+            MockAI.return_value = mock_gen
+            mock_gen.project_exists = True
+            mock_gen.generate_AI_Resume_entry.return_value = self._make_ai_entry()
+            self.mock_doc.add_project.return_value = "Successfully added project 'MyProject'"
+
+            resp = self.client.post(
+                "/portfolio/test_abc123/add/project/MyProject/ai",
+                json={"start_date": "2025-03", "end_date": "2026-03"},
+            )
+            self.assertEqual(resp.status_code, 200)
+            proj = self.mock_doc.add_project.call_args[0][0]
+            self.assertEqual(proj.start_date, "2025-03")
+            self.assertEqual(proj.end_date, "2026-03")
+
+    def test_ai_without_overrides(self):
+        """Without a request body, dates default to None."""
+        with patch(AI_PATCH) as MockAI:
+            mock_gen = MagicMock()
+            MockAI.return_value = mock_gen
+            mock_gen.project_exists = True
+            mock_gen.generate_AI_Resume_entry.return_value = self._make_ai_entry()
+            self.mock_doc.add_project.return_value = "Successfully added project 'MyProject'"
+
+            resp = self.client.post("/portfolio/test_abc123/add/project/MyProject/ai")
+            self.assertEqual(resp.status_code, 200)
+            proj = self.mock_doc.add_project.call_args[0][0]
+            self.assertIsNone(proj.start_date)
+            self.assertIsNone(proj.end_date)
 
 
 if __name__ == "__main__":

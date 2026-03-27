@@ -382,3 +382,33 @@ def test_update_project_duration_empty(monkeypatch):
 
     assert response.status_code == 200
     assert response.json()["dur"] == "1 day"
+
+def test_update_project_type_404():
+    """
+    Confirm that a project that isn't found returns a 404 status code
+    """
+    response = test_client.post("/projects/nan/type?project_type=individual")
+
+    assert response.status_code == 404
+
+def test_update_project_type_normal(monkeypatch):
+    """
+    Confirms status code 200 and correct type returned when normal input and project exists
+    """
+    expected = {"resume_item": { "project_type": ""}}
+
+    class MockAppContext:
+        def fetch_by_name(id):
+            return expected
+
+        def update(id, type):
+            pass
+
+    monkeypatch.setattr(
+        "src.core.app_context.runtimeAppContext.store",
+        MockAppContext
+    )
+    response = test_client.post("/projects/this/type?project_type=individual")
+
+    assert response.status_code == 200
+    assert response.json()["type"] == "individual"

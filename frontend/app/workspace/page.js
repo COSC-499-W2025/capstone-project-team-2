@@ -6,7 +6,7 @@
  * This file contains:
  * - shared editor/document-preview subcomponents for resume and portfolio documents,
  * - document lifecycle handlers (generate/load/delete/edit/render),
- * - and mode-aware rendering for private/public access behavior.
+ * - and authoring controls for resume and portfolio outputs.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -44,7 +44,11 @@ import {
   removeResumeSkill,
   addPortfolioSkill,
   appendPortfolioSkill,
-  removePortfolioSkill
+  removePortfolioSkill,
+  addResumeAward,
+  removeResumeAward,
+  updateResumeSkillLevel,
+  updatePortfolioSkillLevel
 } from "../../lib/api";
 
 /**
@@ -84,6 +88,21 @@ function downloadBlob(blob, filename) {
 function toMonthValue(input) {
   if (!input) return "";
   return String(input).slice(0, 7);
+}
+
+/**
+ * Strips UUID suffix and timestamp from a document name for display.
+ * e.g. "Immanuel_Wiessler_0f777b70_(2026_03_22_1228)" → "Immanuel Wiessler"
+ *
+ * @param {string} name
+ * @returns {string}
+ */
+function displayName(name) {
+  if (!name) return "";
+  return name
+    .replace(/_[0-9a-f]{8}(?:_\(.*?\))?$/, "")
+    .replace(/_/g, " ")
+    .trim();
 }
 
 /**
@@ -145,7 +164,8 @@ function PublicDocumentPreview({ doc, onRender, isActionActive }) {
           education: doc.education || [],
           experience: doc.experience || [],
           projects: doc.projects || [],
-          skills: doc.skills || []
+          skills: doc.skills || [],
+          awards: doc.awards || []
         }, null, 2)}</pre>
       </GlassCard>
 
@@ -175,24 +195,25 @@ function PublicDocumentPreview({ doc, onRender, isActionActive }) {
  * @returns {JSX.Element}
  */
 function EditContact({ doc, onApply }) {
-  const contact = doc?.contact || {};
   const [form, setForm] = useState({
-    name: contact.name || "",
-    email: contact.email || "",
-    phone: contact.phone || "",
-    location: contact.location || "",
-    website: contact.website || ""
+    name: doc?.contact?.name || "",
+    email: doc?.contact?.email || "",
+    phone: doc?.contact?.phone || "",
+    location: doc?.contact?.location || "",
+    website: doc?.contact?.website || ""
   });
 
+  const contactJson = JSON.stringify(doc?.contact || {});
   useEffect(() => {
+    const c = doc?.contact || {};
     setForm({
-      name: contact.name || "",
-      email: contact.email || "",
-      phone: contact.phone || "",
-      location: contact.location || "",
-      website: contact.website || ""
+      name: c.name || "",
+      email: c.email || "",
+      phone: c.phone || "",
+      location: c.location || "",
+      website: c.website || ""
     });
-  }, [doc]);
+  }, [contactJson]);
 
   return (
     <form
@@ -211,7 +232,9 @@ function EditContact({ doc, onApply }) {
           <input className="settings-control" value={form[field]} onChange={(e) => setForm((p) => ({ ...p, [field]: e.target.value }))} />
         </label>
       ))}
-      <button type="submit" className="liquid-btn solid btn-success">Save Contact</button>
+      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <button type="submit" className="liquid-btn solid btn-success">Save Contact</button>
+      </div>
     </form>
   );
 }
@@ -347,6 +370,12 @@ function ConnectionsEditor({ doc, onApply }) {
   const [username, setUsername] = useState("");
 
   useEffect(() => {
+    if (action !== "add" && names.length > 0 && !names.includes(network)) {
+      setNetwork(names[0]);
+    }
+  }, [action, names.join(",")]);
+
+  useEffect(() => {
     if (action === "edit") {
       const current = connections.find((c) => c.network === network);
       setUsername(current?.username || "");
@@ -384,35 +413,39 @@ function ConnectionsEditor({ doc, onApply }) {
       ) : null}
 
       {action === "edit" ? (
-        <>
-          <label>
-            Existing connection
-            <select className="settings-control" value={network} onChange={(e) => setNetwork(e.target.value)}>
-              {names.map((name) => <option key={name}>{name}</option>)}
-            </select>
-          </label>
-          <label>
-            New username
-            <input className="settings-control" value={username} onChange={(e) => setUsername(e.target.value)} />
-          </label>
-          <button type="button" className="liquid-btn solid" onClick={() => onApply([{ section: "connections", item_name: network, field: "username", new_value: username }])}>
-            Update Connection
-          </button>
-        </>
+        names.length ? (
+          <>
+            <label>
+              Existing connection
+              <select className="settings-control" value={network} onChange={(e) => setNetwork(e.target.value)}>
+                {names.map((name) => <option key={name}>{name}</option>)}
+              </select>
+            </label>
+            <label>
+              New username
+              <input className="settings-control" value={username} onChange={(e) => setUsername(e.target.value)} />
+            </label>
+            <button type="button" className="liquid-btn solid" onClick={() => onApply([{ section: "connections", item_name: network, field: "username", new_value: username }])}>
+              Update Connection
+            </button>
+          </>
+        ) : <p className="warning">No connections to modify. Add one first.</p>
       ) : null}
 
       {action === "remove" ? (
-        <>
-          <label>
-            Remove connection
-            <select className="settings-control" value={network} onChange={(e) => setNetwork(e.target.value)}>
-              {names.map((name) => <option key={name}>{name}</option>)}
-            </select>
-          </label>
-          <button type="button" className="liquid-btn solid btn-danger" onClick={() => onApply([{ section: "connections", item_name: network, field: "delete", new_value: "" }])}>
-            Remove Connection
-          </button>
-        </>
+        names.length ? (
+          <>
+            <label>
+              Remove connection
+              <select className="settings-control" value={network} onChange={(e) => setNetwork(e.target.value)}>
+                {names.map((name) => <option key={name}>{name}</option>)}
+              </select>
+            </label>
+            <button type="button" className="liquid-btn solid btn-danger" onClick={() => onApply([{ section: "connections", item_name: network, field: "delete", new_value: "" }])}>
+              Remove Connection
+            </button>
+          </>
+        ) : <p className="warning">No connections to remove.</p>
       ) : null}
     </div>
   );
@@ -555,7 +588,10 @@ function ProjectEditor({ projects, docProjects, onAddProject, onAddProjectAI, on
   }, [projects]);
 
   useEffect(() => {
-    setSelectedDocProject(docProjects?.[0]?.name || "");
+    setSelectedDocProject((prev) => {
+      const stillExists = docProjects?.some((p) => p.name === prev);
+      return stillExists ? prev : (docProjects?.[0]?.name || "");
+    });
   }, [docProjects]);
 
   useEffect(() => {
@@ -567,8 +603,12 @@ function ProjectEditor({ projects, docProjects, onAddProject, onAddProjectAI, on
         const item = data?.analysis?.resume_item || {};
         setSummary(item.summary || "");
         setHighlights((item.highlights || []).join("\n"));
-        setStartDate(toMonthValue(item.start_date || ""));
-        setEndDate(toMonthValue(item.end_date || ""));
+        const now = new Date();
+        const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), 1);
+        const defaultEnd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+        const defaultStart = `${oneYearAgo.getFullYear()}-${String(oneYearAgo.getMonth() + 1).padStart(2, "0")}`;
+        setStartDate(toMonthValue(item.start_date || defaultStart));
+        setEndDate(toMonthValue(item.end_date || defaultEnd));
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -584,6 +624,9 @@ function ProjectEditor({ projects, docProjects, onAddProject, onAddProjectAI, on
   return (
     <div className="grid two-col">
       <GlassCard title="Add Project from Analysis">
+        {projects.length === 0 ? (
+          <p className="warning"><span aria-hidden="true">&#x26A0; </span>No project analyses found. Please analyse a project first.</p>
+        ) : (
         <div className="form-stack">
           <label>
             Saved project
@@ -611,11 +654,12 @@ function ProjectEditor({ projects, docProjects, onAddProject, onAddProjectAI, on
             <button type="button" className="liquid-btn solid btn-success" disabled={busy || aiLoading} onClick={() => onAddProject(projectName, payload)}>
               Add Project
             </button>
-            <button type="button" className="liquid-btn solid btn-success" disabled={busy || aiLoading} onClick={async () => { setAiLoading(true); try { await onAddProjectAI(projectName); } finally { setAiLoading(false); } }} title="Use Gemini AI to generate a polished project entry">
+            <button type="button" className="liquid-btn solid btn-success" disabled={busy || aiLoading} onClick={async () => { setAiLoading(true); try { await onAddProjectAI(projectName, { start_date: toMonthValue(startDate) || undefined, end_date: toMonthValue(endDate) || undefined }); } finally { setAiLoading(false); } }} title="Use Gemini AI to generate a polished project entry">
               {aiLoading ? "⏳ Generating..." : "✦ Add with AI"}
             </button>
           </div>
         </div>
+        )}
       </GlassCard>
 
       {allowRoleOverride ? (
@@ -631,13 +675,23 @@ function ProjectEditor({ projects, docProjects, onAddProject, onAddProjectAI, on
           <div className="form-stack">
             <label>
               Project in document
-              <select className="settings-control" value={selectedDocProject} onChange={(e) => setSelectedDocProject(e.target.value)}>
+              <select className="settings-control" value={selectedDocProject} onChange={(e) => {
+                setSelectedDocProject(e.target.value);
+                const proj = docProjects.find((p) => p.name === e.target.value);
+                const val = proj?.[field];
+                setNewValue(Array.isArray(val) ? val.join("\n") : (val ?? ""));
+              }}>
                 {docProjects.map((item) => <option key={item.name}>{item.name}</option>)}
               </select>
             </label>
             <label>
               Field
-              <select className="settings-control" value={field} onChange={(e) => { setField(e.target.value); setNewValue(""); }}>
+              <select className="settings-control" value={field} onChange={(e) => {
+                setField(e.target.value);
+                const proj = docProjects.find((p) => p.name === selectedDocProject);
+                const val = proj?.[e.target.value];
+                setNewValue(Array.isArray(val) ? val.join("\n") : (val ?? ""));
+              }}>
                 <option value="summary">summary</option>
                 <option value="highlights">highlights</option>
                 <option value="start_date">start_date</option>
@@ -667,7 +721,7 @@ function ProjectEditor({ projects, docProjects, onAddProject, onAddProjectAI, on
                 ? <input className="settings-control" type="month" value={newValue} onChange={(e) => setNewValue(e.target.value)} />
                 : (field === "name" || field === "location")
                   ? <input className="settings-control" type="text" value={newValue} onChange={(e) => setNewValue(e.target.value)} placeholder={field === "name" ? "e.g., My Awesome Project" : "e.g., Vancouver, BC"} />
-                  : <textarea className="settings-control" rows={field === "highlights" ? 4 : 2} value={newValue} onChange={(e) => setNewValue(e.target.value)} placeholder={field === "highlights" ? "e.g., Built REST API with FastAPI\nWrote unit tests with pytest" : "e.g., A web app that generates resumes using AI."} />
+                  : <textarea className="settings-control" value={newValue} onChange={(e) => { setNewValue(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; }} rows={1} style={{ resize: "none", overflow: "hidden", minHeight: "2.4em" }} ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }} placeholder={field === "highlights" ? "e.g., Built REST API with FastAPI\nWrote unit tests with pytest" : "e.g., A web app that generates resumes using AI."} />
               }
             </label>
             <div className="button-row">
@@ -939,7 +993,7 @@ function ResumeEducationExperience({ doc, onAddEducation, onRemoveEducation, onA
  * }} props
  * @returns {JSX.Element}
  */
-function SkillsEditor({ doc, onAddSkill, onAppendSkill, onRemoveSkill, onApply }) {
+function SkillsEditor({ doc, onAddSkill, onAppendSkill, onRemoveSkill, onUpdateSkillLevel, onApply }) {
   const skills = Array.isArray(doc?.skills) ? doc.skills : [];
   const labels = skills.map((s) => s.label).filter(Boolean);
 
@@ -949,17 +1003,43 @@ function SkillsEditor({ doc, onAddSkill, onAppendSkill, onRemoveSkill, onApply }
   const [selectedLabel, setSelectedLabel] = useState(labels[0] || "");
   const [appendDetails, setAppendDetails] = useState("");
   const [modifyDetails, setModifyDetails] = useState("");
+  const [selectedSkillName, setSelectedSkillName] = useState("");
+  const [selectedLevel, setSelectedLevel] = useState("Intermediate");
+
+  /** Parse individual skill names from a details string, stripping any existing "(Level)" suffix. */
+  const parseSkillNames = (detailsStr) => {
+    if (!detailsStr) return [];
+    return detailsStr.split(",").map((s) => s.trim().replace(/\s*\(.*?\)\s*$/, "")).filter(Boolean);
+  };
+
+  /** Extract the current level for a given skill name from the details string. Strips markdown bold markers. */
+  const getCurrentLevel = (detailsStr, skillName) => {
+    if (!detailsStr || !skillName) return "";
+    const parts = detailsStr.split(",").map((s) => s.trim());
+    for (const part of parts) {
+      const match = part.match(/^(.+?)\s*\((\*{0,2})([^)]+?)(\*{0,2})\)\s*$/);
+      if (match && match[1].trim().toLowerCase() === skillName.trim().toLowerCase()) {
+        return match[3];
+      }
+    }
+    return "Not set";
+  };
+
+  const currentCategoryDetails = skills.find((s) => s.label === selectedLabel)?.details || "";
+  const individualSkills = parseSkillNames(currentCategoryDetails);
 
   useEffect(() => {
-    setSelectedLabel(labels[0] || "");
+    setSelectedLabel((prev) => labels.includes(prev) ? prev : (labels[0] || ""));
   }, [doc]);
 
   useEffect(() => {
     if (action === "modify") {
       const current = skills.find((s) => s.label === selectedLabel);
       setModifyDetails(current?.details || "");
+      const names = parseSkillNames(current?.details || "");
+      setSelectedSkillName((prev) => names.includes(prev) ? prev : (names[0] || ""));
     }
-  }, [selectedLabel, action]);
+  }, [selectedLabel, action, skills]);
 
   return (
     <div className="form-stack">
@@ -1004,17 +1084,81 @@ function SkillsEditor({ doc, onAddSkill, onAppendSkill, onRemoveSkill, onApply }
                   {labels.map((l) => <option key={l}>{l}</option>)}
                 </select>
               </label>
+
+              <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>Update individual skill level</p>
+              {individualSkills.length ? (
+                <>
+                  <label>
+                    Skill to update
+                    <select value={selectedSkillName} onChange={(e) => setSelectedSkillName(e.target.value)}>
+                      {individualSkills.map((s) => <option key={s}>{s}</option>)}
+                    </select>
+                  </label>
+                  {selectedSkillName && (
+                    <label>
+                      Current level
+                      <input
+                        type="text"
+                        readOnly
+                        style={{ opacity: 0.6, cursor: "default" }}
+                        value={getCurrentLevel(currentCategoryDetails, selectedSkillName)}
+                      />
+                    </label>
+                  )}
+                  <label>
+                    New proficiency level
+                    <select value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)}>
+                      <option value="Beginner">Beginner</option>
+                      <option value="Intermediate">Intermediate</option>
+                      <option value="Advanced">Advanced</option>
+                    </select>
+                  </label>
+                  <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                    <button
+                      type="button"
+                      className="liquid-btn solid"
+                      onClick={() => onUpdateSkillLevel(selectedLabel, selectedSkillName, selectedLevel)}
+                    >
+                      Set {selectedSkillName} to {selectedLevel}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p className="warning">No individual skills in this category to set levels for.</p>
+              )}
+
+              <hr style={{ border: "none", borderTop: "1px solid rgba(255,255,255,0.15)", margin: "0.75rem 0" }} />
               <label>
-                Skills (comma-separated)
-                <input value={modifyDetails} placeholder="e.g., Python, Java, C++" onChange={(e) => setModifyDetails(e.target.value)} />
+                Skills (comma-separated, optionally with levels)
+                {modifyDetails && (
+                  <div style={{ padding: "0.4em 0.5em", opacity: 0.85, lineHeight: 1.6 }}
+                    dangerouslySetInnerHTML={{
+                      __html: modifyDetails.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                    }}
+                  />
+                )}
+                <textarea
+                  value={modifyDetails}
+                  placeholder="e.g., Python (Advanced), Java, C++"
+                  onChange={(e) => {
+                    setModifyDetails(e.target.value);
+                    e.target.style.height = "auto";
+                    e.target.style.height = e.target.scrollHeight + "px";
+                  }}
+                  rows={1}
+                  style={{ resize: "none", overflow: "hidden", minHeight: "2.4em" }}
+                  ref={(el) => { if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; } }}
+                />
               </label>
-              <button
-                type="button"
-                className="liquid-btn solid"
-                onClick={() => onApply([{ section: "skills", item_name: selectedLabel, field: "", new_value: modifyDetails }])}
-              >
-                Save {selectedLabel}
-              </button>
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  className="liquid-btn solid"
+                  onClick={() => onApply([{ section: "skills", item_name: selectedLabel, field: "", new_value: modifyDetails }])}
+                >
+                  Save {selectedLabel}
+                </button>
+              </div>
             </>
           ) : (
             <p className="muted">No skill categories in this document yet.</p>
@@ -1100,13 +1244,139 @@ function SkillsEditor({ doc, onAddSkill, onAppendSkill, onRemoveSkill, onApply }
 }
 
 /**
+ * Awards editor with Add / Modify / Remove actions.
+ *
+ * @param {{
+ *   doc: any,
+ *   onAddAward: (payload: any) => void,
+ *   onRemoveAward: (name: string) => void,
+ *   onApply: (edits: any[]) => void
+ * }} props
+ * @returns {JSX.Element}
+ */
+function AwardsEditor({ doc, onAddAward, onRemoveAward, onApply }) {
+  const awards = Array.isArray(doc?.awards) ? doc.awards : [];
+  const awardNames = awards.map((a) => a.name).filter(Boolean);
+
+  const [action, setAction] = useState("add");
+  const [name, setName] = useState("");
+  const [date, setDate] = useState("");
+  const [location, setLocation] = useState("");
+  const [highlights, setHighlights] = useState("");
+  const [website, setWebsite] = useState("");
+
+  const [selectedAward, setSelectedAward] = useState(awardNames[0] || "");
+  const AWARD_FIELDS = ["name", "date", "location", "highlights", "website"];
+  const DATE_FIELDS = ["date"];
+  const SMALL_FIELDS = ["name", "location", "website"];
+  const [modifyField, setModifyField] = useState("name");
+  const [modifyValue, setModifyValue] = useState("");
+
+  useEffect(() => { setSelectedAward(awardNames[0] || ""); }, [doc]);
+
+  function parseHighlights(val) {
+    return val.split("\n").map((x) => x.trim()).filter(Boolean);
+  }
+
+  return (
+    <div className="form-stack">
+      <LiquidSegmentedControl
+        value={action}
+        onChange={setAction}
+        options={[
+          { value: "add", label: "Add" },
+          { value: "modify", label: "Modify" },
+          { value: "remove", label: "Remove" },
+        ]}
+      />
+
+      {action === "add" && (
+        <>
+          <label>Award name *<input value={name} placeholder="e.g., Best Capstone Project" onChange={(e) => setName(e.target.value)} /></label>
+          <label>Date<input type="month" value={date} onChange={(e) => setDate(e.target.value)} /></label>
+          <label>Location<input value={location} placeholder="e.g., University of British Columbia" onChange={(e) => setLocation(e.target.value)} /></label>
+          <label>Website<input value={website} placeholder="e.g., https://example.com/award" onChange={(e) => setWebsite(e.target.value)} /></label>
+          <label>Highlights (one per line)<textarea rows={3} value={highlights} placeholder={"e.g., Recognized for outstanding innovation\nSelected from 30+ competing teams"} onChange={(e) => setHighlights(e.target.value)} /></label>
+          <div style={{ display: "flex", justifyContent: "flex-start" }}>
+            <button type="button" className="liquid-btn solid btn-success" onClick={() => {
+              onAddAward({
+                name,
+                date: date || undefined,
+                location: location || undefined,
+                highlights: parseHighlights(highlights).length ? parseHighlights(highlights) : undefined,
+                website: website || undefined,
+              });
+              setName(""); setDate(""); setLocation(""); setHighlights(""); setWebsite("");
+            }}>Add Award</button>
+          </div>
+        </>
+      )}
+
+      {action === "modify" && (
+        <>
+          {awardNames.length ? (
+            <>
+              <label>Award entry<select value={selectedAward} onChange={(e) => setSelectedAward(e.target.value)}>{awardNames.map((n) => <option key={n}>{n}</option>)}</select></label>
+              <label>Field<select value={modifyField} onChange={(e) => { setModifyField(e.target.value); setModifyValue(""); }}>{AWARD_FIELDS.map((f) => <option key={f}>{f}</option>)}</select></label>
+              <label>
+                Current value
+                <input type="text" readOnly style={{ opacity: 0.6, cursor: "default" }} value={(() => {
+                  const entry = awards.find((a) => a.name === selectedAward);
+                  if (modifyField === "website") {
+                    const link = (entry?.highlights || []).find((h) => h.startsWith("Link: "));
+                    return link ? link.replace("Link: ", "") : "—";
+                  }
+                  if (modifyField === "highlights") {
+                    return (entry?.highlights || []).filter((h) => !h.startsWith("Link: ")).join("\n") || "—";
+                  }
+                  const v = entry?.[modifyField];
+                  return Array.isArray(v) ? v.join("\n") : (v ?? "—");
+                })()} />
+              </label>
+              <label>
+                New value
+                {DATE_FIELDS.includes(modifyField)
+                  ? <input type="month" value={modifyValue} onChange={(e) => setModifyValue(e.target.value)} />
+                  : SMALL_FIELDS.includes(modifyField)
+                    ? <input type="text" value={modifyValue} onChange={(e) => setModifyValue(e.target.value)} />
+                    : <textarea rows={3} value={modifyValue} onChange={(e) => setModifyValue(e.target.value)} />
+                }
+              </label>
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <button type="button" className="liquid-btn solid" onClick={() => {
+                  const value = modifyField === "highlights" ? parseHighlights(modifyValue) : modifyValue;
+                  onApply([{ section: "awards", item_name: selectedAward, field: modifyField, new_value: value }]);
+                }}>Save Change</button>
+              </div>
+            </>
+          ) : <p className="warning">No awards to modify. Add one first.</p>}
+        </>
+      )}
+
+      {action === "remove" && (
+        <>
+          {awardNames.length ? (
+            <>
+              <label>Award entry<select value={selectedAward} onChange={(e) => setSelectedAward(e.target.value)}>{awardNames.map((n) => <option key={n}>{n}</option>)}</select></label>
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <button type="button" className="liquid-btn btn-danger" onClick={() => onRemoveAward(selectedAward)}>Remove ({selectedAward})</button>
+              </div>
+            </>
+          ) : <p className="warning">No awards to remove.</p>}
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
  * Core workspace studio for one document kind (resume or portfolio).
  * Handles lifecycle actions, edits, project operations, and rendering.
  *
- * @param {{ kind: "resume" | "portfolio", mode: "public" | "private" }} props
+ * @param {{ kind: "resume" | "portfolio" }} props
  * @returns {JSX.Element}
  */
-function DocumentStudio({ kind, mode }) {
+function DocumentStudio({ kind }) {
   const isResume = kind === "resume";
 
   /**
@@ -1133,8 +1403,15 @@ function DocumentStudio({ kind, mode }) {
   const [activeRenderActions, setActiveRenderActions] = useState([]);
   const activeRenderActionsRef = useRef(new Set());
   const [documentPreviewUrl, setDocumentPreviewUrl] = useState(null);
+  const documentPreviewUrlRef = useRef(null);
   const [isThemePreviewOpen, setIsThemePreviewOpen] = useState(false);
   const [downloadName, setDownloadName] = useState("");
+  const documentModalRef = useRef(null);
+  const themeModalRef = useRef(null);
+  const documentCloseButtonRef = useRef(null);
+  const themeCloseButtonRef = useRef(null);
+  const previousFocusedElementRef = useRef(null);
+  const wasModalOpenRef = useRef(false);
 
   function startRenderAction(action) {
     if (activeRenderActionsRef.current.has(action)) return false;
@@ -1157,11 +1434,83 @@ function DocumentStudio({ kind, mode }) {
     return activeRenderActions.includes(action);
   }
 
+  function replaceDocumentPreviewUrl(blob) {
+    const nextUrl = URL.createObjectURL(blob);
+    if (documentPreviewUrlRef.current) URL.revokeObjectURL(documentPreviewUrlRef.current);
+    documentPreviewUrlRef.current = nextUrl;
+    setDocumentPreviewUrl(nextUrl);
+  }
+
+  function clearDocumentPreviewUrl() {
+    if (documentPreviewUrlRef.current) URL.revokeObjectURL(documentPreviewUrlRef.current);
+    documentPreviewUrlRef.current = null;
+    setDocumentPreviewUrl(null);
+  }
+
+  const isAnyModalOpen = Boolean(documentPreviewUrl) || isThemePreviewOpen;
+
   useEffect(() => {
     if (!message) return;
     const t = setTimeout(() => setMessage(""), 5000);
     return () => clearTimeout(t);
   }, [message]);
+
+  useEffect(() => {
+    if (isAnyModalOpen) {
+      if (!wasModalOpenRef.current) {
+        previousFocusedElementRef.current = document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
+      }
+      wasModalOpenRef.current = true;
+      return;
+    }
+    if (!wasModalOpenRef.current) return;
+    wasModalOpenRef.current = false;
+    if (previousFocusedElementRef.current && typeof previousFocusedElementRef.current.focus === "function") {
+      previousFocusedElementRef.current.focus();
+    }
+  }, [isAnyModalOpen]);
+
+  useEffect(() => {
+    if (!isAnyModalOpen) return undefined;
+
+    const modalNode = documentPreviewUrl ? documentModalRef.current : themeModalRef.current;
+    const closeButton = documentPreviewUrl ? documentCloseButtonRef.current : themeCloseButtonRef.current;
+    if (closeButton && typeof closeButton.focus === "function") {
+      closeButton.focus();
+    }
+
+    function onKeyDown(event) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        if (documentPreviewUrl) {
+          closeDocumentPreview();
+        } else {
+          closeThemePreview();
+        }
+        return;
+      }
+      if (event.key !== "Tab" || !modalNode) return;
+      const focusables = modalNode.querySelectorAll(
+        "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"
+      );
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [documentPreviewUrl, isThemePreviewOpen, isAnyModalOpen]);
 
   useEffect(() => {
     let ignore = false;
@@ -1345,11 +1694,11 @@ function DocumentStudio({ kind, mode }) {
     }, "Project added.");
   }
 
-  async function onAddProjectAI(projectName) {
+  async function onAddProjectAI(projectName, payload) {
     if (!docId || !projectName) return;
     await safeAction(async () => {
-      if (isResume) await addResumeProjectAI(docId, projectName);
-      else await addPortfolioProjectAI(docId, projectName);
+      if (isResume) await addResumeProjectAI(docId, projectName, payload);
+      else await addPortfolioProjectAI(docId, projectName, payload);
     }, "Project added with AI.");
   }
 
@@ -1375,6 +1724,28 @@ function DocumentStudio({ kind, mode }) {
       if (isResume) await removeResumeSkill(docId, label);
       else await removePortfolioSkill(docId, label);
     }, "Skill category removed.");
+  }
+
+  async function onUpdateSkillLevel(label, skillName, level) {
+    if (!docId) return;
+    await safeAction(async () => {
+      if (isResume) await updateResumeSkillLevel(docId, label, skillName, level);
+      else await updatePortfolioSkillLevel(docId, label, skillName, level);
+    }, `Updated ${skillName} to ${level}.`);
+  }
+
+  async function onAddAward(payload) {
+    if (!docId) return;
+    await safeAction(async () => {
+      await addResumeAward(docId, payload);
+    }, "Award added.");
+  }
+
+  async function onRemoveAward(awardName) {
+    if (!docId) return;
+    await safeAction(async () => {
+      await removeResumeAward(docId, awardName);
+    }, "Award removed.");
   }
 
   /**
@@ -1422,8 +1793,7 @@ function DocumentStudio({ kind, mode }) {
     setError("");
     try {
       const blob = isResume ? await renderResume(docId, "pdf") : await renderPortfolio(docId, "pdf");
-      if (documentPreviewUrl) URL.revokeObjectURL(documentPreviewUrl);
-      setDocumentPreviewUrl(URL.createObjectURL(blob));
+      replaceDocumentPreviewUrl(blob);
     } catch (err) {
       setError(err.message || "Document preview failed.");
     } finally {
@@ -1432,8 +1802,7 @@ function DocumentStudio({ kind, mode }) {
   }
 
   function closeDocumentPreview() {
-    if (documentPreviewUrl) URL.revokeObjectURL(documentPreviewUrl);
-    setDocumentPreviewUrl(null);
+    clearDocumentPreviewUrl();
   }
 
   function openThemePreview() {
@@ -1443,6 +1812,11 @@ function DocumentStudio({ kind, mode }) {
   function closeThemePreview() {
     setIsThemePreviewOpen(false);
   }
+
+  useEffect(() => () => {
+    if (documentPreviewUrlRef.current) URL.revokeObjectURL(documentPreviewUrlRef.current);
+    documentPreviewUrlRef.current = null;
+  }, []);
 
   const [recentIds, setRecentIds] = useState([]);
 
@@ -1471,56 +1845,6 @@ function DocumentStudio({ kind, mode }) {
   const createdAtText = activeDoc?.created_at ? new Date(activeDoc.created_at).toLocaleString() : "—";
   const hasActiveId = Boolean(docId);
   const hasCreatedAt = Boolean(activeDoc?.created_at);
-
-  if (mode === "public") {
-    return (
-      <div className="page-stack workspace-page">
-        <div className="grid two-col">
-          <GlassCard title={`${isResume ? "Resume" : "Portfolio"} ID`} hint="Public mode is view + download only.">
-            <div className="form-stack">
-              <div className="settings-list compact">
-                <label className="settings-row settings-field-row">
-                  <span className="settings-label">Name</span>
-                  <select
-                    className="settings-control"
-                    value={idInput}
-                    onChange={(e) => setIdInput(e.target.value)}
-                  >
-                    <option value="">{SELECT_PLACEHOLDER}</option>
-                    {savedDocs.map((doc) => (
-                      <option key={doc.id} value={doc.id}>{doc.name}{doc.created_at ? ` (${new Date(doc.created_at).toLocaleDateString()})` : ""}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <div className="button-row">
-                <button type="button" className="liquid-btn solid" disabled={busy} onClick={() => onLoad(idInput)}>
-                  {busy ? "Loading..." : `Load ${isResume ? "Resume" : "Portfolio"}`}
-                </button>
-              </div>
-              {recentIds.length ? (
-                <div className="button-row">
-                  {recentIds.map((id) => {
-                    const found = savedDocs.find((d) => d.id === id);
-                    const label = `${found?.name ?? id}${found?.created_at ? ` (${new Date(found.created_at).toLocaleDateString()})` : ""}`;
-                    return (
-                      <button key={id} type="button" className="liquid-btn" onClick={() => { setIdInput(id); onLoad(id); }}>
-                        {label}
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : null}
-            </div>
-            {error ? <p className="error">{error}</p> : null}
-            {message ? <p className="success">{message}</p> : null}
-          </GlassCard>
-
-          <PublicDocumentPreview doc={doc} onRender={onRender} isActionActive={isActionActive} />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="page-stack workspace-page">
@@ -1569,7 +1893,7 @@ function DocumentStudio({ kind, mode }) {
                 >
                   <option value="">{SELECT_PLACEHOLDER}</option>
                   {savedDocs.map((doc) => (
-                    <option key={doc.id} value={doc.id}>{doc.name}{doc.created_at ? ` (${new Date(doc.created_at).toLocaleDateString()})` : ""}</option>
+                    <option key={doc.id} value={doc.id}>{displayName(doc.name)}{doc.created_at ? ` (${new Date(doc.created_at).toLocaleDateString()})` : ""}</option>
                   ))}
                 </select>
               </label>
@@ -1586,7 +1910,7 @@ function DocumentStudio({ kind, mode }) {
               <div className="button-row">
                 {recentIds.slice(0, 3).map((id) => {
                   const found = savedDocs.find((d) => d.id === id);
-                  const label = `${id}${found?.created_at ? ` (${new Date(found.created_at).toLocaleDateString()})` : ""}`;
+                  const label = `${displayName(found?.name) || id}${found?.created_at ? ` (${new Date(found.created_at).toLocaleDateString()})` : ""}`;
                   return (
                     <button key={id} type="button" className="liquid-btn" onClick={() => { setIdInput(id); onLoad(id); }}>
                       {label}
@@ -1608,10 +1932,6 @@ function DocumentStudio({ kind, mode }) {
               <div className={`settings-row ${hasCreatedAt ? "status-ok" : "status-missing"}`.trim()}>
                 <span className="settings-label">Created</span>
                 <strong className="settings-value">{createdAtText}</strong>
-              </div>
-              <div className="settings-row status-ok">
-                <span className="settings-label">Mode</span>
-                <strong className="settings-value">{mode === "private" ? "Private" : "Public"}</strong>
               </div>
             </div>
             <div className="button-row">
@@ -1656,7 +1976,7 @@ function DocumentStudio({ kind, mode }) {
                   { value: "theme", label: "Theme" },
                   { value: "connections", label: "Connections" },
                   { value: "skills", label: "Skills" },
-                  ...(isResume ? [{ value: "career", label: "Education + Experience" }] : [])
+                  ...(isResume ? [{ value: "career", label: "Education + Experience" }, { value: "awards", label: "Awards" }] : [])
                 ]}
               />
 
@@ -1670,6 +1990,7 @@ function DocumentStudio({ kind, mode }) {
                   onAddSkill={onAddSkill}
                   onAppendSkill={onAppendSkill}
                   onRemoveSkill={onRemoveSkill}
+                  onUpdateSkillLevel={onUpdateSkillLevel}
                   onApply={onApplyEdits}
                 />
               ) : null}
@@ -1682,6 +2003,9 @@ function DocumentStudio({ kind, mode }) {
                   onAddExperience={(payload) => safeAction(() => addResumeExperience(docId, payload), "Experience entry added.")}
                   onRemoveExperience={(nameToRemove) => safeAction(() => removeResumeExperience(docId, nameToRemove), "Experience removed.")}
                 />
+              ) : null}
+              {isResume && editCategory === "awards" ? (
+                <AwardsEditor doc={doc} onAddAward={onAddAward} onRemoveAward={onRemoveAward} onApply={onApplyEdits} />
               ) : null}
             </GlassCard>
           ) : null}
@@ -1744,11 +2068,19 @@ function DocumentStudio({ kind, mode }) {
       ) : null}
 
       {documentPreviewUrl && typeof document !== "undefined" ? createPortal(
-        <div className="app-modal-overlay app-modal-overlay-full">
-          <div className="app-modal-panel app-modal-panel-full glass-card">
+        <div className="app-modal-overlay app-modal-overlay-full" onMouseDown={(event) => {
+          if (event.target === event.currentTarget) closeDocumentPreview();
+        }}>
+          <div
+            className="app-modal-panel app-modal-panel-full glass-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="document-preview-title"
+            ref={documentModalRef}
+          >
             <div className="app-modal-header">
-              <strong>Document Preview - {isResume ? "Resume" : "Portfolio"}</strong>
-              <button type="button" className="liquid-btn solid btn-danger" onClick={closeDocumentPreview}>Close</button>
+              <strong id="document-preview-title">Document Preview - {isResume ? "Resume" : "Portfolio"}</strong>
+              <button ref={documentCloseButtonRef} type="button" className="liquid-btn solid btn-danger" onClick={closeDocumentPreview}>Close</button>
             </div>
             <iframe
               src={`${documentPreviewUrl}#toolbar=1&zoom=100`}
@@ -1760,11 +2092,19 @@ function DocumentStudio({ kind, mode }) {
         document.body
       ) : null}
       {isThemePreviewOpen ? createPortal(
-        <div className="app-modal-overlay">
-          <div className="app-modal-panel glass-card">
+        <div className="app-modal-overlay" onMouseDown={(event) => {
+          if (event.target === event.currentTarget) closeThemePreview();
+        }}>
+          <div
+            className="app-modal-panel glass-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="theme-preview-title"
+            ref={themeModalRef}
+          >
             <div className="app-modal-header">
-              <strong>Theme Preview - {theme}</strong>
-              <button type="button" className="liquid-btn solid btn-danger" onClick={closeThemePreview}>Close</button>
+              <strong id="theme-preview-title">Theme Preview - {theme}</strong>
+              <button ref={themeCloseButtonRef} type="button" className="liquid-btn solid btn-danger" onClick={closeThemePreview}>Close</button>
             </div>
             <iframe key={theme} src={`/theme-previews/${theme}.pdf`} className="app-modal-frame" title="Theme Preview" />
           </div>
@@ -1782,7 +2122,6 @@ function DocumentStudio({ kind, mode }) {
  */
 export default function WorkspacePage() {
   const [tab, setTab] = useState("resume");
-  const [mode, setMode] = useState("private");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -1790,25 +2129,6 @@ export default function WorkspacePage() {
     if (fromQuery === "portfolio" || fromQuery === "resume") {
       setTab(fromQuery);
     }
-
-    const stored = window.localStorage.getItem("viewMode");
-    if (stored === "public" || stored === "private") setMode(stored);
-
-    /**
-     * Syncs workspace mode when nav-level visibility mode changes.
-     *
-     * @param {CustomEvent<"public" | "private">} event
-     * @returns {void}
-     */
-    const onViewModeChange = (event) => {
-      const nextMode = event?.detail;
-      if (nextMode === "public" || nextMode === "private") {
-        setMode(nextMode);
-      }
-    };
-
-    window.addEventListener("viewModeChange", onViewModeChange);
-    return () => window.removeEventListener("viewModeChange", onViewModeChange);
   }, []);
 
   return (
@@ -1826,8 +2146,8 @@ export default function WorkspacePage() {
           ]}
         />
 
-        {tab === "resume" ? <DocumentStudio kind="resume" mode={mode} /> : null}
-        {tab === "portfolio" ? <DocumentStudio kind="portfolio" mode={mode} /> : null}
+        {tab === "resume" ? <DocumentStudio kind="resume" /> : null}
+        {tab === "portfolio" ? <DocumentStudio kind="portfolio" /> : null}
       </div>
     </LiquidShell>
   );

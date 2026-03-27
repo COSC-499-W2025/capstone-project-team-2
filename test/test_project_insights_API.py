@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+import json
 import shutil
 
 from src.API.project_insights_API import *
@@ -50,4 +51,199 @@ def test_return_skill_insights_chronological():
         if last_date:
             assert last_date <= this_date
         last_date = this_date
-        
+
+
+def test_return_top_project_histories_unique_projects():
+    """
+    Ensures top project history endpoint collapses snapshots by project name and
+    returns evolution metadata.
+    """
+    root_folder = Path(__file__).absolute().resolve().parents[1]
+    runtimeAppContext.legacy_save_dir = root_folder / "User_config_files"
+    runtimeAppContext.default_save_dir = runtimeAppContext.legacy_save_dir / "project_insights"
+    testclient = TestClient(app)
+    storage_path = Path(runtimeAppContext.legacy_save_dir / "project_insights.json")
+
+    sample = [
+        {
+            "id": "alpha-1",
+            "project_name": "Alpha",
+            "summary": "Initial alpha snapshot.",
+            "analyzed_at": "2025-05-01T00:00:00+00:00",
+            "languages": ["Python"],
+            "skills": ["Python"],
+            "project_type": "collaborative",
+            "stats": {"top_contribution_count": 3},
+            "file_analysis": {"file_count": 1},
+        },
+        {
+            "id": "alpha-2",
+            "project_name": "Alpha",
+            "summary": "Expanded alpha snapshot.",
+            "analyzed_at": "2025-05-02T00:00:00+00:00",
+            "languages": ["Python", "TypeScript"],
+            "skills": ["Python", "TypeScript"],
+            "project_type": "collaborative",
+            "stats": {"top_contribution_count": 8},
+            "file_analysis": {"file_count": 3},
+        },
+        {
+            "id": "beta-1",
+            "project_name": "Beta",
+            "summary": "Only beta snapshot.",
+            "analyzed_at": "2025-05-03T00:00:00+00:00",
+            "languages": ["Go"],
+            "skills": ["Go", "Docker"],
+            "project_type": "collaborative",
+            "stats": {"top_contribution_count": 5},
+            "file_analysis": {"file_count": 2},
+        },
+    ]
+    storage_path.write_text(json.dumps(sample), encoding="utf-8")
+
+    response = testclient.get("/insights/top-projects")
+    body = response.json()
+
+    assert response.status_code == 200
+    assert len(body) == 2
+    assert [entry["project_name"] for entry in body] == ["Alpha", "Beta"]
+    assert body[0]["snapshot_count"] == 2
+    assert body[0]["evolution"]["new_languages"] == ["TypeScript"]
+    assert body[0]["latest"]["summary"] == "Expanded alpha snapshot."
+
+
+def test_return_top_project_histories_respects_top_n():
+    """Ensures the top-project history endpoint respects the top_n query parameter."""
+    root_folder = Path(__file__).absolute().resolve().parents[1]
+    runtimeAppContext.legacy_save_dir = root_folder / "User_config_files"
+    runtimeAppContext.default_save_dir = runtimeAppContext.legacy_save_dir / "project_insights"
+    testclient = TestClient(app)
+    storage_path = Path(runtimeAppContext.legacy_save_dir / "project_insights.json")
+
+    sample = [
+        {
+            "id": "one-1",
+            "project_name": "One",
+            "summary": "One summary.",
+            "analyzed_at": "2025-05-01T00:00:00+00:00",
+            "languages": ["Python"],
+            "skills": ["Python"],
+            "project_type": "collaborative",
+            "stats": {"top_contribution_count": 10},
+            "file_analysis": {"file_count": 1},
+        },
+        {
+            "id": "two-1",
+            "project_name": "Two",
+            "summary": "Two summary.",
+            "analyzed_at": "2025-05-02T00:00:00+00:00",
+            "languages": ["Go"],
+            "skills": ["Go"],
+            "project_type": "collaborative",
+            "stats": {"top_contribution_count": 2},
+            "file_analysis": {"file_count": 1},
+        },
+    ]
+    storage_path.write_text(json.dumps(sample), encoding="utf-8")
+
+    response = testclient.get("/insights/top-projects?top_n=1")
+    body = response.json()
+
+    assert response.status_code == 200
+    assert len(body) == 1
+    assert body[0]["project_name"] == "One"
+
+
+def test_return_top_project_histories_prefers_skills_then_recency_on_ties():
+    """Ensures top-project endpoint breaks equal contribution ties by skills, then recency."""
+    root_folder = Path(__file__).absolute().resolve().parents[1]
+    runtimeAppContext.legacy_save_dir = root_folder / "User_config_files"
+    runtimeAppContext.default_save_dir = runtimeAppContext.legacy_save_dir / "project_insights"
+    testclient = TestClient(app)
+    storage_path = Path(runtimeAppContext.legacy_save_dir / "project_insights.json")
+
+    sample = [
+        {
+            "id": "older-1",
+            "project_name": "OlderNoSkills",
+            "summary": "Older project without detected skills.",
+            "analyzed_at": "2025-05-01T00:00:00+00:00",
+            "languages": [],
+            "skills": [],
+            "project_type": "collaborative",
+            "stats": {"top_contribution_count": 5},
+            "file_analysis": {"file_count": 1},
+        },
+        {
+            "id": "newer-1",
+            "project_name": "NewerPython",
+            "summary": "Newer project with Python skill.",
+            "analyzed_at": "2025-05-03T00:00:00+00:00",
+            "languages": ["Python"],
+            "skills": ["Python"],
+            "project_type": "collaborative",
+            "stats": {"top_contribution_count": 5},
+            "file_analysis": {"file_count": 1},
+        },
+        {
+            "id": "newest-1",
+            "project_name": "NewestPython",
+            "summary": "Newest project with same skill count.",
+            "analyzed_at": "2025-05-04T00:00:00+00:00",
+            "languages": ["Python"],
+            "skills": ["Python"],
+            "project_type": "collaborative",
+            "stats": {"top_contribution_count": 5},
+            "file_analysis": {"file_count": 1},
+        },
+    ]
+    storage_path.write_text(json.dumps(sample), encoding="utf-8")
+
+    response = testclient.get("/insights/top-projects")
+    body = response.json()
+
+    assert response.status_code == 200
+    assert [entry["project_name"] for entry in body] == ["NewestPython", "NewerPython", "OlderNoSkills"]
+
+
+def test_return_top_project_histories_active_only_filters_to_saved_projects():
+    """Ensures active_only returns only projects that still exist in saved project storage."""
+    root_folder = Path(__file__).absolute().resolve().parents[1]
+    runtimeAppContext.legacy_save_dir = root_folder / "User_config_files"
+    runtimeAppContext.default_save_dir = runtimeAppContext.legacy_save_dir / "project_insights"
+    Path(runtimeAppContext.default_save_dir).mkdir(parents=True, exist_ok=True)
+    testclient = TestClient(app)
+    storage_path = Path(runtimeAppContext.legacy_save_dir / "project_insights.json")
+
+    sample = [
+        {
+            "id": "active-1",
+            "project_name": "ActiveProject",
+            "summary": "Current project.",
+            "analyzed_at": "2025-05-02T00:00:00+00:00",
+            "languages": ["Python"],
+            "skills": ["Python"],
+            "project_type": "collaborative",
+            "stats": {"top_contribution_count": 6},
+            "file_analysis": {"file_count": 1},
+        },
+        {
+            "id": "stale-1",
+            "project_name": "StaleProject",
+            "summary": "Deleted historical project.",
+            "analyzed_at": "2025-05-03T00:00:00+00:00",
+            "languages": ["Go"],
+            "skills": ["Go"],
+            "project_type": "collaborative",
+            "stats": {"top_contribution_count": 9},
+            "file_analysis": {"file_count": 1},
+        },
+    ]
+    storage_path.write_text(json.dumps(sample), encoding="utf-8")
+    (Path(runtimeAppContext.default_save_dir) / "ActiveProject.json").write_text("{}", encoding="utf-8")
+
+    response = testclient.get("/insights/top-projects?top_n=3&active_only=true")
+    body = response.json()
+
+    assert response.status_code == 200
+    assert [entry["project_name"] for entry in body] == ["ActiveProject"]

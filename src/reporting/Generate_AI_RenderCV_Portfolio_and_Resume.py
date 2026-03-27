@@ -304,9 +304,9 @@ class RenderCVDocument:
                         'highlights': ['Key feature 1', 'Key feature 2']
                     }],
                     'skills': [
-                        {'label': 'Languages', 'details': 'Python, JavaScript, etc.'},
-                        {'label': 'Frameworks', 'details': 'React, Django, etc.'},
-                        {'label': 'Tools', 'details': 'Git, Docker, etc.'}
+                        {'label': 'Languages', 'details': 'Python, JavaScript'},
+                        {'label': 'Frameworks', 'details': 'React, Django'},
+                        {'label': 'Tools', 'details': 'Git, Docker'}
                     ]
                 }
             else:
@@ -322,9 +322,9 @@ class RenderCVDocument:
                         'highlights': ['Key feature 1', 'Key feature 2']
                     }],
                     'skills': [
-                        {'label': 'Languages', 'details': 'Python, JavaScript, etc.'},
-                        {'label': 'Technologies', 'details': 'React, Docker, AWS, etc.'},
-                        {'label': 'Tools', 'details': 'Git, VS Code, etc.'}
+                        {'label': 'Languages', 'details': 'Python, JavaScript'},
+                        {'label': 'Technologies', 'details': 'React, Docker, AWS'},
+                        {'label': 'Tools', 'details': 'Git, VS Code'}
                     ]
                 }
             return base_template
@@ -394,8 +394,9 @@ class RenderCVDocument:
         self.sections=self.data['cv']['sections']
         self.current_projects=self.sections.get('projects', [])
         self.current_connections=self.data['cv'].get('social_networks', [])
-        display_name = re.sub(r'_[0-9a-f]{8}$', '', str(self.name))
-        self.data['cv']['name'] = display_name.replace("_", " ")
+        if not self.data['cv'].get('name'):
+            display_name = re.sub(r'_[0-9a-f]{8}(?:_\(.*?\))?$', '', str(self.name))
+            self.data['cv']['name'] = display_name.replace("_", " ")
 
         # Shared sections for both resume and portfolio
         self.current_skills = self.sections.get('skills', [])
