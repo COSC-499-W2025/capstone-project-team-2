@@ -35,9 +35,6 @@ def perform_analysis_API(
     """
     
     folder_path = runtimeAppContext.currently_uploaded_file
-    effective_project_name = safe_project_name(
-        project_name or runtimeAppContext.currently_uploaded_project_name or ""
-    )
     if folder_path is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -60,6 +57,14 @@ def perform_analysis_API(
         else:   #Can only be an UploadFile at this point
             folder = extract_if_zip(folder_path)
             extracted_temp_dir = folder
+
+        source_project_name = (
+            project_name
+            or runtimeAppContext.currently_uploaded_project_name
+            or folder.name
+        )
+        effective_project_name = safe_project_name(source_project_name)
+
         result = analyze_project(
             folder,
             use_ai_analysis=use_ai,
@@ -70,7 +75,7 @@ def perform_analysis_API(
             "status": "Analysis Finished and Saved",
             "dedup": result.get("dedup"),
             "snapshots": result.get("snapshots", []),
-            "project_name": effective_project_name or safe_project_name(folder.name),
+            "project_name": effective_project_name,
         }
     except HTTPException:
         raise
