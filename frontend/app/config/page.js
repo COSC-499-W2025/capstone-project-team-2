@@ -16,8 +16,7 @@ import {
   formatExternalConsentLabel,
   formatLocalConsentLabel,
   resolveExternalConsentState,
-  resolveLocalConsentState,
-  validateExternalConsentSelection
+  resolveLocalConsentState
 } from "./helpers";
 import ConsentDocument from "./ConsentDocument";
 
@@ -31,6 +30,7 @@ export default function ConfigPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [consentWarning, setConsentWarning] = useState("");
 
   const [externalConsent, setExternalConsent] = useState("deny");
   const [localConsent, setLocalConsent] = useState("deny");
@@ -80,20 +80,21 @@ export default function ConfigPage() {
 
     setError("");
     setMessage("");
+    setConsentWarning("");
 
-    const consentError = validateExternalConsentSelection(externalConsent);
-    if (consentError) {
-      setError(consentError);
-      return;
+    const allowLocal = localConsent === "allow";
+    const effectiveExternal = externalConsent === "allow" && allowLocal;
+
+    if (!allowLocal && externalConsent === "allow") {
+      setExternalConsent("deny");
+      setConsentWarning("External tools consent requires local data processing to be allowed. External consent has been turned off.");
     }
 
     try {
-      const allowExternal = externalConsent === "allow";
-      const allowLocal = localConsent === "allow";
-      await saveConsent(allowExternal);
+      await saveConsent(effectiveExternal, allowLocal);
 
       const nextConfig = applyNameToConfig(config, fullName);
-      nextConfig.consented = { external: allowExternal, "Data consent": allowLocal };
+      nextConfig.consented = { external: effectiveExternal, "Data consent": allowLocal };
 
       await updateConfig(nextConfig);
       setConfig(nextConfig);
@@ -103,6 +104,10 @@ export default function ConfigPage() {
       setError(err.message || "Failed to save configuration.");
     }
   }
+
+  const savedName = config
+    ? [String(config["First Name"] || ""), String(config["Last Name"] || "")].filter(Boolean).join(" ")
+    : "";
 
   const currentExternalConsent = formatExternalConsentLabel(resolveExternalConsentState(config));
   const currentLocalConsent = formatLocalConsentLabel(resolveLocalConsentState(config));
@@ -115,6 +120,7 @@ export default function ConfigPage() {
       <div className="page-stack config-page">
         {loading ? <p className="muted">Loading configuration...</p> : null}
         {error ? <p className="error">{error}</p> : null}
+        {consentWarning ? <p className="consent-deny-warning">{consentWarning}</p> : null}
         {message ? <p className="success">{message}</p> : null}
 
         {!loading && config ? (
@@ -197,8 +203,8 @@ export default function ConfigPage() {
               </form>
             </GlassCard>
 
-            <GlassCard title="Current Settings">
-              <p className="muted">Current persisted configuration values.</p>
+            <GlassCard title="Saved Settings">
+              <p className="muted">Last persisted configuration values.</p>
               <div className="settings-list">
                 <div className={`settings-row ${currentLocalConsent === "Allow" ? "status-ok" : "status-missing"}`.trim()}>
                   <span className="settings-label">Local processing</span>
@@ -208,9 +214,9 @@ export default function ConfigPage() {
                   <span className="settings-label">External tools</span>
                   <strong className="settings-value">{currentExternalConsent}</strong>
                 </div>
-                <div className={`settings-row ${fullName ? "status-ok" : "status-missing"}`.trim()}>
+                <div className={`settings-row ${savedName ? "status-ok" : "status-missing"}`.trim()}>
                   <span className="settings-label">Name</span>
-                  <strong className="settings-value">{fullName || "Not set"}</strong>
+                  <strong className="settings-value">{savedName || "Not set"}</strong>
                 </div>
               </div>
             </GlassCard>

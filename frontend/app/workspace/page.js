@@ -655,8 +655,7 @@ function ProjectEditor({ projects, docProjects, onAddProject, onAddProjectAI, on
             <button type="button" className="liquid-btn solid btn-success" disabled={busy || aiLoading} onClick={() => onAddProject(projectName, payload)}>
               Add Project
             </button>
-            <button type="button" className="liquid-btn solid btn-success" disabled={busy || aiLoading || !externalAllowed} onClick={async () => { setAiLoading(true); try { await onAddProjectAI(projectName); } finally { setAiLoading(false); } }} title="Use Gemini AI to generate a polished project entry">
-            <button type="button" className="liquid-btn solid btn-success" disabled={busy || aiLoading} onClick={async () => { setAiLoading(true); try { await onAddProjectAI(projectName, { start_date: toMonthValue(startDate) || undefined, end_date: toMonthValue(endDate) || undefined }); } finally { setAiLoading(false); } }} title="Use Gemini AI to generate a polished project entry">
+            <button type="button" className="liquid-btn solid btn-success" disabled={busy || aiLoading || !externalAllowed} onClick={async () => { setAiLoading(true); try { await onAddProjectAI(projectName, { start_date: toMonthValue(startDate) || undefined, end_date: toMonthValue(endDate) || undefined }); } finally { setAiLoading(false); } }} title="Use Gemini AI to generate a polished project entry">
               {aiLoading ? "⏳ Generating..." : "✦ Add with AI"}
             </button>
           </div>

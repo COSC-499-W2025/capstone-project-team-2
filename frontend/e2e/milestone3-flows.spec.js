@@ -320,7 +320,7 @@ test("generates and loads a portfolio in the workspace", async ({ page }) => {
   await installApiMocks(page);
 
   await page.goto("/workspace");
-  await page.getByRole("button", { name: "P o r t f o l i o", exact: true }).click();
+  await page.getByRole("radio", { name: "P o r t f o l i o", exact: true }).click();
 
   await page.getByLabel("Full name").fill("Jane Doe");
   await page.getByLabel("Theme").selectOption("sb2nov");
@@ -336,7 +336,7 @@ test("dashboard public mode persists and workspace remains authoring", async ({ 
   await page.goto("/dashboard");
   await expect(page.getByRole("heading", { name: /Dashboard/ })).toBeVisible();
 
-  await page.getByRole("button", { name: "P u b l i c", exact: true }).click();
+  await page.getByRole("radio", { name: "P u b l i c", exact: true }).click();
 
   await expect(page.getByLabel("Search")).toBeVisible();
   await expect(page.getByLabel("Type")).toBeVisible();
