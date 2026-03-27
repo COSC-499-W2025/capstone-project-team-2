@@ -226,7 +226,10 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
       if (!consentReady) {
         router.replace("/config");
         return;
-      }
+if (!consentReady && pathname !=="/config") {
+    router.replace("/config");
+    return;
+   }
       if (!projectsReady) {
         router.replace("/upload");
       }
