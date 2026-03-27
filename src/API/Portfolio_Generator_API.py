@@ -159,6 +159,15 @@ class AppendSkillRequest(BaseModel):
     }})
     details: str
 
+class UpdateSkillLevelRequest(BaseModel):
+    """Payload for updating the proficiency level of an individual skill."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "skill_name": "Python",
+        "level": "Advanced"
+    }})
+    skill_name: str
+    level: str
+
 
 
 
@@ -661,8 +670,18 @@ def export_portfolio_custom(portfolio_id: str, format: str, payload: SaveRequest
     return {"status": "Saved successfully", "path": str(dest)}
 
 
+class AIProjectOverrides(BaseModel):
+    """Optional date overrides for AI-generated project entries."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "start_date": "2025-03",
+        "end_date": "2026-03"
+    }})
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+
+
 @portfolioRouter.post("/portfolio/{portfolio_id}/add/project/{project_name}/ai")
-def add_project_ai(portfolio_id: str, project_name: str):
+def add_project_ai(portfolio_id: str, project_name: str, overrides: Optional[AIProjectOverrides] = None):
     """Add a project entry to a portfolio using AI-generated content.
 
     Fetches the project from the database, generates a polished entry
@@ -671,6 +690,7 @@ def add_project_ai(portfolio_id: str, project_name: str):
     Args:
         portfolio_id: The portfolio identifier.
         project_name: The name of the analysed project in the database.
+        overrides: Optional date overrides (start_date, end_date).
 
     Returns:
         dict: {"status": str} confirming the project was added.
@@ -706,6 +726,8 @@ def add_project_ai(portfolio_id: str, project_name: str):
         name=ai_entry.project_title,
         summary=summary,
         highlights=ai_entry.key_responsibilities,
+        start_date=overrides.start_date if overrides and overrides.start_date else None,
+        end_date=overrides.end_date if overrides and overrides.end_date else None,
     )
     try:
         result = _check_result(doc.add_project(proj))
@@ -817,6 +839,51 @@ def remove_skill(portfolio_id: str, label: str):
     if "not found" in result.lower() or "no skills" in result.lower():
         raise HTTPException(status_code=404, detail=result)
     return {"status": result}
+
+
+@portfolioRouter.post("/portfolio/{portfolio_id}/skill/{label}/level")
+def update_skill_level(portfolio_id: str, label: str, payload: UpdateSkillLevelRequest):
+    """Update the proficiency level of an individual skill within a category.
+
+    Parses the details string to find the skill by name, then updates or adds
+    a (Level) suffix. For example, "Python" becomes "Python (Advanced)".
+
+    Args:
+        portfolio_id: The portfolio identifier.
+        label: The skill category label (e.g., "Languages").
+        payload: UpdateSkillLevelRequest with skill_name and level.
+
+    Returns:
+        dict: {"status": str, "details": str} with the updated details string.
+
+    Raises:
+        HTTPException: 404 if the portfolio, skill category, or individual skill is not found.
+    """
+    doc = _load_portfolio(portfolio_id)
+    skill = next((s for s in (doc.get_skills() or []) if s.get("label") == label), None)
+    if skill is None:
+        raise HTTPException(status_code=404, detail=f"Skill category '{label}' not found")
+
+    details = skill.get("details", "")
+    parts = [p.strip() for p in details.split(",")]
+    found = False
+    updated = []
+    for part in parts:
+        base = re.sub(r"\s*\(.*?\)\s*$", "", part).strip()
+        if base.lower() == payload.skill_name.strip().lower():
+            updated.append(f"{base} (**{payload.level.strip()}**)")
+            found = True
+        else:
+            updated.append(part)
+
+    if not found:
+        raise HTTPException(status_code=404, detail=f"Skill '{payload.skill_name}' not found in category '{label}'")
+
+    new_details = ", ".join(updated)
+    result = doc.modify_skill(label, new_details)
+    if "not found" in result.lower():
+        raise HTTPException(status_code=404, detail=result)
+    return {"status": result, "details": new_details}
 
 
 @portfolioRouter.delete("/portfolio/{portfolio_id}")

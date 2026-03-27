@@ -28,17 +28,16 @@ import {
 
 /**
  * Route definitions for top-level navigation.
- * Visibility of routes is filtered by the selected audience mode.
- * @type {{href: string, label: string, modes: Array<"public" | "private">, requires?: "none" | "consent" | "projects"}[]}
+ * @type {{href: string, label: string, requires?: "none" | "consent" | "projects"}[]}
  */
 const links = [
-  { href: "/", label: "Home", modes: ["public", "private"], requires: "none" },
-  { href: "/config", label: "Settings", modes: ["public", "private"], requires: "none" },
-  { href: "/upload", label: "Upload", modes: ["public", "private"], requires: "consent" },
-  { href: "/projects", label: "Projects", modes: ["public", "private"], requires: "consent" },
-  { href: "/dashboard", label: "Dashboard", modes: ["public", "private"], requires: "projects" },
-  { href: "/workspace", label: "Builder", modes: ["public", "private"], requires: "consent" },
-  { href: "/representation", label: "Project Settings", modes: ["public", "private"], requires: "projects" }
+  { href: "/", label: "Home", requires: "none" },
+  { href: "/config", label: "Settings", requires: "none" },
+  { href: "/upload", label: "Upload", requires: "consent" },
+  { href: "/projects", label: "Projects", requires: "consent" },
+  { href: "/dashboard", label: "Dashboard", requires: "projects" },
+  { href: "/workspace", label: "Builder", requires: "consent" },
+  { href: "/representation", label: "Project Settings", requires: "projects" }
 ];
 
 /**
@@ -56,11 +55,6 @@ const links = [
 export function LiquidShell({ title, subtitle, children, rightSlot }) {
   const pathname = usePathname();
   const router = useRouter();
-  /**
-   * Audience mode drives route visibility in the top navigation.
-   * Persisted in localStorage as `viewMode`.
-   */
-  const [viewMode, setViewMode] = useState("private");
   const [isA11yMenuOpen, setIsA11yMenuOpen] = useState(false);
   const [a11yPrefs, setA11yPrefs] = useState(DEFAULT_A11Y);
   const [hasHydratedA11y, setHasHydratedA11y] = useState(false);
@@ -76,16 +70,6 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
   const [consentVersion, setConsentVersion] = useState(0);
 
   useEffect(() => {
-    /**
-     * One-time hydration of persisted navigation mode preference.
-     */
-    const storedViewMode = window.localStorage.getItem("viewMode");
-    if (storedViewMode === "public" || storedViewMode === "private") {
-      setViewMode(storedViewMode);
-    }
-  }, []);
-
-  useEffect(() => {
     const rawPrefs = window.localStorage.getItem(A11Y_STORAGE_KEY);
     if (!rawPrefs) {
       setHasHydratedA11y(true);
@@ -95,15 +79,6 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
     setA11yPrefs(hydrateA11yPrefs(rawPrefs));
     setHasHydratedA11y(true);
   }, []);
-
-  useEffect(() => {
-    /**
-     * Broadcasts visibility mode changes so nested pages can react without
-     * prop drilling from route to route.
-     */
-    window.localStorage.setItem("viewMode", viewMode);
-    window.dispatchEvent(new CustomEvent("viewModeChange", { detail: viewMode }));
-  }, [viewMode]);
 
   useEffect(() => {
     if (!hasHydratedA11y) return;
@@ -235,12 +210,11 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
 
   const filteredLinks = useMemo(
     () => links
-      .filter((link) => link.modes.includes(viewMode))
       .map((link) => ({
         ...link,
         disabled: flowLoading ? false : !isRouteUnlocked(link, consentReady, projectsReady)
       })),
-    [viewMode, flowLoading, consentReady, projectsReady]
+    [flowLoading, consentReady, projectsReady]
   );
 
   const currentStepIndex = flowSteps.findIndex((step) => step.href === pathname);
@@ -281,17 +255,6 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
           className="top-chrome"
           trailingContent={
             <div className="top-right-slot top-actions">
-              <div className="nav-mode-toggle" role="group" aria-label="View mode">
-                <LiquidSegmentedControl
-                  reducedMotion={a11yPrefs.reduceMotion}
-                  options={[
-                    { value: "private", label: "Private" },
-                    { value: "public", label: "Public" }
-                  ]}
-                  value={viewMode}
-                  onChange={setViewMode}
-                />
-              </div>
               {rightSlot ? <div>{rightSlot}</div> : null}
             </div>
           }

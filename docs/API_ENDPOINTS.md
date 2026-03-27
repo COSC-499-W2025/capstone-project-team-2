@@ -190,7 +190,7 @@ Router prefix: `/insights`
 - Returns `200`: array of objects, each with:
   - `id` (string) — resume identifier (file stem without `_Resume_CV`)
   - `name` (string) — display name with spaces (UUID suffix stripped)
-  - `created_at` (number) — file creation timestamp in milliseconds
+  - `created_at` (string) — file creation timestamp in ISO-8601 format
 - Results are sorted newest-first.
 
 ### `POST /resume/generate`
@@ -403,6 +403,20 @@ Router prefix: `/insights`
 - Errors:
   - `404` resume or skill label not found
 
+### `POST /resume/{id}/skill/{label}/level`
+- Purpose: update the proficiency level of an individual skill within a category.
+- Path:
+  - `id` = resume identifier
+  - `label` = exact skill category label (e.g., "Languages")
+- JSON body:
+  - `skill_name` (string, required) — exact skill name within the category
+  - `level` (string, required) — proficiency level; no server-side validation, any string is accepted. UI uses `Beginner`, `Intermediate`, `Advanced`
+- Note: level is stored as markdown bold, e.g. `Python (**Advanced**)`
+- Returns `200`:
+  - `{"status":"...","details":"<full updated details string>"}`
+- Errors:
+  - `404` resume, skill category, or individual skill not found
+
 ### `POST /resume/{id}/add/award`
 - Purpose: add a new award entry to a resume.
 - Path:
@@ -456,6 +470,14 @@ Router prefix: `/insights`
   - `{"project_name":"MyProject","role":"Backend Developer"}`
 - Errors:
   - `404` no saved role
+
+### `GET /portfolios`
+- Purpose: list all saved portfolio documents.
+- Returns `200`: array of objects, each with:
+  - `id` (string) — portfolio identifier (file stem without `_Portfolio_CV`)
+  - `name` (string) — display name with spaces (UUID suffix stripped)
+  - `created_at` (string) — file creation timestamp in ISO-8601 format
+- Results are sorted newest-first.
 
 ### `POST /portfolio/generate`
 - Purpose: create a new portfolio YAML document.
@@ -513,6 +535,21 @@ Router prefix: `/insights`
 - Errors:
   - `404` portfolio/project not found, or missing `resume_item`
   - `500` add/save failure
+
+### `POST /portfolio/{portfolio_id}/add/project/{project_name}/ai`
+- Purpose: add a project entry to a portfolio using AI-generated content (Gemini).
+- Path:
+  - `portfolio_id` = portfolio identifier
+  - `project_name` = name of the analysed project in the database
+- JSON body (optional):
+  - `start_date` (optional string)
+  - `end_date` (optional string)
+- Returns `200`:
+  - `{"status":"..."}`
+- Errors:
+  - `400` AI generation returned no data
+  - `404` portfolio or project not found
+  - `500` AI generation or save failure
 
 ### `DELETE /portfolio/{portfolio_id}/project/{project_name}`
 - Purpose: remove a project entry from a portfolio by exact project name.
@@ -595,6 +632,20 @@ Router prefix: `/insights`
   - `{"status":"..."}`
 - Errors:
   - `404` portfolio or skill label not found
+
+### `POST /portfolio/{portfolio_id}/skill/{label}/level`
+- Purpose: update the proficiency level of an individual skill within a category.
+- Path:
+  - `portfolio_id` = portfolio identifier
+  - `label` = exact skill category label (e.g., "Languages")
+- JSON body:
+  - `skill_name` (string, required) — exact skill name within the category
+  - `level` (string, required) — proficiency level; no server-side validation, any string is accepted. UI uses `Beginner`, `Intermediate`, `Advanced`
+- Note: level is stored as markdown bold, e.g. `Python (**Advanced**)`
+- Returns `200`:
+  - `{"status":"...","details":"<full updated details string>"}`
+- Errors:
+  - `404` portfolio, skill category, or individual skill not found
 
 ### `DELETE /portfolio/{portfolio_id}`
 - Purpose: delete portfolio YAML file.
