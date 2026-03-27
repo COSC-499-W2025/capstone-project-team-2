@@ -742,11 +742,6 @@ def add_project_ai(id: str, project_name: str, overrides: Optional[AIProjectOver
         HTTPException: 400 if AI generation returned no data.
         HTTPException: 500 if AI generation or save failed.
     """
-    if not runtimeAppContext.external_consent:
-        raise HTTPException(status_code=403, detail="External consent is required to use AI features.")
-    if not runtimeAppContext.data_consent:
-        raise HTTPException(status_code=403, detail="Data consent is required to use AI features.")
-
     doc = _load_resume(id)
 
     db_name = project_name

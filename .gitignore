@@ -27,13 +27,9 @@ COSC 344 Assignment 7/
 __MACOSX/
 .idea/vcs.xml
 
-# Playwright
-frontend/test-results/
-.last-run.json
-
 # Frontend (Next.js / Node)
 node_modules/
-frontend/node_modules/d
+frontend/node_modules/
 .next/
 frontend/.next/
 out/
