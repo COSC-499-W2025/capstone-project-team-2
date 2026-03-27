@@ -66,6 +66,17 @@ When the app is running:
 - Query:
   - `save_path` (optional)
 
+### `POST /projects/{id}/type`
+- Purpose: Update typing of project in database
+- Path:
+ - `id` = project name, with or without `.json`
+- Query:
+ - `project_type` (str): individual or collaborative project
+- Returns `200`:
+ - `{"message": "Updated successfully", "type": new typing}`
+- Errors:
+ - `404` project not found
+
 ### `POST /projects/{id}/thumbnail`
 - Purpose: upload and link a thumbnail.
 - Path:

@@ -127,6 +127,20 @@ class TestResumeFullWorkflow(_BaseResumeTest):
         self.assertEqual(resp.status_code, 200)
         self.assertIn(resume_id, resp.json()["status"])
 
+    def test_generate_sanitizes_name_for_document_id(self):
+        """Slash characters in display names should not appear in generated IDs."""
+        self.mock_doc.generate.return_value = "Generated"
+
+        resp = self.client.post("/resume/generate", json={"name": "Sam/http"})
+        self.assertEqual(resp.status_code, 200)
+        body = resp.json()
+        self.assertNotIn("/", body["resume_id"])
+        self.assertIn("Sam_http_", body["resume_id"])
+
+        called_name = self.mock_doc.generate.call_args.kwargs["name"]
+        self.assertNotIn("/", called_name)
+        self.assertTrue(called_name.startswith("Sam_http_"))
+
 
 class TestAddProjectFromDB(_BaseResumeTest):
     """Tests for POST /resume/{id}/add/project/{project_name}."""

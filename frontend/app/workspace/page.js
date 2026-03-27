@@ -1403,8 +1403,15 @@ function DocumentStudio({ kind }) {
   const [activeRenderActions, setActiveRenderActions] = useState([]);
   const activeRenderActionsRef = useRef(new Set());
   const [documentPreviewUrl, setDocumentPreviewUrl] = useState(null);
+  const documentPreviewUrlRef = useRef(null);
   const [isThemePreviewOpen, setIsThemePreviewOpen] = useState(false);
   const [downloadName, setDownloadName] = useState("");
+  const documentModalRef = useRef(null);
+  const themeModalRef = useRef(null);
+  const documentCloseButtonRef = useRef(null);
+  const themeCloseButtonRef = useRef(null);
+  const previousFocusedElementRef = useRef(null);
+  const wasModalOpenRef = useRef(false);
 
   function startRenderAction(action) {
     if (activeRenderActionsRef.current.has(action)) return false;
@@ -1427,11 +1434,83 @@ function DocumentStudio({ kind }) {
     return activeRenderActions.includes(action);
   }
 
+  function replaceDocumentPreviewUrl(blob) {
+    const nextUrl = URL.createObjectURL(blob);
+    if (documentPreviewUrlRef.current) URL.revokeObjectURL(documentPreviewUrlRef.current);
+    documentPreviewUrlRef.current = nextUrl;
+    setDocumentPreviewUrl(nextUrl);
+  }
+
+  function clearDocumentPreviewUrl() {
+    if (documentPreviewUrlRef.current) URL.revokeObjectURL(documentPreviewUrlRef.current);
+    documentPreviewUrlRef.current = null;
+    setDocumentPreviewUrl(null);
+  }
+
+  const isAnyModalOpen = Boolean(documentPreviewUrl) || isThemePreviewOpen;
+
   useEffect(() => {
     if (!message) return;
     const t = setTimeout(() => setMessage(""), 5000);
     return () => clearTimeout(t);
   }, [message]);
+
+  useEffect(() => {
+    if (isAnyModalOpen) {
+      if (!wasModalOpenRef.current) {
+        previousFocusedElementRef.current = document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
+      }
+      wasModalOpenRef.current = true;
+      return;
+    }
+    if (!wasModalOpenRef.current) return;
+    wasModalOpenRef.current = false;
+    if (previousFocusedElementRef.current && typeof previousFocusedElementRef.current.focus === "function") {
+      previousFocusedElementRef.current.focus();
+    }
+  }, [isAnyModalOpen]);
+
+  useEffect(() => {
+    if (!isAnyModalOpen) return undefined;
+
+    const modalNode = documentPreviewUrl ? documentModalRef.current : themeModalRef.current;
+    const closeButton = documentPreviewUrl ? documentCloseButtonRef.current : themeCloseButtonRef.current;
+    if (closeButton && typeof closeButton.focus === "function") {
+      closeButton.focus();
+    }
+
+    function onKeyDown(event) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        if (documentPreviewUrl) {
+          closeDocumentPreview();
+        } else {
+          closeThemePreview();
+        }
+        return;
+      }
+      if (event.key !== "Tab" || !modalNode) return;
+      const focusables = modalNode.querySelectorAll(
+        "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"
+      );
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [documentPreviewUrl, isThemePreviewOpen, isAnyModalOpen]);
 
   useEffect(() => {
     let ignore = false;
@@ -1714,8 +1793,7 @@ function DocumentStudio({ kind }) {
     setError("");
     try {
       const blob = isResume ? await renderResume(docId, "pdf") : await renderPortfolio(docId, "pdf");
-      if (documentPreviewUrl) URL.revokeObjectURL(documentPreviewUrl);
-      setDocumentPreviewUrl(URL.createObjectURL(blob));
+      replaceDocumentPreviewUrl(blob);
     } catch (err) {
       setError(err.message || "Document preview failed.");
     } finally {
@@ -1724,8 +1802,7 @@ function DocumentStudio({ kind }) {
   }
 
   function closeDocumentPreview() {
-    if (documentPreviewUrl) URL.revokeObjectURL(documentPreviewUrl);
-    setDocumentPreviewUrl(null);
+    clearDocumentPreviewUrl();
   }
 
   function openThemePreview() {
@@ -1735,6 +1812,11 @@ function DocumentStudio({ kind }) {
   function closeThemePreview() {
     setIsThemePreviewOpen(false);
   }
+
+  useEffect(() => () => {
+    if (documentPreviewUrlRef.current) URL.revokeObjectURL(documentPreviewUrlRef.current);
+    documentPreviewUrlRef.current = null;
+  }, []);
 
   const [recentIds, setRecentIds] = useState([]);
 
@@ -1986,11 +2068,19 @@ function DocumentStudio({ kind }) {
       ) : null}
 
       {documentPreviewUrl && typeof document !== "undefined" ? createPortal(
-        <div className="app-modal-overlay app-modal-overlay-full">
-          <div className="app-modal-panel app-modal-panel-full glass-card">
+        <div className="app-modal-overlay app-modal-overlay-full" onMouseDown={(event) => {
+          if (event.target === event.currentTarget) closeDocumentPreview();
+        }}>
+          <div
+            className="app-modal-panel app-modal-panel-full glass-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="document-preview-title"
+            ref={documentModalRef}
+          >
             <div className="app-modal-header">
-              <strong>Document Preview - {isResume ? "Resume" : "Portfolio"}</strong>
-              <button type="button" className="liquid-btn solid btn-danger" onClick={closeDocumentPreview}>Close</button>
+              <strong id="document-preview-title">Document Preview - {isResume ? "Resume" : "Portfolio"}</strong>
+              <button ref={documentCloseButtonRef} type="button" className="liquid-btn solid btn-danger" onClick={closeDocumentPreview}>Close</button>
             </div>
             <iframe
               src={`${documentPreviewUrl}#toolbar=1&zoom=100`}
@@ -2002,11 +2092,19 @@ function DocumentStudio({ kind }) {
         document.body
       ) : null}
       {isThemePreviewOpen ? createPortal(
-        <div className="app-modal-overlay">
-          <div className="app-modal-panel glass-card">
+        <div className="app-modal-overlay" onMouseDown={(event) => {
+          if (event.target === event.currentTarget) closeThemePreview();
+        }}>
+          <div
+            className="app-modal-panel glass-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="theme-preview-title"
+            ref={themeModalRef}
+          >
             <div className="app-modal-header">
-              <strong>Theme Preview - {theme}</strong>
-              <button type="button" className="liquid-btn solid btn-danger" onClick={closeThemePreview}>Close</button>
+              <strong id="theme-preview-title">Theme Preview - {theme}</strong>
+              <button ref={themeCloseButtonRef} type="button" className="liquid-btn solid btn-danger" onClick={closeThemePreview}>Close</button>
             </div>
             <iframe key={theme} src={`/theme-previews/${theme}.pdf`} className="app-modal-frame" title="Theme Preview" />
           </div>
