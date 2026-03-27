@@ -1,10 +1,10 @@
 import json
 from pathlib import Path
+from typing import Any
 
 # Render saved analyses as portfolio-style output, honoring consent settings.
 from src.core.app_context import AppContext
 from src.reporting.Generate_AI_Resume import GenerateProjectResume, ResumeItem
-from src.aggregation.oop_aggregator import pretty_print_oop_report
 from src.reporting.resume_pdf_generator import SimpleResumeGenerator
 from src.reporting.portfolio_rendercv_service import PortfolioRenderCVService
 from src.reporting.portfolio_service import (
@@ -15,23 +15,32 @@ from src.reporting.portfolio_service import (
 import os
 import shutil
 
-def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
+def display_portfolio_and_generate_pdf(
+    path: Path,
+    ctx: AppContext,
+    *,
+    generate_pdf: bool = False,
+    output_name: str = "Portfolio",
+    custom_output_dir: Path | None = None,
+) -> dict[str, Any]:
     """
-    Read a saved project JSON file and print a formatted portfolio summary.
+    Read a saved project JSON file and display a formatted portfolio summary.
     Optionally generate a PDF using RenderCV or legacy PDF generator.
 
     Args:
         path (Path): Saved analysis file.
         ctx (AppContext): Shared context for consent/config paths.
+        generate_pdf (bool): If true, generates PDF output.
+        output_name (str): Output filename stem for generated portfolio.
+        custom_output_dir (Path | None): Optional destination directory to copy PDF into.
 
     Returns:
-        None
+        dict[str, Any]: Summary of rendering and optional export results.
     """
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except Exception as e:
-        print(f"[ERROR] Could not read {path.name}: {e}")
-        return
+        return {"status": "error", "detail": f"Could not read {path.name}: {e}"}
 
     has_external = ctx.external_consent
 
@@ -47,67 +56,52 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
         ps = build_portfolio_showcase(analysis, portfolio_yaml)
 
         display_portfolio_showcase(ps)
-        
-        # PDF Prompt
-        print("=" * 50)
-        while True:
-            generate_pdf_input = input("Would you like to generate a PDF? (y/N): ").strip().upper()
-            
-            if generate_pdf_input in {"Y", "N", ""}:
-                break
-            print("[WARN] Please enter only 'y' or 'n'.")
-        
-        if generate_pdf_input != "Y":
-            return # Early exit if no PDF generation requested
-        
-        name_of_file = (
-            input("Enter the name of the PDF file or press enter to use default name (Portfolio): ").strip()or "Portfolio")
-            
-        # Collect folder path only for fallback (RenderCV uses its own output directory)
-        folder_path = None
+
+        if not generate_pdf:
+            return {"status": "ok", "mode": "local", "pdf_generated": False}
+
+        if custom_output_dir is not None and not custom_output_dir.exists():
+            return {"status": "error", "detail": f"Path not found: {custom_output_dir}"}
+
         try:
             print("[INFO] Generating portfolio PDF using RenderCV...")
 
-            service = PortfolioRenderCVService(name=name_of_file)
+            service = PortfolioRenderCVService(name=output_name)
             service.add_portfolio(ps)
             status, pdf_path = service.render_portfolio_pdf()
 
             print(f"[INFO] RenderCV status: {status}")
             if pdf_path:
                 print(f"[INFO] Portfolio PDF generated at: {pdf_path}")
-                save_custom = input("Save PDF to a custom location? (y/N): ").strip().upper()
-                if save_custom == "Y":
-                    attempts = 0
-                    max_attempts = 3                        
-                    while attempts < max_attempts:
-                        custom_folder = input("Enter the folder path to save the PDF: ").strip()
-                        if os.path.exists(custom_folder):
-                            custom_path = Path(custom_folder) / pdf_path.name
-                            shutil.copy2(pdf_path, custom_path)
-                            print(f"[INFO] PDF saved to: {custom_path}")
-                            break
-                        else:
-                            print(f"[ERROR] Path not found: {custom_folder}")                                
-                            attempts += 1
-                    else:
-                            print("[WARN] Maximum attempts reached. PDF remains at default location.")
+                if custom_output_dir is not None:
+                    custom_path = custom_output_dir / pdf_path.name
+                    shutil.copy2(pdf_path, custom_path)
+                    print(f"[INFO] PDF saved to: {custom_path}")
+                    return {
+                        "status": "ok",
+                        "mode": "local",
+                        "pdf_generated": True,
+                        "pdf_path": str(custom_path),
+                    }
+                return {
+                    "status": "ok",
+                    "mode": "local",
+                    "pdf_generated": True,
+                    "pdf_path": str(pdf_path),
+                }
+            return {"status": "error", "detail": "RenderCV did not return a PDF path."}
 
         except Exception as e:
             print(f"[WARN] RenderCV export failed, falling back to legacy PDF: {e}")
-                
-            # Collect folder path for fallback PDF generator
-            if folder_path is None:
-                attempts = 0
-                max_attempts = 3
-                while attempts < max_attempts:
-                    folder_path = input("Enter the folder path where you want to save the PDF: ").strip()
-                    if os.path.exists(folder_path):
-                        break
-                    attempts += 1
-                else:
-                    print("Maximum attempts reached. Cannot generate fallback PDF.")
-                    return
-                
+            if custom_output_dir is None:
+                return {
+                    "status": "error",
+                    "detail": (
+                        "RenderCV export failed and no custom_output_dir provided "
+                        "for legacy PDF fallback."
+                    ),
+                }
+
             resume_item = analysis.get("resume_item") or {}
             tech_stack_parts = []
             if resume_item.get("languages"):
@@ -125,18 +119,26 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
                 impact="",
                 oop_principles_detected={},
             )
-            SimpleResumeGenerator(folder_path, data=legacy_data, fileName=name_of_file).display_and_run(portfolio_only=True)
+            SimpleResumeGenerator(
+                str(custom_output_dir),
+                data=legacy_data,
+                fileName=output_name,
+            ).display_and_run(portfolio_only=True)
+            return {
+                "status": "ok",
+                "mode": "local",
+                "pdf_generated": True,
+                "pdf_path": str(Path(custom_output_dir) / f"{output_name}.pdf"),
+                "fallback": "legacy_pdf_generator",
+            }
 
-        return
-    
     try:
         directory_file_path = data.get("project_root")
         docker = GenerateProjectResume(directory_file_path).generate(
             saveToJson=False
         )
     except Exception as e:
-        print(f"[ERROR] Could not generate portfolio: {e}")
-        return
+        return {"status": "error", "detail": f"Could not generate portfolio: {e}"}
 
     print("\n===============================")
     print(f"PROJECT: {docker.project_title}")
@@ -158,28 +160,23 @@ def display_portfolio_and_generate_pdf(path: Path, ctx: AppContext) -> None:
     else:
         print("  (None detected)")
     print()
-    
-    while True:
-        generate_pdf_input = input("Would you like to generate a PDF? (y/N): ").strip().upper()
-            
-        if generate_pdf_input in {"Y", "N", ""}:
-            break
-        print("[WARN] Please enter only 'y' or 'n'.")
-        
-    if generate_pdf_input == "Y":
-        attempts = 0
-        max_attempts = 3
-        while attempts < max_attempts:
-            folder_path = input("Enter the folder path where you want to save the PDF: ").strip()
-            if os.path.exists(folder_path):
-                break
-            attempts += 1
-        else:
-            print("Maximum attempts reached. Returning to menu.")
-            return
 
-        name_of_file = (
-            input("Enter the name of the PDF file or press enter to use default name (Portfolio): ").strip() or "Portfolio")
+    if not generate_pdf:
+        return {"status": "ok", "mode": "external", "pdf_generated": False}
+    if custom_output_dir is None or not os.path.exists(custom_output_dir):
+        return {
+            "status": "error",
+            "detail": "custom_output_dir is required and must exist for PDF generation.",
+        }
 
-        SimpleResumeGenerator(folder_path, data=docker, fileName=name_of_file).display_and_run(portfolio_only=True)
-        
+    SimpleResumeGenerator(
+        str(custom_output_dir),
+        data=docker,
+        fileName=output_name,
+    ).display_and_run(portfolio_only=True)
+    return {
+        "status": "ok",
+        "mode": "external",
+        "pdf_generated": True,
+        "pdf_path": str(Path(custom_output_dir) / f"{output_name}.pdf"),
+    }
