@@ -257,18 +257,24 @@ async function onBulkDelete() {
       failed.push(name);
     }
   }
-  setConfirmBulkDelete(false);
-  const data = await fetchProjects();
-  const names = Array.isArray(data) ? data : [];
-  setProjects(names);
-  setSelected(new Set(failed));
-  if (failed.length === 0) {
-    setBulkMode(false);
-    setMessage(`${targets.length} project${targets.length !== 1 ? "s" : ""} deleted.`);
-  } else {
-    setError(`Deleted ${targets.length - failed.length} project(s). Failed to delete: ${failed.join(", ")}.`);
-  }
+  try {
+    setConfirmBulkDelete(false);
+    const data = await fetchProjects();
+    const names = Array.isArray(data) ? data : [];
+    setProjects(names);
+    setSelected(new Set(failed));
+    if (failed.length === 0) {
+      setBulkMode(false);
+      setMessage(`${targets.length} project${targets.length !== 1 ? "s" : ""} deleted.`);
+    } else {
+      setError(`Deleted ${targets.length - failed.length} project(s). Failed to delete: ${failed.join(", ")}.`);
+    
+    }
+  } catch(err){
+    setError(err.message || "Failed to reload projects.");
+  } finally{
   setBusy(false);
+  }
 }
 
   async function onDelete(projectName) {
