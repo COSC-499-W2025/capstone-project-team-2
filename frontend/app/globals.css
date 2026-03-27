@@ -1287,6 +1287,164 @@ h1 {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.dashboard-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 925;
+  background: rgba(10, 12, 16, 0.38);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 70ms linear;
+}
+
+.dashboard-drawer-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dashboard-drawer {
+  position: fixed;
+  top: calc(var(--floating-nav-offset, 6.4rem) + 0.25rem);
+  right: 1rem;
+  left: auto;
+  z-index: 930;
+  width: clamp(24rem, 40vw, 32rem);
+  max-height: min(78dvh, 44rem);
+  padding: 0.9rem;
+  border-radius: var(--surface-radius);
+  border: 1px solid var(--line);
+  transform: translateY(-0.12rem);
+  opacity: 0;
+  pointer-events: none;
+  overflow-y: auto;
+  will-change: opacity, transform;
+  transition: transform 80ms linear, opacity 80ms linear;
+}
+
+.dashboard-drawer.open {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dashboard-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.dashboard-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.55rem;
+  align-items: start;
+}
+
+.dashboard-inline-search {
+  padding: 0.72rem;
+}
+
+.dashboard-inline-search .settings-list,
+.dashboard-inline-search .settings-list.compact {
+  margin-top: 0;
+}
+
+.dashboard-inline-search-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.72rem;
+}
+
+.dashboard-inline-search-row .dashboard-inline-search {
+  flex: 1 1 auto;
+  padding: 0;
+}
+
+.dashboard-inline-search-field {
+  flex: 1 1 30rem;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.dashboard-inline-search-label {
+  margin: 0;
+  color: var(--ink-1);
+  font-size: 0.83rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dashboard-inline-search-field > .settings-control {
+  width: 100%;
+  margin-left: 0;
+}
+
+.dashboard-inline-select-field {
+  flex: 0 1 14rem;
+  min-width: 9rem;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.dashboard-inline-select-field > .settings-control {
+  width: 100%;
+  margin-left: 0;
+}
+
+.dashboard-inline-search-row > .liquid-btn {
+  align-self: center;
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.dashboard-filter-card {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.72rem;
+  align-self: start;
+}
+
+.dashboard-filter-title {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 640;
+  color: var(--ink-1);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dashboard-filter-value {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ink-0);
+}
+
+.dashboard-ranking-card .settings-row.settings-field-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: 0.35rem;
+}
+
+.dashboard-ranking-card .settings-field-row > .settings-control {
+  width: 100%;
+  margin-left: 0;
+}
+
+.dashboard-visibility-card .settings-list.compact {
+  margin-top: 0;
+}
+
 /* ==========================================================================
    Glass Cards + Text Hierarchy
    ========================================================================== */
@@ -2532,6 +2690,35 @@ textarea::placeholder {
   .floating-a11y-control {
     right: 0.45rem;
     bottom: 0.45rem;
+  }
+
+  .dashboard-drawer {
+    top: calc(var(--floating-nav-offset, 6.4rem) + 0.15rem);
+    right: 0.6rem;
+    width: min(30rem, calc(100vw - 1.2rem));
+    max-height: min(82dvh, 42rem);
+  }
+
+  .dashboard-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-inline-search-row {
+    flex-wrap: wrap;
+  }
+
+  .dashboard-inline-select-field {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .dashboard-inline-search-field {
+    flex: 1 1 100%;
+  }
+
+  .dashboard-inline-search-row > .liquid-btn {
+    width: 100%;
+    margin-bottom: 0;
   }
 
   .liquid-nav {
