@@ -8,7 +8,7 @@ from typing import Any, Dict, List
 
 from fastapi import UploadFile
 
-# Analysis helpers used by the CLI menus for project ingestion and persistence.
+# Analysis helpers used by interactive app flows for project ingestion and persistence.
 from src.core.app_context import runtimeAppContext
 from src.core.data_extraction import FileMetadataExtractor
 from src.core.extraction import extractInfo
