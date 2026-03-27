@@ -196,12 +196,12 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
 
   useEffect(() => {
     if (fetchingRef.current || flowLoading || flowError) return;
+    if (!consentReady && pathname !== "/config") {
+      router.replace("/config");
+      return;
+    }
     const currentRoute = [...links, ...flowSteps].find((route) => route.href === pathname);
     if (currentRoute && !isRouteUnlocked(currentRoute, consentReady, projectsReady)) {
-      if (!consentReady && pathname !== "/config") {
-        router.replace("/config");
-        return;
-      }
       if (!projectsReady) {
         router.replace("/upload");
       }
