@@ -258,6 +258,15 @@ class TestExtraction(unittest.TestCase):
             self.assertTrue(os.path.exists(file_path))
         shutil.rmtree(temp_path, ignore_errors=True)
 
+    def test_verifyZIP_rejects_unsafe_archive_path(self):
+        """Zip-slip style member paths must be rejected before extraction."""
+        unsafe_zip = os.path.join(self.temp_dir, "unsafe.zip")
+        with zipfile.ZipFile(unsafe_zip, "w") as zf:
+            zf.writestr("../evil.txt", "pwn")
+
+        text = extractInfo().verifyZIP(Path(unsafe_zip))
+        self.assertTrue(extractInfo.UNSAFE_ARCHIVE_PATH_ERROR_TEXT in text)
+
 
 
 
