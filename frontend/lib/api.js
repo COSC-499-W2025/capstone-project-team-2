@@ -827,6 +827,19 @@ export function projectThumbnailUrl(projectName) {
 }
 
 /**
+ * Returns a success message and the updated duration created by the start and end dates
+ *
+ * @param {string} id
+ * @param {string} start
+ * @param {string} end
+ * @returns {string}
+ */
+export function updateProjectDuration(id, start, end) {
+  const query = start && end ? `?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}` : "";
+  return request(`/projects/${encodeURIComponent(id)}/duration${query}`, {method: "POST"});
+}
+
+  /*
  * Returns a success message and the updated project type
  *
  * @param {string} id
