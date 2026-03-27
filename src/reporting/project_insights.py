@@ -675,6 +675,136 @@ def list_skill_history(storage_path: PathLike = DEFAULT_STORAGE) -> List[Dict[st
     ]
 
 
+def group_project_histories(
+    storage_path: PathLike = DEFAULT_STORAGE,
+) -> Dict[str, List[ProjectInsight]]:
+    """
+    Group stored project insights into chronological histories by project name.
+
+    Args:
+        storage_path: Where insights are stored.
+
+    Returns:
+        Mapping of project name to that project's snapshots in chronological order.
+    """
+    grouped: Dict[str, List[ProjectInsight]] = {}
+    for insight in list_project_insights(storage_path):
+        grouped.setdefault(insight.project_name, []).append(insight)
+    return grouped
+
+
+def summarize_project_evolution(project_history: List[ProjectInsight]) -> Dict[str, Any]:
+    """
+    Summarize how a project's snapshots changed over time.
+
+    Args:
+        project_history: Snapshot entries for one project.
+
+    Returns:
+        Lightweight evolution evidence comparing the earliest and latest snapshot.
+    """
+    if not project_history:
+        return {
+            "project_name": "",
+            "snapshot_count": 0,
+            "first_analyzed_at": None,
+            "latest_analyzed_at": None,
+            "new_skills": [],
+            "new_languages": [],
+            "file_count_delta": 0,
+            "summary_changed": False,
+            "project_type_changed": False,
+        }
+
+    ordered = sorted(project_history, key=lambda item: _parse_analyzed_at(item.analyzed_at))
+    first = ordered[0]
+    latest = ordered[-1]
+
+    first_skills = set(first.skills or [])
+    latest_skills = set(latest.skills or [])
+    first_languages = set(first.languages or [])
+    latest_languages = set(latest.languages or [])
+
+    first_file_count = _safe_int((first.file_analysis or {}).get("file_count", 0))
+    latest_file_count = _safe_int((latest.file_analysis or {}).get("file_count", 0))
+
+    return {
+        "project_name": latest.project_name,
+        "snapshot_count": len(ordered),
+        "first_analyzed_at": first.analyzed_at,
+        "latest_analyzed_at": latest.analyzed_at,
+        "new_skills": sorted(latest_skills - first_skills),
+        "new_languages": sorted(latest_languages - first_languages),
+        "file_count_delta": latest_file_count - first_file_count,
+        "summary_changed": (first.summary or "").strip() != (latest.summary or "").strip(),
+        "project_type_changed": (first.project_type or "unknown") != (latest.project_type or "unknown"),
+    }
+
+
+def summarize_top_project_histories(
+    *,
+    storage_path: PathLike = DEFAULT_STORAGE,
+    contributor: Optional[str] = None,
+    top_n: int = 3,
+    allowed_project_names: Optional[Iterable[str]] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Build top-project summaries using the latest snapshot plus evolution evidence.
+
+    Args:
+        storage_path: Where insights are stored.
+        contributor: Optional contributor-specific ranking basis.
+        top_n: Maximum number of unique projects to return.
+        allowed_project_names: Optional set/list of project names to include.
+
+    Returns:
+        List of dictionaries, one per unique project.
+    """
+    if top_n <= 0:
+        return []
+
+    grouped = group_project_histories(storage_path=storage_path)
+    if not grouped:
+        return []
+
+    allowed_names_normalized = None
+    if allowed_project_names is not None:
+        allowed_names_normalized = {
+            str(name).strip().lower() for name in allowed_project_names if str(name).strip()
+        }
+        grouped = {
+            project_name: history for project_name, history in grouped.items()
+            if str(project_name).strip().lower() in allowed_names_normalized
+        }
+        if not grouped:
+            return []
+
+    project_cards: List[Dict[str, Any]] = []
+    for project_name, history in grouped.items():
+        ordered = sorted(history, key=lambda item: _parse_analyzed_at(item.analyzed_at))
+        latest = ordered[-1]
+        evolution = summarize_project_evolution(ordered)
+        project_cards.append({
+            "project_name": project_name,
+            "snapshot_count": len(ordered),
+            "score": latest.contribution_score(contributor),
+            "latest": latest.to_dict(),
+            "evolution": evolution,
+        })
+
+    ranked = sorted(
+        project_cards,
+        key=lambda item: (
+            -float(item["score"]),
+            -len((item["latest"].get("skills") or [])),
+            -_parse_analyzed_at(item["latest"].get("analyzed_at")).timestamp(),
+            -_safe_int((item["latest"].get("stats") or {}).get("top_contribution_count", 0)),
+            str(item["project_name"]).lower(),
+        ),
+    )
+    return ranked[:top_n]
+
+
 def summaries_for_top_ranked_projects(
     *,
     storage_path: PathLike = DEFAULT_STORAGE,
@@ -840,6 +970,9 @@ __all__ = [
     "list_project_insights",
     "rank_projects_by_contribution",
     "list_skill_history",
+    "group_project_histories",
+    "summarize_project_evolution",
+    "summarize_top_project_histories",
     "summaries_for_top_ranked_projects",
     "update_thumbnail_in_insights",      
     "remove_thumbnail_from_insights", 

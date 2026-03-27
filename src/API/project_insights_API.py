@@ -6,8 +6,10 @@ from src.reporting.project_insights import (
     list_project_insights,
     list_skill_history,
     rank_projects_by_contribution,
+    summarize_top_project_histories,
     summaries_for_top_ranked_projects,
 )
+from src.storage.saved_projects import list_saved_projects
 
 from src.core.app_context import runtimeAppContext
 from src.reporting.representation_preferences import apply_preferences
@@ -77,3 +79,29 @@ def return_insights_skills_chronological(skill: str | None = None, since_str: st
             filtered.append(entry)
         history = filtered
     return history
+
+@insights_router.get("/top-projects")
+def return_top_project_histories(top_n: int = 3, contributor: str | None = None, active_only: bool = False):
+    """
+    Return top unique projects using latest snapshot data plus evolution evidence.
+
+    Args:
+        top_n: Maximum number of unique projects to return.
+        contributor: Optional contributor name for contributor-specific ranking.
+        active_only: When true, rank only projects that still exist in saved project storage.
+
+    Returns:
+        List[dict]: Top unique project summaries with latest snapshot and evolution data.
+    """
+    storage_path = Path(runtimeAppContext.legacy_save_dir) / "project_insights.json"
+    allowed_project_names = None
+    if active_only:
+        allowed_project_names = [
+            path.stem for path in list_saved_projects(runtimeAppContext.default_save_dir)
+        ]
+    return summarize_top_project_histories(
+        storage_path=storage_path,
+        contributor=contributor,
+        top_n=top_n,
+        allowed_project_names=allowed_project_names,
+    )
