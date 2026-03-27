@@ -61,11 +61,13 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
   const a11yMenuRef = useRef(null);
   const a11yTriggerRef = useRef(null);
   const hasOpenedA11yRef = useRef(false);
+  const fetchingRef = useRef(false);
 
   const [flowLoading, setFlowLoading] = useState(true);
   const [flowError, setFlowError] = useState("");
   const [consentReady, setConsentReady] = useState(false);
   const [projectsReady, setProjectsReady] = useState(false);
+  const [consentVersion, setConsentVersion] = useState(0);
 
   useEffect(() => {
     const rawPrefs = window.localStorage.getItem(A11Y_STORAGE_KEY);
@@ -152,8 +154,17 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
   }, [isA11yMenuOpen]);
 
   useEffect(() => {
+    function onConsentUpdated() {
+      setConsentVersion((v) => v + 1);
+    }
+    window.addEventListener("consentUpdated", onConsentUpdated);
+    return () => window.removeEventListener("consentUpdated", onConsentUpdated);
+  }, []);
+
+  useEffect(() => {
     let ignore = false;
     async function loadFlowReadiness() {
+      fetchingRef.current = true;
       setFlowLoading(true);
       setFlowError("");
       try {
@@ -170,7 +181,10 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
           setFlowError("Some prerequisite checks could not be loaded. Backend may be offline.");
         }
       } finally {
-        if (!ignore) setFlowLoading(false);
+        if (!ignore) {
+          fetchingRef.current = false;
+          setFlowLoading(false);
+        }
       }
     }
 
@@ -178,16 +192,16 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [consentVersion]);
 
   useEffect(() => {
-    if (flowLoading || flowError) return;
+    if (fetchingRef.current || flowLoading || flowError) return;
+    if (!consentReady && pathname !== "/config") {
+      router.replace("/config");
+      return;
+    }
     const currentRoute = [...links, ...flowSteps].find((route) => route.href === pathname);
     if (currentRoute && !isRouteUnlocked(currentRoute, consentReady, projectsReady)) {
-      if (!consentReady) {
-        router.replace("/config");
-        return;
-      }
       if (!projectsReady) {
         router.replace("/upload");
       }

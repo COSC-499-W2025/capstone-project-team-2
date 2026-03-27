@@ -2093,6 +2093,17 @@ textarea::placeholder {
   margin-top: 0.18rem;
 }
 
+.consent-deny-warning {
+  margin: 0.5rem 0 0;
+  padding: 0.65rem 1rem;
+  border-radius: 6px;
+  border-left: 4px solid var(--status-missing-accent);
+  background: var(--status-missing-bg);
+  color: var(--status-missing-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
 .config-form .liquid-segmented {
   margin-top: 0.14rem;
 }

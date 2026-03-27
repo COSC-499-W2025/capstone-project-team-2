@@ -194,13 +194,14 @@ export function fetchConfig() {
  * Persists privacy consent settings.
  *
  * @param {boolean} externalAllowed Whether external integrations are allowed.
+ * @param {boolean} [dataAllowed=true] Whether local data processing is allowed.
  * @returns {Promise<any>}
  */
-export function saveConsent(externalAllowed) {
+export function saveConsent(externalAllowed, dataAllowed = true) {
   return request("/privacy-consent", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ data_consent: true, external_consent: externalAllowed })
+    body: JSON.stringify({ data_consent: dataAllowed, external_consent: externalAllowed })
   });
 }
 

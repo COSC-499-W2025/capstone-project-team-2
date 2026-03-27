@@ -231,13 +231,52 @@ test("saves config consent and profile details", async ({ page }) => {
   await page.goto("/config");
 
   await expect(page.getByRole("heading", { name: "User Configuration" })).toBeVisible();
-  await page.getByRole("button", { name: "A l l o w", exact: true }).click();
+  // Scope to the external consent control (second .config-consent-control) to avoid
+  // matching the local consent "Allow" button
+  await page.locator(".config-consent-control").nth(1).locator("button").first().click();
   await page.getByLabel("Full name").fill("Jane Doe");
   await page.getByRole("button", { name: "Save Configuration" }).click();
 
   await expect(page.getByText("Configuration saved.")).toBeVisible();
-  await expect(page.locator(".config-grid .settings-row").nth(0)).toContainText("Allow");
-  await expect(page.locator(".config-grid .settings-row").nth(1)).toContainText("Jane Doe");
+  // nth(0)=full-name input (Update Settings), nth(1)=local, nth(2)=external, nth(3)=name
+  await expect(page.locator(".config-grid .settings-row").nth(2)).toContainText("Allow");
+  await expect(page.locator(".config-grid .settings-row").nth(3)).toContainText("Jane Doe");
+});
+
+test("saved settings card shows last saved name, not live input value", async ({ page }) => {
+  await installApiMocks(page, {
+    config: { consented: { external: true, "Data consent": true }, "First Name": "Jane", "Last Name": "Doe" }
+  });
+
+  await page.goto("/config");
+
+  await expect(page.getByRole("heading", { name: "User Configuration" })).toBeVisible();
+  // Change the name input without saving
+  await page.getByLabel("Full name").fill("Not Saved Yet");
+
+  // Saved Settings should still show the original saved name
+  await expect(page.locator(".config-grid .settings-row").nth(3)).toContainText("Jane Doe");
+  await expect(page.locator(".config-grid .settings-row").nth(3)).not.toContainText("Not Saved Yet");
+});
+
+test("auto-corrects external consent to deny when local consent is deny on save", async ({ page }) => {
+  await installApiMocks(page, {
+    config: { consented: { external: false, "Data consent": true }, "First Name": "", "Last Name": "" }
+  });
+
+  await page.goto("/config");
+
+  // Set local to deny, external to allow
+  await page.locator(".config-consent-control").first().locator("button").last().click();
+  await page.locator(".config-consent-control").nth(1).locator("button").first().click();
+  await page.getByRole("button", { name: "Save Configuration" }).click();
+
+  // Shows red warning and still saves (both as deny)
+  await expect(page.getByText(/External tools consent requires local/)).toBeVisible();
+  await expect(page.getByText("Configuration saved.")).toBeVisible();
+  // Both saved settings rows should show "Do not allow"
+  await expect(page.locator(".config-grid .settings-row").nth(1)).toContainText("Do not allow");
+  await expect(page.locator(".config-grid .settings-row").nth(2)).toContainText("Do not allow");
 });
 
 test("uploads and analyzes a zip, then shows it on the dashboard", async ({ page }) => {
