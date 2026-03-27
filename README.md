@@ -210,7 +210,7 @@ python -m src.cli.main
 
 4. **Open the webpage and enjoy!**
    
-   - ctrl+click (or cmnd+click on Mac) the local http address
+   - ctrl+click (or cmd+click on Mac) the local http address
    - ![alt text](image-3.png)
 
 ## API Documentation
