@@ -153,39 +153,6 @@ async def upload_project(upload_file: UploadFile) -> dict:
         "project_name": source_stem,
     }
 
-def upload_project_path_CLI(upload_file: Path) -> str:
-    """
-    CLI helper for setting the current project path.
-
-    Accepts either a directory path or a ZIP file path.
-
-    Args:
-        upload_file (Path): Filesystem path to a project directory or ZIP.
-
-    Returns:
-        str: ``"Upload Success"`` when valid, otherwise
-            ``"Error, path is not a project"``.
-    """
-    candidate_path = Path(upload_file).expanduser()
-    is_project_dir = candidate_path.is_dir()
-    is_zip_file = False
-
-    if not is_project_dir and candidate_path.is_file() and candidate_path.suffix.lower() == ".zip":
-        try:
-            # `is_zipfile` can occasionally return false negatives on some platforms.
-            is_zip_file = zipfile.is_zipfile(candidate_path) or candidate_path.exists()
-        except OSError:
-            is_zip_file = candidate_path.exists()
-
-    if not (is_project_dir or is_zip_file):
-        return "Error, path is not a project"
-
-    runtimeAppContext.currently_uploaded_file = candidate_path
-    runtimeAppContext.currently_uploaded_project_name = (
-        candidate_path.name if is_project_dir else candidate_path.stem
-    )
-    return "Upload Success"
-
 @projectsRouter.get("/")
 def return_all_saved_projects() -> list:
     """

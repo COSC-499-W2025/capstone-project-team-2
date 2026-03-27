@@ -102,20 +102,6 @@ def test_upload_file_API_no_zip():
     body = response.json()
     assert "zip file" in body["detail"]
 
-def test_upload_project_CLI_dir():
-    """
-    Test ensures adding a directory as an uploaded file through the CLI non-fastapi method
-    """
-    path = Path(os.getcwd())
-    assert upload_project_path_CLI(path) == "Upload Success"
-
-def test_upload_project_CLI_zip():
-    """
-    Test ensures adding a zip file as an uploaded file through the CLI non-fastapi method
-    """
-    path = Path(os.getcwd()).absolute().resolve() / "test" / "TestZIPs" / "TEST.zip"
-    assert upload_project_path_CLI(path) == "Upload Success"
-
 def test_get_project_by_name_prefers_database(monkeypatch):
     """
     Ensures GET /projects/{id} returns DB data when available.

@@ -157,7 +157,7 @@ def build_portfolio_showcase(
 
 def display_portfolio_showcase(ps: PortfolioShowcase) -> None:
     """
-    Pretty-print portfolio showcase to CLI.
+    Pretty-print portfolio showcase to standard output.
 
     Args:
         ps (PortfolioShowcase): Portfolio showcase data.

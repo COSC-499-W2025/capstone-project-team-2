@@ -6,8 +6,8 @@ Responsibilities:
 - Filter insight objects by language, skill, or recency
 - Compute contribution-first ranking scores and expose rationale components
 
-These are used by menu_insights and can be reused anywhere we need consistent
-insight filtering and scoring logic.
+These helpers are reusable anywhere we need consistent insight filtering and
+scoring logic.
 """
 
 from __future__ import annotations
