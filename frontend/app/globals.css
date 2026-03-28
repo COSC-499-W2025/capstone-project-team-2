@@ -1982,6 +1982,327 @@ input[type="radio"] {
 }
 
 /* ==========================================================================
+   Liquid Glass Notifications
+   ========================================================================== */
+.liquid-notify-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 120;
+}
+
+.liquid-notify-stack {
+  position: fixed;
+  top: 0.9rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(92vw, 620px);
+  display: grid;
+  gap: 0.5rem;
+}
+
+.liquid-toast {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.62rem;
+  border-radius: 999px;
+  padding: 0.68rem 0.98rem;
+  color: var(--ink-0);
+  border: 1.5px solid rgba(0, 0, 0, 0.76);
+  background: color-mix(in srgb, var(--layer-status-card) 92%, #ffffff 8%);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  font-weight: 580;
+  letter-spacing: 0;
+  transform: translate3d(0, -56px, 0) scale(0.96);
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: liquid-toast-drop-in 560ms cubic-bezier(0.23, 1.03, 0.25, 1) both;
+}
+
+.liquid-toast::before {
+  content: none;
+}
+
+.liquid-toast.is-exit {
+  animation: liquid-toast-fall-out 700ms cubic-bezier(0.26, 0.62, 0.3, 1) forwards;
+}
+
+.liquid-toast-dot {
+  width: 0.56rem;
+  height: 0.56rem;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0, 0, 0, 0.72);
+  background: #7d838d;
+  transform: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55);
+}
+
+.liquid-toast--success {
+  border-color: #1d7f41;
+  background: #dff3e6;
+  box-shadow: inset 4px 0 0 #1d9b4f, 0 10px 20px rgba(0, 0, 0, 0.14);
+}
+
+.liquid-toast--warning {
+  border-color: #8f640f;
+  background: #faedcf;
+  box-shadow: inset 4px 0 0 #c6871a, 0 10px 20px rgba(0, 0, 0, 0.14);
+}
+
+.liquid-toast--error {
+  border-color: #9d2a34;
+  background: #f8dfe3;
+  box-shadow: inset 4px 0 0 #d04654, 0 10px 20px rgba(0, 0, 0, 0.14);
+}
+
+.liquid-toast--success .liquid-toast-dot {
+  background: #15833f;
+  border-color: #0f5e2c;
+}
+
+.liquid-toast--warning .liquid-toast-dot {
+  background: #b67610;
+  border-color: #7a4f0b;
+}
+
+.liquid-toast--error .liquid-toast-dot {
+  background: #b62f3d;
+  border-color: #7f212a;
+}
+
+.liquid-splash-zone {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0.8rem;
+  display: flex;
+  justify-content: center;
+}
+
+.liquid-splash {
+  position: absolute;
+  width: min(92vw, 380px);
+  height: 140px;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.liquid-splash .drop {
+  position: absolute;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--layer-status-card);
+  border: 1px solid #000000;
+  box-shadow: none;
+  will-change: transform, opacity;
+  animation: liquid-splash-rise 860ms linear forwards;
+}
+
+.liquid-splash--error .drop {
+  background: #efc4cb;
+  border-color: #9d2a34;
+}
+
+.liquid-splash--warning .drop {
+  background: #f3dbab;
+  border-color: #8f640f;
+}
+
+.liquid-splash--success .drop {
+  background: #cbe8d3;
+  border-color: #1d7f41;
+}
+
+.liquid-splash .drop-1 {
+  left: 50%;
+  --dx: -138px;
+  --dy: -112px;
+}
+
+.liquid-splash .drop-2 {
+  left: 50%;
+  --dx: -92px;
+  --dy: -94px;
+  animation-delay: 35ms;
+}
+
+.liquid-splash .drop-3 {
+  left: 50%;
+  --dx: 0px;
+  --dy: -128px;
+  animation-delay: 58ms;
+}
+
+.liquid-splash .drop-4 {
+  left: 50%;
+  --dx: 96px;
+  --dy: -96px;
+  animation-delay: 35ms;
+}
+
+.liquid-splash .drop-5 {
+  left: 50%;
+  --dx: 142px;
+  --dy: -114px;
+}
+
+.liquid-splash .drop-6 {
+  left: 50%;
+  --dx: -62px;
+  --dy: -130px;
+  animation-delay: 78ms;
+}
+
+.liquid-splash .drop-7 {
+  left: 50%;
+  --dx: 60px;
+  --dy: -132px;
+  animation-delay: 78ms;
+}
+
+.liquid-splash .drop-8 {
+  left: 50%;
+  --dx: -176px;
+  --dy: -84px;
+  animation-delay: 12ms;
+}
+
+.liquid-splash .drop-9 {
+  left: 50%;
+  --dx: 178px;
+  --dy: -86px;
+  animation-delay: 12ms;
+}
+
+@keyframes liquid-toast-drop-in {
+  0% {
+    transform: translate3d(0, -76px, 0) scale(0.9);
+    opacity: 0;
+  }
+  78% {
+    transform: translate3d(0, 0, 0) scale(1.01);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes liquid-toast-fall-out {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, calc(100dvh - 148px), 0) scale(0.7);
+    opacity: 0;
+  }
+}
+
+@keyframes liquid-splash-rise {
+  0% {
+    transform: translate(-50%, 0) scale(0.62);
+    opacity: 0.96;
+  }
+  60% {
+    transform: translate(calc(-50% + var(--dx, 0px)), var(--dy, -64px)) scale(1);
+    opacity: 0.86;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--dx, 0px) * 1.46), calc(var(--dy, -64px) * 1.46)) scale(0.1);
+    opacity: 0;
+  }
+}
+
+[data-theme="dark"] .liquid-toast--error {
+  color: var(--status-missing-text);
+}
+
+[data-theme="dark"] .liquid-toast {
+  color: #eaf2ff;
+  border-color: rgba(220, 229, 242, 0.6);
+  background: #263241;
+}
+
+[data-theme="dark"] .liquid-toast-dot {
+  border-color: rgba(220, 229, 242, 0.68);
+  box-shadow: 0 0 0 2px rgba(15, 24, 35, 0.66);
+}
+
+[data-theme="dark"] .liquid-toast--success {
+  border-color: #3f9d62;
+  background: #1f3528;
+  box-shadow: inset 4px 0 0 #56bf7a, 0 10px 20px rgba(0, 0, 0, 0.28);
+}
+
+[data-theme="dark"] .liquid-toast--warning {
+  border-color: #be8a2f;
+  background: #3a2f1a;
+  box-shadow: inset 4px 0 0 #d9a342, 0 10px 20px rgba(0, 0, 0, 0.28);
+}
+
+[data-theme="dark"] .liquid-toast--error {
+  border-color: #c04c5a;
+  background: #3f232a;
+  box-shadow: inset 4px 0 0 #e16776, 0 10px 20px rgba(0, 0, 0, 0.28);
+}
+
+[data-theme="dark"] .liquid-toast--success .liquid-toast-dot {
+  background: #56bf7a;
+  border-color: #3f9d62;
+}
+
+[data-theme="dark"] .liquid-toast--warning .liquid-toast-dot {
+  background: #d9a342;
+  border-color: #be8a2f;
+}
+
+[data-theme="dark"] .liquid-toast--error .liquid-toast-dot {
+  background: #e16776;
+  border-color: #c04c5a;
+}
+
+[data-theme="dark"] .liquid-splash--success .drop {
+  background: #2f4f3a;
+  border-color: #56bf7a;
+}
+
+[data-theme="dark"] .liquid-splash--warning .drop {
+  background: #4a3b21;
+  border-color: #d9a342;
+}
+
+[data-theme="dark"] .liquid-splash--error .drop {
+  background: #4b2b33;
+  border-color: #e16776;
+}
+
+.a11y-reduced-motion .liquid-toast {
+  animation: none !important;
+  transform: translate3d(0, 0, 0) scale(1) !important;
+  opacity: 1 !important;
+}
+
+.a11y-reduced-motion .liquid-toast.is-exit {
+  animation: none !important;
+  transition: opacity 180ms linear;
+  opacity: 0 !important;
+}
+
+.a11y-reduced-motion .liquid-splash .drop {
+  animation: none !important;
+}
+
+/* ==========================================================================
    Sub-card Blocks + Data Views
    ========================================================================== */
 .sub-card {
