@@ -66,6 +66,8 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
   const [flowError, setFlowError] = useState("");
   const [consentReady, setConsentReady] = useState(false);
   const [projectsReady, setProjectsReady] = useState(false);
+  const fetchingRef = useRef(true);
+  const [consentVersion, setConsentVersion] = useState(0);
 
   useEffect(() => {
     const rawPrefs = window.localStorage.getItem(A11Y_STORAGE_KEY);
@@ -153,6 +155,7 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
 
   useEffect(() => {
     let ignore = false;
+    fetchingRef.current = true;
     async function loadFlowReadiness() {
       setFlowLoading(true);
       setFlowError("");
@@ -170,7 +173,10 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
           setFlowError("Some prerequisite checks could not be loaded. Backend may be offline.");
         }
       } finally {
-        if (!ignore) setFlowLoading(false);
+        if (!ignore) {
+          fetchingRef.current = false;
+          setFlowLoading(false);
+        }
       }
     }
 
@@ -178,16 +184,24 @@ export function LiquidShell({ title, subtitle, children, rightSlot }) {
     return () => {
       ignore = true;
     };
+  }, [pathname, consentVersion]);
+
+  useEffect(() => {
+    function onConsentUpdated() {
+      setConsentVersion((v) => v + 1);
+    }
+    window.addEventListener("consentUpdated", onConsentUpdated);
+    return () => window.removeEventListener("consentUpdated", onConsentUpdated);
   }, []);
 
   useEffect(() => {
-    if (flowLoading || flowError) return;
+    if (fetchingRef.current || flowLoading || flowError) return;
+    if (!consentReady && pathname !== "/config") {
+      router.replace("/config");
+      return;
+    }
     const currentRoute = [...links, ...flowSteps].find((route) => route.href === pathname);
     if (currentRoute && !isRouteUnlocked(currentRoute, consentReady, projectsReady)) {
-      if (!consentReady) {
-        router.replace("/config");
-        return;
-      }
       if (!projectsReady) {
         router.replace("/upload");
       }

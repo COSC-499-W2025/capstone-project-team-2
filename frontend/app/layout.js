@@ -1,4 +1,5 @@
 import "./globals.css";
+import LiquidGlassNotifier from "../components/LiquidGlassNotifier";
 
 /**
  * Root layout module metadata.
@@ -21,7 +22,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" data-theme="light" style={{ colorScheme: "light" }} suppressHydrationWarning>
-      <body>{children}</body>
+      <body>
+        {children}
+        <LiquidGlassNotifier />
+      </body>
     </html>
   );
 }

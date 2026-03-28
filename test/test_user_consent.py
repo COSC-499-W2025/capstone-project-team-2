@@ -1,151 +1,53 @@
-import unittest
-from unittest.mock import patch
-import sys
 from pathlib import Path
 
-# Add the src directory to the Python path
-sys.path.append(str(Path(__file__).parent.parent))
-from src.config.user_consent import UserConsent
+import pytest
 
-class TestUserConsent(unittest.TestCase):
-    def setUp(self):
-        """Set up test cases"""
-        self.consent_manager = UserConsent()
-
-    def test_default_consents_are_false(self):
-        """Test that both consents are False by default"""
-        data_consent, external_consent = self.consent_manager.check_consent()
-        self.assertFalse(data_consent)
-        self.assertFalse(external_consent)
-
-    def test_check_consent_returns_both_states(self):
-        """Test that check_consent returns both consent states"""
-        data_consent, external_consent = self.consent_manager.check_consent()
-        self.assertFalse(data_consent)
-        self.assertFalse(external_consent)
-
-        self.consent_manager.has_data_consent = True
-        self.consent_manager.has_external_consent = True
-        data_consent, external_consent = self.consent_manager.check_consent()
-        self.assertTrue(data_consent)
-        self.assertTrue(external_consent)
-
-    def test_revoke_consent(self):
-        """Test that revoking consent sets both to False by default"""
-        self.consent_manager.has_data_consent = True
-        self.consent_manager.has_external_consent = True
-        self.consent_manager.revoke_consent()
-        data_consent, external_consent = self.consent_manager.check_consent()
-        self.assertFalse(data_consent)
-        self.assertFalse(external_consent)
-
-    def test_revoke_data_consent_only(self):
-        """Test revoking only data consent"""
-        self.consent_manager.has_data_consent = True
-        self.consent_manager.has_external_consent = True
-        self.consent_manager.revoke_consent(include_external=False)
-        data_consent, external_consent = self.consent_manager.check_consent()
-        self.assertFalse(data_consent)
-        self.assertTrue(external_consent)
-
-    @patch('builtins.input', side_effect=['y', 'y'])
-    def test_full_consent_flow(self, mock_input):
-        """Test granting both data and external services consent"""
-        self.assertTrue(self.consent_manager.ask_for_consent())
-        data_consent, external_consent = self.consent_manager.check_consent()
-        self.assertTrue(data_consent)
-        self.assertTrue(external_consent)
-
-    @patch('builtins.input', side_effect=['y', 'n', 'y'])
-    def test_data_only_consent_flow(self, mock_input):
-        """Test granting data consent but declining external with basic continue"""
-        self.assertTrue(self.consent_manager.ask_for_consent())
-        data_consent, external_consent = self.consent_manager.check_consent()
-        self.assertTrue(data_consent)
-        self.assertFalse(external_consent)
-
-    @patch('builtins.input', side_effect=['y', 'n', 'n'])
-    def test_decline_basic_analysis(self, mock_input):
-        """Test declining to continue with basic analysis"""
-        self.assertFalse(self.consent_manager.ask_for_consent())
-        data_consent, external_consent = self.consent_manager.check_consent()
-        self.assertFalse(data_consent)
-        self.assertFalse(external_consent)
-
-    @patch('builtins.input', side_effect=['n', 'y'])
-    def test_initial_data_consent_denied(self, mock_input):
-        """Test denying initial data consent"""
-        self.assertFalse(self.consent_manager.ask_for_consent())
-        data_consent, external_consent = self.consent_manager.check_consent()
-        self.assertFalse(data_consent)
-        self.assertFalse(external_consent)
-
-    @patch('builtins.input', side_effect=['invalid', 'y', 'y'])
-    def test_invalid_data_consent_input(self, mock_input):
-        """Test invalid input for data consent followed by full consent"""
-        self.assertTrue(self.consent_manager.ask_for_consent())
-        data_consent, external_consent = self.consent_manager.check_consent()
-        self.assertTrue(data_consent)
-        self.assertTrue(external_consent)
-
-    @patch('builtins.input', side_effect=['y', 'invalid', 'y'])
-    def test_invalid_external_consent_input(self, mock_input):
-        """Test invalid input for external consent"""
-        self.assertTrue(self.consent_manager.ask_for_consent())
-        data_consent, external_consent = self.consent_manager.check_consent()
-        self.assertTrue(data_consent)
-        self.assertTrue(external_consent)
-
-    @patch('builtins.input', side_effect=['y', 'n', 'invalid', 'y'])
-    def test_invalid_basic_analysis_input(self, mock_input):
-        """Test invalid input when asking about basic analysis"""
-        self.assertTrue(self.consent_manager.ask_for_consent())
-        data_consent, external_consent = self.consent_manager.check_consent()
-        self.assertTrue(data_consent)
-        self.assertFalse(external_consent)
-
-    @patch('src.config.user_consent.show_consent_file')  
-    @patch('builtins.input', side_effect=['view', 'y', 'y'])  
-    def test_view_then_full_consent(self, mock_input, mock_show):
-        """
-        User views policy at data-consent prompt, then grants both consents.
-        """
-        uc = UserConsent()
-        ok = uc.ask_for_consent()
-        self.assertTrue(ok)
-        dc, ec = uc.check_consent()
-        self.assertTrue(dc)
-        self.assertTrue(ec)
-        mock_show.assert_called()
-
-    @patch('src.config.user_consent.show_consent_file')
-    @patch('builtins.input', side_effect=['y', 'view', 'y'])
-    def test_view_at_external_prompt_then_yes(self, mock_input, mock_show):
-        """
-        User grants data consent, views policy at external prompt, then accepts external.
-        """
-        uc = UserConsent()
-        ok = uc.ask_for_consent()
-        self.assertTrue(ok)
-        dc, ec = uc.check_consent()
-        self.assertTrue(dc)
-        self.assertTrue(ec)
-        mock_show.assert_called()
-
-    @patch('src.config.user_consent.show_consent_file')
-    @patch('builtins.input', side_effect=['y', 'n', 'view', 'y'])
-    def test_view_at_basic_confirm_then_continue_locally(self, mock_input, mock_show):
-        """
-        User declines external, views policy at the confirm prompt, then continues with local-only.
-        """
-        uc = UserConsent()
-        ok = uc.ask_for_consent()
-        self.assertTrue(ok)
-        dc, ec = uc.check_consent()
-        self.assertTrue(dc)
-        self.assertFalse(ec)
-        mock_show.assert_called()
+from src.config.user_consent import UserConsent, consent_document_path, read_consent_file
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_default_consents_are_false():
+    uc = UserConsent()
+    assert uc.check_consent() == (False, False)
+
+
+def test_set_consent_allows_data_only():
+    uc = UserConsent()
+    uc.set_consent(data_consent=True, external_consent=False)
+    assert uc.check_consent() == (True, False)
+
+
+def test_set_consent_allows_data_and_external():
+    uc = UserConsent()
+    uc.set_consent(data_consent=True, external_consent=True)
+    assert uc.check_consent() == (True, True)
+
+
+def test_set_consent_rejects_external_without_data():
+    uc = UserConsent()
+    with pytest.raises(ValueError):
+        uc.set_consent(data_consent=False, external_consent=True)
+
+
+def test_revoke_consent_defaults_to_both():
+    uc = UserConsent(has_data_consent=True, has_external_consent=True)
+    uc.revoke_consent()
+    assert uc.check_consent() == (False, False)
+
+
+def test_revoke_data_only_keeps_external_state():
+    uc = UserConsent(has_data_consent=True, has_external_consent=True)
+    uc.revoke_consent(include_external=False)
+    assert uc.check_consent() == (False, True)
+
+
+def test_consent_document_path_points_to_repo_file():
+    path = consent_document_path()
+    assert path.name == "consent_document.md"
+    assert isinstance(path, Path)
+
+
+def test_read_consent_file_returns_content():
+    content = read_consent_file()
+    assert isinstance(content, str)
+    assert len(content) > 0
+

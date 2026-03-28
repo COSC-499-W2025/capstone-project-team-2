@@ -1074,6 +1074,20 @@ class TestAddProjectAIWithOverrides(_BaseResumeTest):
             self.assertIsNone(proj.start_date)
             self.assertIsNone(proj.end_date)
 
+    def test_blocked_when_external_consent_false(self):
+        """Returns 403 when external_consent is False on runtimeAppContext."""
+        self.mock_ctx.external_consent = False
+        self.mock_ctx.data_consent = True
+        resp = self.client.post("/resume/test_abc123/add/project/MyProject/ai")
+        self.assertEqual(resp.status_code, 403)
+
+    def test_blocked_when_data_consent_false(self):
+        """Returns 403 when data_consent is False on runtimeAppContext."""
+        self.mock_ctx.external_consent = True
+        self.mock_ctx.data_consent = False
+        resp = self.client.post("/resume/test_abc123/add/project/MyProject/ai")
+        self.assertEqual(resp.status_code, 403)
+
 
 if __name__ == "__main__":
     unittest.main()
