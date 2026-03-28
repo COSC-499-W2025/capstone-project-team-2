@@ -10,7 +10,7 @@ if not exist "python\Lib\site-packages\uvicorn" (
     python\Scripts\pip.exe install -r src/requirements.txt --target python\Lib\site-packages
     echo Setup complete!
 )
-start "" cmd /c "timeout /t 15 /nobreak >nul && start http://127.0.0.1:8000"
+start "" http://127.0.0.1:8000
 python\python.exe -m uvicorn src.API.general_API:app --host 127.0.0.1 --port 8000
 echo Server stopped.
 pause
