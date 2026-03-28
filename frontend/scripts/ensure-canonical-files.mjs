@@ -58,6 +58,7 @@ function restoreCanonical({ dirPath, canonicalName, fallbackPattern }) {
 const appDir = join(process.cwd(), "app");
 const componentsDir = join(process.cwd(), "components");
 const nextBuildDir = join(process.cwd(), ".next");
+const lifecycleEvent = process.env.npm_lifecycle_event || "";
 
 restoreCanonical({
   dirPath: join(appDir, "upload"),
@@ -77,9 +78,9 @@ restoreCanonical({
   fallbackPattern: /^LiquidShell \d+\.jsx$/
 });
 
-// Clear stale build artifacts before dev/build/start to avoid intermittent
-// route-file ENOENT issues in .next/server/app/* during hot reload.
-if (existsSync(nextBuildDir)) {
+// Clear stale build artifacts only for predev to avoid removing a valid
+// production build right before `next start`.
+if (lifecycleEvent === "predev" && existsSync(nextBuildDir)) {
   rmSync(nextBuildDir, { recursive: true, force: true });
   console.log("[fix] cleared stale .next build cache");
 }
