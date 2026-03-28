@@ -77,6 +77,44 @@ def test_analysis_API_remove_duplicates_query_passthrough(monkeypatch, tmp_path)
     assert captured["project_name"] == "stable_project"
 
 
+def test_analysis_API_sanitizes_project_name_query(monkeypatch, tmp_path):
+    """Project name query should be normalized before reaching analysis service."""
+    project_dir = tmp_path / "proj"
+    project_dir.mkdir()
+    runtimeAppContext.currently_uploaded_file = project_dir
+    runtimeAppContext.currently_uploaded_project_name = "ignored_here"
+    captured = {"project_name": None}
+
+    def fake_analyze(folder, use_ai_analysis=False, project_name=None, remove_duplicates=True):
+        captured["project_name"] = project_name
+        return {"dedup": {}, "snapshots": []}
+
+    monkeypatch.setattr(analysis_api_mod, "analyze_project", fake_analyze)
+    response = test_client.get("/analyze?project_name=Sam/http")
+    assert response.status_code == 200
+    assert captured["project_name"] == "Sam_http"
+    assert response.json()["project_name"] == "Sam_http"
+
+
+def test_analysis_API_uses_folder_name_when_no_project_names(monkeypatch, tmp_path):
+    """When names are absent, derive from folder path before sanitization."""
+    project_dir = tmp_path / "my demo project"
+    project_dir.mkdir()
+    runtimeAppContext.currently_uploaded_file = project_dir
+    runtimeAppContext.currently_uploaded_project_name = None
+    captured = {"project_name": None}
+
+    def fake_analyze(folder, use_ai_analysis=False, project_name=None, remove_duplicates=True):
+        captured["project_name"] = project_name
+        return {"dedup": {}, "snapshots": []}
+
+    monkeypatch.setattr(analysis_api_mod, "analyze_project", fake_analyze)
+    response = test_client.get("/analyze")
+    assert response.status_code == 200
+    assert captured["project_name"] == "my_demo_project"
+    assert response.json()["project_name"] == "my_demo_project"
+
+
 def test_analyze_without_uploaded_file_returns_400():
     """
     Ensures GET /analyze returns 400 when no upload was set.

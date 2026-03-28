@@ -3,6 +3,7 @@ import zipfile
 import os, time
 import tempfile
 from pathlib import Path
+from pathlib import PurePosixPath
 from fastapi import UploadFile
 
 
@@ -19,6 +20,7 @@ class extractInfo:
     BAD_FILE_ERROR_TEXT = "Error! Zip file contains bad file: "
     BAD_ZIP_ERROR_TEXT = "Error! Zip file is bad!"
     CORRUPT_FILE_ERROR_TEXT = "Error! Corrupt file detected - invalid header: "
+    UNSAFE_ARCHIVE_PATH_ERROR_TEXT = "Error! Zip file contains unsafe path: "
 
     # Magic bytes for file type validation
     MAGIC_BYTES = {
@@ -88,18 +90,36 @@ class extractInfo:
 
         temp_file_path = self._build_extraction_dir(file_name)
         with zipfile.ZipFile(file, 'r') as zip_ref:
-            zip_ref.extractall(temp_file_path)
+            for member in zip_ref.infolist():
+                zip_ref.extract(member, temp_file_path)
         self.RestoreTimestampsOfZipContents(zip_file, temp_file_path)
         return temp_file_path
 
     def RestoreTimestampsOfZipContents(self, zipname, extract_dir):
+        base_dir = Path(extract_dir).resolve()
         for f in zipfile.ZipFile(zipname, 'r').infolist():
             # path to this extracted f-item
-            fullpath = os.path.join(extract_dir, f.filename)
+            fullpath = Path(os.path.join(extract_dir, f.filename)).resolve()
+            try:
+                fullpath.relative_to(base_dir)
+            except ValueError:
+                continue
             # still need to adjust the dt o/w item will have the current dt
             date_time = time.mktime(f.date_time + (0, 0, -1))
             # update dt
             os.utime(fullpath, (date_time, date_time))
+
+    @staticmethod
+    def _has_unsafe_zip_path(name: str) -> bool:
+        normalized = (name or "").replace("\\", "/")
+        if not normalized:
+            return False
+        if normalized.startswith("/") or normalized.startswith("../"):
+            return True
+        if len(normalized) >= 2 and normalized[1] == ":":
+            return True
+        parts = PurePosixPath(normalized).parts
+        return any(part == ".." for part in parts)
 
     def verifyZIP(self, zip_file: Path | UploadFile) -> str | None:
         """
@@ -122,6 +142,9 @@ class extractInfo:
             with zipfile.ZipFile(file, 'r') as zip_test:
                 bad_file = zip_test.testzip()   #Checks for corruption in zip file
                 if (bad_file == None):
+                    for member in zip_test.infolist():
+                        if self._has_unsafe_zip_path(member.filename):
+                            return self.UNSAFE_ARCHIVE_PATH_ERROR_TEXT + member.filename
                     return None
                 return self.BAD_FILE_ERROR_TEXT + bad_file
         except zipfile.BadZipFile:  #Catches corrupted zip files

@@ -113,6 +113,27 @@ def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypat
     except Exception as e:
         print(f"Test PASSED - Got exception: {type(e).__name__}: {e}")
         assert True
+
+
+def test_export_json_sanitizes_filename_stem(monkeypatch):
+    """Unsafe path characters in project names must be removed before persistence."""
+    captured = {}
+
+    class FakeSaver:
+        def saveAnalysis(self, project_name, analysis, out_dir):
+            captured["project_name"] = project_name
+
+    def fake_insert(filename, analysis):
+        captured["filename"] = filename
+        return ("ok", False)
+
+    monkeypatch.setattr(mod, "SaveFileAnalysisAsJSON", lambda: FakeSaver())
+    monkeypatch.setattr(runtimeAppContext.store, "insert_json", fake_insert)
+
+    result = mod.export_json("../Sam/http", {"ok": True})
+    assert result["skipped"] is False
+    assert captured["project_name"] == "Sam_http"
+    assert captured["filename"] == "Sam_http.json"
         
         
 def test_oop_analysis_runs(tmp_path, monkeypatch):

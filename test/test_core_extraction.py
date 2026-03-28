@@ -81,3 +81,12 @@ def test_run_extraction_corrupt_internal_zip_returns_corrupt_file_error():
     assert text is not None
     assert extractInfo.CORRUPT_FILE_ERROR_TEXT in text
 
+
+def test_verifyzip_rejects_unsafe_archive_path(tmp_path):
+    unsafe_zip = tmp_path / "unsafe.zip"
+    with zipfile.ZipFile(unsafe_zip, "w") as zf:
+        zf.writestr("../evil.txt", "pwn")
+
+    text = extractInfo().verifyZIP(unsafe_zip)
+    assert text is not None
+    assert extractInfo.UNSAFE_ARCHIVE_PATH_ERROR_TEXT in text
