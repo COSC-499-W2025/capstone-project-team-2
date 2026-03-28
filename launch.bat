@@ -1,7 +1,7 @@
 chcp 65001 >nul
 set PYTHONIOENCODING=utf-8
 set PYTHONNOUSERSITE=1
-title DevDoc
+title Capstone2
 cd /d "%~dp0"
 echo Starting Capstone2...
 if not exist "python\Lib\site-packages\uvicorn" (
