@@ -1,4 +1,5 @@
 ## Term 2 Links
+- [Weeks 11–12 (16/03/2026 – 29/03/2026)](#week-2026-03-16-29)
 - [Week 10 (09/03/2026 – 15/03/2026)](#week-2026-03-09)
 - [Week 9 (02/03/2026 – 08/03/2026)](#week-2026-03-02)
 - [Week 6 + Week 7 (Reading Break) + Week 8 (09/02/2026 – 01/03/2026)](#week-2026-02-09)
@@ -6,6 +7,78 @@
 - [Week 3 (19/01/2026 – 25/01/2026)](#week-2026-01-19)
 - [Week 2 (12/01/2026 – 18/01/2026)](#week-2026-01-12)
 - [Week 1 (05/01/2026 – 11/01/2026)](#week-2026-01-05)
+
+# Sprint Log: Weeks 11–12 (16/03/2026 – 29/03/2026) <a id="week-2026-03-16-29"></a>
+
+---
+
+<p align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=20&pause=1000&color=0EA5E9&center=true&vCenter=true&width=900&lines=Capstone+Final+Week+Complete;End+of+an+Era+-+Weeks+11%E2%80%9312+Wrap-up" alt="Animated capstone wrap-up banner" />
+</p>
+
+## Peer Evaluation
+![Peer evaluation screenshot](../peer_eval_screenshots/29-03-2026_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Summary
+### Coding tasks
+| PR | Area | Details |
+| --- | --- | --- |
+| #634 | Backend/Security | Sanitized `analysis project_name`, blocked unsafe ZIP member paths, and added regression coverage. |
+| #639 | Refactor/Docs | Removed legacy CLI modules/tests and aligned project flow/docs to FastAPI + Next.js. |
+| #632 | Backend/API | Sanitized generated resume/portfolio IDs to prevent unsafe path-like values. |
+| #619 | Frontend UX | Synced dashboard with `/representation/projects`; improved inline filters and private/public control behavior. |
+| #618 | Frontend Refactor | Scoped private/public mode to dashboard workflows and kept builder authoring-only. |
+| #612 | Documentation | Published WCAG 2.2 evidence, checklist status, and sign-off summary. |
+| #610 | Accessibility/CI | Added audited-route WCAG fixes, Playwright a11y/sign-off tests, and CI gating. |
+| #607 | Accessibility UX | Added persisted `darkMode` preference and redesigned workflow status UI. |
+| #602 | Accessibility UX | Added anchored accessibility controls with persistent preferences and navbar compatibility fixes. |
+| #598 | Frontend UX | Switched render controls to action-specific loading and clarified status action label. |
+| #597 | Backend/RenderCV | Sanitized RenderCV metadata/filename handling to fix slash-related preview failures. |
+| #594 | Frontend UX | Enforced guided workflow prerequisites and added phase-based progress UI. |
+| #569 | Refactor/Docs | Removed Streamlit UI/runtime dependencies and aligned docs/tests to Next.js frontend. |
+| #565 | Frontend Refactor | Unified shared styles into a single light-theme system and reduced style duplication. |
+| #550 | Backend + Frontend | Fixed representation empty-state response and hardened save/refresh behavior. |
+
+### Testing or debugging tasks
+| Scope | Verification | Related PRs |
+| --- | --- | --- |
+| Backend/API/Security | `test/test_extraction.py`, `test/test_analysis_API.py`, `test/test_analysis_service.py` for filename sanitization + ZIP path validation. | #634 |
+| Backend/API | `test/test_resume_generator_API.py`, `test/test_portfolio_generator_API.py` for slash-safe ID generation. | #632 |
+| Backend/RenderCV | `test/test_Generate_Render_CV_Resume.py` for metadata stripping + safe output lookup. | #597 |
+| Frontend e2e | `npm --prefix frontend run test:e2e -- milestone3-flows.spec.js` for mode scope and dashboard/settings sync. | #618, #619 |
+| Frontend UI | `npm --prefix frontend test` + manual workspace checks for render/loading/status label behavior. | #598 |
+| Frontend + API | `npm test --prefix frontend` + representation API/backend checks for empty-state/save-flow reliability. | #550 |
+| Accessibility | `npm run test:a11y`, `npm run test:signoff`, plus CI gating for audited routes. | #610 |
+| Accessibility UX | `cd frontend && npm test` + manual keyboard/focus/zoom/reflow/persistence checks. | #602, #607 |
+
+### Reviewing or collaboration tasks
+| PR | Author | Review focus |
+| --- | --- | --- |
+| #630 | Graves067 | Projects page QoL changes |
+| #627 | ssmith86 | Consent form visibility and control status updates |
+| #623 | Weebtrain | Frontend + API support for project duration updates |
+| #622 | mahigangal | Top-3 project process-evolution evidence |
+| #608 | ThunderIW | Awards UI implementation and minor UI updates |
+| #591 | mahigangal | Representation deleted-project handling + progress indicator |
+| #575 | ThunderIW | Personal log update |
+| #574 | ssmith86 | Thumbnail bug fix |
+| #572 | ThunderIW | Personal log update |
+| #556 | ThunderIW | Awards section in resume data model/UI API |
+| #554 | ThunderIW | RenderCV/data persistence fixes + minor UI updates |
+
+### Connection to last week
+- Continued directly from Week 10’s Next.js migration and UI standardization by focusing on workflow polish, accessibility compliance, dashboard/settings coherence, and release hardening.
+
+### Plan / goals for next period
+- Course complete: this was the final week of the capstone, so no additional sprint goals are planned.
+- Final handoff focus: ensure submitted documentation and logs accurately reflect delivered work.
+
+### Issues / blockers
+- No major blockers; primary challenge was coordinating parallel merges across frontend UX, accessibility, and refactoring/security tracks.
+
+## ====================================================
 
 # Sprint Log: Week 10 (09/03/2026 – 15/03/2026) <a id="week-2026-03-09"></a>
 
