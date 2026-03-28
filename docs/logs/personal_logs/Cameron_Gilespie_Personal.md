@@ -1,3 +1,63 @@
+## Dates of Sprint: (03/15/2026 – 03/29/2026)
+
+### Peer Eval Screenshot:
+
+<img width="1092" height="626" alt="image" src= "https://github.com/COSC-499-W2025/capstone-project-team-2/blob/Cameron-Personal-Logs/docs/logs/peer_eval_screenshots/PL_Cameron_Final.png" />
+
+
+### Features Worked on this sprint (Provide sufficient detail)
+  * #1: Projects page QOL changes
+
+
+
+
+
+### Tasks for Prior Week
+  * #1: Batch uploading
+
+
+
+
+
+## Associated Tasks from Project Board:
+
+| Description        | Status   |
+| ------------------ | -------- |
+| [Projects page QOL changes]  | [Complete] |
+| [Batch uploading]  | [Complete] |
+
+
+## Published PRs (Excluding PL/TLs)
+ * [Projects page QOL changes](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/630)
+ * [Batch uploading](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/580)
+
+
+
+
+## Reviewed PRs
+  * [Readme update m3](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/636)
+  * [Project type manual update](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/624)
+  * [Frontend and API for project duration update](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/623)
+  * [Add dark mode accessibility preference and overhaul workflow status UX](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/607)
+  * [Remove Streamlit UI/runtime dependency and align docs/tests for Next.js frontend](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/569)
+  * [Frontend UI unification: single light theme, shared styles, consistency and performance improvements](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/565)
+  * [added thumbnail upload to frontend on project management page](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/561)
+  * [Add awards section to resume data model and UI API](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/556)
+  * [Fixed the issue with renderCV + data persistence + some minor UI fix](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/554)
+  * [Fix representation empty state API response and harden frontend save/refresh behavior](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/550)
+
+
+---
+## Next week goals
+- N/A
+
+### Extra Details:
+
+<details>
+No additional details to add, Long and tough road has now been completed. I am very proud of the work myself and the team has put forth. I made some final Quality of life changes in this past 2 weeks.
+  
+</details>
+
 ## Dates of Sprint: (03/08/2026 – 03/15/2026)
 
 ### Peer Eval Screenshot:
