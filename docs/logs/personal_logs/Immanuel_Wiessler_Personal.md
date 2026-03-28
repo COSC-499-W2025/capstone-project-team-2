@@ -4,6 +4,7 @@
 
 ## Quick Navigation
 ### Term 2
+- [Week 26 (03/23/2026 – 03/29/2026)](#-personal-log--week-26-03232026--03292026)
 - [Week 25 (03/16/2026 – 03/22/2026)](#-personal-log--week-25-03162026--03222026)
 - [Week 24 (03/09/2026 – 03/15/2026)](#-personal-log--week-24-03092026--03152026)
 - [Week 23 (03/02/2026 – 03/08/2026)](#-personal-log--week-23-03022026--03082026)
@@ -2201,5 +2202,97 @@ Overall, this week struck a good balance between shipping my own features and su
 ## 🧠 Reflection on Previous Cycle (Week 25)
 
 Week 25 was focused on resolving a critical RenderCV rendering bug caused by the `created_at` field polluting generated YAML files, and extending the resume data model with an awards section backed by 7 new pytest cases. On the review side, it was one of the heavier weeks — I reviewed six PRs spanning thumbnail uploads, empty state fixes, button renaming, frontend UI unification, the Streamlit-to-Next.js migration cleanup, and a thumbnail bug fix. Overall, the week struck a good balance between shipping features and supporting the team through reviews, setting the stage for the final milestone 3 push and the completion of the capstone project.
+
+---
+
+# 📝 Personal Log – Week 26 (03/23/2026 – 03/29/2026)
+
+## 📊 Peer Evaluation
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/2026-03-27.png)
+
+---
+
+## 🔗 Connection to Previous Week
+
+Following Week 25's goals to implement the final UI elements and prepare for the milestone 3 submission, this week focused on building out the awards section UI for the resume workspace (PR #608), adding skill proficiency controls, and refining the overall workspace layout — completing the remaining frontend work needed ahead of the milestone 3 deadline.
+
+---
+
+## 🚀 Work Completed
+
+### Coding Tasks
+- Opened PR: [571 UI implementation for awards and minor UI changes #608](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/608)
+  - Implemented full CRUD UI for awards management in the resume workspace
+  - Added skill proficiency level endpoints and inline controls for both resume and portfolio APIs
+  - Added optional date override parameters (`start_date`/`end_date`) for AI-generated project entries
+  - Removed trailing "etc." artifacts from AI-rendered skill details for cleaner resume/portfolio output
+  - UI refinements: button alignment, section spacing, and layout consistency across the workspace page
+  - Updated `API_ENDPOINTS.md` to document all new endpoints and clarify field types
+
+### Testing/Debugging Tasks
+- Wrote frontend Node tests for all new API client functions (`resume_and_portfolio_api.test.js`)
+- Wrote backend pytest cases covering award CRUD, skill proficiency levels, and date override endpoints
+- Manually verified edge cases, button alignment, and layout consistency across desktop
+
+
+### Reviewing/Collaboration Tasks
+- Reviewed PR (1st Reviewer): [Publish WCAG 2.2 evidence and sign-off documentation #612](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/612)
+- Reviewed PR (1st Reviewer): [Refactor mode scope: dashboard-only private/public, builder authoring-only #618](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/618)
+- Reviewed PR (1st Reviewer): [Sync Project Settings with Dashboard and Redesign Dashboard Controls UX #619](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/619)
+- Reviewed PR (1st Reviewer): [Made consent form viewable and fixed controls to include consent status #627](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/627)
+- Reviewed PR (2nd Reviewer): [Sanitize generated resume/portfolio IDs and add regressions #632](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/632)
+
+---
+
+## 📌 Associated Tasks from Project Board
+- [Awards Section UI #571](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/571)
+- [#504](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/504)
+- [#503](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/503)
+
+---
+
+## 📈 Progress Update
+
+| Task/Issue | Status |
+|------------|--------|
+| **571 UI implementation for awards and minor UI changes (PR #608)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Awards Section UI (#571)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **#504** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **#503** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Publish WCAG 2.2 evidence and sign-off documentation (PR #612)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Refactor mode scope: dashboard-only private/public, builder authoring-only (PR #618)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Sync Project Settings with Dashboard and Redesign Dashboard Controls UX (PR #619)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Made consent form viewable and fixed controls to include consent status (PR #627)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+| **Reviewed Sanitize generated resume/portfolio IDs and add regressions (PR #632)** | ![Complete](https://img.shields.io/badge/Status-Complete-green) |
+
+---
+
+## ⚠️ Issues/Blockers
+
+- Initial PR #608 description stated awards were added to both resume and portfolio, but the implementation only covered resumes — reviewer flagged the inconsistency, requiring scope clarification and a correction to confirm awards as resume-only
+- Award website/highlights field handling had an inconsistency that was caught during review and required a fix before approval
+
+---
+
+## 🎯 Next Week's Goals
+- Relax and prepare for project voting
+- Prepare for finals
+
+---
+
+## 🧠 Reflection on Current Cycle (Week 26)
+
+**Week 26** was centered around delivering the final UI features and polishing the workspace ahead of the milestone 3 submission. The main coding effort was [PR #608](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/608), which implemented the full awards CRUD UI for the resume workspace, added skill proficiency level controls for both resume and portfolio APIs, and introduced optional date overrides for AI-generated project entries. I also cleaned up some visual inconsistencies — button alignment, section spacing, and removing trailing "etc." artifacts from AI-rendered skill details — to ensure the workspace looked cohesive for the final submission.
+
+One lesson from this week was the importance of keeping PR descriptions aligned with the actual implementation scope. My initial description for PR #608 stated awards were added to both resume and portfolio, but the implementation was resume-only. A reviewer caught this, which required me to clarify the scope and fix an inconsistency with the award website/highlights field handling before the PR could be approved. It was a good reminder to double-check PR descriptions against the code before submitting.
+
+On the review side, I served as 1st reviewer on four PRs — the WCAG 2.2 documentation ([#612](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/612)), the mode scope refactor ([#618](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/618)), the dashboard controls UX redesign ([#619](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/619)), and the consent form visibility and controls fix ([#627](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/627)). Overall, this week felt like a strong close to the development phase of the capstone, with the remaining focus shifting to final submission preparation and beginn wind down 
+
+---
+
+## 🧠 Reflection on Previous Cycle (Week 25)
+
+Last was a very interesting week because we went through peer testing and identify some issue including that of the renderCV issue where files would 
+not be able to render propely due some werid old file pathing which was fixed by a team member(@Puneet-Maan) which I very gratefull for his contribution towards fix the problem, which I would have not seen because it was edge case that was rare to encounter and also but my fix solved the main problem of the renderCV issue.
 
 ---
