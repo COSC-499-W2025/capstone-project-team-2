@@ -2043,36 +2043,36 @@ input[type="radio"] {
 }
 
 .liquid-toast--success {
-  border-color: color-mix(in srgb, var(--status-ok-accent) 74%, #000000 26%);
-  background: color-mix(in srgb, var(--status-ok-accent) 22%, var(--layer-status-card) 78%);
-  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--status-ok-accent) 92%, #ffffff 8%), 0 10px 20px rgba(0, 0, 0, 0.14);
+  border-color: #1d7f41;
+  background: #dff3e6;
+  box-shadow: inset 4px 0 0 #1d9b4f, 0 10px 20px rgba(0, 0, 0, 0.14);
 }
 
 .liquid-toast--warning {
-  border-color: color-mix(in srgb, var(--status-row-accent) 72%, #000000 28%);
-  background: color-mix(in srgb, var(--status-row-accent) 20%, var(--layer-status-card) 80%);
-  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--status-row-accent) 92%, #ffffff 8%), 0 10px 20px rgba(0, 0, 0, 0.14);
+  border-color: #8f640f;
+  background: #faedcf;
+  box-shadow: inset 4px 0 0 #c6871a, 0 10px 20px rgba(0, 0, 0, 0.14);
 }
 
 .liquid-toast--error {
-  border-color: color-mix(in srgb, var(--status-missing-accent) 74%, #000000 26%);
-  background: color-mix(in srgb, var(--status-missing-accent) 20%, var(--layer-status-card) 80%);
-  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--status-missing-accent) 92%, #ffffff 8%), 0 10px 20px rgba(0, 0, 0, 0.14);
+  border-color: #9d2a34;
+  background: #f8dfe3;
+  box-shadow: inset 4px 0 0 #d04654, 0 10px 20px rgba(0, 0, 0, 0.14);
 }
 
 .liquid-toast--success .liquid-toast-dot {
-  background: color-mix(in srgb, var(--status-ok-accent) 92%, #1d1d1f 8%);
-  border-color: rgba(0, 0, 0, 0.72);
+  background: #15833f;
+  border-color: #0f5e2c;
 }
 
 .liquid-toast--warning .liquid-toast-dot {
-  background: color-mix(in srgb, var(--status-row-accent) 92%, #1d1d1f 8%);
-  border-color: rgba(0, 0, 0, 0.72);
+  background: #b67610;
+  border-color: #7a4f0b;
 }
 
 .liquid-toast--error .liquid-toast-dot {
-  background: color-mix(in srgb, var(--status-missing-accent) 92%, #1d1d1f 8%);
-  border-color: rgba(0, 0, 0, 0.72);
+  background: #b62f3d;
+  border-color: #7f212a;
 }
 
 .liquid-splash-zone {
@@ -2107,18 +2107,18 @@ input[type="radio"] {
 }
 
 .liquid-splash--error .drop {
-  background: color-mix(in srgb, var(--status-missing-accent) 24%, var(--layer-status-card) 76%);
-  border-color: color-mix(in srgb, var(--status-missing-accent) 72%, #000000 28%);
+  background: #efc4cb;
+  border-color: #9d2a34;
 }
 
 .liquid-splash--warning .drop {
-  background: color-mix(in srgb, var(--status-row-accent) 22%, var(--layer-status-card) 78%);
-  border-color: color-mix(in srgb, var(--status-row-accent) 70%, #000000 30%);
+  background: #f3dbab;
+  border-color: #8f640f;
 }
 
 .liquid-splash--success .drop {
-  background: color-mix(in srgb, var(--status-ok-accent) 24%, var(--layer-status-card) 76%);
-  border-color: color-mix(in srgb, var(--status-ok-accent) 72%, #000000 28%);
+  background: #cbe8d3;
+  border-color: #1d7f41;
 }
 
 .liquid-splash .drop-1 {
@@ -2225,6 +2225,65 @@ input[type="radio"] {
 
 [data-theme="dark"] .liquid-toast--error {
   color: var(--status-missing-text);
+}
+
+[data-theme="dark"] .liquid-toast {
+  color: #eaf2ff;
+  border-color: rgba(220, 229, 242, 0.6);
+  background: #263241;
+}
+
+[data-theme="dark"] .liquid-toast-dot {
+  border-color: rgba(220, 229, 242, 0.68);
+  box-shadow: 0 0 0 2px rgba(15, 24, 35, 0.66);
+}
+
+[data-theme="dark"] .liquid-toast--success {
+  border-color: #3f9d62;
+  background: #1f3528;
+  box-shadow: inset 4px 0 0 #56bf7a, 0 10px 20px rgba(0, 0, 0, 0.28);
+}
+
+[data-theme="dark"] .liquid-toast--warning {
+  border-color: #be8a2f;
+  background: #3a2f1a;
+  box-shadow: inset 4px 0 0 #d9a342, 0 10px 20px rgba(0, 0, 0, 0.28);
+}
+
+[data-theme="dark"] .liquid-toast--error {
+  border-color: #c04c5a;
+  background: #3f232a;
+  box-shadow: inset 4px 0 0 #e16776, 0 10px 20px rgba(0, 0, 0, 0.28);
+}
+
+[data-theme="dark"] .liquid-toast--success .liquid-toast-dot {
+  background: #56bf7a;
+  border-color: #3f9d62;
+}
+
+[data-theme="dark"] .liquid-toast--warning .liquid-toast-dot {
+  background: #d9a342;
+  border-color: #be8a2f;
+}
+
+[data-theme="dark"] .liquid-toast--error .liquid-toast-dot {
+  background: #e16776;
+  border-color: #c04c5a;
+}
+
+[data-theme="dark"] .liquid-splash--success .drop {
+  background: #2f4f3a;
+  border-color: #56bf7a;
+}
+
+[data-theme="dark"] .liquid-splash--warning .drop {
+  background: #4a3b21;
+  border-color: #d9a342;
+}
+
+[data-theme="dark"] .liquid-splash--error .drop {
+  background: #4b2b33;
+  border-color: #e16776;
 }
 
 .a11y-reduced-motion .liquid-toast {
