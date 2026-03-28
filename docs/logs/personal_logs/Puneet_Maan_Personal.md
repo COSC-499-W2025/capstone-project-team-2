@@ -25,6 +25,7 @@
 ### Coding tasks
 | PR | Area | Details |
 | --- | --- | --- |
+| [#642](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/642) | Frontend UX | Added global stacked notifications with reduced-motion support and fixed stale `.next` ENOENT pre-run issues. |
 | [#634](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/634) | Backend/Security | Sanitized `analysis project_name`, blocked unsafe ZIP member paths, and added regression coverage. |
 | [#639](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/639) | Refactor/Docs | Removed legacy CLI modules/tests and aligned project flow/docs to FastAPI + Next.js. |
 | [#632](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/632) | Backend/API | Sanitized generated resume/portfolio IDs to prevent unsafe path-like values. |
@@ -44,6 +45,7 @@
 ### Testing or debugging tasks
 | Scope | Verification | Related PRs |
 | --- | --- | --- |
+| Frontend notifications | `npm --prefix frontend test` + manual validation on `/config` and `/upload` (including reduced-motion behavior). | [#642](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/642) |
 | Backend/API/Security | `test/test_extraction.py`, `test/test_analysis_API.py`, `test/test_analysis_service.py` for filename sanitization + ZIP path validation. | [#634](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/634) |
 | Backend/API | `test/test_resume_generator_API.py`, `test/test_portfolio_generator_API.py` for slash-safe ID generation. | [#632](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/632) |
 | Backend/RenderCV | `test/test_Generate_Render_CV_Resume.py` for metadata stripping + safe output lookup. | [#597](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/597) |
