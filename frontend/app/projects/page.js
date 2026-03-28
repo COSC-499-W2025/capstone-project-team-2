@@ -200,6 +200,7 @@ export default function ProjectsPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [viewing, setViewing] = useState(null);
+  const [openNames, setOpenNames] = useState([]);
   const [viewData, setViewData] = useState({});
   // thumbnail state: { [name]: "loading" | "loaded" | "none" }
   const [thumbState, setThumbState] = useState({});
@@ -207,6 +208,9 @@ export default function ProjectsPage() {
   const [thumbVersion, setThumbVersion] = useState({});
   const fileInputRef = useRef(null);
   const thumbUploadTarget = useRef(null);
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
+  const [selected, setSelected] = useState(new Set());
+  const [bulkMode, setBulkMode] = useState(false);
 
   async function loadProjects() {
     try {
@@ -258,12 +262,17 @@ export default function ProjectsPage() {
     }
   }
 
+  const MAX_OPEN = 3;
+
   async function onToggleView(name) {
-    if (viewing === name) {
-      setViewing(null);
+    if (openNames.includes(name)) {
+      setOpenNames((prev) => prev.filter((n) => n !== name));
       return;
     }
-    setViewing(name);
+    setOpenNames((prev) => {
+      const trimmed = prev.length >= MAX_OPEN ? prev.slice(1) : prev;
+      return [...trimmed, name];
+    });
     if (viewData[name] && !viewData[name]._error) return;
     try {
       const data = await fetchProjectByName(name);
@@ -272,6 +281,58 @@ export default function ProjectsPage() {
       setViewData((prev) => ({ ...prev, [name]: { _error: err.message || "Failed to load." } }));
     }
   }
+
+  function toggleBulkMode() {
+  setBulkMode((prev) => {
+    if (prev) setSelected(new Set());
+    return !prev;
+  });
+  setConfirmBulkDelete(false);
+}
+
+function toggleSelect(name) {
+  setSelected((prev) => {
+    const next = new Set(prev);
+    if (next.has(name)) next.delete(name);
+    else next.add(name);
+    return next;
+  });
+}
+
+async function onBulkDelete() {
+  setBusy(true);
+  setError("");
+  setMessage("");
+  const targets = [...selected];
+  const failed = [];
+  for (const name of targets) {
+    try {
+      await deleteProject(name);
+      if (viewing === name) setViewing(null);
+      setOpenNames((prev) => prev.filter((n) => n !== name));
+    } catch {
+      failed.push(name);
+    }
+  }
+  try {
+    setConfirmBulkDelete(false);
+    const data = await fetchProjects();
+    const names = Array.isArray(data) ? data : [];
+    setProjects(names);
+    setSelected(new Set(failed));
+    if (failed.length === 0) {
+      setBulkMode(false);
+      setMessage(`${targets.length} project${targets.length !== 1 ? "s" : ""} deleted.`);
+    } else {
+      setError(`Deleted ${targets.length - failed.length} project(s). Failed to delete: ${failed.join(", ")}.`);
+    
+    }
+  } catch(err){
+    setError(err.message || "Failed to reload projects.");
+  } finally{
+  setBusy(false);
+  }
+}
 
   async function onDelete(projectName) {
     setBusy(true);
@@ -315,18 +376,95 @@ export default function ProjectsPage() {
               style={{ display: "none" }}
               onChange={onThumbFileSelected}
             />
+        <div
+          style={{
+            marginBottom: "0.75rem",
+            paddingBottom: "0.75rem",
+            borderBottom: "1px solid var(--layer-border, #ccc)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+            <button
+              type="button"
+              className="liquid-btn"
+              onClick={toggleBulkMode}
+            >
+              {bulkMode ? "Cancel" : "Select to delete"}
+            </button>
+
+            {bulkMode && (
+              <>
+                <button
+                  type="button"
+                  className="liquid-btn"
+                  onClick={() => setSelected(new Set(projects))}
+                >
+                  Select all
+                </button>
+                <button
+                  type="button"
+                  className="liquid-btn"
+                  onClick={() => setSelected(new Set())}
+                >
+                  Deselect all
+                </button>
+              </>
+            )}
+            {bulkMode && selected.size > 0 && (
+              <>
+                {confirmBulkDelete ? (
+                  <>
+                    <button
+                      type="button"
+                      className="liquid-btn btn-danger"
+                      disabled={busy}
+                      onClick={onBulkDelete}
+                    >
+                      {busy ? "Deleting…" : `Confirm — delete ${selected.size} project${selected.size !== 1 ? "s" : ""}`}
+                    </button>
+                    <button
+                      type="button"
+                      className="liquid-btn"
+                      disabled={busy}
+                      onClick={() => setConfirmBulkDelete(false)}
+                    >
+                      Cancel
+                    </button>
+                  </>
+                  ) : (
+                    <button
+                      type="button"
+                      className="liquid-btn btn-danger"
+                      disabled={busy}
+                      onClick={() => setConfirmBulkDelete(true)}
+                    >
+                      Delete selected ({selected.size})
+                    </button>
+                  )}
+                </>
+              )}
+              </div>
+            </div>
             <div className="settings-list compact">
               {projects.map((name) => (
                 <div key={name}>
-                  <div className="settings-row">
+                  <div
+                    className="settings-row"
+                    onClick={bulkMode ? () => toggleSelect(name) : undefined}
+                    style={{
+                      cursor: bulkMode ? "pointer" : undefined,
+                      outline: bulkMode && selected.has(name) ? "2px solid var(--danger, #b4232f)" : undefined,
+                      background: bulkMode && selected.has(name) ? "color-mix(in srgb, var(--danger, #b4232f) 10%, var(--layer-control))" : undefined,
+                    }}
+                  >
                     <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                       {/* Thumbnail slot */}
                       <div style={{ position: "relative", flexShrink: 0 }}>
                         <button
                           type="button"
                           title="Click to upload thumbnail"
+                          onClick={(e) => { if (bulkMode) return; e.stopPropagation(); onThumbClick(name); }}
                           aria-label={`Upload thumbnail for ${name}`}
-                          onClick={() => onThumbClick(name)}
                           style={{
                             width: 80, height: 80, borderRadius: 5, overflow: "hidden",
                             border: "1px solid var(--layer-border, #ccc)", cursor: "pointer",
@@ -351,7 +489,7 @@ export default function ProjectsPage() {
                           <button
                             type="button"
                             title="Remove thumbnail"
-                            onClick={() => onThumbDelete(name)}
+                            onClick={(e) => { e.stopPropagation(); onThumbDelete(name); }}
                             style={{
                               position: "absolute", top: -6, right: -6,
                               width: 24, height: 24, minHeight: 24, borderRadius: "50%",
@@ -365,46 +503,48 @@ export default function ProjectsPage() {
                       </div>
                       <span className="settings-label" style={{ fontSize: "1rem", fontWeight: 500 }}>{name}</span>
                     </div>
-                    <div className="button-row">
-                      <button
-                        type="button"
-                        className="liquid-btn solid btn-success"
-                        onClick={() => onToggleView(name)}
-                      >
-                        {viewing === name ? "Hide" : "View"}
-                      </button>
-                      {confirmDelete === name ? (
-                        <>
-                          <button
-                            type="button"
-                            className="liquid-btn solid btn-danger"
-                            disabled={busy}
-                            onClick={() => onDelete(name)}
-                          >
-                            Confirm Delete
-                          </button>
-                          <button
-                            type="button"
-                            className="liquid-btn"
-                            disabled={busy}
-                            onClick={() => setConfirmDelete(null)}
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
+                    {!bulkMode && (
+                      <div className="button-row">
                         <button
                           type="button"
-                          className="liquid-btn btn-danger"
-                          disabled={busy}
-                          onClick={() => setConfirmDelete(name)}
+                          className="liquid-btn solid btn-success"
+                          onClick={() => onToggleView(name)}
                         >
-                          Delete
+                          {openNames.includes(name) ? "Hide" : "View"}
                         </button>
-                      )}
-                    </div>
+                        {confirmDelete === name ? (
+                          <>
+                            <button
+                              type="button"
+                              className="liquid-btn btn-danger"
+                              disabled={busy}
+                              onClick={() => onDelete(name)}
+                            >
+                              Confirm delete
+                            </button>
+                            <button
+                              type="button"
+                              className="liquid-btn"
+                              disabled={busy}
+                              onClick={() => setConfirmDelete(null)}
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            type="button"
+                            className="liquid-btn btn-danger"
+                            disabled={busy}
+                            onClick={() => setConfirmDelete(name)}
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  {viewing === name ? (
+                  {openNames.includes(name) ? (
                     viewData[name]?._error ? (
                       <p className="error" style={{ marginLeft: "1rem" }}>{viewData[name]._error}</p>
                     ) : viewData[name] ? (
