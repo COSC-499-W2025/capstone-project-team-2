@@ -60,8 +60,8 @@ The platforms target users are **graduating students** and **early career profes
 - 🎨 **User Interface** — Streamlined UI with intuitive navigation
 - 📄 **Documentation** — Comprehensive WBS, DFDs, and architecture diagrams
 - 🔄 **CI/CD Pipelines** — Automated deployment workflows
-- 🗄️ **Database** — SQLite integration embeded in the local file system
-- 🤖 **AI Integration** — Ollama (local LLM) and Google Gemini for code analysis
+- 🗄️ **Database** — SQLite integration
+- 🤖 **AI Integration** — Google Gemini for resume/portfolio generation
 - 🔍 **Local Analysis** — Offline code analysis without AI dependencies
 - 📝 **Resume Generator** — PDF resume and portfolio generation (AI-powered or offline)
 - 🧹 **Cross-Upload Deduplication** — Hash-based index to keep only one copy of duplicate files across snapshots
@@ -74,10 +74,16 @@ The platforms target users are **graduating students** and **early career profes
 ## 🎬 Video Demo
 
 <a href="https://youtu.be/zAoHiW9vn-U">
-  <img src="https://img.shields.io/badge/▶️%20Watch%20Demo-Click%20Here-red?style=for-the-badge&logo=youtube" alt="Watch Demo">
+  <img src="https://img.shields.io/badge/▶️%20Watch%20Demo-Click%20Here-red?style=for-the-badge&logo=youtube" alt="Watch Demo 1">
 </a>
 
 > *A complete walkthrough demonstrating project setup, features, and usage.*
+
+<a href="https://www.youtube.com/watch?v=xQ7I56scSu0">
+  <img src="https://img.shields.io/badge/▶️%20Watch%20Demo-Click%20Here-red?style=for-the-badge&logo=youtube" alt="Watch Demo 2">
+</a>
+
+> *A complete walkthrough demonstrating New Features, System Architecture, API Implementation, and Frontend goals for Milestone 2.*
 
 
 
@@ -85,7 +91,8 @@ The platforms target users are **graduating students** and **early career profes
 
 This system architecture illustrates the structural design of the application, showing how the frontend, backend, database, and external services interact. It emphasizes modularity, scalability, and maintainability through a three-layered design.
 
-<img width="2000" height="1600" alt="Copy of Copy of CAPSTONE 499 System design Team2 -Page-1 drawio" src="https://github.com/user-attachments/assets/bf6d49ac-18c0-4691-b845-ab9ccff00b70" />
+
+<img width="1581" height="1209" alt="System_Architecture_Milestone2" src="https://github.com/user-attachments/assets/0d792c43-a4b3-48bf-baf0-20f565b3bcfe" />
 
 
 
@@ -110,64 +117,19 @@ git clone -b development https://github.com/COSC-499-W2025/capstone-project-team
 git clone -b development https://github.com/COSC-499-W2025/capstone-project-team-2.git your-folder-name
 ```
 
-Please look at our [video](https://youtu.be/zAoHiW9vn-U) demo otherwise follow the steps below:
-
-
-### Docker Setup
-
-#### Step-by-Step Instructions
-
-1. **Remove previous containers and volumes:**
-   ```bash
-   docker-compose down -v
-   ```
-
-2. **Build the Docker containers:**
-   ```bash
-   docker-compose build --no-cache
-   ```
-
-3. **Start the Ollama container:**
-   ```bash
-   docker-compose up -d ollama2
-   ```
-
-4. **Pull the LLM model:**
-   ```bash
-   docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b
-   ```
-
-5. **Verify the model is installed:**
-   ```bash
-   docker exec -it ollama2 ollama list
-   ```
-   You should see `qwen2.5-coder:1.5b` in the list:
-   
-   ![alt text](image.png)
-
-6. **Start the database container:**
-   ```bash
-   docker-compose up -d app_database
-   ```
 ---
 
+### Prerequisite Installations
 
-#### Quick Setup (Single Command) Docker Setup
+1. **Ensure python is installed**
 
-Alternatively, run everything in one command:
+   https://www.python.org/downloads/
 
-**CMD / macOS / Linux:**
-```bash
-docker-compose down -v && docker-compose build --no-cache && docker-compose up -d ollama2 && sleep 5 && docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b && docker-compose up -d app_database
-```
+2. **Ensure Node.js is installed with npm**
 
-**Windows PowerShell:**
-```powershell
-docker-compose down -v; docker-compose build --no-cache; docker-compose up -d ollama2; Start-Sleep 5; docker exec -it ollama2 ollama pull qwen2.5-coder:1.5b; docker-compose up -d app_database
-```
+   https://nodejs.org/en/download
 
-
-
+   ![alt text](image-2.png)
 
 ---
 
@@ -238,7 +200,7 @@ cd capstone-project-team-2
 
 2. **Install dependencies:**
 ```bash
-pip install -r src/requirements.txt
+python -m pip install -r src/requirements.txt
 ```
 
 3. **Run the backend API (FastAPI):**
@@ -274,8 +236,7 @@ If you run the FastAPI app, interactive docs are also available at:
 
 - **Backend (Application Layer)**: The backend powers the core analysis engine, leveraging multiple technologies for comprehensive project insights
   - **File Processing**: Handles ZIP extraction, directory traversal, and metadata collection achieved using `os`, `shutil`, `zipfile`, and `pathlib`.
-  - **Multi-language OOP Analysis**: Analyzes Python source files via the `ast` module and for Java source files via the `javalang` module. Returning unified metrics on **inheritance**, **encapsulation**, **polymorphism**, and **code complexity**
-  - **AI-Powered Analysis**: Integrates with **Ollama** (via LangChain library) for local LLM-based code review and **Google Gemini** for improved code review and for generating prototype-ready project summaries
+  - **Multi-language OOP Analysis**: Analyzes Python source files via the `ast` module, Java source files via the `javalang` module, Javascript source files via the `esprima` module, and C (as well as C++ and C#) files via various `tree_sitter` derivative modules. Returning unified metrics on **inheritance**, **encapsulation**, **polymorphism**, and **code complexity**
   - **Contributor Detection**: Identifies project collaborators through git history (via **GitPython** and **PyGithub**) or file metadata analysis for non-git projects
   - **Stack Detection**: Automatically identifies programming languages, frameworks, and skills through scanning dependency files (`requirements.txt`, `package.json`, `composer.json`) and source file extensions
 
@@ -298,14 +259,14 @@ If you run the FastAPI app, interactive docs are also available at:
 
 The Level 1 **Data Flow Diagram (DFD)** depicts the main system components and the flow of data between **external entities**, **core processes**, and **internal data stores**.
 
-![DFD Level 1](<docs/design/level1 dfd updated.png>)
+<img width="3282" height="521" alt="DFDM2" src="https://github.com/user-attachments/assets/1d6e51fc-fabe-4013-8c3f-c72c7e7c3293" />
+
 
 ### External Entities
 
 | Entity              | Description |
 |---------------------|-------------|
 | **Project Owner**   | Grants consent, uploads zipped folders, provides filters, and retrieves résumé or portfolio-ready outputs. *(Milestone 1–3)* |
-| **Maintainer/Admin**| Performs administrative actions like backups and deletions. *(Milestone 2–3)* |
 | **Local File System** | Supplies input folders/files and stores output artifacts like reports, dashboards, and backups. *(Milestone 1–3)* |
 | **External Service** | Services such as LLMs used to enhance insights, with user consent. *(Milestone 1)* |
 
