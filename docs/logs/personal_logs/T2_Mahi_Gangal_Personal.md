@@ -7,6 +7,7 @@
 - [Week 6-8 (Feb 9 - March 1)](#week-6-8-feb-9march-1)
 - [Week 9 (March 2 - March 8)](#week-9-march-2---march-8)
 - [Week 10 (March 9 - March 15)](#week-10-march-9---march-15)
+- [Week 11-12 (March 16 - March 29)](#week-11-12-march-16---march-29)
 
 ## Week 2 (Jan 12 - Jan 18)
 
@@ -340,3 +341,57 @@ Exposed representation preferences in the Next.js frontend through a dedicated `
 This week’s work focused on frontend cleanup, feature completion, and UI support for Milestone 3 functionality. I removed redundant mode handling from User Configuration, fixed several config-state edge cases, and improved helper-based structure for maintainability and testing. I also added the Portfolio Showcase role-override UI using existing backend endpoints, making it possible to manage saved project roles directly from the workspace. In parallel, I helped expose representation preferences in the frontend through a new dedicated page, with supporting API wiring, helper logic, and navigation updates. 
 
 To validate these changes, I added and ran frontend tests covering config helpers, portfolio showcase API behavior, and representation helper/API logic. I also manually verified the new UI flows to ensure saved values reload correctly and the pages behave consistently with existing backend contracts. Alongside implementation work, I reviewed several team PRs and provided feedback on behavior consistency, edge cases, and missing test coverage. A key challenge this week was keeping the frontend changes scoped and maintainable while adding several user-facing controls across different areas of the app. Next week, I plan to continue supporting frontend stabilization, address any follow-up review feedback from Peer Testing #2, and help finalize remaining integration and polish workn for Milestone #3 presentation.
+
+## Week 11-12 (March 16 - March 29)
+
+### Peer Eval Screenshot: 
+
+### Tasks Worked On
+
+- Clarify activity heatmap counts on dashboard
+- Hide deleted projects from representation preferences and Add Progress Indicator
+- Add frontend behavior tests for milestone 3 flows
+- Enhance top 3 projects with process evolution evidence
+- Verified automated tests after integration.
+- Reviewed teammates’ PRs and provided feedback on correctness, edge cases, and test coverage.
+
+### Individual Contributions 
+
+- **[PR #590 – Clarify activity heatmap counts on dashboard](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/590)**
+- **[PR #591 - Hide deleted projects from representation preferences and Add Progress Indicator](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/591)**
+- **[PR #603 - Add frontend behavior tests for milestone 3 flows](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/603)**
+- **[PR #622 - Enhance top 3 projects with process evolution evidence](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/622)**
+
+
+### Tests Implemented
+
+- **[PR #502 – Remove modes](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/502)**
+1. frontend/test/config-helpers.test.js: Added tests covering consent-state mapping, consent label formatting, unset consent validation, full-name splitting, and name-clearing behavior.
+
+- **[PR #529 - Add Portfolio Showcase Role Override UI](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/529)**
+1. npm test: Verified frontend API-layer behavior for encoded role-override GET requests, POST request payloads, and backend 404 handling for missing saved roles.
+
+- **[PR #530 - Expose Representation Preferences in UI](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/530)**
+1. test/api.test.js
+2. test/representation-helpers.test.js: Added tests for representation API helper routing/payload behavior and representation helper logic, including default normalization, project-order merging, highlighted-skill parsing, chronology input formatting, and chronology payload building.
+
+### PRs Reviewed
+
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/494
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/495
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/497
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/516
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/517
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/522
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/524
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/529
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/534
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/532
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/540
+
+### Additional Details
+
+This week’s work focused on frontend cleanup, feature completion, and UI support for Milestone 3 functionality. I removed redundant mode handling from User Configuration, fixed several config-state edge cases, and improved helper-based structure for maintainability and testing. I also added the Portfolio Showcase role-override UI using existing backend endpoints, making it possible to manage saved project roles directly from the workspace. In parallel, I helped expose representation preferences in the frontend through a new dedicated page, with supporting API wiring, helper logic, and navigation updates. 
+
+To validate these changes, I added and ran frontend tests covering config helpers, portfolio showcase API behavior, and representation helper/API logic. I also manually verified the new UI flows to ensure saved values reload correctly and the pages behave consistently with existing backend contracts. Alongside implementation work, I reviewed several team PRs and provided feedback on behavior consistency, edge cases, and missing test coverage. A key challenge this week was keeping the frontend changes scoped and maintainable while adding several user-facing controls across different areas of the app. Next week, I plan to continue supporting frontend stabilization, address any follow-up review feedback from Peer Testing #2, and help finalize remaining integration and polish workn for Milestone #3 presentation.
+
