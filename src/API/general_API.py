@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from .analysis_API import analysisRouter
 from .consent_API import consentRouter
 from .skills_API import skillsRouter
@@ -8,6 +9,7 @@ from .Resume_Generator_API import resumeRouter
 from .Portfolio_Generator_API import portfolioRouter
 from .representation_API import representationRouter
 from .project_insights_API import insights_router
+import os
 
 app = FastAPI(
     title="DevDoc API",
@@ -20,6 +22,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -34,3 +38,9 @@ app.include_router(portfolioRouter)
 app.include_router(representationRouter)
 app.include_router(resumeRouter)
 app.include_router(insights_router)
+
+_frontend_path = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', '..', 'frontend', 'out')
+)
+if os.path.exists(_frontend_path):
+    app.mount("/", StaticFiles(directory=_frontend_path, html=True), name="frontend")

@@ -21,7 +21,7 @@ tqdm
 javalang
 Pillow>=10.0.0
 esprima
-rendercv[full]
+rendercv[full]==2.8
 ruamel.yaml
 fastapi[standard]
 python-multipart

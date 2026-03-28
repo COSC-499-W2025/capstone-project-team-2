@@ -13,7 +13,7 @@ analysisRouter = APIRouter(
     prefix="/analyze"
 )
 
-@analysisRouter.get("/")
+@analysisRouter.get("")
 def perform_analysis_API(
     use_ai: bool = False,
     project_name: str | None = None,
