@@ -11,7 +11,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { GlassCard, LiquidShell } from "../../components/LiquidShell";
 import { LiquidSegmentedControl } from "../../components/LiquidPillControl";
-import { fetchRepresentationProjects } from "../../lib/api";
+import { fetchRepresentationProjects, fetchTopProjectHistories } from "../../lib/api";
 
 /**
  * Extension and naming heuristics used to classify hierarchy files
@@ -98,6 +98,70 @@ function classify(path, nodeType = "") {
   if (DOC_HINTS.some((hint) => lower.includes(hint)) || DOC_EXTENSIONS.has(ext)) return "document";
   if (CODE_EXTENSIONS.has(ext) || CODE_EXTENSIONS.has(`.${type}`)) return "code";
   return "other";
+}
+
+/**
+ * Formats an evolution date range for the top-project card.
+ *
+ * @param {any} evolution
+ * @returns {string}
+ */
+function formatEvolutionDateRange(evolution) {
+  const first = evolution?.first_analyzed_at ? String(evolution.first_analyzed_at).slice(0, 10) : "";
+  const latest = evolution?.latest_analyzed_at ? String(evolution.latest_analyzed_at).slice(0, 10) : "";
+  if (!first && !latest) return "No history dates available.";
+  if (first && latest && first !== latest) return `${first} to ${latest}`;
+  return first || latest;
+}
+
+/**
+ * Builds short, readable evolution evidence lines for one top project.
+ *
+ * @param {any} item
+ * @returns {string[]}
+ */
+function buildEvolutionHighlights(item) {
+  const evolution = item?.evolution || {};
+  const snapshotCount = Number(item?.snapshot_count || 0);
+  const highlights = [];
+
+  if (snapshotCount > 1) {
+    highlights.push(`${snapshotCount} snapshots across ${formatEvolutionDateRange(evolution)}`);
+  } else {
+    highlights.push("No evolution history yet");
+  }
+
+  if (Array.isArray(evolution.new_skills) && evolution.new_skills.length) {
+    highlights.push(`Added skills: ${evolution.new_skills.slice(0, 3).join(", ")}`);
+  }
+
+  if (Array.isArray(evolution.new_languages) && evolution.new_languages.length) {
+    highlights.push(`Expanded languages: ${evolution.new_languages.slice(0, 3).join(", ")}`);
+  }
+
+  if (Number.isFinite(evolution.file_count_delta) && evolution.file_count_delta > 0) {
+    highlights.push(`File count grew by ${evolution.file_count_delta}`);
+  }
+
+  if (evolution.summary_changed) {
+    highlights.push("Project summary changed over time");
+  }
+
+  if (evolution.project_type_changed) {
+    highlights.push("Project type changed across snapshots");
+  }
+
+  return highlights;
+}
+
+/**
+ * Normalizes project names before comparing API payloads from different sources.
+ *
+ * @param {any} value
+ * @returns {string}
+ */
+function normalizeProjectName(value) {
+  return String(value || "").trim().toLowerCase();
 }
 
 /**
@@ -225,6 +289,7 @@ export default function DashboardPage() {
   const [projects, setProjects] = useState([]);
   const [highlightSkills, setHighlightSkills] = useState([]);
   const [showcaseProjects, setShowcaseProjects] = useState([]);
+  const [topProjectHistories, setTopProjectHistories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [mode, setMode] = useState("private");
@@ -279,11 +344,20 @@ export default function DashboardPage() {
       setLoading(true);
       setError("");
       try {
-        const payload = await fetchRepresentationProjects();
+        const [representationPayload, historyPayload] = await Promise.all([
+          fetchRepresentationProjects(),
+          fetchTopProjectHistories({ topN: 10, activeOnly: true })
+        ]);
         if (!ignore) {
-          setProjects(Array.isArray(payload?.projects) ? payload.projects : []);
-          setHighlightSkills(Array.isArray(payload?.highlight_skills) ? payload.highlight_skills : []);
-          setShowcaseProjects(Array.isArray(payload?.showcase_projects) ? payload.showcase_projects : []);
+          const currentProjects = Array.isArray(representationPayload?.projects) ? representationPayload.projects : [];
+          const currentProjectSet = new Set(currentProjects.map((item) => normalizeProjectName(item?.project_name)));
+          setProjects(currentProjects);
+          setHighlightSkills(Array.isArray(representationPayload?.highlight_skills) ? representationPayload.highlight_skills : []);
+          setShowcaseProjects(Array.isArray(representationPayload?.showcase_projects) ? representationPayload.showcase_projects : []);
+          setTopProjectHistories(
+            (Array.isArray(historyPayload) ? historyPayload : [])
+              .filter((item) => currentProjectSet.has(normalizeProjectName(item?.project_name)))
+          );
         }
       } catch (err) {
         if (!ignore) setError(err.message || "Failed to load insights.");
@@ -304,6 +378,10 @@ export default function DashboardPage() {
   const availableSkills = useMemo(() => {
     return Array.from(new Set(projects.flatMap((p) => (Array.isArray(p.skills) ? p.skills : [])))).sort();
   }, [projects]);
+
+  const historyByProject = useMemo(() => {
+    return new Map(topProjectHistories.map((item) => [normalizeProjectName(item?.project_name), item]));
+  }, [topProjectHistories]);
 
   const projectNameSuggestions = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -464,28 +542,39 @@ export default function DashboardPage() {
               <GlassCard
                 title={`Top ${effectiveTopCount} Projects`}
                 hint={showcasedProjectsInOrder.length
-                  ? "Showcase selections from Project Settings are prioritized."
-                  : "Ranked by contribution and skill signal."}
+                  ? "Showcase selections from Project Settings are prioritized, with evolution evidence shown when available."
+                  : "Ranked by contribution and skill signal, with evolution evidence shown when available."}
               >
                 <div className="grid three-col">
                   {topProjects.length ? (
-                    topProjects.map((project, index) => (
-                      <div className="sub-card" key={`${project.project_name || "project"}-${index}`}>
-                        <h3>{project.project_name || "Unknown"}</h3>
-                        <p className="muted">{String(project.project_type || "unknown")}</p>
-                        <p>{String(project.summary || "No summary available.").slice(0, 220)}</p>
-                        {highlightSkills.length ? (
-                          <p className="hint">
-                            Highlighted: {
-                              (Array.isArray(project.skills) ? project.skills : [])
-                                .filter((skill) => highlightSkills.includes(skill))
-                                .join(", ") || "None"
-                            }
-                          </p>
-                        ) : null}
-                        <p className="hint">Skills: {(project.skills || []).length}</p>
-                      </div>
-                    ))
+                    topProjects.map((project, index) => {
+                      const historyItem = historyByProject.get(normalizeProjectName(project?.project_name));
+                      const evolutionHighlights = buildEvolutionHighlights(historyItem);
+                      return (
+                        <div className="sub-card" key={`${project.project_name || "project"}-${index}`}>
+                          <h3>{project.project_name || "Unknown"}</h3>
+                          <p className="muted">{String(project.project_type || "unknown")}</p>
+                          <p>{String(project.summary || "No summary available.").slice(0, 220)}</p>
+                          {highlightSkills.length ? (
+                            <p className="hint">
+                              Highlighted: {
+                                (Array.isArray(project.skills) ? project.skills : [])
+                                  .filter((skill) => highlightSkills.includes(skill))
+                                  .join(", ") || "None"
+                              }
+                            </p>
+                          ) : null}
+                          <p className="hint">Skills: {(project.skills || []).length}</p>
+                          <div className="settings-list compact">
+                            {evolutionHighlights.map((line) => (
+                              <div className="settings-row" key={`${project.project_name || "project"}-${line}`}>
+                                <span className="settings-value">{line}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })
                   ) : (
                     <p className="muted">No projects available.</p>
                   )}

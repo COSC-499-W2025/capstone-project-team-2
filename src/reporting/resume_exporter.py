@@ -3,7 +3,7 @@ resume_exporter
 ===============
 
 Utilities to discover project directories, generate ResumeItem objects, and
-export them to a JSON file. Also provides a CLI entry point for quick usage.
+export them to a JSON file.
 
 Key functions:
 - discover_projects(root): enumerate first-level project directories
@@ -13,12 +13,11 @@ Key functions:
 
 from __future__ import annotations
 
-import argparse
 import json
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, List, Optional
 
 from .resume_item_generator import ResumeItem, generate_resume_item
 
@@ -101,32 +100,3 @@ def export_resume_items(
 
     destination_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     return destination_path
-
-
-def _cli(argv: Optional[Iterable[str]] = None) -> int:
-    """
-    CLI entry point.
-    Usage:
-        python -m src.resume_exporter <root> [-o OUTPUT]
-    """
-    parser = argparse.ArgumentParser(
-        description="Generate résumé-ready items for each project in a directory.",
-    )
-    parser.add_argument(
-        "root",
-        help="Path to the directory containing project folders.",
-    )
-    parser.add_argument(
-        "-o",
-        "--output",
-        dest="output",
-        help="Destination JSON file (defaults to <root>/resume_items.json).",
-    )
-
-    args = parser.parse_args(argv)
-    export_resume_items(args.root, args.output)
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(_cli())

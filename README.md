@@ -241,9 +241,9 @@ cd capstone-project-team-2
 pip install -r src/requirements.txt
 ```
 
-3. **Run the application:**
+3. **Run the backend API (FastAPI):**
 ```bash
-python -m src.cli.main
+uvicorn src.API.general_API:app --reload
 ```
 
 4. **Run the web frontend (Next.js):**

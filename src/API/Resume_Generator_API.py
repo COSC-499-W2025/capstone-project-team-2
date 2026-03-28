@@ -62,6 +62,14 @@ ALLOWED_CONTACT_FIELDS = {"email", "phone", "location", "website", "name"}
 SKIPPING_GENERATION = "Skipping generation"
 
 
+def _safe_document_name(name: str) -> str:
+    """Normalize a user-provided display name into a filesystem-safe ID component."""
+    normalized = (name or "").strip().replace(" ", "_")
+    normalized = re.sub(r'[<>:"/\\|?*\x00-\x1F]+', "_", normalized)
+    normalized = re.sub(r"_+", "_", normalized).strip("._")
+    return normalized or "document"
+
+
 class GenerateResumeRequest(BaseModel):
     """Payload for creating a new resume."""
     model_config = ConfigDict(json_schema_extra={"example": {
@@ -343,7 +351,8 @@ def generate_resume(payload: GenerateResumeRequest):
     doc = RenderCVDocument(doc_type="resume")
     resume_id = str(uuid.uuid4())[:8]
     date_str = pendulum.now().format("YYYY_MM_DD_HHmm")
-    full_name = f"{payload.name.replace(' ', '_')}_{resume_id}_({date_str})"
+    safe_name = _safe_document_name(payload.name)
+    full_name = f"{safe_name}_{resume_id}_({date_str})"
 
     gen_result = doc.generate(name=full_name, overwrite=payload.overwrite)
 
@@ -742,6 +751,11 @@ def add_project_ai(id: str, project_name: str, overrides: Optional[AIProjectOver
         HTTPException: 400 if AI generation returned no data.
         HTTPException: 500 if AI generation or save failed.
     """
+    if not runtimeAppContext.external_consent:
+        raise HTTPException(status_code=403, detail="External consent is required to use AI features.")
+    if not runtimeAppContext.data_consent:
+        raise HTTPException(status_code=403, detail="Data consent is required to use AI features.")
+
     doc = _load_resume(id)
 
     db_name = project_name

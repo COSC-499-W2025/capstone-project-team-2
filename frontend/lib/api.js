@@ -167,6 +167,21 @@ export function fetchProjectInsights() {
 }
 
 /**
+ * Fetches top unique projects with latest snapshot data and evolution evidence.
+ *
+ * @param {{ topN?: number, contributor?: string, activeOnly?: boolean }} [options={}]
+ * @returns {Promise<any>}
+ */
+export function fetchTopProjectHistories(options = {}) {
+  const params = new URLSearchParams();
+  if (Number.isFinite(options.topN)) params.set("top_n", String(options.topN));
+  if (options.contributor) params.set("contributor", options.contributor);
+  if (options.activeOnly) params.set("active_only", "true");
+  const query = params.toString();
+  return request(`/insights/top-projects${query ? `?${query}` : ""}`);
+}
+
+/**
  * Fetches persisted user configuration.
  *
  * @returns {Promise<any>}
@@ -181,11 +196,11 @@ export function fetchConfig() {
  * @param {boolean} externalAllowed Whether external integrations are allowed.
  * @returns {Promise<any>}
  */
-export function saveConsent(externalAllowed) {
+export function saveConsent(externalAllowed, dataAllowed = true) {
   return request("/privacy-consent", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ data_consent: true, external_consent: externalAllowed })
+    body: JSON.stringify({ data_consent: dataAllowed, external_consent: externalAllowed })
   });
 }
 
@@ -812,6 +827,19 @@ export function projectThumbnailUrl(projectName) {
 }
 
 /**
+ * Returns a success message and the updated duration created by the start and end dates
+ *
+ * @param {string} id
+ * @param {string} start
+ * @param {string} end
+ * @returns {string}
+ */
+export function updateProjectDuration(id, start, end) {
+  const query = start && end ? `?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}` : "";
+  return request(`/projects/${encodeURIComponent(id)}/duration${query}`, {method: "POST"});
+}
+
+  /*
  * Returns a success message and the updated project type
  *
  * @param {string} id

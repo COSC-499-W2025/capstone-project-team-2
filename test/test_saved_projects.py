@@ -6,7 +6,6 @@ import shutil
 import pytest
 
 # Tests for listing, summarizing, and safely deleting saved analysis artifacts.
-from src.cli.main import run
 import src.storage.saved_projects as mod
 from src.core.app_context import runtimeAppContext
 

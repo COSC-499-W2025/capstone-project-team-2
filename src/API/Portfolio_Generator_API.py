@@ -53,6 +53,13 @@ SKIPPING_GENERATION = "Skipping generation"
 
 portfolioRouter = APIRouter(tags=["Portfolio"])
 
+def _safe_document_name(name: str) -> str:
+    """Normalize a user-provided display name into a filesystem-safe ID component."""
+    normalized = (name or "").strip().replace(" ", "_")
+    normalized = re.sub(r'[<>:"/\\|?*\x00-\x1F]+', "_", normalized)
+    normalized = re.sub(r"_+", "_", normalized).strip("._")
+    return normalized or "document"
+
 
 """Request / Response Models"""
 
@@ -327,7 +334,8 @@ def generate_portfolio(payload: GeneratePortfolioRequest):
     """
     doc=RenderCVDocument(doc_type='portfolio')
     portfolio_id=str(uuid.uuid4())[:8]
-    full_name=f"{payload.name.replace(' ', '_')}_{portfolio_id}"
+    safe_name = _safe_document_name(payload.name)
+    full_name=f"{safe_name}_{portfolio_id}"
     gen_result=doc.generate(name=full_name,overwrite=payload.overwrite)
     if gen_result == SKIPPING_GENERATION:
         raise HTTPException(status_code=409,detail=f"Portfolio {full_name} already exists. Set overwrite=true to replace it")
@@ -700,6 +708,11 @@ def add_project_ai(portfolio_id: str, project_name: str, overrides: Optional[AIP
         HTTPException: 400 if AI generation returned no data.
         HTTPException: 500 if AI generation or save failed.
     """
+    if not runtimeAppContext.external_consent:
+        raise HTTPException(status_code=403, detail="External consent is required to use AI features.")
+    if not runtimeAppContext.data_consent:
+        raise HTTPException(status_code=403, detail="Data consent is required to use AI features.")
+
     doc = _load_portfolio(portfolio_id)
 
     db_name = project_name

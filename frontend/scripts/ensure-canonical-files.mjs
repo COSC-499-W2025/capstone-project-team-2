@@ -9,7 +9,7 @@
  * This script runs in npm pre-hooks and restores expected canonical names
  * before dev/build/start to keep routing and imports stable.
  */
-import { readdirSync, renameSync, existsSync } from "node:fs";
+import { readdirSync, renameSync, existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
 /**
@@ -57,6 +57,8 @@ function restoreCanonical({ dirPath, canonicalName, fallbackPattern }) {
  */
 const appDir = join(process.cwd(), "app");
 const componentsDir = join(process.cwd(), "components");
+const nextBuildDir = join(process.cwd(), ".next");
+const lifecycleEvent = process.env.npm_lifecycle_event || "";
 
 restoreCanonical({
   dirPath: join(appDir, "upload"),
@@ -75,3 +77,10 @@ restoreCanonical({
   canonicalName: "LiquidShell.jsx",
   fallbackPattern: /^LiquidShell \d+\.jsx$/
 });
+
+// Clear stale build artifacts only for predev to avoid removing a valid
+// production build right before `next start`.
+if (lifecycleEvent === "predev" && existsSync(nextBuildDir)) {
+  rmSync(nextBuildDir, { recursive: true, force: true });
+  console.log("[fix] cleared stale .next build cache");
+}

@@ -1,3 +1,4 @@
+import datetime
 import json
 import io
 import tempfile
@@ -7,6 +8,8 @@ import uuid
 from fastapi import APIRouter, UploadFile, HTTPException, Query, status
 from fastapi.responses import FileResponse
 import zipfile
+import pandas as pd
+from src.core.project_duration_estimation import format_duration
 
 from src.storage import saved_projects
 from src.storage.saved_projects import list_saved_projects
@@ -149,39 +152,6 @@ async def upload_project(upload_file: UploadFile) -> dict:
         "stored_path": str(persisted_zip),
         "project_name": source_stem,
     }
-
-def upload_project_path_CLI(upload_file: Path) -> str:
-    """
-    CLI helper for setting the current project path.
-
-    Accepts either a directory path or a ZIP file path.
-
-    Args:
-        upload_file (Path): Filesystem path to a project directory or ZIP.
-
-    Returns:
-        str: ``"Upload Success"`` when valid, otherwise
-            ``"Error, path is not a project"``.
-    """
-    candidate_path = Path(upload_file).expanduser()
-    is_project_dir = candidate_path.is_dir()
-    is_zip_file = False
-
-    if not is_project_dir and candidate_path.is_file() and candidate_path.suffix.lower() == ".zip":
-        try:
-            # `is_zipfile` can occasionally return false negatives on some platforms.
-            is_zip_file = zipfile.is_zipfile(candidate_path) or candidate_path.exists()
-        except OSError:
-            is_zip_file = candidate_path.exists()
-
-    if not (is_project_dir or is_zip_file):
-        return "Error, path is not a project"
-
-    runtimeAppContext.currently_uploaded_file = candidate_path
-    runtimeAppContext.currently_uploaded_project_name = (
-        candidate_path.name if is_project_dir else candidate_path.stem
-    )
-    return "Upload Success"
 
 @projectsRouter.get("/")
 def return_all_saved_projects() -> list:
@@ -519,7 +489,7 @@ def delete_project_thumbnail(id: str) -> dict:
 
 
 @projectsRouter.post("/{id}/type")
-def update_project_duration(id: str, project_type: str) -> dict:
+def update_project_type(id: str, project_type: str) -> dict:
     """
     API endpoint for updating the project type of a given project
 
@@ -546,3 +516,52 @@ def update_project_duration(id: str, project_type: str) -> dict:
     dict_to_update["resume_item"]["project_type"] = project_type
     runtimeAppContext.store.update(id, dict_to_update)
     return {"message": "Updated successfully", "type": project_type}
+
+
+@projectsRouter.post("/{id}/duration")
+def update_project_duration(id: str, start: str, end: str) -> dict:
+    """
+    API endpoint for updating the project duration of a given project with start and end dates
+
+    API call is ''POST /projects/{id}/duration?start=str&end=str
+
+    Args:
+        id (str): name of the project
+        start (str): string representation of the start date
+        end (str): string representation of the end date
+
+    Returns:
+        dict: Success message and new duration
+    
+    Raises:
+        404: When project is not found in database
+        400: When formatting date and converting to timedelta fails OR when start date is later than end date
+    """
+
+    id = id if id.endswith(".json") else f"{id}.json"
+    dict_to_update: dict = runtimeAppContext.store.fetch_by_name(id)
+    if not dict_to_update:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Project {id} not found",
+        )
+    try:
+        end_date = datetime.datetime.strptime(end, '%Y-%m-%d').date()
+        start_date = datetime.datetime.strptime(start, '%Y-%m-%d').date()
+        if end_date == start_date:
+            end_date += datetime.timedelta(days=1)
+        duration = end_date - start_date
+        str_duration = format_duration(duration)
+        dict_to_update["duration_estimate"] = str_duration  #Converts project duration to timedelta using a pandas library
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
+    if duration < datetime.timedelta(seconds=0):
+            raise HTTPException(
+            status_code=400,
+            detail=f"Start date must be before end date",
+            )
+    runtimeAppContext.store.update(id, dict_to_update)
+    return {"message": "Updated successfully", "dur": str_duration}

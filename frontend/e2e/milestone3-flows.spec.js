@@ -149,6 +149,36 @@ async function installApiMocks(page, options = {}) {
       return;
     }
 
+    if (pathname === "/insights/top-projects" && method === "GET") {
+      const topN = Number(searchParams.get("top_n") || "3");
+      const limit = Number.isFinite(topN) && topN > 0 ? topN : 3;
+      const activeOnly = searchParams.get("active_only") === "true";
+      const allowedProjects = new Set((state.projects || []).map((name) => String(name).trim().toLowerCase()));
+      const rankedInsights = (state.insights || []).filter((item) => {
+        if (!activeOnly) return true;
+        return allowedProjects.has(String(item.project_name || "").trim().toLowerCase());
+      });
+      const topProjects = rankedInsights.slice(0, limit).map((item) => ({
+        project_name: item.project_name,
+        snapshot_count: 1,
+        score: item?.stats?.top_contribution_count || 0,
+        latest: item,
+        evolution: {
+          project_name: item.project_name,
+          snapshot_count: 1,
+          first_analyzed_at: item.analyzed_at,
+          latest_analyzed_at: item.analyzed_at,
+          new_skills: [],
+          new_languages: [],
+          file_count_delta: 0,
+          summary_changed: false,
+          project_type_changed: false
+        }
+      }));
+      await json(200, topProjects);
+      return;
+    }
+
     if (pathname === "/representation/projects" && method === "GET") {
       const projectMap = new Map();
       for (const insight of state.insights) {
@@ -271,13 +301,16 @@ test("saves config consent and profile details", async ({ page }) => {
   await page.goto("/config");
 
   await expect(page.getByRole("heading", { name: "User Configuration" })).toBeVisible();
-  await page.getByRole("button", { name: "A l l o w", exact: true }).click();
+  // Scope to the external consent control (second .config-consent-control) to avoid
+  // matching the local consent "Allow" button
+  await page.locator(".config-consent-control").nth(1).locator("button").first().click();
   await page.getByLabel("Full name").fill("Jane Doe");
   await page.getByRole("button", { name: "Save Configuration" }).click();
 
   await expect(page.getByText("Configuration saved.")).toBeVisible();
-  await expect(page.locator(".config-grid .settings-row").nth(0)).toContainText("Allow");
-  await expect(page.locator(".config-grid .settings-row").nth(1)).toContainText("Jane Doe");
+  // nth(0) = full name input row (Update Settings), nth(1) = local, nth(2) = external, nth(3) = name
+  await expect(page.locator(".config-grid .settings-row").nth(2)).toContainText("Allow");
+  await expect(page.locator(".config-grid .settings-row").nth(3)).toContainText("Jane Doe");
 });
 
 test("uploads and analyzes a zip, then shows it on the dashboard", async ({ page }) => {
@@ -299,6 +332,38 @@ test("uploads and analyzes a zip, then shows it on the dashboard", async ({ page
   await expect(page.getByText("3").first()).toBeVisible();
 });
 
+test("dashboard excludes deleted projects from current metrics and top cards", async ({ page }) => {
+  const alpha = makeInsight("Alpha");
+  alpha.stats.top_contribution_count = 12;
+  alpha.summary = "Alpha current project.";
+
+  const beta = makeInsight("Beta");
+  beta.stats.top_contribution_count = 10;
+  beta.summary = "Beta current project.";
+
+  const gamma = makeInsight("Gamma");
+  gamma.stats.top_contribution_count = 8;
+  gamma.summary = "Gamma current project.";
+
+  const deleted = makeInsight("Deleted Project");
+  deleted.stats.top_contribution_count = 99;
+  deleted.summary = "Historical project that should not render.";
+
+  await installApiMocks(page, {
+    projects: ["Alpha", "Beta", "Gamma"],
+    insights: [deleted, alpha, beta, gamma]
+  });
+
+  await page.goto("/dashboard");
+
+  await expect(page.getByRole("heading", { name: /Dashboard/ })).toBeVisible();
+  await expect(page.locator(".metric-value").first()).toHaveText("3");
+  await expect(page.getByText("Deleted Project")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Alpha" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Beta" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Gamma" })).toBeVisible();
+});
+
 test("generates and loads a resume in the workspace", async ({ page }) => {
   await installApiMocks(page);
 
@@ -307,7 +372,7 @@ test("generates and loads a resume in the workspace", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /Resume \+ Portfolio Builder/ })).toBeVisible();
   await page.getByLabel("Full name").fill("Jane Doe");
   await page.getByLabel("Theme").selectOption("sb2nov");
-  await page.getByRole("button", { name: /Generate Resume/ }).click();
+  await page.getByRole("button", { name: "Generate Resume", exact: true }).click();
 
   await expect(page.getByText("Resume created.")).toBeVisible();
   await expect(page.locator(".workspace-page .settings-row").filter({ hasText: "Active ID" })).toContainText("Jane_Doe_resume_001");
@@ -317,11 +382,11 @@ test("generates and loads a portfolio in the workspace", async ({ page }) => {
   await installApiMocks(page);
 
   await page.goto("/workspace");
-  await page.getByRole("button", { name: "P o r t f o l i o", exact: true }).click();
+  await page.getByRole("radio", { name: "P o r t f o l i o", exact: true }).click();
 
   await page.getByLabel("Full name").fill("Jane Doe");
   await page.getByLabel("Theme").selectOption("sb2nov");
-  await page.getByRole("button", { name: /Generate Portfolio/ }).click();
+  await page.getByRole("button", { name: "Generate Portfolio", exact: true }).click();
 
   await expect(page.getByText("Portfolio created.")).toBeVisible();
   await expect(page.locator(".workspace-page .settings-row").filter({ hasText: "Active ID" })).toContainText("Jane_Doe_portfolio_001");
@@ -333,7 +398,7 @@ test("dashboard public mode persists and workspace remains authoring", async ({ 
   await page.goto("/dashboard");
   await expect(page.getByRole("heading", { name: /Dashboard/ })).toBeVisible();
 
-  await page.getByRole("button", { name: "P u b l i c", exact: true }).click();
+  await page.getByRole("radio", { name: "P u b l i c", exact: true }).click();
 
   await expect(page.getByLabel("Search")).toBeVisible();
   await expect(page.getByLabel("Type")).toBeVisible();
@@ -344,4 +409,83 @@ test("dashboard public mode persists and workspace remains authoring", async ({ 
   await page.goto("/workspace");
   await expect(page.getByRole("heading", { name: /Resume \+ Portfolio Builder/ })).toBeVisible();
   await expect(page.getByLabel("Full name")).toBeVisible();
+});
+
+test("first-time user with no consent is redirected to config and sees consent document expanded", async ({ page }) => {
+  await installApiMocks(page, {
+    config: { "First Name": "", "Last Name": "" }
+  });
+
+  await page.goto("/dashboard");
+
+  await expect(page).toHaveURL(/\/config$/);
+  await expect(page.getByRole("heading", { name: "Data Consent Agreement" })).toBeVisible();
+  await expect(page.locator(".consent-document")).toBeVisible();
+  await expect(page.getByRole("button", { name: /Collapse/ })).toBeVisible();
+});
+
+test("returning user with consent set sees consent document collapsed", async ({ page }) => {
+  await installApiMocks(page, {
+    config: { consented: { external: true, "Data consent": true }, "First Name": "Jane", "Last Name": "Doe" }
+  });
+
+  await page.goto("/config");
+
+  await expect(page.getByRole("heading", { name: "Data Consent Agreement" })).toBeVisible();
+  await expect(page.locator(".consent-document")).not.toBeVisible();
+  await expect(page.getByRole("button", { name: /View agreement/ })).toBeVisible();
+});
+
+test("local consent deny warning appears when set to do not allow", async ({ page }) => {
+  await installApiMocks(page, {
+    config: { consented: { external: true, "Data consent": true }, "First Name": "", "Last Name": "" }
+  });
+
+  await page.goto("/config");
+
+  // Switch local consent to "Do not allow" — first .config-consent-control, last button
+  await page.locator(".config-consent-control").first().locator("button").last().click();
+
+  await expect(page.locator(".consent-deny-warning").first()).toBeVisible();
+  await expect(page.locator(".consent-deny-warning").first()).toContainText("Local consent must be allowed");
+});
+
+test("external consent deny warning appears when set to do not allow", async ({ page }) => {
+  await installApiMocks(page, {
+    config: { consented: { external: true, "Data consent": true }, "First Name": "", "Last Name": "" }
+  });
+
+  await page.goto("/config");
+
+  // Switch external consent to "Do not allow" — second .config-consent-control, last button
+  await page.locator(".config-consent-control").nth(1).locator("button").last().click();
+
+  await expect(page.locator(".consent-deny-warning").last()).toBeVisible();
+  await expect(page.locator(".consent-deny-warning").last()).toContainText("External tools are disabled");
+});
+
+test("generate with AI button is disabled when external consent is off", async ({ page }) => {
+  await installApiMocks(page, {
+    config: { consented: { external: false, "Data consent": true }, "First Name": "", "Last Name": "" }
+  });
+
+  await page.goto("/workspace");
+
+  await expect(page.getByRole("button", { name: /Generate Resume with AI/ })).toBeDisabled();
+});
+
+test("generate with AI button is enabled when external consent is on", async ({ page }) => {
+  await installApiMocks(page, {
+    config: { consented: { external: true, "Data consent": true }, "First Name": "", "Last Name": "" }
+  });
+
+  await page.goto("/workspace");
+  await expect(page.getByRole("heading", { name: /Resume \+ Portfolio Builder/ })).toBeVisible();
+  // Wait for initial fetches (config, projects, docs) to complete so state is settled
+  // before interacting with the controlled select — avoids a race where setExternalAllowed
+  // re-render overwrites the DOM select value set by selectOption before onChange propagates
+  await page.waitForLoadState("networkidle");
+  await page.getByLabel("Theme").selectOption("sb2nov");
+
+  await expect(page.getByRole("button", { name: /Generate Resume with AI/ })).toBeEnabled();
 });

@@ -5,19 +5,16 @@ This suite ensures that resume export functionality:
 - Generates valid JSON
 - Contains required fields for each project
 - Produces deterministic results across runs (except timestamp)
-- Works via the CLI entry point
 - Optionally validates against JSON schema if the library is installed
 
 These tests verify data stability and correctness for automated résumé generation.
 """
 
 import json
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 from datetime import datetime
-from subprocess import run, PIPE
 
 from src.reporting.resume_exporter import export_resume_items
 
@@ -99,17 +96,6 @@ class TestResumeExporterJSONValidation(unittest.TestCase):
         first.pop("generated_at", None)
         second.pop("generated_at", None)
         self.assertEqual(first, second)
-
-    def test_cli_behavior(self) -> None:
-        """Ensure CLI invocation writes valid JSON file."""
-        print("[Resume JSON Test] Verifying CLI export functionality...", flush=True)
-
-        cmd = [sys.executable, "-m", "src.reporting.resume_exporter", str(self.root), "-o", str(self.output_path)]
-        proc = run(cmd, stdout=PIPE, stderr=PIPE, text=True)
-
-        self.assertEqual(proc.returncode, 0, f"CLI failed: {proc.stderr}")
-        payload = json.loads(self.output_path.read_text())
-        self.assertIn("projects", payload)
 
     def test_dataclass_field_compatibility(self) -> None:
         """Ensure JSON contains expected ResumeItem-like structure."""

@@ -1,6 +1,6 @@
 import datetime
 
-def _format_duration(delta: datetime.timedelta) -> str:
+def format_duration(delta: datetime.timedelta) -> str:
     '''
     Formats a timedelta into a human-readable string.
 
@@ -117,4 +117,4 @@ class Project_Duration_Estimator:
         '''
         Returns a human-readable duration estimate without microseconds.
         '''
-        return _format_duration(self.get_duration())
+        return format_duration(self.get_duration())

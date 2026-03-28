@@ -92,6 +92,20 @@ class TestGeneratePortfolio(_BasePortfolioTest):
         self.assertEqual(response.status_code, 400)
         self.assertIn("Invalid theme", response.json()["detail"])
 
+    def test_sanitizes_name_for_document_id(self):
+        """Slash characters in display names should not appear in generated IDs."""
+        self.mock_doc.generate.return_value = "Generated"
+
+        response = self.client.post("/portfolio/generate", json={"name": "Sam/http"})
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertNotIn("/", body["portfolio_id"])
+        self.assertIn("Sam_http_", body["portfolio_id"])
+
+        called_name = self.mock_doc.generate.call_args.kwargs["name"]
+        self.assertNotIn("/", called_name)
+        self.assertTrue(called_name.startswith("Sam_http_"))
+
 
 class TestGetPortfolio(_BasePortfolioTest):
     """Tests for GET /portfolio/{id}."""
@@ -901,6 +915,20 @@ class TestAddProjectAIWithOverrides(_BasePortfolioTest):
             proj = self.mock_doc.add_project.call_args[0][0]
             self.assertIsNone(proj.start_date)
             self.assertIsNone(proj.end_date)
+
+    def test_blocked_when_external_consent_false(self):
+        """Returns 403 when external_consent is False on runtimeAppContext."""
+        self.mock_ctx.external_consent = False
+        self.mock_ctx.data_consent = True
+        resp = self.client.post("/portfolio/test_abc123/add/project/MyProject/ai")
+        self.assertEqual(resp.status_code, 403)
+
+    def test_blocked_when_data_consent_false(self):
+        """Returns 403 when data_consent is False on runtimeAppContext."""
+        self.mock_ctx.external_consent = True
+        self.mock_ctx.data_consent = False
+        resp = self.client.post("/portfolio/test_abc123/add/project/MyProject/ai")
+        self.assertEqual(resp.status_code, 403)
 
 
 if __name__ == "__main__":
