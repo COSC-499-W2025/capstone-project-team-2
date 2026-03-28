@@ -1,0 +1,222 @@
+"""
+Menu for browsing stored project insights: chronology, skills, rankings, and summaries.
+
+Provides an interactive CLI loop that:
+- Lists projects chronologically with stack and summaries
+- Shows skill timelines with optional filtering
+- Ranks projects by contribution strength (percentage + volume tie-break)
+- Surfaces top-ranked summaries with rationale
+
+Kept separate from menus.py to keep navigation wiring lean.
+"""
+
+from pathlib import Path
+
+from src.reporting.project_insights import (
+    list_project_insights,
+    rank_projects_by_contribution,
+)
+from src.analysis.insight_helpers import parse_date, filter_insights, compute_composite_score
+from src.core.app_context import runtimeAppContext
+from src.API.project_insights_API import *
+
+def project_insights_menu() -> None:
+    """
+    View stored project insights: chronological projects, skill history, rankings, and top summaries.
+
+    Uses the JSON log at User_config_files/project_insights.json to present:
+      - Chronological projects (oldest to newest) with type and stack
+      - Chronological skills exercised per project
+      - Contribution-based ranking (optionally filtered by contributor)
+      - Top-ranked project summaries with scores
+    """
+    storage_path = Path(runtimeAppContext.legacy_save_dir) / "project_insights.json"
+
+    while True:
+        print("\n=== Project Insights ===")
+        print("1) Chronological list of projects")
+        print("2) Chronological list of skills")
+        print("3) Rank projects by contribution")
+        print("4) Summaries for top-ranked projects")
+        print("0) Exit to Main Menu")
+
+        choice = input("Select an option: ").strip()
+
+        try:
+            if choice == "1":
+                language = input("Filter by language (optional): ").strip() or None
+                skill = input("Filter by skill (optional): ").strip() or None
+                since_str = input("Only include analyses since (YYYY-MM-DD, optional): ").strip() or None
+                
+                projects = return_insight_projects_chronological(language=language, skill=skill, since_str=since_str)
+
+                if projects and isinstance(projects[0], dict):
+                    # convert dicts to a simple namespace for reuse
+                    normalized = []
+                    for p in projects:
+                        ns = type("Insight", (), {})()
+                        ns.project_name = p.get("project_name", "unknown")
+                        ns.analyzed_at = p.get("analyzed_at", "")
+                        ns.project_type = p.get("project_type", "unknown")
+                        ns.detection_mode = p.get("detection_mode", "")
+                        ns.languages = p.get("languages", []) or []
+                        ns.frameworks = p.get("frameworks", []) or []
+                        ns.summary = p.get("summary", "")
+                        normalized.append(ns)
+                    projects = normalized
+
+                if not projects:
+                    print("[INFO] No insights recorded yet.")
+                else:
+                    print("\nProjects (user-preferred order):\n")
+                    for i, p in enumerate(projects, start=1):
+                        langs = ", ".join(getattr(p, "languages", [])) or "—"
+                        frws = ", ".join(getattr(p, "frameworks", [])) or "—"
+                        summary = getattr(p, "summary", "") or "—"
+                        print(
+                            f"{i}) {p.project_name} | analyzed_at={p.analyzed_at} | "
+                            f"type={p.project_type} ({p.detection_mode}) | "
+                            f"langs={langs} | frameworks={frws}\n"
+                            f"    summary: {summary}"
+                        )
+                input("\nPress Enter to continue...")
+
+            elif choice == "2":
+                skill = input("Filter by skill (optional): ").strip() or None
+                since_str = input("Only include analyses since (YYYY-MM-DD, optional): ").strip() or None
+
+                history = return_insights_skills_chronological(skill=skill, since_str=since_str)
+
+                if not history:
+                    print("[INFO] No insights recorded yet.")
+                else:
+                    print("\nSkills (chronological):\n")
+                    for entry in history:
+                        skills = ", ".join(entry.get("skills", [])) or "—"
+                        print(
+                            f"- {entry.get('project_name', 'unknown')} "
+                            f"@ {entry.get('analyzed_at', 'unknown')} "
+                            f"| skills ({entry.get('skill_count', 0)}): {skills}"
+                        )
+                input("\nPress Enter to continue...")
+
+            elif choice == "3":
+                contributor = input("Filter by contributor (leave blank for overall ranking): ").strip() or None
+                language = input("Filter by language (optional): ").strip() or None
+                skill = input("Filter by skill (optional): ").strip() or None
+                since_str = input("Only include analyses since (YYYY-MM-DD, optional): ").strip() or None
+                since_dt = parse_date(since_str)
+                top_n_raw = input("How many projects to show? [default 5]: ").strip()
+                try:
+                    top_n = int(top_n_raw) if top_n_raw else 5
+                except ValueError:
+                    print("[INFO] Invalid number; defaulting to 5.")
+                    top_n = 5
+
+                ranked = list_project_insights(storage_path=storage_path)
+                ranked = filter_insights(
+                    ranked,
+                    language=language,
+                    skill=skill,
+                    since=since_dt,
+                )
+                if contributor:
+                    ranked = rank_projects_by_contribution(
+                        storage_path=storage_path,
+                        contributor=contributor,
+                        top_n=None,
+                    )
+                    ranked = filter_insights(ranked, language=language, skill=skill, since=since_dt)
+
+                ranked = sorted(
+                    ranked,
+                    key=lambda ins: compute_composite_score(ins, contributor=contributor)[0],
+                    reverse=True,
+                )
+                if top_n >= 0:
+                    ranked = ranked[:top_n]
+
+                if not ranked:
+                    print("[INFO] No insights recorded yet.")
+                else:
+                    print("\nProject ranking (by contribution):\n")
+                    for i, item in enumerate(ranked, start=1):
+                        score, parts = compute_composite_score(item, contributor=contributor)
+                        contribution_value = parts["contribution"]
+                        basis = parts.get("basis", "count")
+                        metric = parts.get("metric", "items")
+                        count = parts.get("count", 0)
+                        if basis == "percentage":
+                            reason = f"contribution={contribution_value:.2f}% | volume={count} {metric}"
+                        else:
+                            reason = f"contribution={int(round(contribution_value))} {metric}"
+                        print(
+                            f"{i}) {item.project_name} | "
+                            f"contributors={item.stats.get('contributors')} | {reason}"
+                        )
+                input("\nPress Enter to continue...")
+
+            elif choice == "4":
+                contributor = input("Filter by contributor (leave blank for overall ranking): ").strip() or None
+                language = input("Filter by language (optional): ").strip() or None
+                skill = input("Filter by skill (optional): ").strip() or None
+                since_str = input("Only include analyses since (YYYY-MM-DD, optional): ").strip() or None
+                since_dt = parse_date(since_str)
+                top_n_raw = input("How many top projects to summarize? [default 3]: ").strip()
+                try:
+                    top_n = int(top_n_raw) if top_n_raw else 3
+                except ValueError:
+                    print("[INFO] Invalid number; defaulting to 3.")
+                    top_n = 3
+
+                insights = list_project_insights(storage_path=storage_path)
+                insights = filter_insights(
+                    insights,
+                    language=language,
+                    skill=skill,
+                    since=since_dt,
+                )
+                if contributor:
+                    insights = rank_projects_by_contribution(
+                        storage_path=storage_path,
+                        contributor=contributor,
+                        top_n=None,
+                    )
+                    insights = filter_insights(insights, language=language, skill=skill, since=since_dt)
+
+                summaries = sorted(
+                    insights,
+                    key=lambda ins: compute_composite_score(ins, contributor=contributor)[0],
+                    reverse=True,
+                )
+                summaries = summaries[:top_n] if top_n >= 0 else []
+
+                if not summaries:
+                    print("[INFO] No insights recorded yet.")
+                else:
+                    print("\nTop-ranked project summaries:\n")
+                    for i, insight in enumerate(summaries, start=1):
+                        score, parts = compute_composite_score(insight, contributor=contributor)
+                        contribution_value = parts["contribution"]
+                        basis = parts.get("basis", "count")
+                        metric = parts.get("metric", "items")
+                        count = parts.get("count", 0)
+                        if basis == "percentage":
+                            rationale = f"contribution={contribution_value:.2f}% | volume={count} {metric}"
+                        else:
+                            rationale = f"contribution={int(round(contribution_value))} {metric}"
+                        print(f"{i}) {insight.project_name}")
+                        print(f"    summary: {insight.summary or '—'}")
+                        print(f"    rationale: {rationale}")
+                input("\nPress Enter to continue...")
+
+            elif choice == "0":
+                return
+
+            else:
+                print("Please choose a valid option (0-4).")
+
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            input("Press Enter to return to insights menu...")
+            return
