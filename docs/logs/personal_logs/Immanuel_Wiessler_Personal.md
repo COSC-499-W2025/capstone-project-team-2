@@ -2208,7 +2208,7 @@ Week 25 was focused on resolving a critical RenderCV rendering bug caused by the
 # 📝 Personal Log – Week 26 (03/23/2026 – 03/29/2026)
 
 ## 📊 Peer Evaluation
-![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/11-29-2025.png)
+![Immanuel Wiessler Peer Screenshot](../peer_eval_screenshots/Immanuel_Peer_screenshots/2026-03-27.png)
 
 ---
 
