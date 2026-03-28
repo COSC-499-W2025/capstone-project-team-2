@@ -45,6 +45,7 @@ import {
   addPortfolioSkill,
   appendPortfolioSkill,
   removePortfolioSkill,
+  fetchConfig,
   addResumeAward,
   removeResumeAward,
   updateResumeSkillLevel,
@@ -571,7 +572,7 @@ function PortfolioRoleOverrideCard({ title, projectName, hint = "" }) {
  * }} props
  * @returns {JSX.Element}
  */
-function ProjectEditor({ projects, docProjects, onAddProject, onAddProjectAI, onEditProject, onRemoveProject, busy = false, allowRoleOverride = false }) {
+function ProjectEditor({ projects, docProjects, onAddProject, onAddProjectAI, onEditProject, onRemoveProject, busy = false, allowRoleOverride = false, externalAllowed = false }) {
   const [aiLoading, setAiLoading] = useState(false);
   const [projectName, setProjectName] = useState(projects[0] || "");
   const [summary, setSummary] = useState("");
@@ -654,7 +655,7 @@ function ProjectEditor({ projects, docProjects, onAddProject, onAddProjectAI, on
             <button type="button" className="liquid-btn solid btn-success" disabled={busy || aiLoading} onClick={() => onAddProject(projectName, payload)}>
               Add Project
             </button>
-            <button type="button" className="liquid-btn solid btn-success" disabled={busy || aiLoading} onClick={async () => { setAiLoading(true); try { await onAddProjectAI(projectName, { start_date: toMonthValue(startDate) || undefined, end_date: toMonthValue(endDate) || undefined }); } finally { setAiLoading(false); } }} title="Use Gemini AI to generate a polished project entry">
+            <button type="button" className="liquid-btn solid btn-success" disabled={busy || aiLoading || !externalAllowed} onClick={async () => { setAiLoading(true); try { await onAddProjectAI(projectName, { start_date: toMonthValue(startDate) || undefined, end_date: toMonthValue(endDate) || undefined }); } finally { setAiLoading(false); } }} title="Use Gemini AI to generate a polished project entry">
               {aiLoading ? "⏳ Generating..." : "✦ Add with AI"}
             </button>
           </div>
@@ -1399,6 +1400,13 @@ function DocumentStudio({ kind }) {
   const [editCategory, setEditCategory] = useState("contact");
   const [savedProjects, setSavedProjects] = useState([]);
   const [savedDocs, setSavedDocs] = useState([]);
+  const [externalAllowed, setExternalAllowed] = useState(false);
+
+  useEffect(() => {
+    fetchConfig()
+      .then((cfg) => setExternalAllowed(cfg?.consented?.external === true))
+      .catch(() => {});
+  }, []);
 
   const [activeRenderActions, setActiveRenderActions] = useState([]);
   const activeRenderActionsRef = useRef(new Set());
@@ -1604,6 +1612,50 @@ function DocumentStudio({ kind }) {
         // non-critical — status card will show "—" if list fetch fails
       }
     }, `${isResume ? "Resume" : "Portfolio"} created.`);
+  }
+
+  /**
+   * Creates a new document and adds all saved projects using AI enhancement.
+   *
+   * @returns {Promise<void>}
+   */
+  async function onGenerateAI() {
+    if (!name.trim()) {
+      setError("Name is required.");
+      return;
+    }
+    if (!theme) {
+      setError("Theme is required.");
+      return;
+    }
+
+    await safeAction(async () => {
+      const res = isResume ? await generateResume(name.trim(), theme) : await generatePortfolio(name.trim(), theme);
+      const id = isResume ? res.resume_id : res.portfolio_id;
+      setDocId(id);
+      setIdInput(id);
+
+      for (const projectName of savedProjects) {
+        try {
+          if (isResume) await addResumeProjectAI(id, projectName);
+          else await addPortfolioProjectAI(id, projectName);
+        } catch {
+          // individual project failures are non-fatal
+        }
+      }
+
+      const data = isResume ? await fetchResume(id) : await fetchPortfolio(id);
+      setDoc(data);
+      const merged = [id, ...readRecentIds().filter((x) => x !== id)].slice(0, 10);
+      saveRecentIds(merged);
+      const listFn = isResume ? fetchResumes : fetchPortfolios;
+      try {
+        const docs = await listFn();
+        setSavedDocs(Array.isArray(docs) ? docs : []);
+      } catch {
+        // non-critical
+      }
+    }, `${isResume ? "Resume" : "Portfolio"} created with AI.`);
   }
 
   /**
@@ -1880,6 +1932,9 @@ function DocumentStudio({ kind }) {
               <button type="button" className="liquid-btn solid btn-success" disabled={busy || !theme} onClick={onGenerate}>
                 Generate {isResume ? "Resume" : "Portfolio"}
               </button>
+              <button type="button" className="liquid-btn solid btn-success" disabled={busy || !theme || !externalAllowed} onClick={onGenerateAI}>
+                Generate {isResume ? "Resume" : "Portfolio"} with AI
+              </button>
             </div>
 
             <div className="settings-list compact">
@@ -2019,6 +2074,7 @@ function DocumentStudio({ kind }) {
               onEditProject={(projectName, field, value) => onApplyEdits([{ section: "projects", item_name: projectName, field, new_value: value }])}
               onRemoveProject={onRemoveProject}
               allowRoleOverride={!isResume}
+              externalAllowed={externalAllowed}
               busy={busy}
             />
           ) : null}

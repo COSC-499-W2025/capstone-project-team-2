@@ -2609,6 +2609,53 @@ textarea::placeholder {
   margin-top: 0.72rem;
 }
 
+.consent-deny-warning {
+  color: #c0392b;
+  background: rgba(192, 57, 43, 0.08);
+  border: 1px solid rgba(192, 57, 43, 0.45);
+  border-radius: var(--control-radius);
+  padding: 0.4rem 0.7rem;
+  font-size: 0.83rem;
+  font-weight: 500;
+  margin-top: 0.4rem;
+}
+
+.consent-document {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--ink-0);
+}
+
+.consent-document h2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-top: 1.1rem;
+  margin-bottom: 0.3rem;
+  color: var(--ink-0);
+}
+
+.consent-document ul {
+  padding-left: 1.4rem;
+  margin: 0.3rem 0;
+}
+
+.consent-document li {
+  margin-bottom: 0.2rem;
+}
+
+.consent-document blockquote {
+  border-left: 3px solid var(--success, #27ae60);
+  margin: 0.75rem 0;
+  padding: 0.4rem 0.8rem;
+  background: color-mix(in srgb, var(--success, #27ae60) 8%, transparent);
+  border-radius: 0 4px 4px 0;
+  font-weight: 500;
+}
+
+.consent-document p {
+  margin: 0.4rem 0;
+}
+
 .workspace-page {
   --controls-field-w: 260px;
 }
