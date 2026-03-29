@@ -1,0 +1,900 @@
+## Term 2 Links
+- [Weeks 11–12 (16/03/2026 – 29/03/2026)](#week-2026-03-16-29)
+- [Week 10 (09/03/2026 – 15/03/2026)](#week-2026-03-09)
+- [Week 9 (02/03/2026 – 08/03/2026)](#week-2026-03-02)
+- [Week 6 + Week 7 (Reading Break) + Week 8 (09/02/2026 – 01/03/2026)](#week-2026-02-09)
+- [Weeks 4–5 (26/01/2026 – 08/02/2026)](#week-2026-01-26)
+- [Week 3 (19/01/2026 – 25/01/2026)](#week-2026-01-19)
+- [Week 2 (12/01/2026 – 18/01/2026)](#week-2026-01-12)
+- [Week 1 (05/01/2026 – 11/01/2026)](#week-2026-01-05)
+
+# Sprint Log: Weeks 11–12 (16/03/2026 – 29/03/2026) <a id="week-2026-03-16-29"></a>
+
+---
+
+<p align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=20&pause=1000&color=0EA5E9&center=true&vCenter=true&width=900&lines=Capstone+Final+Week+Complete;End+of+an+Era+-+Weeks+11%E2%80%9312+Wrap-up" alt="Animated capstone wrap-up banner" />
+</p>
+
+## Peer Evaluation
+![Peer evaluation screenshot](../peer_eval_screenshots/29-03-2026_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Summary
+### Coding tasks
+| PR | Area | Details |
+| --- | --- | --- |
+| [#642](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/642) | Frontend UX | Added global stacked notifications with reduced-motion support and fixed stale `.next` ENOENT pre-run issues. |
+| [#634](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/634) | Backend/Security | Sanitized `analysis project_name`, blocked unsafe ZIP member paths, and added regression coverage. |
+| [#639](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/639) | Refactor/Docs | Removed legacy CLI modules/tests and aligned project flow/docs to FastAPI + Next.js. |
+| [#632](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/632) | Backend/API | Sanitized generated resume/portfolio IDs to prevent unsafe path-like values. |
+| [#619](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/619) | Frontend UX | Synced dashboard with `/representation/projects`; improved inline filters and private/public control behavior. |
+| [#618](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/618) | Frontend Refactor | Scoped private/public mode to dashboard workflows and kept builder authoring-only. |
+| [#612](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/612) | Documentation | Published WCAG 2.2 evidence, checklist status, and sign-off summary. |
+| [#610](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/610) | Accessibility/CI | Added audited-route WCAG fixes, Playwright a11y/sign-off tests, and CI gating. |
+| [#607](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/607) | Accessibility UX | Added persisted `darkMode` preference and redesigned workflow status UI. |
+| [#602](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/602) | Accessibility UX | Added anchored accessibility controls with persistent preferences and navbar compatibility fixes. |
+| [#598](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/598) | Frontend UX | Switched render controls to action-specific loading and clarified status action label. |
+| [#597](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/597) | Backend/RenderCV | Sanitized RenderCV metadata/filename handling to fix slash-related preview failures. |
+| [#594](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/594) | Frontend UX | Enforced guided workflow prerequisites and added phase-based progress UI. |
+| [#569](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/569) | Refactor/Docs | Removed Streamlit UI/runtime dependencies and aligned docs/tests to Next.js frontend. |
+| [#565](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/565) | Frontend Refactor | Unified shared styles into a single light-theme system and reduced style duplication. |
+| [#550](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/550) | Backend + Frontend | Fixed representation empty-state response and hardened save/refresh behavior. |
+
+### Testing or debugging tasks
+| Scope | Verification | Related PRs |
+| --- | --- | --- |
+| Frontend notifications | `npm --prefix frontend test` + manual validation on `/config` and `/upload` (including reduced-motion behavior). | [#642](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/642) |
+| Backend/API/Security | `test/test_extraction.py`, `test/test_analysis_API.py`, `test/test_analysis_service.py` for filename sanitization + ZIP path validation. | [#634](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/634) |
+| Backend/API | `test/test_resume_generator_API.py`, `test/test_portfolio_generator_API.py` for slash-safe ID generation. | [#632](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/632) |
+| Backend/RenderCV | `test/test_Generate_Render_CV_Resume.py` for metadata stripping + safe output lookup. | [#597](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/597) |
+| Frontend e2e | `npm --prefix frontend run test:e2e -- milestone3-flows.spec.js` for mode scope and dashboard/settings sync. | [#618](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/618), [#619](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/619) |
+| Frontend UI | `npm --prefix frontend test` + manual workspace checks for render/loading/status label behavior. | [#598](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/598) |
+| Frontend + API | `npm test --prefix frontend` + representation API/backend checks for empty-state/save-flow reliability. | [#550](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/550) |
+| Accessibility | `npm run test:a11y`, `npm run test:signoff`, plus CI gating for audited routes. | [#610](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/610) |
+| Accessibility UX | `cd frontend && npm test` + manual keyboard/focus/zoom/reflow/persistence checks. | [#602](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/602), [#607](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/607) |
+
+### Reviewing or collaboration tasks
+| PR | Author | Review focus |
+| --- | --- | --- |
+| [#630](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/630) | Graves067 | Projects page QoL changes |
+| [#627](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/627) | ssmith86 | Consent form visibility and control status updates |
+| [#623](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/623) | Weebtrain | Frontend + API support for project duration updates |
+| [#622](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/622) | mahigangal | Top-3 project process-evolution evidence |
+| [#608](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/608) | ThunderIW | Awards UI implementation and minor UI updates |
+| [#591](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/591) | mahigangal | Representation deleted-project handling + progress indicator |
+| [#575](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/575) | ThunderIW | Personal log update |
+| [#574](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/574) | ssmith86 | Thumbnail bug fix |
+| [#572](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/572) | ThunderIW | Personal log update |
+| [#556](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/556) | ThunderIW | Awards section in resume data model/UI API |
+| [#554](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/554) | ThunderIW | RenderCV/data persistence fixes + minor UI updates |
+
+### Connection to last week
+- Continued directly from Week 10’s Next.js migration and UI standardization by focusing on workflow polish, accessibility compliance, dashboard/settings coherence, and release hardening.
+
+### Plan / goals for next period
+- Course complete: this was the final week of the capstone, so no additional sprint goals are planned.
+- Final handoff focus: ensure submitted documentation and logs accurately reflect delivered work.
+
+### Issues / blockers
+- No major blockers; primary challenge was coordinating parallel merges across frontend UX, accessibility, and refactoring/security tracks.
+
+## ====================================================
+
+# Sprint Log: Week 10 (09/03/2026 – 15/03/2026) <a id="week-2026-03-09"></a>
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/15-03-2026_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Summary
+### Coding tasks
+- **PR #495 – Migrate Frontend from Streamlit to Next.js and Standardize Shared UI (Frontend):** Completed the frontend transition from Streamlit to Next.js and standardized shared UI structure/components.
+- **PR #540 – Unify liquid glass form controls and interaction states across frontend (Frontend):** Unified form control styling and interaction states for consistent frontend behavior.
+- **PR #546 – Patch Next.js security vulnerabilities by upgrading to 15.5.12 fixes:** Opened a security patch PR to upgrade Next.js and address known vulnerabilities.
+
+### Testing or debugging tasks
+- Performed frontend verification while migrating from Streamlit to Next.js, including shared UI behavior and interaction-state consistency checks.
+- Validated liquid glass form control updates across common user input and state transitions.
+- Verified Next.js upgrade impact while preparing security fix rollout in PR #546.
+
+### Reviewing or collaboration tasks
+- Reviewed PR #532 (ssmith86): created new page for project management CLI/UI.
+- Reviewed PR #530 (mahigangal): expose representation preferences in UI.
+- Reviewed PR #502 (mahigangal): remove modes bug.
+
+### Connection to last week
+- Shifted milestone frontend work from Streamlit implementation into a consolidated Next.js frontend, continuing the prior week’s UI direction while improving consistency and security posture.
+
+### Plan / goals for next period
+- Polish dashboard and key frontend interfaces (layout clarity, responsive behavior, and consistent interaction states), run targeted bug-finding passes on core user flows, and incorporate feedback from peer testing.
+- Explore and add an accessibility option in the frontend (for example improved contrast/readability controls), then verify it does not introduce regressions based on peer testing feedback.
+
+### Issues / blockers
+- No major blockers noted this period.
+
+## ====================================================
+
+# Sprint Log: Week 9 (02/03/2026 – 08/03/2026) <a id="week-2026-03-02"></a>
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/08-03-2026_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Summary
+### Coding tasks
+- **PR #483 – Streamlit dashboard + public/private behavior:** Implemented Streamlit dashboard flow updates, including mode behavior for public/private handling.
+
+### Testing or debugging tasks
+- Performed manual checks for multipage navigation, mode toggle behavior, and public/private mode behavior.
+- Ran static compile checks:
+  - `python3 -m py_compile src/web/streamlit_app.py src/web/mode.py src/web/pages/Dashboard.py src/web/pages/ResumeAndPortfoiloMaker.py`
+
+### Reviewing or collaboration tasks
+- Prepared the team weekly log for this cycle (T2 Weekly #9).
+- Reviewed PR #481 (ssmith86): Upload frontend CLI/UI integration.
+- Reviewed PR #478 (Graves067): MySQL to SQLite refactoring.
+- Reviewed PR #479 (ssmith86): updated error handling and test files.
+- Reviewed PR #476 (ssmith86): corrected error handling in data_extraction.py.
+
+### Connection to last week
+- Continued Milestone 3 frontend direction by contributing dashboard and mode behavior work in Streamlit, aligned with the prior plan to build multi-page UI flows.
+
+### Plan / goals for next period
+- Continue frontend development and UI polish in Streamlit for resume/portfolio workflows.
+- Support integration stability between Streamlit pages and FastAPI endpoints.
+
+### Issues / blockers
+- No major blockers noted this period.
+
+## ====================================================
+
+# Sprint Log: Week 6 + Week 7 (Reading Break) + Week 8 (09/02/2026 – 01/03/2026) <a id="week-2026-02-09"></a>
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/01-03-2026_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Summary
+### Coding tasks
+- **PR #412 – Fix project identity consistency, safe analysis deletion, and CLI delete transparency:** Improved project identity handling and deletion safety, with clearer CLI delete flow visibility.
+- **PR #422 – Incremental Uploads with Snapshot Aware Insights:** Added incremental upload support and snapshot-aware insights behavior.
+- **PR #437 – Optimize dedup pipeline with metadata precheck and hash cache:** Optimized deduplication performance by introducing metadata prechecks and hash caching.
+- **PR #439 – Expose dedup cleanup toggle in GET /analyze and document behavior API:** Added a dedup cleanup toggle to `GET /analyze` and documented API behavior.
+- **PR #446 – Clean repository (IDE metadata, unused Dockerfile .yml, etc.) Refactoring:** Removed repository clutter and performed cleanup/refactoring for maintainability.
+- **PR #456 – Fix upload, analyze API behavior and temp extraction cleanup API:** Fixed upload/analyze API behavior and improved temporary extraction cleanup logic.
+
+### Testing or debugging tasks
+- Validated project lifecycle behavior across upload, analyze, reanalysis/versioning, and delete flows while implementing identity consistency and safe deletion updates.
+- Debugged dedup edge cases and performance paths, including metadata precheck behavior, hash cache usage, and cleanup-toggle behavior.
+- Verified temporary extraction cleanup and API behavior fixes tied to upload/analyze handling.
+
+### Reviewing or collaboration tasks
+- Reviewed PR #445 (mahigangal): fix ranking and clarity about the metrics.
+- Reviewed PR #444 (ssmith86): milestone2 requirement34.
+- Reviewed PR #440 (ThunderIW): Added missing endpoints to resume and portfolio api.
+- Reviewed PR #435 (mahigangal): add endpoint reference and required endpoint test coverage.
+- Reviewed PR #431 (mahigangal): add coverage for GET `/projects/{id}` and project delete flows.
+- Reviewed PR #424 (ssmith86): added error handling to `__init__` function.
+- Reviewed PR #419 (ThunderIW): generate project summary integration (GEN AI VER_2).
+- Reviewed PR #417 (ssmith86): updated error handling in csharp analyzer and added tests.
+- Reviewed PR #415 (ThunderIW): feature request support multiple generation types in apis resume portfolio and export of doc.
+- Reviewed PR #413 (mahigangal): incorporate a key role of the user in a given project.
+- Reviewed PR #409 (mahigangal): clarity on the factors mentioned in the document analysis.
+- Reviewed PR #408 (Graves067): Timestamp primary key.
+- Reviewed PR #403 (ThunderIW): generate AI resume with DB interaction.
+- Reviewed PR #402 (ThunderIW): default save config issue.
+- Reviewed PR #400 (ThunderIW): Fix project re-analysis, versioning, and duplicate detection.
+
+### Connection to last week
+- Extended Weeks 4-5 dedup and representation focused work into more stable end-to-end API behavior by improving project identity consistency, incremental snapshots, dedup performance, and cleanup controls.
+
+### Plan / goals for next period
+- Start Milestone 3 by introducing a Streamlit frontend integrated with local FastAPI endpoints.
+- Build core multi-page UI flows (home/projects, settings, uploads, project insights, resume/portfolio generation).
+- Add styled HTML/CSS page layouts focused on clear navigation and full feature access.
+
+### Issues / blockers
+- No major blockers noted this period.
+
+## ====================================================
+
+# Sprint Log: Weeks 4–5 (26/01/2026 – 08/02/2026) <a id="week-2026-01-26"></a>
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/08-02-2026_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Summary
+### Coding tasks
+- **PR #358 – Add deduplication across uploads with API output and tests:** Implemented cross-upload duplicate filtering using file hashes, retained a single copy of identical files, surfaced dedup summaries in `/analyze` responses, and updated docs and tests.
+- **PR #391 – Add user-controlled representation prefs (API & CLI) for project insights:** Added preference storage (order, showcase, chronology fixes, highlight skills), new FastAPI endpoints to read/update preferences, a CLI “Representation Preferences” menu with validation, and applied prefs in Project Insights.
+
+### Testing or debugging tasks
+- Ran targeted pytest suites for analysis/dedup and the new representation endpoints:
+  - `pytest test/test_analysis_API.py`
+  - `pytest test/test_analysis_service.py`
+  - `pytest test/test_dedup_index.py`
+  - `pytest test/test_representation_API.py`
+
+### Reviewing or collaboration tasks
+- Reviewed PR #379 (ssmith86): surfaced important errors to the API.
+- Reviewed PR #376 (mahigangal): added user prompts for portfolio view.
+- Reviewed PR #374 (ThunderIW): converted portfolio generation to FastAPI format.
+- Reviewed PR #355 (mahigangal): fixed project duration.
+- Reviewed PR #353 (Weebtrain): test coverage review.
+- Reviewed PR #352 (Graves067): database-analysis versioning.
+- Reviewed PR #375 (ThunderIW): 296 convert resume generation into fastapi
+- Reviewed PR #385 (Weebtrain): cli conversion to api part 1
+
+### Connection to last week
+- Continued Milestone 2 delivery by extending human in the loop controls (representation prefs) and building on earlier deduplication work to improve robustness of analysis outputs.
+
+### Plan / goals for next period
+- Document the new representation endpoints/CLI and add stricter validation (project name and ISO timestamp checks).
+- Add an integration test that exercises prefs and then ordered insights via the main app.
+- Coordinate with traversal work once the file_traverser ends are ready.
+
+### Issues / blockers
+- None noted this period.
+
+## ====================================================
+
+# Sprint Log: Week 3 (19/01/2026 – 25/01/2026) <a id="week-2026-01-19"></a>
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/25-01-2026_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Summary
+### Coding tasks
+- **PR #325 – Fix delete flow and safer JSON saves:** Adjusted delete behavior so JSON files are removed correctly even when DB rows are missing, and fixed JSON serialization by converting datetime/timedelta values before writing.
+- **PR #334 – Add local document analysis insights, CLI display, and tests:** Built richer document insights (summary, highlights, type, metrics/dates/skills/roles, dedupe), surfaced them in the Saved Projects CLI, and added metadata/stats for research style documents.
+
+### Testing or debugging tasks
+- Added `test_document_analysis.py` to cover signals, doc type classification, deduplication, error handling, and reference/figure/table counting.
+
+### Reviewing or collaboration tasks
+- Reviewed PR **#322** (“Added API endpoint for POST /privacy-consent and GET /skills”) by **mahigangal**.
+- Reviewed PR **#328** (“Upload file api”) by **Weebtrain**.
+- Reviewed PR **#339 – Adding_Code_Back_Hotfix** by **Weebtrain**.
+- Reviewed PR **#333 – oop aggregator unified report** by **mahigangal**.
+- Prepared and submitted the **Team Log** entry for this week.
+
+### Connection to last week
+- Built out a full user facing document insights view (summary, highlights, metadata, and stats) and added test coverage to validate correctness across signals, deduplication, and failure handling.
+
+### Plan / goals for next week
+- Add FastAPI endpoints for document analysis (analyze, list, fetch details).
+- Add API tests for the document endpoints.
+- Implement non coding document analysis via the API.
+
+### Issues / blockers
+- None this week.
+
+## ====================================================
+
+# Sprint Log: Week 2 (12/01/2026 – 18/01/2026) <a id="week-2026-01-12"></a>
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/18-01-2026_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Summary
+### Coding tasks
+- Built a local document analyzer for DOCX/PDF/TXT/MD that extracts text/headings and simple signals (dates/metrics/roles/skills) and skips duplicates via file hashes; integrated it into the analysis pipeline. PR: [#299](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/299).
+
+### Testing or debugging tasks
+- Added test_document_analysis.py to check doc reading, markdown headings, duplicates, missing folder, and zip.
+
+### Reviewing or collaboration tasks
+- Reviewed "Cpp analysis" [#301](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/301) by Graves067.
+- Reviewed "add thumbnail upload ability at project analysis point" [#297](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/297) by ssmith86.
+
+### Connection to last week
+- Returned after a light Week 1 (sick) and picked up core development again by extending the analysis flow with document insights.
+
+### Plan / goals for next week
+- Add FastAPI endpoints for document_analysis, store hash indexes between uploads, and add API‑level tests.
+
+### Issues / blockers
+- None so far.
+
+## ====================================================
+
+# Sprint Log: Week 1 (05/01/2026 – 11/01/2026) <a id="week-2026-01-05"></a>
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/11-01-2026_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Goals Recap
+I was sick this sprint and was not able to contribute meaningfully. I focused on recovery and communicated my status to the team.
+
+---
+
+## Key Accomplishments
+- I was sick this sprint, so my contribution was limited.
+- Standardized test docstrings to the team format across several test files.
+
+### Code Reviews Completed
+- Performed analysis API (#272 by Samantha) (limited contribution due to illness).
+
+---
+
+## Deliverables Completed
+- Updated test docstrings to explain purpose and expected behavior (limited contribution due to illness).
+
+---
+
+## Plan for Next Cycle
+- Recover fully and catch up on any missed updates or review requests.
+- Rejoin active development and coordinate with the team on next priorities.
+
+---
+
+## Reflection
+#### What Went Well
+- I communicated early about being sick so the team could adjust.
+
+#### What We Can Improve
+- Build a clearer backup plan for coverage when someone is unexpectedly out.
+
+
+## ====================================================
+
+# Sprint Log: (01/12/2025 – 07/12/2025)
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/07-12-2025_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Goals Recap
+Final M1 polish before break: stabilize delete flows, preserve ZIP names in saved analyses, and surface Project Insights in the CLI with filtering and ranking. Better documentation with clearer module,test docstrings and ensured tests cover new insights behavior.
+
+---
+
+## Key Accomplishments
+**PR #225 – Delete Menu Optimization, ZIP Naming Fixes**
+- Fixed Delete Analysis menu DB query (id,filename,uploaded_at only) to avoid MySQL sort OOM.
+- Passed ZIP stem into analyze_project so saved JSON entries keep original project names instead of temp folders.
+- Updated tests around delete flow, labeling, and menu behavior.
+
+**MPR #239 – Insights Helpers, Dedicated Insights Menu**
+- Added shared insight utilities (insight_helpers.py) for date parsing, filtering, and composite scoring.
+- Introduced a dedicated insights menu (menu_insights.py) exposing chronological projects, skill timelines, rankings, and top summaries.
+- Wired the main menu to the new insights flow and expanded menu tests/docstrings for clarity.
+
+### Code Reviews Completed
+- Reviewed C analysis Coding task (#236 by Graves067).
+- Reviewed Java In-depth Code Analysis and Integration (#224 by mahigangal).
+
+---
+
+## Deliverables Completed
+- Stable Delete Analysis menu and correct ZIP based project naming.
+- CLI Project Insights: chronological views, filters, composite ranking, and top summaries.
+- Shared insight helpers with accompanying tests and documentation updates.
+
+---
+
+## Plan for Next Cycle
+- I will be working on some bonus tasks (not yet decided) but in Milestone 2, the system will run as an API service instead of only a CLI. The goal will be to let users guide the results by making selections, edits, and corrections.
+
+---
+
+## Reflection
+#### What Went Well
+- Significant improvements to stability and correctness through optimized DB queries and cleaned project label handling.
+- The Insights menu elevated the CLI’s usefulness and set a strong base for M2’s analytical API.
+- Strong collaboration and smooth PR review cycles as we closed the semester.
+
+#### What We Can Improve
+- We should avoid letting any one code file become too large. Breaking code into smaller, focused modules will make the system easier to understand, test, and extend.
+- We should try to break large features into smaller PRs to make reviews smoother.
+- Better planning and communication around timing would help the team avoid these bottlenecks in the future.
+
+
+## ====================================================
+
+# Sprint Log: (24/11/2025 – 30/11/2025)
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/30-11-2025_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Goals Recap
+Coding: Focused on restructuring the CLI into modular layers. Broke main.py into dedicated modules (app_context, analysis_service, saved_projects, portfolio, menus) and reduced it to handle only consent/config and menu dispatch. Deferred MySQL connections until after consent. Added comprehensive docstrings and expanded pytest coverage for all new modules. Performed manual testing across all menu flows, project save/load operations, analysis workflows, and error handling.
+
+---
+
+## Key Accomplishments
+**My Work (PR #214)**
+- Separated CLI responsibilities into modular layers: `app_context`, `analysis_service`, `saved_projects`, `portfolio`, `menus`.
+- Reduced `main.py` to manage only consent, configuration, and menu delegation.
+- Deferred database creation to `create_app_context()` to ensure no MySQL calls happen before user consent.
+- Added standards style docstrings across all refactored modules for clarity and maintainability.
+- Built and ran pytest suites for all new modules (`main`, `app_context`, `analysis_service`, `saved_projects`, `portfolio`, `menus`) with all tests passing.
+- Conducted manual testing of menu flows, project operations, analysis workflows, and error handling.
+
+### Code Reviews Completed
+Reviewed multiple team PRs.
+
+---
+
+## Deliverables Completed
+- Modular CLI structure with deferred database initialization.
+- Comprehensive documentation via docstrings.
+- Passing pytest coverage for all new modules.
+- Manual testing completed for our actual usage flows.
+
+---
+
+## Plan for Next Cycle
+- Ensure all Milestone 1 deliverables are fully completed and validated.
+- Fix any remaining issues or blockers from the CLI and Project Insights work.
+- Prepare for final M1 submission, including demos, documentation, and team coordination.
+
+---
+
+## Reflection
+#### What Went Well
+- The CLI refactor went smoothly, and the code is now organized into clear, modular components that are easier to maintain and extend.  
+- The team is wrapping up the final deliverables for Milestone 1, and progress is steady. It feels like we’re approaching the finish line for the semester.  
+- Overall collaboration and coordination on tasks have improved, helping us keep things moving despite the complexity of the project.  
+
+#### What We Can Improve
+- Some PRs were submitted later than expected, which caused minor delays in progress and coordination. Planning for earlier submissions or better communication around timing could help avoid these bottlenecks in the future.  
+
+## ====================================================
+
+# Sprint Log: (17/11/2025 – 23/11/2025)
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/23-11-2025_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Goals Recap
+
+Team Log: This week I completed the Team Log for the group, summarizing team progress, Kanban status, completed tasks, and all testing results.
+Coding: I focused on extending the new Project Insights subsystem that I introduced during last week's bonus work. Building on the initial logging and ranking functionality, I implemented richer analysis features (file-level statistics, skill history timelines, and top-ranked project summaries), hardened the JSON storage layer against corrupted data, and expanded the test suite so these behaviors are reliable over time.
+
+---
+
+## Key Accomplishments
+
+### My Work (PR #176)
+- Added full **file analysis** (file counts, total/avg size, type breakdown, largest/newest file).
+- Implemented **skill history tracking** using chronological ordering.
+- Added **top-ranked project summaries** with scoring and contributor statistics.
+- Normalized contributors/skills for consistent ordering across old and new entries.
+- Strengthened JSON storage:
+  - Non-list or corrupted JSON logs are now safely stashed and replaced.
+  - _read_entries handles malformed data gracefully.
+- Expanded test coverage for:
+  - File analysis
+  - Skill history
+  - Ranked summaries
+  - Corrupted JSON handling
+
+### Code Reviews Completed
+I also supported the team through multiple PR reviews in the areas of Docker automation, contribution percentages, and database helpers.
+- Docker auto-testing (#172)  
+- Contribution percentage calculation (#161)  
+- Database functions (#160)
+
+---
+
+## Deliverables Completed
+- File analysis and statistics module  
+- Skill history and ranking summaries  
+- JSON storage improvements  
+- Full test coverage for new features  
+- Team Log completed for the group
+
+---
+
+## Plan for Next Cycle
+- Integrate Project Insights with CLI/UI workflows.
+- Add optional CLI/visualization helpers.
+- Refine ranking metrics and contributor scoring.
+- Support Milestone 1 integration tasks.
+
+---
+
+## Reflection
+
+### What Went Well
+- Smooth extension of Project Insights with no regressions.
+- Strong test coverage for all new analytics.
+- Robust storage layer with safe corruption handling.
+- Completed the Team Log accurately and on time.
+
+### What I Can Improve
+- Add more developer facing documentation.
+- Coordinate data schema alignment earlier.
+- Explore performance optimizations for large project hierarchies.
+
+---
+
+## ====================================================
+
+# Sprint Log: (03/11/2025 – 09/11/2025)
+
+---
+
+##  Peer Evaluation
+![alt text](../peer_eval_screenshots/09-11-2025_PeerEval_Puneet_Maan.png)
+
+---
+
+##  Weekly Goals Recap
+
+This week, I focused on completing the Resume Exporter, it is the second half of the resume automation system. Building on last week’s ResumeItem generator, I implemented a full export pipeline capable of discovering project directories, generating structured resume data for each, and writing deterministic JSON output with CLI support. I also wrote comprehensive automated tests to ensure stable export behavior, deterministic JSON generation, and CLI compatibility.
+
+---
+
+## Key Accomplishments
+- Implemented Resume Exporter module and test suites
+- Added new CLI entry point for exporting rseume data via command line
+- Developed full test coverage for exporter logic, JSON payload validation, and CLI output
+- Integrated timezone aware timestamps and project ordering
+- Ensured compatibility with ResumeItem dataclass and prior generator outputs
+- Supported teammate PR review and test debugging (**Mahi, Samantha, and Cameron's PR**)  
+
+---
+
+##  Deliverables Completed
+
+## Resume Exporter Module
+- Implemented resume_exporter.py for automated JSON export
+- Added discover_projects, build_resume_items, and export_resume_items functions
+- Deterministic export structure with ISO8601 timestamps
+
+---
+
+## Testing & Validation
+- test_resume_exporter.py: Functional test suite for project discovery and JSON writing
+- test_resume_exporter_json_validation.py: Validation suite for JSON structure, determinism, CLI invocation, and optional schema checking
+
+##  Code Review & Collaboration
+Reviewed teammate PRs related to:
+- Individual contributions in git collaborative projects #154 (Mahi)
+- Save project duration json #146 (Samantha)
+- Database development #152 (Cameron)
+- Discussed future integration between resume exporter output and contributor insights
+
+---
+
+##  Plan for Next Cycle
+- Yet to be discussed. I will work to get some bonus marks during the reading break.
+
+---
+
+##  Reflection Points
+
+##  What Went Well
+- Successfully completed the second core component of resume automation
+- Maintained deterministic behavior and clean, well tested output
+- Improved cross module consistency between generator and exporter
+- Addressed reviewer feedback proactively with validation updates
+
+
+##  What I Can Improve
+- Could introduce early stage error handling to handle failed project builds more gracefully
+- Plan test execution across different OS environments (Mac vs Windows) earlier to catch path related issues
+- Continue to collaborate closely during review cycles to align export format expectations
+
+## ====================================================
+
+# Sprint Log: (27/10/2025 – 02/11/2025)
+
+---
+
+##  Peer Evaluation
+![alt text](../peer_eval_screenshots/02-11-2025_PeerEval_Puneet_Maan.png)
+
+---
+
+##  Weekly Goals Recap
+
+This week, I focused on delivering the first half of the resume automation system and supporting teammates in maintaining cross platform reliability in our collaboration detection pipeline.  
+I shipped the **Resume Item Generator** with full test coverage and reviewed / assisted on contribution-related logic fixes.  
+I also opened and helped resolve a bug around contributor file precedence in project type detection.
+
+---
+
+## Key Accomplishments
+-  Worked on **PR #111 :** Resume Item Generator + tests  
+-  Created **Issue #120** – Project type detection bug (contributors should override metadata)  
+-  Helped resolve Windows Git handle + test stability issues during contribution detection PR review  
+-  Supported teammate PR review and test debugging (**Mahi’s PR**)  
+
+---
+
+##  Deliverables Completed
+
+## **Resume Item Generator**
+- Implemented `ResumeItem` dataclass and generation pipeline  
+- Added stack, collaboration, and skills summary logic  
+- Integrated Git based collaboration inference signals  
+- Deterministic list ordering + predictable output format  
+
+---
+
+##  Code Review & Collaboration
+- Reviewed and tested teammate’s Individual Contribution PR  
+- Provided fix guidance for unattributed bucket edge case  
+- Reviewed project type / Windows Git handle PR  
+
+---
+
+##  Plan for Next Cycle
+- Submit PR for **Resume Exporter + CLI**  
+- Add JSON schema snapshots + CLI integration tests  
+- Support contributor insights integration into resume output  
+
+---
+
+##  Reflection Points
+
+##  What Went Well
+- Delivered core resume feature with deterministic tests  
+- Strong collaboration while reviewing PRs & diagnosing cross-platform issues  
+- Scoped PR responsibly by splitting generator and exporter work  
+
+##  What I Can Improve
+- Continue breaking large features into staged PRs (good start this week)  
+- Increase automation confidence by running cross platform tests earlier
+
+## ====================================================
+
+# Sprint Log: (10/20/2025 – 10/26/2025)
+
+---
+
+## Peer Evaluation
+![alt text](../peer_eval_screenshots/26-10-2025_PeerEval_Puneet_Maan.png)
+
+---
+
+## Weekly Goals Recap
+
+This week, I focused on advancing the **Stack and Skill Detection v2** feature to expand our system’s ability to recognize technologies and frameworks, as well as supporting the review and maintenance of teammates’ pull requests. I also helped merge key configuration and collaboration-related updates to ensure the CLI and local project detection components remained aligned with our backend logic.
+
+- Created an issue **#84** to fix infinite loop when selecting 'n' in CLI confirm modification from PR **#83**.
+- Completed task **#30** – Implemented detection for programming language and framework used in a coding project.
+
+---
+
+## Additional Details
+
+### Stack Detector Updates
+- Now works with C/C++ files in addition to `.mjs` and `.cjs`.
+- Can find Dockerfiles, Docker Compose files, and Terraform modules, and shows which files were found.
+- Ignores folders like `node_modules` and `.git` to make scans faster.
+- Keeps track of where each framework was discovered using a new `framework_sources` list.
+
+### Skill Insight Module
+- Connects new infrastructure tools (like Docker and Terraform) to DevOps and Infrastructure-as-Code (IaC) skills.
+- Groups Express, NestJS, and Koa under the main Web Development skill category.
+
+---
+
+## Code Review & Maintenance
+- **Reviewer on PR #92** – Refactored CLI configuration save flow with validation and tests.  
+- **Reviewer on PR #86** – Infinite loop when selecting 'n' in CLI confirm modification (fix).  
+- **Reviewer on PR #87** – Added detection for individual vs. collaborative projects on local (non-repo) files.
+
+---
+
+## Plan for the Next Cycle
+*(To be finalized on Oct 27, Monday)*
+
+- Ship a CLI wrapper so teammates can run from the terminal and view the report.  
+- Coordinate with the metadata team to surface infrastructure signals inside project summaries.
+
+---
+
+## Reflection Points
+
+### What Went Well
+- Expanded the project’s detection logic substantially to include infrastructure and multi-language signals.  
+- Merging teammates’ PRs helped maintain workflow momentum and keep the codebase stable.  
+- The code review cycle helped identify minor reliability issues before integration.  
+
+### What Didn't Go Well
+- Encountered a couple of failing tests after initial merges; this was due to system variation between different OSs.  
+- Balancing both review duties and feature development was challenging.
+
+---
+
+Overall, this sprint had strong technical progress with broader detection coverage and improved collaboration signals. The next step is ensuring those new modules integrate seamlessly and pass all test cases for stable deployment.
+
+## ====================================================
+
+## Sprint Log: (10/13/2025 – 10/19/2025)
+
+### Peer Evaluation
+![alt text](../peer_eval_screenshots/19-10-2025_PeerEval_Puneet_Maan.png)
+
+### Weekly Goals Recap  
+Focused on delivering the **skill insight module** so the system can automatically map detected languages, frameworks, and libraries to résumé-ready skills. Also refreshed the weekly **team log** and reviewed teammates’ PRs to stay aligned with their contributions.
+
+### Additional Details
+- **Skill Insight Module (#41 / PR #79)**  
+  - Added `project_stack_detection.py` plus `project_skill_insights.py`.  
+  - Created unit suites (`test_project_stack_detection.py`, `test_project_skills.py`) using temporary project fixtures (Python/Flask, React, FastAPI+Vue).  
+  - Verified everything inside the project `venv` with `python -m unittest ...`.  
+- **Team Log (logs branch)**  
+  - Documented week 7 deliverables, Kanban/burn-up placeholders, and linked teammate PRs (#71, #73, #68, #69, #62, #79).  
+- **Cross-team context**  
+  - Read merged PRs to understand JSON storage (Samantha), startup config tests (Sam), hierarchy refinements (Cameron), consent screen (Mahi), and config storage tests (Immanuel).  
+
+### Plan for the Next Cycle
+- Support backlog analytics tasks: distinguish collaboration vs. individual projects and surface contributor roles.  
+- Pair with Immanuel/Cameron on metadata signals needed for collaboration insights.  
+- Help finalize consent documentation once Mahi has a draft.  
+- Add skill detection outputs into the artifact storage pipeline once JSON schemas are finalized.  
+
+### Reflection Points
+#### What Went Well  
+- TDD approach kept the skill module tight, fixtures caught edge cases across multiple stacks.  
+- Running tests inside the `venv`and avoided “missing dependency” surprises.  
+- Reviewing teammate PRs made it easy to write an accurate team log and identify followup integration work.  
+
+#### What Didn't Go Well  
+- I inadvertently caused a last minute scramble by delaying the final save of the team log and project assets until the submission deadline was imminent. This put undue stress on the team. In the future, I will prioritize and enforce early and frequent saving/committing to ensure the entire team can submit calmly and confidently.
+
+Overall, the week moved us from documentation heavy work into actionable analytics. We now have automated signals describing project skills, and a clear picture of team progress for the sprint report. Next up is turning those insights into collaboration aware summaries.
+
+## ====================================================
+
+## Sprint Log: (10/06/2025 – 10/12/2025)
+
+### Peer Evaluation
+![alt text](../peer_eval_screenshots/12-10-2025_PeerEval_Puneet_Maan.png)
+
+### Weekly Goals Recap  
+This week, the primary focus was on updating the project documentation to reflect the most current system requirements. This included a major update to the `README.md` file, where we integrated a detailed **Level 1 Data Flow Diagram (DFD)** and added structured visual and tabular representations of system components and processes. These updates were aligned with Milestones 1 through 3.
+
+### Additional Details  
+- **README Updates**:  
+  - Added a visual **Level 1 DFD** (`level1 dfd updated.png`) representing the current architecture.
+  - Included clearly labeled tables for:
+    - External Entities  
+    - Core Processes (P1–P5) with milestone mappings  
+    - Internal Data Stores (D1–D5)  
+  - Created a **Milestone Overview Table** to support development planning.
+- **System Design Alignment**: The updated DFD and tables ensure a consistent understanding of how the system components interact, both internally and externally.
+- **Issue Closures**:  
+  - Closes [#43](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/43) – Edited README to include DFD and architectural details.  
+  - Closes [#25](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/25) – Created new Level 1 DFD based on updated system requirements.
+
+### Plan for the Next Cycle  
+For the week ahead (10/13/2025 – 10/19/2025), we plan to:
+- Ensure every team member has their local environment fully prepared for implementation.
+- Begin setting up **Docker** in local development environments? (not sure yet).
+- Define roles for backend setup as we move closer to implementation.
+- Review and potentially iterate on the updated DFD and milestone mappings.
+
+### Reflection Points  
+
+#### What Went Well  
+- Successfully updated and documented the **Level 1 DFD** with a visual and organized format.
+- Documentation clarity improved significantly, making the system easier to understand for both current and new contributors.
+- Issue tracking and resolution were efficient, with tasks clearly linked and completed as planned.
+
+#### What Didn't Go Well  
+- Encountered a minor issue with GitHub-hosted image linking, requiring multiple uploads.
+- Initial file handling led to confusion about proper resource referencing
+
+This sprint was productive, with a strong focus on aligning documentation with the evolving system design. The updated DFD and milestone breakdowns now offer a clearer roadmap for development going forward.
+
+## ====================================================
+
+## Sprint Log: (09/29/2025 – 10/05/2025)
+
+### Peer Evaluation
+![alt text](../peer_eval_screenshots/05-10-2025_PeerEval_Puneet_Maan.png)
+
+### Weekly Goals Recap
+This week, our main goal was to finalize the Level 1 Data Flow Diagram (DFD) based on the previous sprint’s requirements. We also reviewed the system design to ensure it aligned with the finalized project requirements. The DFD was developed with a focus on accurately representing data flow between backend and frontend, external actors, and system components.
+
+### Additional Details
+- **DFD Design**: Finalized the Level 1 DFD, ensuring all external actors and data flow were accurately represented.
+- **Team Meetings**: Held discussions to finalize the DFD design and review progress on system architecture.
+- **Individual Contributions**: Contributed to the refinement and documentation of the Level 1 DFD, clarifying data flows and external actor interactions.
+
+### Plan for the Next Cycle
+In the upcoming week (10/06/2025 – 10/12/2025), we’ll focus on reviewing and finalizing our system requirements, revising the system architecture, and allocating tasks more clearly. Additionally, we’ll begin working with Docker and set up our local environments to integrate it into the project.
+
+### Reflection Points
+#### What Went Well
+We made solid progress in completing the DFD Level 1, which greatly clarified the system’s data flow. Team collaboration was smooth, and the weekly meetings ensured that everyone stayed on track with their tasks. We’ve also improved our understanding of the system design and how the components interact, making the project clearer overall.
+
+#### What Didn't Go Well
+There were no major issues this week. The team worked efficiently, and communication was strong, allowing us to stay on schedule.
+
+This week was effective, with meaningful progress on the DFD and overall system design. The team’s dynamics continue to improve, and we’re well on track for the next phase of the project.
+
+
+## ====================================================
+
+## Sprint Log: (09/22/2025 – 09/28/2025)
+
+### Peer Evaluation
+![alt text](../peer_eval_screenshots/28-09-2025_PeerEval_Puneet_Maan.png)
+
+### Weekly Goals Recap
+This week, I focused on contributing to the project proposal by developing detailed use cases and creating the UML use case diagram. We collaborated as a team on this and outlining the system architecture, incorporating feedback from our initial drafts to ensure they aligned with the project's overall objectives.
+
+### Additional Details
+- **Project Proposal Tasks**: Completed use cases, UML diagram and system architecture outline.
+- **Team Meetings**: Participated in discussions to align on proposal structure.
+- **Individual Contributions**: Researched best practices for UML diagrams and system architecture.
+
+### Plan for the Next Cycle
+In the upcoming week (09/29/2025 – 10/05/2025), I will collaborate with the team on creating the data flow diagram at level 1. Additionally, we will work on finalizing the system design, allocating work tasks and reading up on agile development practices.
+
+### Reflection Points
+#### What Went Well
+Our team collaborated effectively, with strong communication through regular Discord check-ins and clearly defined responsibilities that kept everyone accountable. We also made efficient use of shared documents for real-time edits, which streamlined our workflow and helped us meet deadlines without last-minute rushes.
+
+#### What Didn't Go Well
+We encountered no significant issues this week, though minor delays in gathering reference materials slightly extended our research phase.
+
+This week was effective, with solid progress on the project proposal and clear use cases supported by UML diagrams. Suggestions from other teams and the professor helped us spot and fix design gaps. Our team's strong rapport led to smooth conversations and prompt updates, keeping the group in sync.
+
+## ====================================================
+
+## Sprint Log: (09/15/2025 – 09/21/2025)
+
+### Peer Evaluation
+<img width="936" height="542" alt="Screenshot 2025-09-21 at 4 52 30 PM" src="https://github.com/user-attachments/assets/00423013-e9e4-48b1-b146-89655ae275ef" />
+
+---
+
+### Weekly Goals Recap
+We worked on outlining the project’s functional and non-functional requirements based on our current understanding. We created a draft and then got input from three other teams to see where we could make improvements.
+With their feedback, we made some adjustments to ensure the requirements were more specific, measurable, and easier to follow.
+
+---
+
+### Additional Details
+- **Project Requirements Quiz**: Completed successfully.
+- **Discord Server**: Joined for team communication.
+- **Individual Weekly Logs**: Documented personal progress.
+
+---
