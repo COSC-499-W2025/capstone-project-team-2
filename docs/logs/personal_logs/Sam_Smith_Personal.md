@@ -1,5 +1,6 @@
 ### Navigation
 ## Term 2
+- [Week 11-12](#t2-week-11-12-03162026--02292026)
 - [Week 10](#t2-week-10-03092026--02152026)
 - [Week 9](#t2-week-9-03022026--02082026)
 - [Week 6-8](#t2-week-6-8-02092026--03012026)
@@ -19,6 +20,65 @@
 - [Week 5](#week-5-09292025---10052025)
 - [Week 4](#week-4-09222025---09282025)
 - [Week 3](#week-3-09152025---09212025)
+
+## T2 Week 11-12 (03/16/2026- 02/29/2026)
+### Task Types Worked On (Screenshot from Peer Eval)
+<img width="1320" height="741" alt="image" src="https://github.com/user-attachments/assets/4d561b0d-3b93-4018-a143-1393d395f6cc" />
+
+### Features Worked on this Milestone (Provide sufficient detail)
+  * #1: Added thumbnails to project page
+  * #2: Consent settings for user
+ 
+## Associated Tasks from Project Board:
+
+| Task ID | Description                     | Feature                   | Assigned To | Status   |
+| ------- | ------------------------------- | ------------------------- | ----------- | -------- |
+|[#561]|https://github.com/COSC-499-W2025/capstone-project-team-2/pull/561|Thumbnails in project page|ssmith86|complete|
+|[#574]|https://github.com/COSC-499-W2025/capstone-project-team-2/pull/574| thumbnail bug fix|ssmith86|complete|
+|[#627]|https://github.com/COSC-499-W2025/capstone-project-team-2/pull/627| made consent settings for user|ssmith86|complete|
+
+ 
+### Progress Update (since 01/26/2026) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td> [#561](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/561)
+        </td>
+        <!-- Status -->
+        <td> complete
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>[#627](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/627)
+        </td>
+        <!-- Status -->
+        <td> complete
+        </td>
+    </tr>
+    </table>
+
+### Extra Details:
+**Reviewing / Collaboration Tasks**
+-  Reviewed the Following PRs
+     - [#576](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/576)
+     - [#577](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/577)
+     - [#591](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/591)
+     - [#603](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/603)
+     - [#622](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/622)
+     - [#630](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/630)
+   
+**Connection to Previous Week**
+- We finalized and completed the project this week
+
+**Plan for Next Week**
+ - none: the project is finished
 
 ## T2 Week 10 (03/09/2026- 02/15/2026)
 ### Task Types Worked On (Screenshot from Peer Eval)
