@@ -2,6 +2,7 @@
 
 ## Quick Navigation
 ### Term 2
+- [T2 Weekly #12 (Mar 16 to Mar 29, 2026) - Prepared by: Samantha Maranda](#t2-weekly-12)
 - [T2 Weekly #10 (Mar 9 to Mar 15, 2026) - Prepared by: Mahi Gangal](#t2-weekly-10)
 - [T2 Weekly #9 (Mar 2 to Mar 8, 2026) - Prepared by: Puneet Maan](#t2-weekly-9)
 - [T2 Weekly #8 (Feb 9 to Mar 1, 2026)](#t2-weekly-8)
@@ -26,6 +27,139 @@
 ---
 
 ## Term 2
+
+<a id="t2-weekly-12"></a>
+## T2 Weekly #12 (Mar 16 to Mar 29, 2026) - Prepared by Samantha Maranda
+
+## Features in the Project Plan Cycle
+- Estimate duration of project
+- Detect type of project (individual or collaborative)
+- Clarify activity heatmap counts on dashboard
+- Hide deleted projects from representation preferences and Add Progress Indicator
+- Add frontend behavior tests for milestone 3 flows
+- Enhance top 3 projects with process evolution evidence
+- Add Global notifications
+- harden analysis filename handling and prevent zip slip
+- sanitize generated resume/portfolio IDs and add regressions
+- Sync Project Settings with Dashboard and Redesign Dashboard Controls UX
+- Refactor mode scope: dashboard-only private/public, builder authoring-only
+- Accessibility & WCAG usage
+- Add dark mode accessibility preference and overhaul workflow status UX
+- Fix workspace render button loading UX and clarify status action label
+- Fix PDF preview failures by sanitizing RenderCV input metadata and filename handling
+- Implement guided user flow and phase based workflow progress UI
+- Frontend UI unification: single light theme, shared styles, consistency and performance improvements
+- Fix representation empty state API response and harden frontend save/refresh behavior
+- Added thumbnails to project page
+- Consent settings for user
+- Implemented full CRUD UI for awards management in the resume workspace
+- Added skill proficiency level endpoints and inline controls for both resume and portfolio APIs
+- Added optional date override parameters (`start_date`/`end_date`) for AI-generated project entries
+- Removed trailing "etc." artifacts from AI-rendered skill details for cleaner resume/portfolio output
+- UI refinements: button alignment, section spacing, and layout consistency across the workspace page
+- Updated `API_ENDPOINTS.md` to document all new endpoints and clarify field types
+- Fixed the issue with renderCV + data persistence + some minor UI fix
+- Add awards section to resume data model and UI API
+- Projects page QOL changes
+- Batch uploading
+
+### Screenshot from Kanban board
+![Kanban board snapshot](screenshots/kanban_board/29-03-2026_kanban.jpg)
+
+## Burn-up Chart (Velocity)
+![Burn-up chart](screenshots/Burn_up_charts/29-03-2026_burnup.jpg)
+
+## Delivery Summary
+| PR | Owner | Change | Closes | Status |
+| ------- | ------------------ | ----------- | ----------- | ----------- |
+| [#636](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/636) | Samantha Maranda | Readme update for milestone 3 | [#635](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/635) | ✅ |
+| [#624](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/624) | Samantha Maranda | Project type manual update | [#617](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/617) | ✅ |
+| [#623](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/623) | Samantha Maranda | Frontend and API for project duration update | [#616](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/616) | ✅ |
+| [#576](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/576) | Samantha Maranda | Fix project duration estime | [#559](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/559) | ✅ |
+| [#590](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/590) | Mahi Gangal | Clarify activity heatmap counts on dashboard | [#584](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/584) | ✅ |
+| [#591](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/591) | Mahi Gangal | Hide deleted projects from representation preferences and Add Progress Indicator | [#583](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/583), [#588](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/588) | ✅ |
+| [#603](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/603) | Mahi Gangal | add frontend behavior tests for milestone 3 flows | [#508](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/508) | ✅ |
+| [#622](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/622) | Mahi Gangal | Enhance top 3 projects with process evolution evidence | [#507](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/507) | ✅ |
+| [#642](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/642) | Puneet Maan | Add Global notifications | [#641](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/641) | ✅ |
+| [#639](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/639) | Puneet Maan | Remove legacy CLI surface and migrate project to web/API only flow | [#637](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/637), [#638](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/638) | ✅ |
+| [#634](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/634) | Puneet Maan | harden analysis filename handling and prevent zip slip | [#633](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/633) | ✅ |
+| [#632](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/632) | Puneet Maan | sanitize generated resume/portfolio IDs and add regressions | [#631](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/631) | ✅ |
+| [#619](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/619) | Puneet Maan | Sync Project Settings with Dashboard and Redesign Dashboard Controls UX | [#505](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/505), [#506](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/506), [#613](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/613), [#614](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/614), [#615](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/615) | ✅ |
+| [#618](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/618) | Puneet Maan | Refactor mode scope: dashboard-only private/public, builder authoring-only | [#621](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/621) | ✅ |
+| [#612](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/612) | Puneet Maan | Publish WCAG 2.2 evidence and sign-off documentation | [#611](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/611) | ✅ |
+| [#610](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/610) | Puneet Maan | WCAG 2.2 accessibility fixes, e2e audits, and CI gating | [#609](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/609) | ✅ |
+| [#607](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/607) | Puneet Maan | Add dark mode accessibility preference and overhaul workflow status UX | [#604](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/604), [#605](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/605), [#606](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/606) | ✅ |
+| [#602](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/602) | Puneet Maan | Implement accessibility controls and navbar compatibility fixes | [#600](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/600), [#601](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/601) | ✅ |
+| [#598](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/598) | Puneet Maan | Fix workspace render button loading UX and clarify status action label | [#586](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/586) | ✅ |
+| [#597](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/597) | Puneet Maan | Fix PDF preview failures by sanitizing RenderCV input metadata and filename handling | [#595](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/595), [#596](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/596) | ✅ |
+| [#594](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/594) | Puneet Maan | Implement guided user flow and phase based workflow progress UI | [#592](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/592), [#593](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/593) | ✅ |
+| [#569](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/569) | Puneet Maan | Remove Streamlit UI/runtime dependency and align docs/tests for Next.js frontend | [#567](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/567), [#568](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/568) | ✅ |
+| [#565](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/565) | Puneet Maan | Frontend UI unification: single light theme, shared styles, consistency and performance improvements | [#563](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/563), [#564](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/564), [#566](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/566) | ✅ |
+| [#550](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/550) | Puneet Maan | Fix representation empty state API response and harden frontend save/refresh behavior | [#548](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/548), [#549](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/549) | ✅ |
+| [#627](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/627) | Sam Smith | made consent form viewable and fixed controls to include consent status | [#558](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/558) | ✅ |
+| [#574](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/574) | Sam Smith | thumbnail bug fix | [#573](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/573) | ✅ |
+| [#561](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/561) | Sam Smith | added thumbnail upload to frontend on project management page | [#512](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/512) | ✅ |
+| [#608](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/608) | Immanuel Wiessler | UI implementation for awards and minor UI changes | [#571](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/571), [#504](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/504), [#552](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/552)| ✅ |
+| [#556](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/556) | Immanuel Wiessler | Add awards section to resume data model and UI API | [#570](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/570) | ✅ |
+| [#554](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/554) | Immanuel Wiessler | Fixed the issue with renderCV + data persistence + some minor UI fix | [#553](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/553), [#555](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/555) | ✅ |
+| [#630](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/630) | Cameron Gillespie | Projects page QOL changes | [#628](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/628), [#629](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/629) | ✅ |
+| [#580](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/580) | Cameron Gillespie | Batch uploading | [#579](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/579) | ✅ |
+| [#577](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/577) | Cameron Gillespie | complete removal of docker related files | [#578](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/578) | ✅ |
+
+## Testing
+| PR | Test Type | Command / Check | Result |
+| ------- | ------------------ | ----------- | ----------- |
+| [#624](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/624) | Pytest, Manual Test | `pytest ./test/test_project_duration.py` + `python -m src.cli.main` | ✅ |
+| [#623](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/623) | Pytest, Manual Test | `pytest ./test/test_project_duration.py` + `python -m src.cli.main` | ✅ |
+| [#576](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/576) | Pytest | `pytest ./test/test_project_duration.py` | ✅ |
+| [#622](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/622) | Manual run, Pytest, Frontend Tests | `python -m src.cli.main` + `pytest test/test_project_insights.py` +  `pytest test/test_project_insights_API.py` + `node --test frontend/test/api.test.js` + `npm --prefix frontend run test:e2e -- milestone3-flows.spec.js`| ✅ |
+| [#603](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/603) | Frontend Tests | `cd frontend && npm test` + `cd frontend && npx playwright install chromium` + `cd frontend && npm run test:e2e` | ✅ |
+| [#591](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/591) | Manual Tests, Frontend Tests | `python -m src.cli.main` + `cd frontend && node --test test/representation-helpers.test.js`| ✅ |
+| [#590](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/590) | Manual Tests | `python -m src.cli.main` | ✅ |
+| [#642](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/642) | Manual Tests, Frontend Tests | `python -m src.cli.main` + `npm --prefix frontend test` | ✅ |
+| [#639](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/639) | Pytest | `python -m pytest -q test/test_project_io_API.py test/test_saved_projects.py test/test_resume_exporter.py test/test_resume_exporter_json_validation.py` | ✅ |
+| [#634](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/634) | Pytest | `python -m pytest -q test/test_extraction.py test/test_analysis_API.py test/test_analysis_service.py` | ✅ |
+| [#632](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/632) | Manual Tests, Pytest | `python -m src.cli.main` + `python -m pytest -q test/test_resume_generator_API.py test/test_portfolio_generator_API.py` | ✅ |
+| [#619](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/619) | Manual Tests, Frontend Tests | `python -m src.cli.main` + `npm --prefix frontend run test:e2e -- milestone3-flows.spec.js` | ✅ |
+| [#618](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/618) | Manual Tests, Frontend Tests | `python -m src.cli.main` + `npm --prefix frontend run test:e2e -- milestone3-flows.spec.js` | ✅ |
+| [#610](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/610) | Manual Tests, Frontend Tests | `python -m src.cli.main` + `npm run build` + `npm run test:a11y` + `npm run test:signoff` | ✅ |
+| [#607](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/607) | Manual Tests, Frontend Tests | `python -m src.cli.main` + `cd frontend && npm test` + `node --test frontend/test/liquid-shell-helpers.test.js` | ✅ |
+| [#602](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/602) | Manual Tests, Frontend Tests | `python -m src.cli.main` + `npm test` | ✅ |
+| [#598](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/598) | Manual Tests, Frontend Tests | `python -m src.cli.main` + `npm --prefix frontend test` | ✅ |
+| [#597](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/597) | Manual Tests | `python -m src.cli.main` | ✅ |
+| [#594](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/594) | Frontend Tests | `cd frontend && npm run test` + `cd frontend && npm run build` | ✅ |
+| [#569](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/569) | Pytest | `python -m pytest -q` | ✅ |
+| [#565](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/565) | Manual Tests | `python -m src.cli.main` | ✅ |
+| [#550](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/550) | Frontend Tests, Pytest | `npm test --prefix frontend` + `python -m pytest -q test/test_representation_API.py` | ✅ |
+| [#627](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/627) | Frontend Tests, Manual Tests | `npx playwright test e2e/milestone3-flows.spec.js 2>&1` + `npm run dev` + `python -m src.cli.main` | ✅ |
+| [#574](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/574) | Manual Tests | `python -m src.cli.main` | ✅ |
+| [#561](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/561) | Manual Tests, Pytest | `python -m src.cli.main` + `pytest test/test_project_thumbnail_API.py` + `pytest test/test_project_io_API.py` | ✅ |
+| [#608](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/608) | Manual Tests, Pytest, Frontend Tests | `python -m src.cli.main` + `pytest test/test_resume_generator_API.py test/test_portfolio_generator_API.py` + `node --test test/resume_and_portfolio_api.test.js` + `node --test test/api.test.js test/config-helpers.test.js test/liquid-shell-helpers.test.js test/representation-helpers.test.js` | ✅ |
+| [#556](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/556) | Pytest | `python -m pytest test/test_resume_generator_API.py -v` | ✅ |
+| [#630](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/630) | Manual Tests | `python -m src.cli.main` | ✅ |
+| [#580](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/580) | Manual Tests | `python -m src.cli.main` | ✅ |
+| [#577](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/577) | Manual Tests | `python -m src.cli.main` | ✅ |
+
+## Team Members
+
+| Name              | Role/Title          | GitHub Username                                    | Contributions this cycle |
+|-------------------|---------------------|----------------------------------------------------|--------------------------|
+| Immanuel Wiessler | Full Stack Developer | [@ThunderIW](https://github.com/ThunderIW)         | PRs #608, #556, #554 |
+| Samantha Maranda  | Full Stack Developer | [@Weebtrian](https://github.com/Weebtrain)         | PRs #636, #624, #623, #576, Team Log |
+| Cameron Gillespie | Full Stack Developer | [@Graves067](https://github.com/Graves067)         | PRs #630, #580, #577, Milestone 3 Video |
+| Puneet Maan       | Full Stack Developer | [@Puneet-Maan](https://github.com/Puneet-Maan)     | PRs #642, #639, #634, #632, #619, #618, #612, #612, #610, #607, #602, #598, #597, #594, #569, #565, #550 |
+| Sam Smith         | Full Stack Developer | [@ssmith86](https://github.com/ssmith86)           | PRs #627, #574, #561, Milestone 3 Video |
+| Mahi Gangal       | Full Stack Developer | [@mahigangal](https://github.com/mahigangal)       | PRs #622, #603, #591, #591 |
+
+## Overview
+
+During this 2 week cycle a lot of focus was placed on addressing bugs and UX concerns addressed in peer testing and in our own testing. Emphasis was placed on accessibility using WCAG 2.2 to improve usability for those with various disabilities or difficulties involving reading and screen-based eye strain. Bugs associated with input sanitization, broken API calls (both in making the call and the call itself), and backend functionalities were all addressed and handled accordingly. Adding in manual editing of project fields that contained unreliable estimates due to OS limitations were added to facilitate user correction. Project is now in a whole and functional state that is ready for building into a deployment. Deployment was not created due to time constraints and an inability to accomodate time for a meeting to collaborate and discuss the idea as a team.
+
+The **next cycle** will focus on:
+- Relaxing. This is the last week allotted for this project so go have fun!
+
+---
+
 
 <a id="t2-weekly-10"></a>
 ## T2 Weekly #10 (Mar 9 to Mar 15, 2026) - Prepared by Mahi Gangal
@@ -53,7 +187,7 @@
 ## Delivery Summary
 | PR | Owner | Change | Closes | Status |
 | ------- | ------------------ | ----------- | ----------- | ----------- |
-| [#495](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/495) | Puneet Mann | Migrate Frontend from Streamlit to Next.js and Standardize Shared UI | N/A | ✅ |
+| [#495](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/495) | Puneet Maan | Migrate Frontend from Streamlit to Next.js and Standardize Shared UI | N/A | ✅ |
 | [#502](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/502) | Mahi Gangal | Remove Modes | [#499](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/499), [#500](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/500) | ✅ |
 | [#517](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/517) | Immanuel Wiessler | Add dark theme styles for alerts and selects and theme preview | [#525](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/525) | ✅ |
 | [#522](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/522) | Immanuel Wiessler | Revamp workspace DocumentStudio and restore saved document selection | [#498](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/498) | ✅ |
@@ -62,7 +196,7 @@
 | [#530](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/530) | Mahi Gangal | Expose Representation Preferences in UI | [#513](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/513) | ✅ |
 | [#532](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/532) | Sam Smith | created new page for project management | N/A | ✅ |
 | [#534](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/534) | Cameron Gillespie | Failing test correction | N/A | ✅ |
-| [#540](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/540) | Puneet Mann | Unify liquid glass form controls and interaction states across frontend | N/A | ✅ |
+| [#540](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/540) | Puneet Maan | Unify liquid glass form controls and interaction states across frontend | N/A | ✅ |
 | [#541](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/541) | Samantha Maranda | Automation of frontend startup commands | N/A | ✅ |
 
 
@@ -910,7 +1044,7 @@ The **next cycle** will focus on:
 | [#186](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/186)    | AI generated Resume  | Immanuel Wiessler      |
 | [#198](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/198)      |     User Portfolio Generator                 | Cameron Gillespie      |
 | [#201](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/201)|  Deep Analysis for Python Projects   | Mahi Gangal |
-| [#215](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/215) | Modularize the CLI entrypoint |  Puneet maan                             |             |                                |
+| [#215](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/215) | Modularize the CLI entrypoint |  Puneet Maan                             |             |                                |
 
 
 ---
@@ -1612,7 +1746,7 @@ The **next cycle** will focus on:
 | Immanuel Wiessler | Full Stack Developer | [@ThunderIW](https://github.com/ThunderIW)               |Team Logs write UP  and DFD design   |
 | Samantha Maranda  | Full Stack Developer | [@Weebtrian](https://github.com/Weebtrain)               | DFD design  |
 | Cameron Gillespie | Full Stack Developer | [@Graves067](https://github.com/Graves067)               | DFD design  |
-| Purrnet Mann      | Full Stack Developer | [@Puneet-Maan](https://github.com/Puneet-Maan)           | DFD design  |
+| Puneet Maan      | Full Stack Developer | [@Puneet-Maan](https://github.com/Puneet-Maan)           | DFD design  |
 | Sam Smith         | Full Stack Developer | [@ssmith86](https://github.com/ssmith86)                 | DFD design  |
 | Mahi Gangal       | Full Stack Developer | [@mahigangal](https://github.com/mahigangal)             | DFD design     |
 
@@ -1623,7 +1757,7 @@ The **next cycle** will focus on:
 | Task ID | Description                 | Completed By |
 | ------- | --------------------------- | ------------ |
 | #01     | Discussion of DFD Layout for DFD level 0 and level 1   |   Team  |
-| #02     | Inital Creation of DFD and finalization of DFD including level 0 and level 1| Purrnet Mann |
+| #02     | Inital Creation of DFD and finalization of DFD including level 0 and level 1| Puneet Maan |
 
 ---
 
@@ -1692,7 +1826,7 @@ The **next cycle** (Week 6) will focus on:
 | Immanuel Wiessler | Full Stack Developer | [@ThunderIW](https://github.com/ThunderIW)               | Achetecture Diagram  |
 | Samantha Maranda  | Full Stack Developer | [@Weebtrian](https://github.com/Weebtrain)               | Project Proposal      |
 | Cameron Gillespie | Full Stack Developer | [@Graves067](https://github.com/Graves067)               | Project Proposal    |
-| Purrnet Mann      | Full Stack Developer | [@Puneet-Maan](https://github.com/Puneet-Maan)           | Project Proposal     |
+| Puneet Maan      | Full Stack Developer | [@Puneet-Maan](https://github.com/Puneet-Maan)           | Project Proposal     |
 | Sam Smith         | Full Stack Developer | [@ssmith86](https://github.com/ssmith86)                 | Project Proposal   |
 | Mahi Gangal       | Full Stack Developer | [@mahigangal](https://github.com/mahigangal)             | Project Proposal     |
 
@@ -1771,7 +1905,7 @@ The **next cycle** will focus on:
 | Immanuel Wiessler | Full Stack Developer | [@ThunderIW](https://github.com/ThunderIW)               | Requirements    |
 | Samantha Maranda  | Full Stack Developer | [@Weebtrian](https://github.com/Weebtrain)               | Repo setup and requirements      |
 | Cameron Gillespie | Full Stack Developer | [@Graves067](https://github.com/Graves067)               | Requirements    |
-| Purrnet Mann      | Full Stack Developer | [@Puneet-Maan](https://github.com/Puneet-Maan)           | Requirements    |
+| Puneet Maan      | Full Stack Developer | [@Puneet-Maan](https://github.com/Puneet-Maan)           | Requirements    |
 | Sam Smith         | Full Stack Developer | [@ssmith86](https://github.com/ssmith86)                 | Requirements    |
 | Mahi Gangal       | Full Stack Developer | [@mahigangal](https://github.com/mahigangal)             | Requirements    |
 
