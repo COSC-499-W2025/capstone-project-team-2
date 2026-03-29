@@ -7,6 +7,7 @@
 - [Week 6-8 (Feb 9 - March 1)](#week-6-8-feb-9march-1)
 - [Week 9 (March 2 - March 8)](#week-9-march-2---march-8)
 - [Week 10 (March 9 - March 15)](#week-10-march-9---march-15)
+- [Week 11-12 (March 16 - March 29)](#week-11-12-march-16---march-29)
 
 ## Week 2 (Jan 12 - Jan 18)
 
@@ -340,3 +341,68 @@ Exposed representation preferences in the Next.js frontend through a dedicated `
 This week’s work focused on frontend cleanup, feature completion, and UI support for Milestone 3 functionality. I removed redundant mode handling from User Configuration, fixed several config-state edge cases, and improved helper-based structure for maintainability and testing. I also added the Portfolio Showcase role-override UI using existing backend endpoints, making it possible to manage saved project roles directly from the workspace. In parallel, I helped expose representation preferences in the frontend through a new dedicated page, with supporting API wiring, helper logic, and navigation updates. 
 
 To validate these changes, I added and ran frontend tests covering config helpers, portfolio showcase API behavior, and representation helper/API logic. I also manually verified the new UI flows to ensure saved values reload correctly and the pages behave consistently with existing backend contracts. Alongside implementation work, I reviewed several team PRs and provided feedback on behavior consistency, edge cases, and missing test coverage. A key challenge this week was keeping the frontend changes scoped and maintainable while adding several user-facing controls across different areas of the app. Next week, I plan to continue supporting frontend stabilization, address any follow-up review feedback from Peer Testing #2, and help finalize remaining integration and polish workn for Milestone #3 presentation.
+
+## Week 11-12 (March 16 - March 29)
+
+### Peer Eval Screenshot: <img width="1140" height="653" alt="Screenshot 2026-03-28 at 8 43 11 PM" src="https://github.com/user-attachments/assets/073dd26e-eb29-4ec0-9ba6-f839e3f7833a" />
+
+### Tasks Worked On
+
+- Clarify activity heatmap counts on dashboard
+- Hide deleted projects from representation preferences and Add Progress Indicator
+- Add frontend behavior tests for milestone 3 flows
+- Enhance top 3 projects with process evolution evidence
+- Verified automated tests after integration.
+- Reviewed teammates’ PRs and provided feedback on correctness, edge cases, and test coverage.
+
+### Individual Contributions 
+
+- **[PR #590 – Clarify activity heatmap counts on dashboard](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/590)**
+- **[PR #591 - Hide deleted projects from representation preferences and Add Progress Indicator](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/591)**
+- **[PR #603 - Add frontend behavior tests for milestone 3 flows](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/603)**
+- **[PR #622 - Enhance top 3 projects with process evolution evidence](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/622)**
+
+
+### Tests Implemented
+
+- **[PR #590 – Clarify activity heatmap counts on dashboard](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/590)**
+1. Manual Testing
+
+- **[PR #591 - Hide deleted projects from representation preferences and Add Progress Indicator](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/591)**
+1. test/representation-helpers.test.js
+2. Manual Testing
+
+- **[PR #603 - Add frontend behavior tests for milestone 3 flows](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/603)**
+1. npm test: unit/API-focused frontend tests
+2. npx playwright install chromium: browser/UI integration tests
+3. npm run test:e2e: browser/UI integration tests
+
+- **[PR #622 - Enhance top 3 projects with process evolution evidence](https://github.com/COSC-499-W2025/capstone-project-team-2/pull/622)**
+1. test/test_project_insights.py
+2. test/test_project_insights_API.py
+3. frontend/test/api.test.js
+4. milestone3-flows.spec.js
+5. Manual Testing
+
+### PRs Reviewed
+
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/546
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/594
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/597
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/602
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/608
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/610
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/612
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/618
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/619
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/624
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/634
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/639
+- https://github.com/COSC-499-W2025/capstone-project-team-2/pull/642
+
+### Additional Details
+
+This week’s work focused on frontend refinement, feature completion, and strengthening test coverage for Milestone 3 functionality. Based on the feedback received in Peer Testing #2, I clarified dashboard activity heatmap counts to improve usability, updated representation preferences so deleted projects no longer appear, and added a progress indicator to make the interface more informative during user workflows. I also enhanced the Top 3 Projects feature by adding process evolution evidence, helping better showcase how projects developed over time. To validate these changes, I added and ran frontend behavior tests for Milestone 3 flows, along with helper, API, and project insights tests covering both frontend and backend behavior. I also manually verified the updated UI flows to ensure the changes integrated cleanly and behaved as expected after merging. Alongside implementation work, I reviewed several team PRs and provided feedback.
+
+A major challenge this week was being sick, which prevented me from participating in our team presentation and completing peer feedback for other teams. Because of this, I was also unable to begin this week’s contributions until Thursday, which made it more important to stay focused on completing high-impact frontend tasks efficiently once I was able to resume work. In the remaining time, I plan to support the team with the Milestone 3 video demo, final submissions, and any remaining work needed to help close out the project successfully.
+
