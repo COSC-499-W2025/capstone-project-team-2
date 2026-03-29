@@ -1044,7 +1044,7 @@ The **next cycle** will focus on:
 | [#186](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/186)    | AI generated Resume  | Immanuel Wiessler      |
 | [#198](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/198)      |     User Portfolio Generator                 | Cameron Gillespie      |
 | [#201](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/201)|  Deep Analysis for Python Projects   | Mahi Gangal |
-| [#215](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/215) | Modularize the CLI entrypoint |  Puneet maan                             |             |                                |
+| [#215](https://github.com/COSC-499-W2025/capstone-project-team-2/issues/215) | Modularize the CLI entrypoint |  Puneet Maan                             |             |                                |
 
 
 ---
@@ -1746,7 +1746,7 @@ The **next cycle** will focus on:
 | Immanuel Wiessler | Full Stack Developer | [@ThunderIW](https://github.com/ThunderIW)               |Team Logs write UP  and DFD design   |
 | Samantha Maranda  | Full Stack Developer | [@Weebtrian](https://github.com/Weebtrain)               | DFD design  |
 | Cameron Gillespie | Full Stack Developer | [@Graves067](https://github.com/Graves067)               | DFD design  |
-| Purrnet Maan      | Full Stack Developer | [@Puneet-Maan](https://github.com/Puneet-Maan)           | DFD design  |
+| Puneet Maan      | Full Stack Developer | [@Puneet-Maan](https://github.com/Puneet-Maan)           | DFD design  |
 | Sam Smith         | Full Stack Developer | [@ssmith86](https://github.com/ssmith86)                 | DFD design  |
 | Mahi Gangal       | Full Stack Developer | [@mahigangal](https://github.com/mahigangal)             | DFD design     |
 
@@ -1757,7 +1757,7 @@ The **next cycle** will focus on:
 | Task ID | Description                 | Completed By |
 | ------- | --------------------------- | ------------ |
 | #01     | Discussion of DFD Layout for DFD level 0 and level 1   |   Team  |
-| #02     | Inital Creation of DFD and finalization of DFD including level 0 and level 1| Purrnet Maan |
+| #02     | Inital Creation of DFD and finalization of DFD including level 0 and level 1| Puneet Maan |
 
 ---
 
@@ -1826,7 +1826,7 @@ The **next cycle** (Week 6) will focus on:
 | Immanuel Wiessler | Full Stack Developer | [@ThunderIW](https://github.com/ThunderIW)               | Achetecture Diagram  |
 | Samantha Maranda  | Full Stack Developer | [@Weebtrian](https://github.com/Weebtrain)               | Project Proposal      |
 | Cameron Gillespie | Full Stack Developer | [@Graves067](https://github.com/Graves067)               | Project Proposal    |
-| Purrnet Maan      | Full Stack Developer | [@Puneet-Maan](https://github.com/Puneet-Maan)           | Project Proposal     |
+| Puneet Maan      | Full Stack Developer | [@Puneet-Maan](https://github.com/Puneet-Maan)           | Project Proposal     |
 | Sam Smith         | Full Stack Developer | [@ssmith86](https://github.com/ssmith86)                 | Project Proposal   |
 | Mahi Gangal       | Full Stack Developer | [@mahigangal](https://github.com/mahigangal)             | Project Proposal     |
 
@@ -1905,7 +1905,7 @@ The **next cycle** will focus on:
 | Immanuel Wiessler | Full Stack Developer | [@ThunderIW](https://github.com/ThunderIW)               | Requirements    |
 | Samantha Maranda  | Full Stack Developer | [@Weebtrian](https://github.com/Weebtrain)               | Repo setup and requirements      |
 | Cameron Gillespie | Full Stack Developer | [@Graves067](https://github.com/Graves067)               | Requirements    |
-| Purrnet Maan      | Full Stack Developer | [@Puneet-Maan](https://github.com/Puneet-Maan)           | Requirements    |
+| Puneet Maan      | Full Stack Developer | [@Puneet-Maan](https://github.com/Puneet-Maan)           | Requirements    |
 | Sam Smith         | Full Stack Developer | [@ssmith86](https://github.com/ssmith86)                 | Requirements    |
 | Mahi Gangal       | Full Stack Developer | [@mahigangal](https://github.com/mahigangal)             | Requirements    |
 
