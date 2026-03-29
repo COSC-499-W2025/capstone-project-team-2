@@ -785,3 +785,61 @@
 ### Extra Details:
 * Despite not making a PR for converting CLI functions this week, I have found that the leftover CLI that was to be converted into CLI was remade and API was built for it.
 * I am unsure what needs to be done for next week as the backend is finished and I have not been allocated to any frontend tasks yet.
+
+---------------------------
+
+## Sunday (15/03/2026 - 29/03/2026)
+
+### Task Types Worked On (Screenshot from Peer Eval)
+
+- ![docs/logs/peer evals/[peer eval screenshot]](../peer_eval_screenshots/29-03-2026_PeerEval_SamM.jpg)
+
+### Features Worked on this Week
+  * #1: Estimate duration of project
+  * #2: Detect type of project (individual or collaborative)
+
+## Associated Tasks from Project Board:
+
+| Task ID | Description        | Feature   | Assigned To | Status   |
+| ------- | ------------------ | --------- | ----------- | -------- |
+| #576   | Fix duration estimate due to zipfile metadata overwriting | Estimate duration of project | Samantha Maranda  | Completed |
+| #623   | Frontend and API for manual update of project duration | Estimate duration of project | Samantha Maranda  | Complete |
+| #624   | Frontend and API for project type manual update | Detect type of project (individual or collaborative) | Samantha Maranda  | Complete |
+
+### Progress Update (since 15/03/2026) 
+<table>
+    <tr>
+        <td><strong>TASK/ISSUE #</strong>
+        </td>
+        <td><strong>STATUS</strong>
+        </td>
+    </tr>
+    <tr>
+        <!-- Task/Issue # -->
+        <td>Fix duration estimate due to zipfile metadata overwriting
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+ <tr>
+        <!-- Task/Issue # -->
+        <td>Frontend and API for manual update of project duration
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+ <tr>
+        <!-- Task/Issue # -->
+        <td>Frontend and API for project type manual update
+        </td>
+        <!-- Status -->
+        <td>Complete
+        </td>
+    </tr>
+</table>
+
+### Extra Details:
+* Applying some finishing touches as we discovered issues with the automatic detection for project duration and project type. Manual updating of these values were deemed important despite knowing we should have had this applied to all aspects of a project, More of that editing is usable when generating resumes and portfolios.
+* If this project were to continue, I would add such manual editing features, but alas the concerns over that were brought up too late and I could not implement them.
