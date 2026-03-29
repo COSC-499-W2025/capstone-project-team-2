@@ -112,7 +112,7 @@ Our value proposition is privacy first efficiency: fast, scoped, and transparent
         1. Permission issue: Show error.
 ## 4) Requirements, Testing, Requirement Verification
 ### Tech Stack and Tech Framework: 
-Frontend: Python with Streamlit, providing a flexible, cross platform UI compatible with Windows, macOS, and Linux.
+Frontend: Next.js web interface. Python services provide API and analysis logic.
 
 Backend: Java handles directory mapping and metadata extraction. Python (Pandas) performs data aggregation and visualization.
 

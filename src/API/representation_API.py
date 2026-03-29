@@ -69,13 +69,9 @@ def list_projects_with_preferences(
             only_showcase=only_showcase,
             snapshot_label=snapshot_label,
         )
-        if not result.get("projects"):
-            raise HTTPException(status_code=404, detail="No project insights are available.")
         return result
     except HTTPException:
         raise
-    except FileNotFoundError:
-        raise HTTPException(status_code=404, detail="Project insights storage file was not found.")
     except Exception:  # pragma: no cover - defensive
         raise HTTPException(
             status_code=500,

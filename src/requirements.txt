@@ -1,15 +1,12 @@
-FreeSimpleGUI
 matplotlib
 click
 gitpython
-mysql-connector-python
 orjson
 PyGithub
 docker
 pandas
 langchain-community
 langchain
-langchain-ollama
 langchain-core
 langchain-google-genai
 python-docx
@@ -26,7 +23,6 @@ Pillow>=10.0.0
 esprima
 rendercv[full]
 ruamel.yaml
-streamlit
 fastapi[standard]
 python-multipart
 tree_sitter

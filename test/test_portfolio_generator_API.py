@@ -15,6 +15,7 @@ from src.API.general_API import app
 
 DOC_PATCH = "src.API.Portfolio_Generator_API.RenderCVDocument"
 CTX_PATCH = "src.API.Portfolio_Generator_API.runtimeAppContext"
+AI_PATCH = "src.API.Portfolio_Generator_API.GenerateResumeAI_Ver2"
 
 SAMPLE_DB_RECORD = {
     "hierarchy": {"name": "WarframeFinderStreamlit", "type": "DIR", "children": []},
@@ -91,6 +92,20 @@ class TestGeneratePortfolio(_BasePortfolioTest):
         self.assertEqual(response.status_code, 400)
         self.assertIn("Invalid theme", response.json()["detail"])
 
+    def test_sanitizes_name_for_document_id(self):
+        """Slash characters in display names should not appear in generated IDs."""
+        self.mock_doc.generate.return_value = "Generated"
+
+        response = self.client.post("/portfolio/generate", json={"name": "Sam/http"})
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertNotIn("/", body["portfolio_id"])
+        self.assertIn("Sam_http_", body["portfolio_id"])
+
+        called_name = self.mock_doc.generate.call_args.kwargs["name"]
+        self.assertNotIn("/", called_name)
+        self.assertTrue(called_name.startswith("Sam_http_"))
+
 
 class TestGetPortfolio(_BasePortfolioTest):
     """Tests for GET /portfolio/{id}."""
@@ -133,6 +148,14 @@ class TestEditPortfolio(_BasePortfolioTest):
         self.assertEqual(len(resp.json()["results"]), 5)
         self.mock_doc.modify_project.assert_called_once_with("MyProject", "summary", "Updated summary")
 
+    def test_invalid_contact_field_returns_400(self):
+        """Unknown contact field is rejected with 400 by the allowlist check."""
+        resp = self._post_edit([
+            {"section": "contact", "item_name": "", "field": "fax", "new_value": "555-0000"}
+        ])
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Unknown contact field", resp.json()["detail"])
+
     def test_invalid_theme_returns_400(self):
         """Test that invalid theme in edit returns 400, not 500."""
         self.mock_doc.update_theme.side_effect = ValueError("Invalid theme 'bad'. Available: classic, sb2nov")
@@ -142,6 +165,38 @@ class TestEditPortfolio(_BasePortfolioTest):
         ])
         self.assertEqual(resp.status_code, 400)
         self.assertIn("Invalid theme", resp.json()["detail"])
+
+    def test_add_connection(self):
+        """Adding a new connection via edit calls add_connection."""
+        self.mock_doc.get_connections.return_value = []
+        self.mock_doc.add_connection.return_value = "Successfully added: GitHub"
+
+        resp = self._post_edit([
+            {"section": "connections", "item_name": "GitHub", "field": "username", "new_value": "jdoe"}
+        ])
+        self.assertEqual(resp.status_code, 200)
+        self.mock_doc.add_connection.assert_called_once()
+
+    def test_modify_connection(self):
+        """Modifying an existing connection via edit calls modify_connection."""
+        self.mock_doc.get_connections.return_value = [{"network": "GitHub", "username": "old"}]
+        self.mock_doc.modify_connection.return_value = "Successfully updated: GitHub"
+
+        resp = self._post_edit([
+            {"section": "connections", "item_name": "GitHub", "field": "username", "new_value": "newuser"}
+        ])
+        self.assertEqual(resp.status_code, 200)
+        self.mock_doc.modify_connection.assert_called_once_with("GitHub", "newuser")
+
+    def test_remove_connection(self):
+        """Removing a connection via edit with field='delete' calls remove_connection."""
+        self.mock_doc.remove_connection.return_value = "Successfully deleted: GitHub"
+
+        resp = self._post_edit([
+            {"section": "connections", "item_name": "GitHub", "field": "delete", "new_value": ""}
+        ])
+        self.assertEqual(resp.status_code, 200)
+        self.mock_doc.remove_connection.assert_called_once_with("GitHub")
 
     def test_unknown_section_returns_400(self):
         resp = self._post_edit([{"section": "invalid", "item_name": "x", "field": "y", "new_value": "z"}])
@@ -173,18 +228,18 @@ class TestAddProject(_BasePortfolioTest):
         self.assertEqual(resp.status_code, 200)
         self.assertIn("Successfully", resp.json()["status"])
 
-    def test_missing_data_returns_404(self):
-        """Test 404 for missing DB record and missing resume_item."""
+    def test_missing_data_returns_error(self):
+        """Test 404 for missing DB record and 400 for missing resume_item."""
         # DB record not found
         self.mock_ctx.store.fetch_by_name.return_value = None
         resp = self.client.post("/portfolio/test_abc123/add/project/UnknownProject")
         self.assertEqual(resp.status_code, 404)
         self.assertIn("not found in database", resp.json()["detail"])
 
-        # Record exists but no resume_item
+        # Record exists but no resume_item → 400 (bad content, not missing resource)
         self.mock_ctx.store.fetch_by_name.return_value = {"hierarchy": {}, "project_root": "C:\\some\\path"}
         resp = self.client.post("/portfolio/test_abc123/add/project/WarframeFinderStreamlit")
-        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 400)
         self.assertIn("no resume_item", resp.json()["detail"])
 
     def test_unexpected_error_returns_500(self):
@@ -194,6 +249,49 @@ class TestAddProject(_BasePortfolioTest):
         resp = self.client.post("/portfolio/test_abc123/add/project/WarframeFinderStreamlit")
         self.assertEqual(resp.status_code, 500)
         self.assertIn("disk full", resp.json()["detail"])
+
+
+class TestAddProjectManual(_BasePortfolioTest):
+    """Tests for POST /portfolio/{id}/add/project/manual."""
+
+    def test_all_cases(self):
+        """Covers success (all fields), success (name only), missing name (422), bad result (400), error (500), not found (404)."""
+        # All fields
+        self.mock_doc.add_project.return_value = "Successfully added project 'My Side Project'"
+        resp = self.client.post("/portfolio/test_abc123/add/project/manual", json={
+            "name": "My Side Project", "start_date": "2024-01", "end_date": "2025-03",
+            "location": "Vancouver, BC", "summary": "Explore Rust.", "highlights": ["Built async runtime"],
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+        self.mock_doc.add_project.assert_called_once()
+
+        # Name only
+        self.mock_doc.add_project.return_value = "Successfully added project 'Minimal'"
+        resp = self.client.post("/portfolio/test_abc123/add/project/manual", json={"name": "Minimal"})
+        self.assertEqual(resp.status_code, 200)
+
+        # Missing name → 422
+        resp = self.client.post("/portfolio/test_abc123/add/project/manual", json={"summary": "No name"})
+        self.assertEqual(resp.status_code, 422)
+
+        # Bad result → 400
+        self.mock_doc.add_project.return_value = "Failed: duplicate project name"
+        resp = self.client.post("/portfolio/test_abc123/add/project/manual", json={"name": "Duplicate"})
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("duplicate project name", resp.json()["detail"])
+
+        # Unexpected error → 500
+        self.mock_doc.add_project.side_effect = RuntimeError("disk full")
+        resp = self.client.post("/portfolio/test_abc123/add/project/manual", json={"name": "My Project"})
+        self.assertEqual(resp.status_code, 500)
+        self.assertIn("disk full", resp.json()["detail"])
+
+        # Portfolio not found → 404
+        self._set_not_found()
+        resp = self.client.post("/portfolio/fake_id/add/project/manual", json={"name": "My Project"})
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
 
 
 class TestRenderPortfolio(_BasePortfolioTest):
@@ -416,29 +514,24 @@ class TestExportPortfolio(_BasePortfolioTest):
 
     @patch("src.API.Portfolio_Generator_API.shutil")
     @patch("src.API.Portfolio_Generator_API.RENDERED_OUTPUTS_DIR")
-    def test_save_default(self, mock_dir, mock_shutil):
-        """Save to default directory returns path."""
+    def test_save_default_and_custom(self, mock_dir, mock_shutil):
+        """Save to default and custom directories both return a success status and path."""
         mock_dir.mkdir = MagicMock()
         mock_dir.__truediv__ = lambda self, name: Path("/fake/rendered_outputs") / name
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            fake_pdf = Path(tmp_dir) / "portfolio.pdf"
-            fake_pdf.write_bytes(b"%PDF-1.4 fake")
-            self.mock_doc.render_outputs.return_value = ("successfully rendered", {"pdf": [fake_pdf]})
-
-            resp = self.client.post("/portfolio/test_abc123/export/pdf")
-            self.assertEqual(resp.status_code, 200)
-            self.assertIn("Saved successfully", resp.json()["status"])
-            self.assertIn("path", resp.json())
-
-    @patch("src.API.Portfolio_Generator_API.shutil")
-    def test_save_custom(self, mock_shutil):
-        """Save to custom directory returns path."""
         with tempfile.TemporaryDirectory() as tmp_dir, tempfile.TemporaryDirectory() as custom_dir:
             fake_pdf = Path(tmp_dir) / "portfolio.pdf"
             fake_pdf.write_bytes(b"%PDF-1.4 fake")
             self.mock_doc.render_outputs.return_value = ("successfully rendered", {"pdf": [fake_pdf]})
 
+            # Default directory
+            resp = self.client.post("/portfolio/test_abc123/export/pdf")
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Saved successfully", resp.json()["status"])
+            self.assertIn("path", resp.json())
+
+            # Custom directory
+            fake_pdf.write_bytes(b"%PDF-1.4 fake")
             resp = self.client.post("/portfolio/test_abc123/export/pdf/custom", json={"path": custom_dir})
             self.assertEqual(resp.status_code, 200)
             self.assertIn("Saved successfully", resp.json()["status"])
@@ -455,6 +548,387 @@ class TestExportPortfolio(_BasePortfolioTest):
         resp = self.client.post("/portfolio/test_abc123/export/docx")
         self.assertEqual(resp.status_code, 400)
         self.assertIn("Unsupported format", resp.json()["detail"])
+
+
+class TestSkillEndpoints(_BasePortfolioTest):
+    """Tests for POST /portfolio/{id}/add/skill, POST /portfolio/{id}/skill/{label}/append, DELETE /portfolio/{id}/skill/{label}."""
+
+    def test_add_skill(self):
+        """Covers success, duplicate (409), failure (400), and portfolio not found (404)."""
+        # Success
+        self.mock_doc.add_skills.return_value = "Successfully added skills"
+        resp = self.client.post("/portfolio/test_abc123/add/skill", json={
+            "label": "Languages",
+            "details": "Python, Java, C++",
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["status"], "Successfully added skills")
+        call_args = self.mock_doc.add_skills.call_args
+        skill_arg = call_args[0][0]
+        self.assertEqual(skill_arg.label, "Languages")
+        self.assertEqual(skill_arg.details, "Python, Java, C++")
+
+        # Duplicate label returns 409
+        self.mock_doc.add_skills.return_value = "Duplicate label 'Languages' already exists"
+        resp = self.client.post("/portfolio/test_abc123/add/skill", json={
+            "label": "Languages",
+            "details": "Python",
+        })
+        self.assertEqual(resp.status_code, 409)
+        self.assertIn("Duplicate", resp.json()["detail"])
+
+        # Generic failure returns 400
+        self.mock_doc.add_skills.return_value = "Label cannot be empty"
+        resp = self.client.post("/portfolio/test_abc123/add/skill", json={
+            "label": "Languages",
+            "details": "Python",
+        })
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Label cannot be empty", resp.json()["detail"])
+
+        # Portfolio not found
+        self._set_not_found()
+        resp = self.client.post("/portfolio/fake_id/add/skill", json={
+            "label": "Languages",
+            "details": "Python",
+        })
+        self.assertEqual(resp.status_code, 404)
+
+    def test_append_skill(self):
+        """Covers append success (merges details), skill not found (404), and portfolio not found (404)."""
+        # Success — appends to existing details
+        self.mock_doc.get_skills.return_value = [
+            {"label": "Languages", "details": "Python, Java"}
+        ]
+        self.mock_doc.modify_skill.return_value = "Successfully modified skill"
+        resp = self.client.post("/portfolio/test_abc123/skill/Languages/append", json={
+            "details": "C++",
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["details"], "Python, Java, C++")
+        self.assertIn("Successfully", resp.json()["status"])
+        self.mock_doc.modify_skill.assert_called_once_with("Languages", "Python, Java, C++")
+
+        # Skill label not found returns 404
+        self.mock_doc.get_skills.return_value = []
+        resp = self.client.post("/portfolio/test_abc123/skill/Unknown/append", json={
+            "details": "Rust",
+        })
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+        # Portfolio not found
+        self._set_not_found()
+        resp = self.client.post("/portfolio/fake_id/skill/Languages/append", json={
+            "details": "Rust",
+        })
+        self.assertEqual(resp.status_code, 404)
+
+    def test_remove_skill(self):
+        """Covers remove success, label not found (404), no skills (404), and portfolio not found (404)."""
+        # Success
+        self.mock_doc.remove_skill.return_value = "Successfully removed skill 'Languages'"
+        resp = self.client.delete("/portfolio/test_abc123/skill/Languages")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+
+        # Label not found returns 404
+        self.mock_doc.remove_skill.return_value = "Skill 'Unknown' not found"
+        resp = self.client.delete("/portfolio/test_abc123/skill/Unknown")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+        # No skills on the portfolio returns 404
+        self.mock_doc.remove_skill.return_value = "No skills in portfolio"
+        resp = self.client.delete("/portfolio/test_abc123/skill/Languages")
+        self.assertEqual(resp.status_code, 404)
+
+        # Portfolio not found
+        self._set_not_found()
+        resp = self.client.delete("/portfolio/fake_id/skill/Languages")
+        self.assertEqual(resp.status_code, 404)
+
+
+class TestListPortfolios(_BasePortfolioTest):
+    """Tests for GET /portfolios."""
+
+    @patch("src.API.Portfolio_Generator_API.Path")
+    def test_list_portfolios(self, MockPath):
+        """Returns 200 with a list; entries have id, name, and created_at when files exist."""
+        import io
+
+        # Empty list when no YAML files
+        mock_cv_dir = MagicMock()
+        mock_cv_dir.glob.return_value = []
+        MockPath.return_value.resolve.return_value.parents.__getitem__.return_value \
+            .__truediv__.return_value.__truediv__.return_value = mock_cv_dir
+
+        resp = self.client.get("/portfolios")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIsInstance(resp.json(), list)
+
+        # Populated list with expected fields
+        fake_yaml = MagicMock()
+        fake_yaml.stem = "Jane_Doe_abc12345_Portfolio_CV"
+        mock_cv_dir.glob.return_value = [fake_yaml]
+
+        with patch("builtins.open", MagicMock(return_value=io.StringIO("created_at: '2025-01-01T00:00:00Z'\n"))):
+            resp = self.client.get("/portfolios")
+
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIsInstance(data, list)
+        if data:
+            for key in ("id", "name", "created_at"):
+                self.assertIn(key, data[0])
+
+
+class TestAddProjectAI(_BasePortfolioTest):
+    """Tests for POST /portfolio/{id}/add/project/{project_name}/ai."""
+
+    def setUp(self):
+        super().setUp()
+        patcher = patch(CTX_PATCH)
+        self.mock_ctx = patcher.start()
+        self.mock_ctx.store.project_exists.return_value = True
+        self.addCleanup(patcher.stop)
+
+    def _make_ai_entry(self, tech_stack="Python, FastAPI"):
+        entry = MagicMock()
+        entry.one_sentence_summary = "Built a REST API with FastAPI."
+        entry.tech_stack = tech_stack
+        entry.project_title = "WarframeFinder"
+        entry.key_responsibilities = ["Built endpoints", "Wrote unit tests"]
+        return entry
+
+    def test_success_and_summary_variants(self):
+        """Success adds project; tech_stack is appended when present and omitted when falsy."""
+        with patch(AI_PATCH) as MockAI:
+            mock_gen = MagicMock()
+            MockAI.return_value = mock_gen
+            mock_gen.project_exists = True
+            self.mock_doc.add_project.return_value = "Successfully added project 'WarframeFinder'"
+
+            # With tech stack
+            mock_gen.generate_AI_Resume_entry.return_value = self._make_ai_entry()
+            resp = self.client.post("/portfolio/test_abc123/add/project/WarframeFinderStreamlit/ai")
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Successfully", resp.json()["status"])
+            proj = self.mock_doc.add_project.call_args[0][0]
+            self.assertIn("Tech stack:", proj.summary)
+
+            # Without tech stack
+            self.mock_doc.add_project.reset_mock()
+            mock_gen.generate_AI_Resume_entry.return_value = self._make_ai_entry(tech_stack=None)
+            self.client.post("/portfolio/test_abc123/add/project/WarframeFinderStreamlit/ai")
+            proj = self.mock_doc.add_project.call_args[0][0]
+            self.assertNotIn("Tech stack:", proj.summary)
+
+    def test_error_cases(self):
+        """Covers project not found (404), AI returns None (400), AI exception (500), add_project failure (500), portfolio not found (404)."""
+        with patch(AI_PATCH) as MockAI:
+            mock_gen = MagicMock()
+            MockAI.return_value = mock_gen
+
+            # Project not found
+            mock_gen.project_exists = False
+            resp = self.client.post("/portfolio/test_abc123/add/project/Unknown/ai")
+            self.assertEqual(resp.status_code, 404)
+            self.assertIn("not found", resp.json()["detail"])
+
+            # AI returns None → 400
+            mock_gen.project_exists = True
+            mock_gen.generate_AI_Resume_entry.return_value = None
+            resp = self.client.post("/portfolio/test_abc123/add/project/WarframeFinderStreamlit/ai")
+            self.assertEqual(resp.status_code, 400)
+            self.assertIn("no data", resp.json()["detail"])
+
+            # AI raises exception → 500
+            mock_gen.generate_AI_Resume_entry.side_effect = RuntimeError("API quota exceeded")
+            resp = self.client.post("/portfolio/test_abc123/add/project/WarframeFinderStreamlit/ai")
+            self.assertEqual(resp.status_code, 500)
+            self.assertIn("API quota exceeded", resp.json()["detail"])
+
+            # add_project raises exception → 500
+            mock_gen.generate_AI_Resume_entry.side_effect = None
+            mock_gen.generate_AI_Resume_entry.return_value = self._make_ai_entry()
+            self.mock_doc.add_project.side_effect = RuntimeError("disk full")
+            resp = self.client.post("/portfolio/test_abc123/add/project/WarframeFinderStreamlit/ai")
+            self.assertEqual(resp.status_code, 500)
+            self.assertIn("disk full", resp.json()["detail"])
+
+        # Portfolio not found → 404
+        self._set_not_found()
+        with patch(AI_PATCH) as MockAI:
+            resp = self.client.post("/portfolio/fake_id/add/project/WarframeFinderStreamlit/ai")
+            self.assertEqual(resp.status_code, 404)
+            MockAI.assert_not_called()
+
+    def test_json_suffix_normalization(self):
+        """Project stored as 'name.json' is found when requested without the suffix."""
+        with patch(AI_PATCH) as MockAI, patch(CTX_PATCH) as mock_ctx:
+            mock_gen = MagicMock()
+            MockAI.return_value = mock_gen
+            mock_gen.project_exists = True
+            mock_gen.generate_AI_Resume_entry.return_value = self._make_ai_entry()
+            self.mock_doc.add_project.return_value = "Successfully added project"
+
+            # Simulate the store not finding the bare name but finding the .json variant
+            mock_ctx.store.project_exists.side_effect = lambda name: name.endswith(".json")
+
+            resp = self.client.post("/portfolio/test_abc123/add/project/WarframeFinderStreamlit/ai")
+            self.assertEqual(resp.status_code, 200)
+
+            # GenerateResumeAI_Ver2 must have been called with the .json-suffixed name
+            MockAI.assert_called_once_with("WarframeFinderStreamlit.json")
+
+    def test_no_json_suffix_normalization_when_already_suffixed(self):
+        """Project name already ending in .json is passed through unchanged."""
+        with patch(AI_PATCH) as MockAI, patch(CTX_PATCH) as mock_ctx:
+            mock_gen = MagicMock()
+            MockAI.return_value = mock_gen
+            mock_gen.project_exists = True
+            mock_gen.generate_AI_Resume_entry.return_value = self._make_ai_entry()
+            self.mock_doc.add_project.return_value = "Successfully added project"
+
+            mock_ctx.store.project_exists.return_value = False
+
+            resp = self.client.post("/portfolio/test_abc123/add/project/WarframeFinderStreamlit.json/ai")
+            self.assertEqual(resp.status_code, 200)
+
+            # Must NOT double-append .json
+            MockAI.assert_called_once_with("WarframeFinderStreamlit.json")
+
+
+class TestUpdateSkillLevel(_BasePortfolioTest):
+    """Tests for POST /portfolio/{id}/skill/{label}/level."""
+
+    def test_update_level_success(self):
+        """Updates an individual skill level with bold markdown formatting."""
+        self.mock_doc.get_skills.return_value = [
+            {"label": "Languages", "details": "Python, Java, C++"}
+        ]
+        self.mock_doc.modify_skill.return_value = "Successfully updated skill 'Languages'"
+        resp = self.client.post("/portfolio/test_abc123/skill/Languages/level", json={
+            "skill_name": "Python",
+            "level": "Advanced",
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+        self.assertIn("Python (**Advanced**)", resp.json()["details"])
+        self.mock_doc.modify_skill.assert_called_once_with(
+            "Languages", "Python (**Advanced**), Java, C++"
+        )
+
+    def test_update_level_replaces_existing(self):
+        """Replaces an existing level suffix on the skill."""
+        self.mock_doc.get_skills.return_value = [
+            {"label": "Languages", "details": "Python (Beginner), Java"}
+        ]
+        self.mock_doc.modify_skill.return_value = "Successfully updated skill 'Languages'"
+        resp = self.client.post("/portfolio/test_abc123/skill/Languages/level", json={
+            "skill_name": "Python",
+            "level": "Advanced",
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Python (**Advanced**)", resp.json()["details"])
+
+    def test_update_level_skill_not_found(self):
+        """Returns 404 when the individual skill name doesn't exist."""
+        self.mock_doc.get_skills.return_value = [
+            {"label": "Languages", "details": "Python, Java"}
+        ]
+        resp = self.client.post("/portfolio/test_abc123/skill/Languages/level", json={
+            "skill_name": "Rust",
+            "level": "Advanced",
+        })
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("Rust", resp.json()["detail"])
+
+    def test_update_level_category_not_found(self):
+        """Returns 404 when the skill category label doesn't exist."""
+        self.mock_doc.get_skills.return_value = []
+        resp = self.client.post("/portfolio/test_abc123/skill/Unknown/level", json={
+            "skill_name": "Python",
+            "level": "Advanced",
+        })
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("Unknown", resp.json()["detail"])
+
+    def test_update_level_portfolio_not_found(self):
+        """Returns 404 when the portfolio doesn't exist."""
+        self._set_not_found()
+        resp = self.client.post("/portfolio/fake_id/skill/Languages/level", json={
+            "skill_name": "Python",
+            "level": "Advanced",
+        })
+        self.assertEqual(resp.status_code, 404)
+
+
+class TestAddProjectAIWithOverrides(_BasePortfolioTest):
+    """Tests for POST /portfolio/{id}/add/project/{project_name}/ai with date overrides."""
+
+    def setUp(self):
+        super().setUp()
+        patcher = patch(CTX_PATCH)
+        self.mock_ctx = patcher.start()
+        self.mock_ctx.store.project_exists.return_value = True
+        self.addCleanup(patcher.stop)
+
+    def _make_ai_entry(self):
+        entry = MagicMock()
+        entry.one_sentence_summary = "Built a REST API."
+        entry.tech_stack = "Python, FastAPI"
+        entry.project_title = "MyProject"
+        entry.key_responsibilities = ["Built endpoints"]
+        return entry
+
+    def test_ai_with_date_overrides(self):
+        """Date overrides from request body are passed through to the Project."""
+        with patch(AI_PATCH) as MockAI:
+            mock_gen = MagicMock()
+            MockAI.return_value = mock_gen
+            mock_gen.project_exists = True
+            mock_gen.generate_AI_Resume_entry.return_value = self._make_ai_entry()
+            self.mock_doc.add_project.return_value = "Successfully added project 'MyProject'"
+
+            resp = self.client.post(
+                "/portfolio/test_abc123/add/project/MyProject/ai",
+                json={"start_date": "2025-03", "end_date": "2026-03"},
+            )
+            self.assertEqual(resp.status_code, 200)
+            proj = self.mock_doc.add_project.call_args[0][0]
+            self.assertEqual(proj.start_date, "2025-03")
+            self.assertEqual(proj.end_date, "2026-03")
+
+    def test_ai_without_overrides(self):
+        """Without a request body, dates default to None."""
+        with patch(AI_PATCH) as MockAI:
+            mock_gen = MagicMock()
+            MockAI.return_value = mock_gen
+            mock_gen.project_exists = True
+            mock_gen.generate_AI_Resume_entry.return_value = self._make_ai_entry()
+            self.mock_doc.add_project.return_value = "Successfully added project 'MyProject'"
+
+            resp = self.client.post("/portfolio/test_abc123/add/project/MyProject/ai")
+            self.assertEqual(resp.status_code, 200)
+            proj = self.mock_doc.add_project.call_args[0][0]
+            self.assertIsNone(proj.start_date)
+            self.assertIsNone(proj.end_date)
+
+    def test_blocked_when_external_consent_false(self):
+        """Returns 403 when external_consent is False on runtimeAppContext."""
+        self.mock_ctx.external_consent = False
+        self.mock_ctx.data_consent = True
+        resp = self.client.post("/portfolio/test_abc123/add/project/MyProject/ai")
+        self.assertEqual(resp.status_code, 403)
+
+    def test_blocked_when_data_consent_false(self):
+        """Returns 403 when data_consent is False on runtimeAppContext."""
+        self.mock_ctx.external_consent = True
+        self.mock_ctx.data_consent = False
+        resp = self.client.post("/portfolio/test_abc123/add/project/MyProject/ai")
+        self.assertEqual(resp.status_code, 403)
 
 
 if __name__ == "__main__":

@@ -66,6 +66,17 @@ When the app is running:
 - Query:
   - `save_path` (optional)
 
+### `POST /projects/{id}/type`
+- Purpose: Update typing of project in database
+- Path:
+ - `id` = project name, with or without `.json`
+- Query:
+ - `project_type` (str): individual or collaborative project
+- Returns `200`:
+ - `{"message": "Updated successfully", "type": new typing}`
+- Errors:
+ - `404` project not found
+
 ### `POST /projects/{id}/thumbnail`
 - Purpose: upload and link a thumbnail.
 - Path:
@@ -79,6 +90,19 @@ When the app is running:
   - `400` bad extension or save failure
   - `404` project insight not found
   - `500` linked metadata update failed
+
+### `Post /projects/{id}/duration`
+ - Purpose: Update duration of project in database
+ - Path:
+  - `id` = project name, with or without `.json`
+ - Query:
+  - `start` (str): starting date of project
+  - `end` (str): ending date of project
+ - Returns `200`:
+  - `{"message": "Updated successfully", "dur": duration (string representation of project duration)}`
+ - Errors:
+  - `404` project not found
+  - `400` start date later than end date OR error converting string dates to datetime objects then timedelta object
 
 ### `GET /projects/{id}/thumbnail`
 - Purpose: get thumbnail metadata.
@@ -164,7 +188,55 @@ Router prefix: `/representation`
   - `404` no insights available
   - `500` preference application failure
 
+## Insights
+
+Router prefix: `/insights`
+
+### `GET /insights/projects`
+- Purpose: chronologically list all analyzed projects, with optional filters.
+- Query:
+  - `language` (optional string) — filter by programming language
+  - `skill` (optional string) — filter by skill
+  - `since_str` (optional string) — only projects analyzed after this date
+- Returns `200`: list of project insight dictionaries in chronological order.
+
+### `GET /insights/skills`
+- Purpose: chronologically list all skills and the projects they appear in, with optional filters.
+- Query:
+  - `skill` (optional string) — filter by skill name
+  - `since_str` (optional string) — only entries analyzed after this date
+- Returns `200`: list of skill-history dictionaries in chronological order.
+
+### `GET /insights/top-projects`
+- Purpose: return the top unique projects using the latest snapshot for ranking and attach evolution evidence from snapshot history.
+- Ranking: sorts by latest snapshot contribution score first, then latest skill count, then latest analysis recency.
+- Query:
+  - `top_n` (optional integer, default `3`) — max number of unique projects to return
+  - `contributor` (optional string) — rank by a specific contributor's contribution score
+  - `active_only` (optional boolean, default `false`) — when `true`, include only projects that still exist in saved project storage
+- Returns `200`: list of dictionaries, each including:
+  - `project_name` (string)
+  - `snapshot_count` (integer)
+  - `score` (number) — contribution score used for ranking
+  - `latest` (object) — latest stored project insight snapshot
+  - `evolution` (object), including:
+    - `first_analyzed_at`
+    - `latest_analyzed_at`
+    - `new_skills`
+    - `new_languages`
+    - `file_count_delta`
+    - `summary_changed`
+    - `project_type_changed`
+
 ## Resume
+
+### `GET /resumes`
+- Purpose: list all saved resume documents.
+- Returns `200`: array of objects, each with:
+  - `id` (string) — resume identifier (file stem without `_Resume_CV`)
+  - `name` (string) — display name with spaces (UUID suffix stripped)
+  - `created_at` (string) — file creation timestamp in ISO-8601 format
+- Results are sorted newest-first.
 
 ### `POST /resume/generate`
 - Purpose: create a new resume YAML document.
@@ -181,7 +253,7 @@ Router prefix: `/representation`
 ### `GET /resume/{id}`
 - Purpose: fetch full resume content.
 - Returns `200` with:
-  - `name`, `contact`, `theme`, `summary`, `experience`, `education`, `projects`, `skills`, `connections`
+  - `name`, `contact`, `theme`, `summary`, `experience`, `education`, `projects`, `skills`, `awards`, `connections`
 - Errors:
   - `404` not found
 
@@ -190,7 +262,7 @@ Router prefix: `/representation`
 - JSON body:
   - `{"edits":[{"section":"...","item_name":"...","field":"...","new_value":...}]}`
 - Valid sections:
-  - `experience`, `education`, `projects`, `skills`, `summary`, `contact`, `theme`
+  - `experience`, `education`, `projects`, `skills`, `awards`, `summary`, `contact`, `theme`, `connections`
 - Returns `200`:
   - `{"results":[...]}`
 - Errors:
@@ -234,6 +306,34 @@ Router prefix: `/representation`
   - `400` unsupported format or invalid directory
   - `404` resume not found
   - `500` render failure
+
+### `POST /resume/{id}/add/project/manual`
+- Purpose: add a project entry with fully manual data (no database lookup).
+- JSON body:
+  - `name` (string, required)
+  - `start_date` (optional string)
+  - `end_date` (optional string)
+  - `location` (optional string)
+  - `summary` (optional string)
+  - `highlights` (optional list of strings)
+- Returns `200`:
+  - `{"status":"..."}`
+- Errors:
+  - `400` add failure
+  - `404` resume not found
+  - `500` unexpected error
+
+### `POST /resume/{id}/add/project/{project_name}/ai`
+- Purpose: add a project entry to a resume using AI-generated content (Gemini).
+- Path:
+  - `id` = resume identifier
+  - `project_name` = name of the analysed project in the database
+- Returns `200`:
+  - `{"status":"..."}`
+- Errors:
+  - `400` AI generation returned no data
+  - `404` resume or project not found
+  - `500` AI generation or save failure
 
 ### `POST /resume/{id}/add/project/{project_name}`
 - Purpose: add analyzed project to resume projects.
@@ -313,6 +413,82 @@ Router prefix: `/representation`
 - Errors:
   - `404` resume or company not found
 
+### `POST /resume/{id}/add/skill`
+- Purpose: add a new skill category to a resume.
+- JSON body:
+  - `label` (string, required) — category name (e.g., "Languages")
+  - `details` (string, required) — comma-separated skills (e.g., "Python, Java, C++")
+- Returns `200`:
+  - `{"status":"Successfully added skill"}`
+- Errors:
+  - `400` empty label or add failure
+  - `404` resume not found
+  - `409` skill with same label already exists
+
+### `POST /resume/{id}/skill/{label}/append`
+- Purpose: append items to an existing skill category on a resume.
+- Path:
+  - `id` = resume identifier
+  - `label` = exact skill category label (e.g., "Languages")
+- JSON body:
+  - `details` (string, required) — comma-separated items to append
+- Returns `200`:
+  - `{"status":"...","details":"<full updated details string>"}`
+- Errors:
+  - `400` append failure
+  - `404` resume or skill label not found
+
+### `DELETE /resume/{id}/skill/{label}`
+- Purpose: remove an entire skill category from a resume by label.
+- Path:
+  - `id` = resume identifier
+  - `label` = exact skill category label to remove
+- Returns `200`:
+  - `{"status":"..."}`
+- Errors:
+  - `404` resume or skill label not found
+
+### `POST /resume/{id}/skill/{label}/level`
+- Purpose: update the proficiency level of an individual skill within a category.
+- Path:
+  - `id` = resume identifier
+  - `label` = exact skill category label (e.g., "Languages")
+- JSON body:
+  - `skill_name` (string, required) — exact skill name within the category
+  - `level` (string, required) — proficiency level; no server-side validation, any string is accepted. UI uses `Beginner`, `Intermediate`, `Advanced`
+- Note: level is stored as markdown bold, e.g. `Python (**Advanced**)`
+- Returns `200`:
+  - `{"status":"...","details":"<full updated details string>"}`
+- Errors:
+  - `404` resume, skill category, or individual skill not found
+
+### `POST /resume/{id}/add/award`
+- Purpose: add a new award entry to a resume.
+- Path:
+  - `id` = resume identifier
+- JSON body:
+  - `name` (string, required)
+  - `date` (optional string, `YYYY-MM` format)
+  - `location` (optional string) — city/state or issuing organization
+  - `highlights` (optional list of strings)
+  - `website` (optional string) — injected as `"Link: <url>"` at the end of highlights
+- Returns `200`:
+  - `{"status":"Successfully added award '<name>'"}`
+- Errors:
+  - `400` empty name or add failure
+  - `404` resume not found
+  - `409` award with same name already exists
+
+### `DELETE /resume/{id}/award/{award_name}`
+- Purpose: remove an award entry from a resume by exact award name.
+- Path:
+  - `id` = resume identifier
+  - `award_name` = exact award name to remove
+- Returns `200`:
+  - `{"status":"Successfully deleted: <award_name>"}`
+- Errors:
+  - `404` resume or award not found
+
 ### `DELETE /resume/{id}`
 - Purpose: delete resume YAML file.
 - Returns `200`:
@@ -340,6 +516,14 @@ Router prefix: `/representation`
 - Errors:
   - `404` no saved role
 
+### `GET /portfolios`
+- Purpose: list all saved portfolio documents.
+- Returns `200`: array of objects, each with:
+  - `id` (string) — portfolio identifier (file stem without `_Portfolio_CV`)
+  - `name` (string) — display name with spaces (UUID suffix stripped)
+  - `created_at` (string) — file creation timestamp in ISO-8601 format
+- Results are sorted newest-first.
+
 ### `POST /portfolio/generate`
 - Purpose: create a new portfolio YAML document.
 - JSON body:
@@ -364,12 +548,28 @@ Router prefix: `/representation`
 - JSON body:
   - `{"edits":[{"section":"...","item_name":"...","field":"...","new_value":"..."}]}`
 - Valid sections:
-  - `projects`, `skills`, `summary`, `contact`, `theme`
+  - `projects`, `skills`, `summary`, `contact`, `theme`, `connections`
 - Returns `200`:
   - `{"results":[...]}`
 - Errors:
   - `400` invalid section/theme
   - `404` portfolio not found
+
+### `POST /portfolio/{portfolio_id}/add/project/manual`
+- Purpose: add a project entry with fully manual data (no database lookup).
+- JSON body:
+  - `name` (string, required)
+  - `start_date` (optional string)
+  - `end_date` (optional string)
+  - `location` (optional string)
+  - `summary` (optional string)
+  - `highlights` (optional list of strings)
+- Returns `200`:
+  - `{"status":"..."}`
+- Errors:
+  - `400` add failure
+  - `404` portfolio not found
+  - `500` unexpected error
 
 ### `POST /portfolio/{portfolio_id}/add/project/{project_name}`
 - Purpose: add analyzed project to portfolio projects.
@@ -380,6 +580,21 @@ Router prefix: `/representation`
 - Errors:
   - `404` portfolio/project not found, or missing `resume_item`
   - `500` add/save failure
+
+### `POST /portfolio/{portfolio_id}/add/project/{project_name}/ai`
+- Purpose: add a project entry to a portfolio using AI-generated content (Gemini).
+- Path:
+  - `portfolio_id` = portfolio identifier
+  - `project_name` = name of the analysed project in the database
+- JSON body (optional):
+  - `start_date` (optional string)
+  - `end_date` (optional string)
+- Returns `200`:
+  - `{"status":"..."}`
+- Errors:
+  - `400` AI generation returned no data
+  - `404` portfolio or project not found
+  - `500` AI generation or save failure
 
 ### `DELETE /portfolio/{portfolio_id}/project/{project_name}`
 - Purpose: remove a project entry from a portfolio by exact project name.
@@ -429,6 +644,54 @@ Router prefix: `/representation`
   - `404` portfolio not found
   - `500` render failure
 
+### `POST /portfolio/{portfolio_id}/add/skill`
+- Purpose: add a new skill category to a portfolio.
+- JSON body:
+  - `label` (string, required) — category name (e.g., "Languages")
+  - `details` (string, required) — comma-separated skills (e.g., "Python, Java, C++")
+- Returns `200`:
+  - `{"status":"Successfully added skills"}`
+- Errors:
+  - `400` empty label or add failure
+  - `404` portfolio not found
+  - `409` skill with same label already exists
+
+### `POST /portfolio/{portfolio_id}/skill/{label}/append`
+- Purpose: append items to an existing skill category on a portfolio.
+- Path:
+  - `portfolio_id` = portfolio identifier
+  - `label` = exact skill category label (e.g., "Languages")
+- JSON body:
+  - `details` (string, required) — comma-separated items to append
+- Returns `200`:
+  - `{"status":"...","details":"<full updated details string>"}`
+- Errors:
+  - `404` portfolio or skill label not found
+
+### `DELETE /portfolio/{portfolio_id}/skill/{label}`
+- Purpose: remove an entire skill category from a portfolio by label.
+- Path:
+  - `portfolio_id` = portfolio identifier
+  - `label` = exact skill category label to remove
+- Returns `200`:
+  - `{"status":"..."}`
+- Errors:
+  - `404` portfolio or skill label not found
+
+### `POST /portfolio/{portfolio_id}/skill/{label}/level`
+- Purpose: update the proficiency level of an individual skill within a category.
+- Path:
+  - `portfolio_id` = portfolio identifier
+  - `label` = exact skill category label (e.g., "Languages")
+- JSON body:
+  - `skill_name` (string, required) — exact skill name within the category
+  - `level` (string, required) — proficiency level; no server-side validation, any string is accepted. UI uses `Beginner`, `Intermediate`, `Advanced`
+- Note: level is stored as markdown bold, e.g. `Python (**Advanced**)`
+- Returns `200`:
+  - `{"status":"...","details":"<full updated details string>"}`
+- Errors:
+  - `404` portfolio, skill category, or individual skill not found
+
 ### `DELETE /portfolio/{portfolio_id}`
 - Purpose: delete portfolio YAML file.
 - Returns `200`:
@@ -448,14 +711,18 @@ All required endpoints are implemented and tested over HTTP style requests using
 | `GET /projects` | `GET /projects/` (also works as `/projects`) | `test/test_project_io_API.py` |
 | `GET /projects/{id}` | `GET /projects/{id}` | `test/test_project_io_API.py` |
 | `GET /skills` | `GET /skills` | `test/test_skills_API.py` |
+| `GET /resumes` | `GET /resumes` | `test/test_resume_generator_API.py` |
 | `GET /resume/{id}` | `GET /resume/{id}` | `test/test_resume_generator_API.py` |
 | `POST /resume/generate` | `POST /resume/generate` | `test/test_resume_generator_API.py` |
 | `POST /resume/{id}/edit` | `POST /resume/{id}/edit` | `test/test_resume_generator_API.py` |
+| `POST /resume/{id}/add/project/{project_name}/ai` | `POST /resume/{id}/add/project/{project_name}/ai` | `test/test_resume_generator_API.py` |
 | `DELETE /resume/{id}/project/{project_name}` | `DELETE /resume/{id}/project/{project_name}` | `test/test_resume_generator_API.py` |
 | `POST /resume/{id}/add/education` | `POST /resume/{id}/add/education` | `test/test_resume_generator_API.py` |
 | `DELETE /resume/{id}/education/{institution_name}` | `DELETE /resume/{id}/education/{institution_name}` | `test/test_resume_generator_API.py` |
 | `POST /resume/{id}/add/experience` | `POST /resume/{id}/add/experience` | `test/test_resume_generator_API.py` |
 | `DELETE /resume/{id}/experience/{company_name}` | `DELETE /resume/{id}/experience/{company_name}` | `test/test_resume_generator_API.py` |
+| `POST /resume/{id}/add/award` | `POST /resume/{id}/add/award` | `test/test_resume_generator_API.py` |
+| `DELETE /resume/{id}/award/{award_name}` | `DELETE /resume/{id}/award/{award_name}` | `test/test_resume_generator_API.py` |
 | `GET /portfolio/{id}` | `GET /portfolio/{portfolio_id}` | `test/test_portfolio_generator_API.py` |
 | `POST /portfolio/generate` | `POST /portfolio/generate` | `test/test_portfolio_generator_API.py` |
 | `POST /portfolio/{id}/edit` | `POST /portfolio/{portfolio_id}/edit` | `test/test_portfolio_generator_API.py` |
@@ -471,3 +738,4 @@ The endpoint list above covers all route decorators in:
 - `src/API/representation_API.py`
 - `src/API/Resume_Generator_API.py`
 - `src/API/Portfolio_Generator_API.py`
+- `src/API/project_insights_API.py`

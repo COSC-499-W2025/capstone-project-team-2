@@ -15,6 +15,7 @@ from src.API.general_API import app
 
 DOC_PATCH = "src.API.Resume_Generator_API.RenderCVDocument"
 CTX_PATCH = "src.API.Resume_Generator_API.runtimeAppContext"
+AI_PATCH = "src.API.Resume_Generator_API.GenerateResumeAI_Ver2"
 
 SAMPLE_DB_RECORD = {
     "hierarchy": {"name": "WarframeFinderStreamlit", "type": "DIR", "children": []},
@@ -68,14 +69,14 @@ class TestResumeFullWorkflow(_BaseResumeTest):
         data = resp.json()
         self.assertIn("resume_id", data)
         self.assertEqual(data["status"], "Resume created successfully")
-        self.assertTrue(data["resume_id"].startswith("John_"))
+        self.assertRegex(data["resume_id"], r"^John_[a-f0-9]{8}_\(\d{4}_\d{2}_\d{2}_\d{4}\)$")
         resume_id = data["resume_id"]
 
         # 2. Get resume — verify all expected sections are present
         resp = self.client.get(f"/resume/{resume_id}")
         self.assertEqual(resp.status_code, 200)
         for key in ["name", "contact", "theme", "summary", "experience",
-                     "education", "projects", "skills", "connections"]:
+                     "education", "projects", "skills", "awards", "connections"]:
             self.assertIn(key, resp.json())
 
         # 3. Edit resume — batch edit across all section types
@@ -83,6 +84,7 @@ class TestResumeFullWorkflow(_BaseResumeTest):
         self.mock_doc.modify_education.return_value = "Successfully modified area"
         self.mock_doc.modify_project.return_value = "Successfully modified project"
         self.mock_doc.modify_skill.return_value = "Successfully modified skill"
+        self.mock_doc.modify_award.return_value = "Successfully modified date"
         self.mock_doc.update_summary.return_value = "Successfully updated summary"
         self.mock_doc.update_theme.return_value = "Successfully updated theme"
 
@@ -91,12 +93,13 @@ class TestResumeFullWorkflow(_BaseResumeTest):
             {"section": "education", "item_name": "UBC", "field": "area", "new_value": "CS"},
             {"section": "projects", "item_name": "App", "field": "summary", "new_value": "New summary"},
             {"section": "skills", "item_name": "Python", "field": "", "new_value": "Python 3.12"},
+            {"section": "awards", "item_name": "Best Project", "field": "date", "new_value": "2025-05"},
             {"section": "summary", "item_name": "", "field": "", "new_value": "New text"},
             {"section": "contact", "item_name": "", "field": "email", "new_value": "a@b.com"},
             {"section": "theme", "item_name": "", "field": "", "new_value": "classic"},
         ]})
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(len(resp.json()["results"]), 7)
+        self.assertEqual(len(resp.json()["results"]), 8)
 
         # 4. Render resume in all supported formats
         format_cases = [
@@ -105,7 +108,7 @@ class TestResumeFullWorkflow(_BaseResumeTest):
             ("markdown", "resume.md", b"# Resume", "text/markdown; charset=utf-8"),
         ]
         for fmt, filename, content, expected_type in format_cases:
-            with self.subTest(format=fmt), tempfile.TemporaryDirectory() as tmp_dir:
+            with tempfile.TemporaryDirectory() as tmp_dir:
                 fake_file = Path(tmp_dir) / filename
                 fake_file.write_bytes(content)
                 self.mock_doc.render_outputs.return_value = (
@@ -123,6 +126,20 @@ class TestResumeFullWorkflow(_BaseResumeTest):
         resp = self.client.delete(f"/resume/{resume_id}")
         self.assertEqual(resp.status_code, 200)
         self.assertIn(resume_id, resp.json()["status"])
+
+    def test_generate_sanitizes_name_for_document_id(self):
+        """Slash characters in display names should not appear in generated IDs."""
+        self.mock_doc.generate.return_value = "Generated"
+
+        resp = self.client.post("/resume/generate", json={"name": "Sam/http"})
+        self.assertEqual(resp.status_code, 200)
+        body = resp.json()
+        self.assertNotIn("/", body["resume_id"])
+        self.assertIn("Sam_http_", body["resume_id"])
+
+        called_name = self.mock_doc.generate.call_args.kwargs["name"]
+        self.assertNotIn("/", called_name)
+        self.assertTrue(called_name.startswith("Sam_http_"))
 
 
 class TestAddProjectFromDB(_BaseResumeTest):
@@ -163,6 +180,49 @@ class TestAddProjectFromDB(_BaseResumeTest):
         self.assertIn("disk full", resp.json()["detail"])
 
 
+class TestAddProjectManual(_BaseResumeTest):
+    """Tests for POST /resume/{id}/add/project/manual."""
+
+    def test_all_cases(self):
+        """Covers success (all fields), success (name only), missing name (422), bad result (400), error (500), not found (404)."""
+        # All fields
+        self.mock_doc.add_project.return_value = "Successfully added project 'My Side Project'"
+        resp = self.client.post("/resume/test_abc123/add/project/manual", json={
+            "name": "My Side Project", "start_date": "2024-01", "end_date": "2025-03",
+            "location": "Vancouver, BC", "summary": "Explore Rust.", "highlights": ["Built async runtime"],
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+        self.mock_doc.add_project.assert_called_once()
+
+        # Name only
+        self.mock_doc.add_project.return_value = "Successfully added project 'Minimal'"
+        resp = self.client.post("/resume/test_abc123/add/project/manual", json={"name": "Minimal"})
+        self.assertEqual(resp.status_code, 200)
+
+        # Missing name → 422
+        resp = self.client.post("/resume/test_abc123/add/project/manual", json={"summary": "No name"})
+        self.assertEqual(resp.status_code, 422)
+
+        # Bad result → 400
+        self.mock_doc.add_project.return_value = "Failed: duplicate project name"
+        resp = self.client.post("/resume/test_abc123/add/project/manual", json={"name": "Duplicate"})
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("duplicate project name", resp.json()["detail"])
+
+        # Unexpected error → 500
+        self.mock_doc.add_project.side_effect = RuntimeError("disk full")
+        resp = self.client.post("/resume/test_abc123/add/project/manual", json={"name": "My Project"})
+        self.assertEqual(resp.status_code, 500)
+        self.assertIn("disk full", resp.json()["detail"])
+
+        # Resume not found → 404
+        self._set_not_found()
+        resp = self.client.post("/resume/fake_id/add/project/manual", json={"name": "My Project"})
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+
 class TestErrorHandling(_BaseResumeTest):
     """Consolidated error/edge-case tests across all endpoints."""
 
@@ -199,6 +259,38 @@ class TestErrorHandling(_BaseResumeTest):
         })
         self.assertEqual(resp.status_code, 400)
         self.assertIn("Unknown section", resp.json()["detail"])
+
+    def test_add_connection(self):
+        """Adding a new connection via edit calls add_connection."""
+        self.mock_doc.get_connections.return_value = []
+        self.mock_doc.add_connection.return_value = "Successfully added: GitHub"
+
+        resp = self.client.post("/resume/test_abc123/edit", json={
+            "edits": [{"section": "connections", "item_name": "GitHub", "field": "username", "new_value": "jdoe"}]
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.mock_doc.add_connection.assert_called_once()
+
+    def test_modify_connection(self):
+        """Modifying an existing connection via edit calls modify_connection."""
+        self.mock_doc.get_connections.return_value = [{"network": "GitHub", "username": "old"}]
+        self.mock_doc.modify_connection.return_value = "Successfully updated: GitHub"
+
+        resp = self.client.post("/resume/test_abc123/edit", json={
+            "edits": [{"section": "connections", "item_name": "GitHub", "field": "username", "new_value": "newuser"}]
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.mock_doc.modify_connection.assert_called_once_with("GitHub", "newuser")
+
+    def test_remove_connection(self):
+        """Removing a connection via edit with field='delete' calls remove_connection."""
+        self.mock_doc.remove_connection.return_value = "Successfully deleted: GitHub"
+
+        resp = self.client.post("/resume/test_abc123/edit", json={
+            "edits": [{"section": "connections", "item_name": "GitHub", "field": "delete", "new_value": ""}]
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.mock_doc.remove_connection.assert_called_once_with("GitHub")
 
     def test_render_failure(self):
         """Render returning empty paths returns 500."""
@@ -413,6 +505,15 @@ class TestExperienceEndpoints(_BaseResumeTest):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()["status"], "Successfully added experience")
 
+        # Duplicate returns 409
+        self.mock_doc.add_experience.return_value = "Duplicate company 'Acme Corp' already exists"
+        resp = self.client.post("/resume/test_abc123/add/experience", json={
+            "company": "Acme Corp",
+            "position": "Software Engineer",
+        })
+        self.assertEqual(resp.status_code, 409)
+        self.assertIn("Duplicate", resp.json()["detail"])
+
         # Add failure
         self.mock_doc.add_experience.return_value = "Company name cannot be empty"
         resp = self.client.post("/resume/test_abc123/add/experience", json={
@@ -506,29 +607,24 @@ class TestExportResume(_BaseResumeTest):
 
     @patch("src.API.Resume_Generator_API.shutil")
     @patch("src.API.Resume_Generator_API.RENDERED_OUTPUTS_DIR")
-    def test_save_default(self, mock_dir, mock_shutil):
-        """Save to default directory returns path."""
+    def test_save_default_and_custom(self, mock_dir, mock_shutil):
+        """Save to default and custom directories both return a success status and path."""
         mock_dir.mkdir = MagicMock()
         mock_dir.__truediv__ = lambda self, name: Path("/fake/rendered_outputs") / name
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            fake_pdf = Path(tmp_dir) / "resume.pdf"
-            fake_pdf.write_bytes(b"%PDF-1.4 fake")
-            self.mock_doc.render_outputs.return_value = ("successfully rendered", {"pdf": [fake_pdf]})
-
-            resp = self.client.post("/resume/test_abc123/export/pdf")
-            self.assertEqual(resp.status_code, 200)
-            self.assertIn("Saved successfully", resp.json()["status"])
-            self.assertIn("path", resp.json())
-
-    @patch("src.API.Resume_Generator_API.shutil")
-    def test_save_custom(self, mock_shutil):
-        """Save to custom directory returns path."""
         with tempfile.TemporaryDirectory() as tmp_dir, tempfile.TemporaryDirectory() as custom_dir:
             fake_pdf = Path(tmp_dir) / "resume.pdf"
             fake_pdf.write_bytes(b"%PDF-1.4 fake")
             self.mock_doc.render_outputs.return_value = ("successfully rendered", {"pdf": [fake_pdf]})
 
+            # Default directory
+            resp = self.client.post("/resume/test_abc123/export/pdf")
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Saved successfully", resp.json()["status"])
+            self.assertIn("path", resp.json())
+
+            # Custom directory
+            fake_pdf.write_bytes(b"%PDF-1.4 fake")
             resp = self.client.post("/resume/test_abc123/export/pdf/custom", json={"path": custom_dir})
             self.assertEqual(resp.status_code, 200)
             self.assertIn("Saved successfully", resp.json()["status"])
@@ -545,6 +641,452 @@ class TestExportResume(_BaseResumeTest):
         resp = self.client.post("/resume/test_abc123/export/docx")
         self.assertEqual(resp.status_code, 400)
         self.assertIn("Unsupported format", resp.json()["detail"])
+
+
+class TestSkillEndpoints(_BaseResumeTest):
+    """Tests for POST /resume/{id}/add/skill, POST /resume/{id}/skill/{label}/append, DELETE /resume/{id}/skill/{label}."""
+
+    def test_add_skill(self):
+        """Covers success, duplicate (409), failure (400), and resume not found (404)."""
+        # Success
+        self.mock_doc.add_skills.return_value = "Successfully added skills"
+        resp = self.client.post("/resume/test_abc123/add/skill", json={
+            "label": "Languages",
+            "details": "Python, Java, C++",
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["status"], "Successfully added skills")
+
+        # Duplicate label returns 409
+        self.mock_doc.add_skills.return_value = "Duplicate label 'Languages' already exists"
+        resp = self.client.post("/resume/test_abc123/add/skill", json={
+            "label": "Languages",
+            "details": "Python",
+        })
+        self.assertEqual(resp.status_code, 409)
+        self.assertIn("Duplicate", resp.json()["detail"])
+
+        # Generic failure returns 400
+        self.mock_doc.add_skills.return_value = "Label cannot be empty"
+        resp = self.client.post("/resume/test_abc123/add/skill", json={
+            "label": "Languages",
+            "details": "Python",
+        })
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Label cannot be empty", resp.json()["detail"])
+
+        # Resume not found
+        self._set_not_found()
+        resp = self.client.post("/resume/fake_id/add/skill", json={
+            "label": "Languages",
+            "details": "Python",
+        })
+        self.assertEqual(resp.status_code, 404)
+
+    def test_append_skill(self):
+        """Covers append success (merges details), skill not found (404), and resume not found (404)."""
+        # Success — appends to existing details
+        self.mock_doc.get_skills.return_value = [
+            {"label": "Languages", "details": "Python, Java"}
+        ]
+        self.mock_doc.modify_skill.return_value = "Successfully modified skill"
+        resp = self.client.post("/resume/test_abc123/skill/Languages/append", json={
+            "details": "C++",
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["details"], "Python, Java, C++")
+        self.assertIn("Successfully", resp.json()["status"])
+        self.mock_doc.modify_skill.assert_called_once_with("Languages", "Python, Java, C++")
+
+        # Skill label not found returns 404
+        self.mock_doc.get_skills.return_value = []
+        resp = self.client.post("/resume/test_abc123/skill/Unknown/append", json={
+            "details": "Rust",
+        })
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+        # Resume not found
+        self._set_not_found()
+        resp = self.client.post("/resume/fake_id/skill/Languages/append", json={
+            "details": "Rust",
+        })
+        self.assertEqual(resp.status_code, 404)
+
+    def test_remove_skill(self):
+        """Covers remove success, label not found (404), no skills (404), and resume not found (404)."""
+        # Success
+        self.mock_doc.remove_skill.return_value = "Successfully removed skill 'Languages'"
+        resp = self.client.delete("/resume/test_abc123/skill/Languages")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+
+        # Label not found returns 404
+        self.mock_doc.remove_skill.return_value = "Skill 'Unknown' not found"
+        resp = self.client.delete("/resume/test_abc123/skill/Unknown")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+        # No skills on the resume returns 404
+        self.mock_doc.remove_skill.return_value = "No skills in resume"
+        resp = self.client.delete("/resume/test_abc123/skill/Languages")
+        self.assertEqual(resp.status_code, 404)
+
+        # Resume not found
+        self._set_not_found()
+        resp = self.client.delete("/resume/fake_id/skill/Languages")
+        self.assertEqual(resp.status_code, 404)
+
+
+class TestListResumes(_BaseResumeTest):
+    """Tests for GET /resumes."""
+
+    def test_empty_directory(self):
+        """Returns 200 with an empty list when no resume YAML files exist."""
+        with tempfile.TemporaryDirectory() as tmp:
+            cv_dir = Path(tmp)
+            with patch("src.API.Resume_Generator_API.Path") as MockPath:
+                MockPath.return_value.resolve.return_value.parents.__getitem__.return_value \
+                    .__truediv__.return_value.__truediv__.return_value = cv_dir
+                resp = self.client.get("/resumes")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json(), [])
+
+    def test_populated_directory(self):
+        """Returns id, name, and created_at for each resume YAML file found."""
+        with tempfile.TemporaryDirectory() as tmp:
+            cv_dir = Path(tmp)
+            (cv_dir / "Jane_Doe_abc12345_(2025_01_01_1417)_Resume_CV.yaml").write_text("")
+
+            with patch("src.API.Resume_Generator_API.Path") as MockPath:
+                MockPath.return_value.resolve.return_value.parents.__getitem__.return_value \
+                    .__truediv__.return_value.__truediv__.return_value = cv_dir
+                resp = self.client.get("/resumes")
+
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIsInstance(data, list)
+        self.assertEqual(len(data), 1)
+        for key in ("id", "name", "created_at"):
+            self.assertIn(key, data[0])
+        self.assertEqual(data[0]["id"], "Jane_Doe_abc12345_(2025_01_01_1417)")
+        self.assertEqual(data[0]["name"], "Jane Doe")
+        self.assertRegex(data[0]["created_at"], r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$")
+
+
+class TestAddProjectAI(_BaseResumeTest):
+    """Tests for POST /resume/{id}/add/project/{project_name}/ai."""
+
+    def setUp(self):
+        super().setUp()
+        patcher = patch(CTX_PATCH)
+        self.mock_ctx = patcher.start()
+        self.mock_ctx.store.project_exists.return_value = True
+        self.addCleanup(patcher.stop)
+
+    def _make_ai_entry(self, tech_stack="Python, FastAPI"):
+        entry = MagicMock()
+        entry.one_sentence_summary = "Built a REST API with FastAPI."
+        entry.tech_stack = tech_stack
+        entry.project_title = "WarframeFinder"
+        entry.key_responsibilities = ["Built endpoints", "Wrote unit tests"]
+        return entry
+
+    def test_success_and_summary_variants(self):
+        """Success adds project; tech_stack is appended when present and omitted when falsy."""
+        with patch(AI_PATCH) as MockAI:
+            mock_gen = MagicMock()
+            MockAI.return_value = mock_gen
+            mock_gen.project_exists = True
+            self.mock_doc.add_project.return_value = "Successfully added project 'WarframeFinder'"
+
+            # With tech stack
+            mock_gen.generate_AI_Resume_entry.return_value = self._make_ai_entry()
+            resp = self.client.post("/resume/test_abc123/add/project/WarframeFinderStreamlit/ai")
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Successfully", resp.json()["status"])
+            proj = self.mock_doc.add_project.call_args[0][0]
+            self.assertIn("Tech stack:", proj.summary)
+
+            # Without tech stack
+            self.mock_doc.add_project.reset_mock()
+            mock_gen.generate_AI_Resume_entry.return_value = self._make_ai_entry(tech_stack=None)
+            self.client.post("/resume/test_abc123/add/project/WarframeFinderStreamlit/ai")
+            proj = self.mock_doc.add_project.call_args[0][0]
+            self.assertNotIn("Tech stack:", proj.summary)
+
+    def test_error_cases(self):
+        """Covers project not found (404), AI returns None (400), AI exception (500), add_project failure (500), resume not found (404)."""
+        with patch(AI_PATCH) as MockAI:
+            mock_gen = MagicMock()
+            MockAI.return_value = mock_gen
+
+            # Project not found
+            mock_gen.project_exists = False
+            resp = self.client.post("/resume/test_abc123/add/project/Unknown/ai")
+            self.assertEqual(resp.status_code, 404)
+            self.assertIn("not found", resp.json()["detail"])
+
+            # AI returns None → 400
+            mock_gen.project_exists = True
+            mock_gen.generate_AI_Resume_entry.return_value = None
+            resp = self.client.post("/resume/test_abc123/add/project/WarframeFinderStreamlit/ai")
+            self.assertEqual(resp.status_code, 400)
+            self.assertIn("no data", resp.json()["detail"])
+
+            # AI raises exception → 500
+            mock_gen.generate_AI_Resume_entry.side_effect = RuntimeError("API quota exceeded")
+            resp = self.client.post("/resume/test_abc123/add/project/WarframeFinderStreamlit/ai")
+            self.assertEqual(resp.status_code, 500)
+            self.assertIn("API quota exceeded", resp.json()["detail"])
+
+            # add_project raises exception → 500
+            mock_gen.generate_AI_Resume_entry.side_effect = None
+            mock_gen.generate_AI_Resume_entry.return_value = self._make_ai_entry()
+            self.mock_doc.add_project.side_effect = RuntimeError("disk full")
+            resp = self.client.post("/resume/test_abc123/add/project/WarframeFinderStreamlit/ai")
+            self.assertEqual(resp.status_code, 500)
+            self.assertIn("disk full", resp.json()["detail"])
+
+        # Resume not found → 404 (outside AI patch to verify AI not called)
+        self._set_not_found()
+        with patch(AI_PATCH) as MockAI:
+            resp = self.client.post("/resume/fake_id/add/project/WarframeFinderStreamlit/ai")
+            self.assertEqual(resp.status_code, 404)
+            MockAI.assert_not_called()
+
+
+class TestAwardEndpoints(_BaseResumeTest):
+    """Tests for POST /resume/{id}/add/award and DELETE /resume/{id}/award/{award_name}."""
+
+    def test_add_award_success(self):
+        """All fields provided returns 200 with success status."""
+        self.mock_doc.add_award.return_value = "Successfully added award 'Best Capstone Project Award'"
+        resp = self.client.post("/resume/test_abc123/add/award", json={
+            "name": "Best Capstone Project Award",
+            "date": "2025-04",
+            "location": "University of British Columbia",
+            "highlights": ["Selected from 30+ teams", "Recognised for innovation"],
+            "website": "https://example.com/award",
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+        self.mock_doc.add_award.assert_called_once()
+
+    def test_add_award_name_only(self):
+        """Only required field (name) provided returns 200."""
+        self.mock_doc.add_award.return_value = "Successfully added award 'Dean\\'s List'"
+        resp = self.client.post("/resume/test_abc123/add/award", json={"name": "Dean's List"})
+        self.assertEqual(resp.status_code, 200)
+
+    def test_add_award_missing_name_returns_422(self):
+        """Missing required name field returns 422."""
+        resp = self.client.post("/resume/test_abc123/add/award", json={
+            "date": "2025-04",
+            "location": "UBC",
+        })
+        self.assertEqual(resp.status_code, 422)
+
+    def test_add_award_duplicate_returns_409(self):
+        """Duplicate award name returns 409."""
+        self.mock_doc.add_award.return_value = "Award 'Best Project' already exists"
+        resp = self.client.post("/resume/test_abc123/add/award", json={"name": "Best Project"})
+        self.assertEqual(resp.status_code, 409)
+        self.assertIn("already exists", resp.json()["detail"])
+
+    def test_add_award_failure_returns_400(self):
+        """Non-success, non-duplicate result returns 400."""
+        self.mock_doc.add_award.return_value = "Award name cannot be empty"
+        resp = self.client.post("/resume/test_abc123/add/award", json={"name": "X"})
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("Award name cannot be empty", resp.json()["detail"])
+
+    def test_add_award_resume_not_found(self):
+        """Returns 404 when resume does not exist."""
+        self._set_not_found()
+        resp = self.client.post("/resume/fake_id/add/award", json={"name": "Some Award"})
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+    def test_remove_award_success(self):
+        """Removing an existing award returns 200."""
+        self.mock_doc.remove_award.return_value = "Successfully deleted: Best Capstone Project Award"
+        resp = self.client.delete("/resume/test_abc123/award/Best%20Capstone%20Project%20Award")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+        self.mock_doc.remove_award.assert_called_once()
+
+    def test_remove_award_not_found(self):
+        """Removing a non-existent award returns 404."""
+        self.mock_doc.remove_award.return_value = "Award 'Unknown' not found"
+        resp = self.client.delete("/resume/test_abc123/award/Unknown")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+    def test_remove_award_no_awards(self):
+        """Removing when no awards exist returns 404."""
+        self.mock_doc.remove_award.return_value = "No awards to delete"
+        resp = self.client.delete("/resume/test_abc123/award/SomeAward")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("No awards", resp.json()["detail"])
+
+    def test_remove_award_resume_not_found(self):
+        """Returns 404 when resume does not exist."""
+        self._set_not_found()
+        resp = self.client.delete("/resume/fake_id/award/SomeAward")
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("not found", resp.json()["detail"])
+
+    def test_edit_award_via_edit_endpoint(self):
+        """Awards section is handled by modify_award via the /edit endpoint."""
+        self.mock_doc.modify_award.return_value = "Successfully modified date"
+        resp = self.client.post("/resume/test_abc123/edit", json={"edits": [
+            {"section": "awards", "item_name": "Best Project", "field": "date", "new_value": "2025-06"},
+        ]})
+        self.assertEqual(resp.status_code, 200)
+        self.mock_doc.modify_award.assert_called_once_with("Best Project", "date", "2025-06")
+
+    def test_get_resume_includes_awards(self):
+        """GET /resume/{id} response includes awards key."""
+        self.mock_doc.get_awards.return_value = [
+            {"name": "Best Project", "date": "2025-04", "location": "UBC"}
+        ]
+        resp = self.client.get("/resume/test_abc123")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("awards", resp.json())
+        self.assertEqual(len(resp.json()["awards"]), 1)
+        self.assertEqual(resp.json()["awards"][0]["name"], "Best Project")
+
+
+class TestUpdateSkillLevel(_BaseResumeTest):
+    """Tests for POST /resume/{id}/skill/{label}/level."""
+
+    def test_update_level_success(self):
+        """Updates an individual skill level with bold markdown formatting."""
+        self.mock_doc.get_skills.return_value = [
+            {"label": "Languages", "details": "Python, Java, C++"}
+        ]
+        self.mock_doc.modify_skill.return_value = "Successfully updated skill 'Languages'"
+        resp = self.client.post("/resume/test_abc123/skill/Languages/level", json={
+            "skill_name": "Python",
+            "level": "Advanced",
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Successfully", resp.json()["status"])
+        self.assertIn("Python (**Advanced**)", resp.json()["details"])
+        self.mock_doc.modify_skill.assert_called_once_with(
+            "Languages", "Python (**Advanced**), Java, C++"
+        )
+
+    def test_update_level_replaces_existing(self):
+        """Replaces an existing level suffix on the skill."""
+        self.mock_doc.get_skills.return_value = [
+            {"label": "Languages", "details": "Python (Beginner), Java"}
+        ]
+        self.mock_doc.modify_skill.return_value = "Successfully updated skill 'Languages'"
+        resp = self.client.post("/resume/test_abc123/skill/Languages/level", json={
+            "skill_name": "Python",
+            "level": "Advanced",
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Python (**Advanced**)", resp.json()["details"])
+
+    def test_update_level_skill_not_found(self):
+        """Returns 404 when the individual skill name doesn't exist in the category."""
+        self.mock_doc.get_skills.return_value = [
+            {"label": "Languages", "details": "Python, Java"}
+        ]
+        resp = self.client.post("/resume/test_abc123/skill/Languages/level", json={
+            "skill_name": "Rust",
+            "level": "Advanced",
+        })
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("Rust", resp.json()["detail"])
+
+    def test_update_level_category_not_found(self):
+        """Returns 404 when the skill category label doesn't exist."""
+        self.mock_doc.get_skills.return_value = []
+        resp = self.client.post("/resume/test_abc123/skill/Unknown/level", json={
+            "skill_name": "Python",
+            "level": "Advanced",
+        })
+        self.assertEqual(resp.status_code, 404)
+        self.assertIn("Unknown", resp.json()["detail"])
+
+    def test_update_level_resume_not_found(self):
+        """Returns 404 when the resume doesn't exist."""
+        self._set_not_found()
+        resp = self.client.post("/resume/fake_id/skill/Languages/level", json={
+            "skill_name": "Python",
+            "level": "Advanced",
+        })
+        self.assertEqual(resp.status_code, 404)
+
+
+class TestAddProjectAIWithOverrides(_BaseResumeTest):
+    """Tests for POST /resume/{id}/add/project/{project_name}/ai with date overrides."""
+
+    def setUp(self):
+        super().setUp()
+        patcher = patch(CTX_PATCH)
+        self.mock_ctx = patcher.start()
+        self.mock_ctx.store.project_exists.return_value = True
+        self.addCleanup(patcher.stop)
+
+    def _make_ai_entry(self):
+        entry = MagicMock()
+        entry.one_sentence_summary = "Built a REST API."
+        entry.tech_stack = "Python, FastAPI"
+        entry.project_title = "MyProject"
+        entry.key_responsibilities = ["Built endpoints"]
+        return entry
+
+    def test_ai_with_date_overrides(self):
+        """Date overrides from request body are passed through to the Project."""
+        with patch(AI_PATCH) as MockAI:
+            mock_gen = MagicMock()
+            MockAI.return_value = mock_gen
+            mock_gen.project_exists = True
+            mock_gen.generate_AI_Resume_entry.return_value = self._make_ai_entry()
+            self.mock_doc.add_project.return_value = "Successfully added project 'MyProject'"
+
+            resp = self.client.post(
+                "/resume/test_abc123/add/project/MyProject/ai",
+                json={"start_date": "2025-03", "end_date": "2026-03"},
+            )
+            self.assertEqual(resp.status_code, 200)
+            proj = self.mock_doc.add_project.call_args[0][0]
+            self.assertEqual(proj.start_date, "2025-03")
+            self.assertEqual(proj.end_date, "2026-03")
+
+    def test_ai_without_overrides(self):
+        """Without a request body, dates default to None."""
+        with patch(AI_PATCH) as MockAI:
+            mock_gen = MagicMock()
+            MockAI.return_value = mock_gen
+            mock_gen.project_exists = True
+            mock_gen.generate_AI_Resume_entry.return_value = self._make_ai_entry()
+            self.mock_doc.add_project.return_value = "Successfully added project 'MyProject'"
+
+            resp = self.client.post("/resume/test_abc123/add/project/MyProject/ai")
+            self.assertEqual(resp.status_code, 200)
+            proj = self.mock_doc.add_project.call_args[0][0]
+            self.assertIsNone(proj.start_date)
+            self.assertIsNone(proj.end_date)
+
+    def test_blocked_when_external_consent_false(self):
+        """Returns 403 when external_consent is False on runtimeAppContext."""
+        self.mock_ctx.external_consent = False
+        self.mock_ctx.data_consent = True
+        resp = self.client.post("/resume/test_abc123/add/project/MyProject/ai")
+        self.assertEqual(resp.status_code, 403)
+
+    def test_blocked_when_data_consent_false(self):
+        """Returns 403 when data_consent is False on runtimeAppContext."""
+        self.mock_ctx.external_consent = True
+        self.mock_ctx.data_consent = False
+        resp = self.client.post("/resume/test_abc123/add/project/MyProject/ai")
+        self.assertEqual(resp.status_code, 403)
 
 
 if __name__ == "__main__":

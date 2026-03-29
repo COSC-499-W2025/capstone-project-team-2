@@ -91,7 +91,6 @@ class FileMetadataExtractor:
 
 
     def file_hierarchy(self, dir_path: Path | None = None):
-
         """
         Validate the root directory path and generate a file hierarchy
         representation if the path exists and is a directory.
@@ -101,18 +100,19 @@ class FileMetadataExtractor:
             If None, the instance root directory is used.
 
         Returns:
-            dict: A dictionary representing the directory hierarchy, including
-            error placeholders if the path is invalid or inaccessible.
+            dict: A dictionary representing the directory hierarchy.
+            
+        Raises:
+            FileNotFoundError: If the directory path does not exist.
+            ValueError: If the path is not a directory.
         """
 
         if not self.dir_path.exists():
-            print("Error: Filepath not found")
-            return {"name": self.dir_path.name, "type": "DIR", "children": [{"name": "Not Found", "type": "DIR", "children": []}]}
+            raise FileNotFoundError(f"Directory not found: {self.dir_path}")
         if not self.dir_path.is_dir():
-            print("Error: File is not a directory")
-            return {"name": self.dir_path.name, "type": "DIR", "children": [{"name": "Not a Directory", "type": "DIR", "children": []}]}
+            raise ValueError(f"Path is not a directory: {self.dir_path}")
 
-        return self.tree(self.dir_path)
+        return self.tree(self.dir_path) 
 
 
     def tree(self, dir_path: Path):
@@ -155,12 +155,11 @@ class FileMetadataExtractor:
         for path in content:
             try:
                 stat = path.stat()
-                created = datetime.datetime.fromtimestamp(stat.st_birthtime)  # Keep as datetime
                 modified = datetime.datetime.fromtimestamp(stat.st_mtime)      # Keep as datetime
                 size = stat.st_size
                 author = self.get_author(path)
             except Exception:
-                created = modified = None  # Use None instead of "N/A" for failed dates
+                modified = None  # Use None instead of "N/A" for failed dates
                 size = 0
                 author = "Unknown"
 
@@ -172,7 +171,6 @@ class FileMetadataExtractor:
                     "name": path.name,
                     "type": path.suffix.lstrip('.') or "FILE",
                     "size": size,
-                    "created": created,
                     "modified": modified,
                     "author": author,
                     "children": []
@@ -199,7 +197,7 @@ class FileMetadataExtractor:
         if node["type"] == "DIR":
             print(prefix + node["name"] + " [DIR]")
         else:
-            print(prefix + node["name"] + f" [{node['type']}] size: {node['size']}B, created: {node['created']}, modified: {node['modified']}, author: {node['author']}")
+            print(prefix + node["name"] + f" [{node['type']}] size: {node['size']}B, modified: {node['modified']}, author: {node['author']}")
 
         
         for i, child in enumerate(node["children"]):

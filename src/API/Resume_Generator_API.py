@@ -7,35 +7,51 @@ by a unique ID (name + UUID suffix) returned in the X-Resume-ID header
 upon generation.
 
 Endpoints:
-    POST   /resume/generate                          - Create a new resume
-    GET    /resume/{id}                              - Retrieve full resume data as JSON
-    POST   /resume/{id}/render/{format}              - Re-render and return as file response
-    POST   /resume/{id}/export/{format}              - Render and export to default directory
-    POST   /resume/{id}/export/{format}/custom       - Render and export to a custom directory
-    POST   /resume/{id}/edit                         - Modify a field on an existing section item
-    POST   /resume/{id}/add/project/{project_name}   - Add a project entry
-    DELETE /resume/{id}/project/{project_name}        - Remove a project entry
-    POST   /resume/{id}/add/education                - Add an education entry
-    DELETE /resume/{id}/education/{institution_name} - Remove an education entry
-    POST   /resume/{id}/add/experience               - Add an experience entry
-    DELETE /resume/{id}/experience/{company_name}    - Remove an experience entry
-    DELETE /resume/{id}                              - Delete the resume YAML file entirely
+    GET    /resumes                                          - List all saved resume documents
+    POST   /resume/generate                                  - Create a new resume
+    GET    /resume/{id}                                      - Retrieve full resume data as JSON
+    POST   /resume/{id}/render                               - Re-render and return as PDF (default format)
+    POST   /resume/{id}/render/{format}                      - Re-render and return as file response
+    POST   /resume/{id}/export/{format}                      - Render and export to default directory
+    POST   /resume/{id}/export/{format}/custom               - Render and export to a custom directory
+    POST   /resume/{id}/edit                                 - Modify a field on an existing section item
+    POST   /resume/{id}/add/project/manual                   - Add a project entry with manual data (no DB lookup)
+    POST   /resume/{id}/add/project/{project_name}           - Add a project entry from the database
+    POST   /resume/{id}/add/project/{project_name}/ai        - Add a project entry using AI-generated content
+    DELETE /resume/{id}/project/{project_name}               - Remove a project entry
+    POST   /resume/{id}/add/education                        - Add an education entry
+    DELETE /resume/{id}/education/{institution_name}         - Remove an education entry
+    POST   /resume/{id}/add/experience                       - Add an experience entry
+    DELETE /resume/{id}/experience/{company_name}            - Remove an experience entry
+    POST   /resume/{id}/add/skill                            - Add a new skill category
+    POST   /resume/{id}/skill/{label}/append                 - Append items to an existing skill category
+    DELETE /resume/{id}/skill/{label}                        - Remove a skill category
+    POST   /resume/{id}/add/award                            - Add a new award entry
+    DELETE /resume/{id}/award/{award_name}                   - Remove an award entry
+    DELETE /resume/{id}                                      - Delete the resume YAML file entirely
 """
 
+import re
+import pendulum
+from datetime import datetime
 from typing import Optional, List, Any
 from pathlib import Path
 import uuid
 import shutil
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from src.reporting.Generate_AI_RenderCV_Portfolio_and_Resume import (
     RenderCVDocument,
     Project,
     Education,
     Experience,
+    Skills,
+    Connections,
+    Award,
 )
 from src.core.app_context import runtimeAppContext
+from src.reporting.Generate_Resume_AI_Ver2 import GenerateResumeAI_Ver2
 
 RENDERED_OUTPUTS_DIR = Path(__file__).resolve().parents[2] / "User_config_files" / "Generate_render_CV_files" / "rendered_outputs"
 
@@ -43,6 +59,15 @@ RENDERED_OUTPUTS_DIR = Path(__file__).resolve().parents[2] / "User_config_files"
 resumeRouter = APIRouter(tags=["Resume"])
 
 ALLOWED_CONTACT_FIELDS = {"email", "phone", "location", "website", "name"}
+SKIPPING_GENERATION = "Skipping generation"
+
+
+def _safe_document_name(name: str) -> str:
+    """Normalize a user-provided display name into a filesystem-safe ID component."""
+    normalized = (name or "").strip().replace(" ", "_")
+    normalized = re.sub(r'[<>:"/\\|?*\x00-\x1F]+', "_", normalized)
+    normalized = re.sub(r"_+", "_", normalized).strip("._")
+    return normalized or "document"
 
 
 class GenerateResumeRequest(BaseModel):
@@ -80,6 +105,7 @@ class EditResumeRequest(BaseModel):
             {"section": "experience", "item_name": "Software Engineer", "field": "company", "new_value": "Acme Corp"},
             {"section": "projects", "item_name": "MyProject", "field": "summary", "new_value": "Built a REST API with FastAPI."},
             {"section": "theme", "item_name": "", "field": "", "new_value": "classic"},
+            {"section": "connections", "item_name": "LinkedIn", "field": "username", "new_value": "john-doe"},
         ]
     }})
     edits: List[EditItem]
@@ -100,6 +126,24 @@ class ProjectRequest(BaseModel):
     location: Optional[str] = None
     summary: Optional[str] = None
     highlights: Optional[List[str]] = None
+
+class ManualProjectRequest(BaseModel):
+    """Payload for adding a project directly without a database entry."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "name": "My Side Project",
+        "start_date": "2024-01",
+        "end_date": "2025-03",
+        "location": "Vancouver, BC",
+        "summary": "A personal project built to explore Rust async runtimes.",
+        "highlights": ["Implemented async runtime", "Achieved 10k RPS under load"],
+    }})
+    name: str
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    location: Optional[str] = None
+    summary: Optional[str] = None
+    highlights: Optional[List[str]] = None
+
 
 class EducationRequest(BaseModel):
     """Payload for adding a new education entry."""
@@ -139,6 +183,50 @@ class ExperienceRequest(BaseModel):
     end_date: Optional[str] = None
     location: Optional[str] = None
     highlights: Optional[List[str]] = None
+
+class SkillRequest(BaseModel):
+    """Payload for adding a new skill entry."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "label" :"Languages",
+        "details": "Python, Java, C++, JavaScript, SQL, HTML, CSS" }
+
+    })
+    label: str
+    details: str
+
+
+class AppendSkillRequest(BaseModel):
+    """Payload for appending items to an existing skill entry."""
+    model_config = ConfigDict(json_schema_extra={"example":{
+        "details":"Rust, TypeScript"
+    }}
+    )
+    details: str
+
+class UpdateSkillLevelRequest(BaseModel):
+    """Payload for updating the proficiency level of an individual skill."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "skill_name": "Python",
+        "level": "Advanced"
+    }})
+    skill_name: str
+    level: str
+
+
+class AwardRequest(BaseModel):
+    """Payload for adding a new award entry."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "name": "Best Capstone Project",
+        "date": "2025-04",
+        "location": "University of British Columbia",
+        "highlights": ["Recognized for outstanding innovation", "Selected from 30+ competing teams"],
+        "website": "https://example.com/award",
+    }})
+    name: str
+    date: Optional[str] = Field(default=None, pattern=r'^\d{4}-(0[1-9]|1[0-2])$')
+    location: Optional[str] = None
+    highlights: Optional[List[str]] = None
+    website: Optional[str] = None
 
 
 class SaveRequest(BaseModel):
@@ -205,6 +293,43 @@ def _check_result(result: str):
     return result
 
 
+@resumeRouter.get("/resumes")
+def list_resumes():
+    """List all saved resume documents.
+
+    Returns:
+        list: Each entry has ``id`` (the file stem used as the resume ID),
+        ``display_name`` (name without the UUID suffix), and ``created_at``
+        (ISO-8601 timestamp of file creation time).
+    """
+    cv_dir = Path(__file__).resolve().parents[2] / "User_config_files" / "Generate_render_CV_files"
+    results = []
+    for f in cv_dir.glob("*_Resume_CV.yaml"):
+        stem = f.stem  # e.g. "John_Doe_a1b2c3d4_Resume_CV"
+        resume_id = stem[: -len("_Resume_CV")]
+        date_match = re.search(r'\((\d{4})_(\d{2})_(\d{2})_(\d{2})(\d{2})\)$', resume_id)
+        date_match_old = re.search(r'\((\d{4})_(\d{2})_(\d{2})\)$', resume_id) if not date_match else None
+        if date_match:
+            y, m, d, h, mi = date_match.groups()
+            created_at = f"{y}-{m}-{d}T{h}:{mi}:00"
+            name_part = re.sub(r'_[a-f0-9]{8}_\(\d{4}_\d{2}_\d{2}_\d{4}\)$', '', resume_id)
+        elif date_match_old:
+            created_at = pendulum.from_timestamp(f.stat().st_ctime, tz=pendulum.local_timezone()).format("YYYY-MM-DDTHH:mm:ss")
+            name_part = re.sub(r'_[a-f0-9]{8}_\(\d{4}_\d{2}_\d{2}\)$', '', resume_id)
+        else:
+            created_at = pendulum.from_timestamp(f.stat().st_ctime, tz=pendulum.local_timezone()).format("YYYY-MM-DDTHH:mm:ss")
+            parts = resume_id.rsplit("_", 1)
+            name_part = parts[0] if len(parts) == 2 else resume_id
+        display_name = name_part.replace("_", " ")
+        results.append({
+            "id": resume_id,
+            "name": display_name,
+            "created_at": created_at,
+        })
+    results.sort(key=lambda x: x["created_at"], reverse=True)
+    return results
+
+
 @resumeRouter.post("/resume/generate")
 def generate_resume(payload: GenerateResumeRequest):
     """Create a new resume YAML from a starter template.
@@ -225,21 +350,30 @@ def generate_resume(payload: GenerateResumeRequest):
     """
     doc = RenderCVDocument(doc_type="resume")
     resume_id = str(uuid.uuid4())[:8]
-    full_name = f"{payload.name}_{resume_id}"
+    date_str = pendulum.now().format("YYYY_MM_DD_HHmm")
+    safe_name = _safe_document_name(payload.name)
+    full_name = f"{safe_name}_{resume_id}_({date_str})"
 
     gen_result = doc.generate(name=full_name, overwrite=payload.overwrite)
 
-    if gen_result == "Skipping generation":
+    if gen_result == SKIPPING_GENERATION:
         raise HTTPException(status_code=409,
                             detail=f"Resume '{payload.name}' already exists. Set overwrite=true to replace it.",
                             )
     doc.load(name=full_name)
+    doc.update_contact(name=payload.name)
 
     if payload.theme and payload.theme != 'sb2nov':
         try:
             doc.update_theme(payload.theme)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
+
+    try:
+        with open(doc.yaml_file, "w") as f:
+            doc.yaml.dump(doc.data, f)
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Resume generated but failed to save metadata: {e}")
 
     return {"resume_id": full_name, "status": "Resume created successfully"}
 
@@ -270,6 +404,7 @@ def get_resume(id: str):
         "education": doc.get_education(),
         "projects": doc.get_projects(),
         "skills": doc.get_skills(),
+        "awards": doc.get_awards(),
         "connections": doc.get_connections(),
     }
 
@@ -320,17 +455,19 @@ def edit_resume(id: str, payload: EditResumeRequest):
     Section-specific notes:
         - summary: Only `new_value` is used; `item_name` and `field` are ignored.
         - contact: Use `field` to specify which contact field to update (e.g., email, phone).
-        - theme: Only `new_value` is used; valid themes are 'sb2nov', 'classic', 'moderncv', 'engineeringresumes'.
+        - theme: Only `new_value` is used; valid themes are 'sb2nov', 'classic', 'moderncv', 'engineeringresumes', 'engineeringclassic'.
         - skills: Use `item_name` to identify the skill to rename; `new_value` is the new skill name.
         - experience: Use `item_name` for the job title, `field` for the attribute to change.
         - education: Use `item_name` for the degree name, `field` for the attribute to change.
         - projects: Use `item_name` for the project name, `field` for the attribute to change.
+        - connections: Use `item_name` for network name, `field="username"` to add/modify, `field="delete"` to remove.
     """
     doc = _load_resume(id)
     modify_map = {
         "experience": doc.modify_experience,
         "education": doc.modify_education,
         "projects": doc.modify_project,
+        "awards": doc.modify_award,
     }
     results = []
 
@@ -361,9 +498,19 @@ def edit_resume(id: str, payload: EditResumeRequest):
         elif section in modify_map:
             result = _check_result(modify_map[section](edit.item_name, edit.field, edit.new_value))
 
+        elif section == "connections":
+            if edit.field == "delete":
+                result = _check_result(doc.remove_connection(edit.item_name))
+            elif edit.item_name and not any(
+                c.get("network") == edit.item_name for c in (doc.get_connections() or [])
+            ):
+                result = _check_result(doc.add_connection(Connections(network=edit.item_name, username=str(edit.new_value))))
+            else:
+                result = _check_result(doc.modify_connection(edit.item_name, str(edit.new_value)))
+
         else:
             raise HTTPException(status_code=400,
-                                detail=f"Unknown section '{section}'. Valid: experience, education, projects, skills, summary, contact, theme",
+                                detail=f"Unknown section '{section}'. Valid: experience, education, projects, skills, awards, summary, contact, theme, connections",
             )
         results.append(result)
 
@@ -478,6 +625,44 @@ def export_resume_custom(id: str, format: str, payload: SaveRequest):
     return {"status": "Saved successfully", "path": str(dest)}
 
 
+@resumeRouter.post("/resume/{id}/add/project/manual")
+def add_project_manual(id: str, payload: ManualProjectRequest):
+    """Add a project entry to the resume with fully manual data.
+
+    Unlike POST /resume/{id}/add/project/{project_name}, this endpoint does not
+    require the project to exist in the database. All project fields are supplied
+    directly in the request body.
+
+    Args:
+        id: The resume identifier.
+        payload: ManualProjectRequest with all project fields provided directly.
+
+    Returns:
+        dict: {"status": str} confirming the project was added.
+
+    Raises:
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 400 if adding the project fails.
+        HTTPException: 500 if an unexpected error occurs.
+    """
+    doc = _load_resume(id)
+    proj = Project(
+        name=payload.name,
+        start_date=payload.start_date,
+        end_date=payload.end_date,
+        location=payload.location,
+        summary=payload.summary,
+        highlights=payload.highlights,
+    )
+    try:
+        result = _check_result(doc.add_project(proj))
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise
+        raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
+    return {"status": result}
+
+
 @resumeRouter.post("/resume/{id}/add/project/{project_name}")
 def add_project(id: str, project_name: str, payload: Optional[ProjectRequest] = None):
     """Add a project entry to the resume from an analysed project in the database.
@@ -532,6 +717,79 @@ def add_project(id: str, project_name: str, payload: Optional[ProjectRequest] = 
     except Exception as e:
         if isinstance(e, HTTPException):
             raise
+        raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
+    return {"status": result}
+
+
+class AIProjectOverrides(BaseModel):
+    """Optional date overrides for AI-generated project entries."""
+    model_config = ConfigDict(json_schema_extra={"example": {
+        "start_date": "2025-03",
+        "end_date": "2026-03"
+    }})
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+
+
+@resumeRouter.post("/resume/{id}/add/project/{project_name}/ai")
+def add_project_ai(id: str, project_name: str, overrides: Optional[AIProjectOverrides] = None):
+    """Add a project entry to a resume using AI-generated content.
+
+    Fetches the project from the database, generates a polished resume entry
+    using Gemini AI, and adds it to the resume document.
+
+    Args:
+        id: The resume identifier.
+        project_name: The name of the analysed project in the database.
+        overrides: Optional date overrides (start_date, end_date).
+
+    Returns:
+        dict: {"status": str} confirming the project was added.
+
+    Raises:
+        HTTPException: 404 if the resume or project does not exist.
+        HTTPException: 400 if AI generation returned no data.
+        HTTPException: 500 if AI generation or save failed.
+    """
+    if not runtimeAppContext.external_consent:
+        raise HTTPException(status_code=403, detail="External consent is required to use AI features.")
+    if not runtimeAppContext.data_consent:
+        raise HTTPException(status_code=403, detail="Data consent is required to use AI features.")
+
+    doc = _load_resume(id)
+
+    db_name = project_name
+    if not runtimeAppContext.store.project_exists(db_name) and not project_name.endswith(".json"):
+        db_name = f"{project_name}.json"
+
+    generator = GenerateResumeAI_Ver2(db_name)
+    if not generator.project_exists:
+        raise HTTPException(status_code=404, detail=f"Project '{project_name}' not found in database")
+
+    try:
+        ai_entry = generator.generate_AI_Resume_entry()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI generation failed: {e}")
+
+    if ai_entry is None:
+        raise HTTPException(status_code=400, detail=f"AI generation returned no data for '{project_name}'")
+
+    summary = ai_entry.one_sentence_summary
+    if ai_entry.tech_stack:
+        summary = f"{summary} Tech stack: {ai_entry.tech_stack}"
+
+    proj = Project(
+        name=ai_entry.project_title,
+        summary=summary,
+        highlights=ai_entry.key_responsibilities,
+        start_date=overrides.start_date if overrides and overrides.start_date else None,
+        end_date=overrides.end_date if overrides and overrides.end_date else None,
+    )
+    try:
+        result = _check_result(doc.add_project(proj))
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to add project: {e}")
     return {"status": result}
 
@@ -638,6 +896,8 @@ def add_experience(id: str, payload: ExperienceRequest):
         highlights=payload.highlights,
     )
     result = doc.add_experience(exp)
+    if "Duplicate" in result:
+        raise HTTPException(status_code=409, detail=result)
     if result != "Successfully added experience":
         raise HTTPException(status_code=400, detail=result)
     return {"status": result}
@@ -660,6 +920,187 @@ def remove_experience(id: str, company_name: str):
     doc = _load_resume(id)
     result = doc.remove_experience(company_name)
     if "not found" in result.lower() or "no experience to delete" in result.lower():
+        raise HTTPException(status_code=404, detail=result)
+    return {"status": result}
+
+@resumeRouter.post("/resume/{id}/add/skill")
+def add_skill(id: str, payload: SkillRequest):
+    """Add a new skill to an existing resume.
+
+    Args:
+        id: The resume identifier.
+        payload: SkillRequest with a label (category name) and details (comma-separated skills).
+
+    Returns:
+        dict: {"status": str} confirming the skill was added.
+
+    Raises:
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 409 if a skill with the same label already exists.
+        HTTPException: 400 if the label is empty or the operation fails.
+
+    """
+    doc = _load_resume(id)
+    skill = Skills(label=payload.label, details=payload.details)
+    result = doc.add_skills(skill)
+    if "Duplicate" in result:
+        raise HTTPException(status_code=409, detail=result)
+    if result != "Successfully added skills":
+        raise HTTPException(status_code=400, detail=result)
+
+    return {"status": result}
+
+
+@resumeRouter.post("/resume/{id}/skill/{label}/append")
+def append_skill(id: str, label: str, payload: AppendSkillRequest):
+    """Append items to an existing skill category on a resume.
+
+        Finds the skill category by label and appends the new comma-separated
+        items to the existing details, rather than replacing them entirely.
+
+        Args:
+            id: The resume identifier.
+            label: The exact skill category label to update (e.g., 'Languages').
+            payload: AppendSkillRequest with the details to append.
+
+        Returns:
+            dict: {"status": str, "details": "<full updated details string>"}.
+
+        Raises:
+            HTTPException: 404 if the resume or skill label does not exist.
+            HTTPException: 400 if the append operation fails.
+        """
+
+
+    doc = _load_resume(id)
+    existing = next((s for s in doc.get_skills() if s.get("label") == label), None)
+    if existing is None:
+        raise HTTPException(status_code=404, detail=f"Skill '{label}' not found")
+
+    current = existing.get("details", "").strip().rstrip(",")
+    new_details = f"{current}, {payload.details.strip()}" if current else payload.details.strip()
+    result = _check_result(doc.modify_skill(label, new_details))
+    return {"status": result, "details": new_details}
+
+@resumeRouter.delete("/resume/{id}/skill/{label}")
+def remove_skill(id:str, label: str):
+    """Remove a skill category from an existing resume by label.
+
+        Args:
+            id: The resume identifier.
+            label: The exact skill category label to remove (e.g., 'Languages').
+
+        Returns:
+            dict: {"status": str} confirming the skill was removed.
+
+        Raises:
+            HTTPException: 404 if the resume or skill label does not exist.
+        """
+
+    doc=_load_resume(id)
+    result= doc.remove_skill(label)
+    if "not found" in result.lower() or "no skills" in result.lower():
+        raise HTTPException(status_code=404, detail=result)
+    return {"status": result}
+
+
+
+
+@resumeRouter.post("/resume/{id}/skill/{label}/level")
+def update_skill_level(id: str, label: str, payload: UpdateSkillLevelRequest):
+    """Update the proficiency level of an individual skill within a category.
+
+    Parses the details string to find the skill by name, then updates or adds
+    a (Level) suffix. For example, "Python" becomes "Python (Advanced)".
+
+    Args:
+        id: The resume identifier.
+        label: The skill category label (e.g., "Languages").
+        payload: UpdateSkillLevelRequest with skill_name and level.
+
+    Returns:
+        dict: {"status": str, "details": str} with the updated details string.
+
+    Raises:
+        HTTPException: 404 if the resume, skill category, or individual skill is not found.
+    """
+    doc = _load_resume(id)
+    skill = next((s for s in (doc.get_skills() or []) if s.get("label") == label), None)
+    if skill is None:
+        raise HTTPException(status_code=404, detail=f"Skill category '{label}' not found")
+
+    details = skill.get("details", "")
+    parts = [p.strip() for p in details.split(",")]
+    found = False
+    updated = []
+    for part in parts:
+        # Strip existing (Level) suffix to get the base name
+        base = re.sub(r"\s*\(.*?\)\s*$", "", part).strip()
+        if base.lower() == payload.skill_name.strip().lower():
+            updated.append(f"{base} (**{payload.level.strip()}**)")
+            found = True
+        else:
+            updated.append(part)
+
+    if not found:
+        raise HTTPException(status_code=404, detail=f"Skill '{payload.skill_name}' not found in category '{label}'")
+
+    new_details = ", ".join(updated)
+    result = doc.modify_skill(label, new_details)
+    if "not found" in result.lower():
+        raise HTTPException(status_code=404, detail=result)
+    return {"status": result, "details": new_details}
+
+
+@resumeRouter.post("/resume/{id}/add/award")
+def add_award(id: str, payload: AwardRequest):
+    """Add a new award entry to an existing resume.
+
+    Args:
+        id: The resume identifier.
+        payload: AwardRequest with name (required), and optional date, location, highlights, website.
+
+    Returns:
+        dict: {"status": str} confirming the award was added.
+
+    Raises:
+        HTTPException: 404 if the resume does not exist.
+        HTTPException: 409 if an award with the same name already exists.
+        HTTPException: 400 if the award name is empty or the operation fails.
+    """
+    doc = _load_resume(id)
+    award = Award(
+        name=payload.name,
+        date=payload.date,
+        location=payload.location,
+        highlights=payload.highlights,
+        website=payload.website,
+    )
+    result = doc.add_award(award)
+    if "already exists" in result.lower():
+        raise HTTPException(status_code=409, detail=result)
+    if "successfully" not in result.lower():
+        raise HTTPException(status_code=400, detail=result)
+    return {"status": result}
+
+
+@resumeRouter.delete("/resume/{id}/award/{award_name}")
+def remove_award(id: str, award_name: str):
+    """Remove an award entry from an existing resume by award name.
+
+    Args:
+        id: The resume identifier.
+        award_name: The exact award name to remove.
+
+    Returns:
+        dict: {"status": str} confirming the award was removed.
+
+    Raises:
+        HTTPException: 404 if the resume or award does not exist.
+    """
+    doc = _load_resume(id)
+    result = doc.remove_award(award_name)
+    if "not found" in result.lower() or "no awards" in result.lower():
         raise HTTPException(status_code=404, detail=result)
     return {"status": result}
 

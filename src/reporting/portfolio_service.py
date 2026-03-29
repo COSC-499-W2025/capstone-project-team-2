@@ -157,7 +157,7 @@ def build_portfolio_showcase(
 
 def display_portfolio_showcase(ps: PortfolioShowcase) -> None:
     """
-    Pretty-print portfolio showcase to CLI.
+    Pretty-print portfolio showcase to standard output.
 
     Args:
         ps (PortfolioShowcase): Portfolio showcase data.
@@ -231,7 +231,10 @@ def load_portfolio_showcase(project_name: str) -> Dict[str, Any]:
         project_name (str): Name of the project to load overrides for.
     
     Returns:
-        dict: Portfolio override data, or empty dict if file not found or invalid.
+        dict: Portfolio override data, or empty dict if file not found.
+    
+    Raises:
+        ValueError: If the YAML file exists but cannot be parsed.
     """
     yaml_path = _portfolio_override_path(project_name)
     
@@ -244,9 +247,8 @@ def load_portfolio_showcase(project_name: str) -> Dict[str, Any]:
         with open(yaml_path, "r", encoding="utf-8") as f:
             return yaml.load(f) or {}
     except Exception as e:
-        print(f"[WARNING] Could not parse portfolio YAML for '{project_name}': {e}")
-        return {}
-
+        raise ValueError(f"Could not parse portfolio overrides for '{project_name}': {e}")
+    
 
 def _portfolio_override_path(project_name: str) -> Path:
     """
@@ -287,9 +289,12 @@ def save_project_role_override(project_name: str, role: str) -> Dict[str, Any]:
     project_block["role"] = role
     overrides["project"] = project_block
 
-    yaml = ruamel.yaml.YAML()
-    yaml.preserve_quotes = True
-    with open(yaml_path, "w", encoding="utf-8") as f:
-        yaml.dump(overrides, f)
+    try:
+        yaml = ruamel.yaml.YAML()
+        yaml.preserve_quotes = True
+        with open(yaml_path, "w", encoding="utf-8") as f:
+            yaml.dump(overrides, f)
+    except Exception as e:
+        raise OSError(f"Could not save portfolio overrides for '{project_name}': {e}")
 
     return overrides

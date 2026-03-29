@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import UploadFile
 from types import SimpleNamespace
 import os
+import sqlite3
 from typing import Optional
 
 # Decide DB init behavior: default connect, but auto-skip when running pytest unless overridden.
@@ -11,22 +12,30 @@ if _env_skip is None:
     argv = os.sys.argv if os.sys.argv else []
     if ("PYTEST_CURRENT_TEST" in os.environ) or any("pytest" in arg for arg in argv):
         os.environ["SKIP_DB_INIT"] = "1"
-
-import mysql.connector
-from mysql.connector import Error
 import sys
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from src.core.Docker_finder import DockerFinder
 from src.storage.db_helper_function import HelperFunct
+class _NullStore:
 
+    def insert_json(self, *args, **kwargs): 
+        return None
+    
+    def fetch_by_name(self, *args, **kwargs): 
+        return None
+    
+    def delete(self, *args, **kwargs): 
+        return False
+
+    def count_file_references(self, *args, **kwargs): 
+        return 0
 @dataclass
 class AppContext:
     """
     Shared application handles for database access, default storage paths, and global settings variables.
 
     Attributes:
-        conn (mysql.connector.MySQLConnection): Live MySQL connection.
+        conn (sqlite3.Connection): Live SQLite connection.
         store (HelperFunct): Helper wrapper for DB operations.
         legacy_save_dir (Path): Legacy config/insight base directory.
         default_save_dir (Path): Default nested directory for new insights.
@@ -34,7 +43,7 @@ class AppContext:
         currently_uploaded_file (Path | UploadFile): file currently uploaded, can be a file-like object or a file path
     """
 
-    conn: mysql.connector.MySQLConnection
+    conn: sqlite3.Connection
     store: HelperFunct
     legacy_save_dir: Path
     default_save_dir: Path
@@ -65,18 +74,13 @@ def create_app_context(external_consent_value=False, data_consent_value=False) -
     Raises:
         Exception: If connection cannot be established after retries.
     """
+    root_folder = Path(__file__).absolute().resolve().parents[2]
+    legacy_save_dir = root_folder / "User_config_files"
+    default_save_dir = legacy_save_dir / "project_insights"
     if os.getenv("SKIP_DB_INIT") == "1":
-        root_folder = Path(__file__).absolute().resolve().parents[2]
-        legacy_save_dir = root_folder / "User_config_files"
-        default_save_dir = legacy_save_dir / "project_insights"
         return AppContext(
             conn=None,
-            store=SimpleNamespace(
-                insert_json=lambda *args, **kwargs: None,
-                fetch_by_name=lambda *args, **kwargs: None,
-                delete=lambda *args, **kwargs: False,
-                count_file_references=lambda *args, **kwargs: 0,
-            ),
+            store=_NullStore(),
             legacy_save_dir=legacy_save_dir,
             default_save_dir=default_save_dir,
             external_consent=external_consent_value,
@@ -85,34 +89,28 @@ def create_app_context(external_consent_value=False, data_consent_value=False) -
             currently_uploaded_project_name=None,
         )
 
-    port_number, host_ip = DockerFinder().get_mysql_host_information()
-    conn = None
+    db_path = root_folder / "appdb.db"
+    schema_path = root_folder / "database.sql"
 
-    # Retry a handful of times in case the MySQL container is still coming up.
-    for _ in range(5):
-        try:
-            conn = mysql.connector.connect(
-                host=host_ip,
-                port=port_number,
-                database="appdb",
-                user="appuser",
-                password="apppassword",
-            )
-
-            if conn.is_connected():
-                print("✅ Connected to MySQL successfully!")
-                break
-        except Error as e:
-            print(f"MySQL not ready yet: {e}")
-
-    if conn is None or not conn.is_connected():
-        raise Exception("❌ Could not connect to MySQL after 5 attempts.")
+    if not db_path.exists():
+        with open(schema_path, "r") as f:
+            sql = f.read()
+        temp_conn = sqlite3.connect(str(db_path))
+        temp_conn.executescript(sql)
+        temp_conn.close()
+        print("✅ Database initialized from database.sql")
+        
+    try:
+        conn = sqlite3.connect(str(db_path), check_same_thread=False)
+        conn.execute("PRAGMA foreign_keys = ON")
+        conn.execute("PRAGMA journal_mode=WAL")
+        if schema_path.exists():
+            conn.executescript(schema_path.read_text())
+        print("✅ Connected to SQLite successfully!")
+    except Exception as e:
+        raise Exception(f"❌ Could not connect to SQLite: {e}")
 
     store = HelperFunct(conn)
-
-    root_folder = Path(__file__).absolute().resolve().parents[2]
-    legacy_save_dir = root_folder / "User_config_files"
-    default_save_dir = legacy_save_dir / "project_insights"
 
     return AppContext(
         conn=conn,

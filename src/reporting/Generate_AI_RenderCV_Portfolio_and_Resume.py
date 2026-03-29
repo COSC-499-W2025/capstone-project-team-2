@@ -1,10 +1,13 @@
+import re
 import subprocess
 import shutil
 import sys
+from copy import deepcopy
 from functools import wraps
 from pathlib import Path
 from dataclasses import dataclass, asdict
 from typing import Optional, List, Literal, Iterable, Dict
+from uuid import uuid4
 import ruamel.yaml
 import orjson
 from src.reporting.Generate_AI_Resume import GenerateProjectResume
@@ -128,6 +131,33 @@ class Connections:
     to_dict = dataclass_to_dict
 
 @dataclass
+class Award:
+    """
+    Represents an award or recognition entry.
+
+    Attributes:
+        name: Name of the award or recognition
+        date: Date received in 'YYYY-MM' format
+        location: City, State or issuing organization
+        highlights: List of details about the award
+        website: URL for more information about the award (injected into highlights on serialization)
+    """
+    name: str
+    date: Optional[str] = None
+    location: Optional[str] = None
+    highlights: Optional[List[str]] = None
+    website: Optional[str] = None
+
+    def to_dict(self) -> dict:
+        data = {k: v for k, v in asdict(self).items()
+                if v is not None and k != 'website'}
+        if self.website:
+            highlights = list(data.get('highlights') or [])
+            highlights.append(f"Link: {self.website}")
+            data['highlights'] = highlights
+        return data
+
+@dataclass
 class Project:
     """
     Represents a project entry
@@ -158,6 +188,7 @@ class RenderCVDocument:
     Supports both resume and portfolio document types with a single interface.
     """
     SUPPORTED_FORMATS = {"pdf", "html", "markdown"}
+    RENDER_INPUT_TOP_LEVEL_KEYS = {"cv", "design", "locale", "rendercv_settings"}
     THEMES = {
         'classic': 'Classic CV theme',
         'engineeringclassic': 'Engineering-focused CV theme',
@@ -189,6 +220,7 @@ class RenderCVDocument:
         self.current_education: Optional[List[dict]] = None
         self.current_connections: Optional[List[dict]] = None
         self.current_skills: Optional[List[dict]] = None
+        self.current_awards: Optional[List[dict]] = None
         self.sections: Optional[dict] = None
         self.name: Optional[str] = None
         self.data: Optional[dict] = None
@@ -272,9 +304,9 @@ class RenderCVDocument:
                         'highlights': ['Key feature 1', 'Key feature 2']
                     }],
                     'skills': [
-                        {'label': 'Languages', 'details': 'Python, JavaScript, etc.'},
-                        {'label': 'Frameworks', 'details': 'React, Django, etc.'},
-                        {'label': 'Tools', 'details': 'Git, Docker, etc.'}
+                        {'label': 'Languages', 'details': 'Python, JavaScript'},
+                        {'label': 'Frameworks', 'details': 'React, Django'},
+                        {'label': 'Tools', 'details': 'Git, Docker'}
                     ]
                 }
             else:
@@ -290,9 +322,9 @@ class RenderCVDocument:
                         'highlights': ['Key feature 1', 'Key feature 2']
                     }],
                     'skills': [
-                        {'label': 'Languages', 'details': 'Python, JavaScript, etc.'},
-                        {'label': 'Technologies', 'details': 'React, Docker, AWS, etc.'},
-                        {'label': 'Tools', 'details': 'Git, VS Code, etc.'}
+                        {'label': 'Languages', 'details': 'Python, JavaScript'},
+                        {'label': 'Technologies', 'details': 'React, Docker, AWS'},
+                        {'label': 'Tools', 'details': 'Git, VS Code'}
                     ]
                 }
             return base_template
@@ -362,11 +394,14 @@ class RenderCVDocument:
         self.sections=self.data['cv']['sections']
         self.current_projects=self.sections.get('projects', [])
         self.current_connections=self.data['cv'].get('social_networks', [])
-        self.data['cv']['name'] = str(self.name).replace("_", " ")
+        if not self.data['cv'].get('name'):
+            display_name = re.sub(r'_[0-9a-f]{8}(?:_\(.*?\))?$', '', str(self.name))
+            self.data['cv']['name'] = display_name.replace("_", " ")
 
         # Shared sections for both resume and portfolio
         self.current_skills = self.sections.get('skills', [])
         self.summary = self.sections.get('summary', [])
+        self.current_awards = self.sections.get('awards', [])
 
         if self.doc_type == 'resume':
             self.current_education=self.sections.get('education', [])
@@ -431,9 +466,34 @@ class RenderCVDocument:
 
         return normalized or ["pdf"]
 
-    def _get_output_dir(self) -> Path:
+    @staticmethod
+    def _sanitize_filename_component(value: str) -> str:
+        """Return a filesystem-safe filename component."""
+        normalized = (value or "").strip().replace(" ", "_")
+        normalized = re.sub(r'[<>:"/\\|?*]+', "_", normalized)
+        normalized = re.sub(r"_+", "_", normalized).strip("._")
+        return normalized or "document"
+
+    def _build_render_payload(self) -> tuple[dict, list[str]]:
+        """
+        Build a schema-safe payload for RenderCV by removing unknown
+        top-level metadata keys (for example, legacy 'created_at').
+        """
+        payload = deepcopy(self.data or {})
+        removed_keys: list[str] = []
+        for key in list(payload.keys()):
+            if key not in self.RENDER_INPUT_TOP_LEVEL_KEYS:
+                payload.pop(key, None)
+                removed_keys.append(str(key))
+        return payload, removed_keys
+
+    def _get_output_dir(self, unique: bool = False) -> Path:
         """
         Resolve the output directory used by RenderCV.
+
+        Args:
+            unique: If True, return a per-render unique directory to avoid
+                collisions across concurrent renders.
 
         Returns:
             Path: Absolute path to the output directory
@@ -442,6 +502,8 @@ class RenderCVDocument:
             raise ValueError("YAML file not set")
 
         yaml_parent = self.yaml_file.resolve().parent
+        if unique:
+            return yaml_parent / f"rendercv_output_{uuid4().hex[:8]}"
         return yaml_parent / "rendercv_output"
 
     def render_outputs(self, formats: Iterable[str]) -> tuple[str, Dict[str, List[Path]]]:
@@ -460,16 +522,32 @@ class RenderCVDocument:
             raise FileNotFoundError(f"YAML file {self.yaml_file} does not exist")
 
         selected_formats = self._normalize_formats(formats)
-        output_dir = self._get_output_dir()
+        output_dir = self._get_output_dir(unique=True)
         yaml_parent = self.yaml_file.resolve().parent
-        output_base = f"{self.name}_CV"
+        cv_name = self.data.get('cv', {}).get('name', '').strip()
+        cv_name_safe = self._sanitize_filename_component(cv_name) if cv_name else ""
+        safe_doc_name = self._sanitize_filename_component(self.name or "")
+        output_base = f"{cv_name_safe}_CV" if cv_name_safe else f"{safe_doc_name}_CV"
         doc_type_label = "Resume" if self.doc_type == 'resume' else "Portfolio"
 
         if output_dir.exists():
             shutil.rmtree(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        cmd = [sys.executable, "-m", "rendercv", "render", str(self.yaml_file)]
+        # Sync schema-safe in-memory data to disk before running RenderCV.
+        render_payload, removed_keys = self._build_render_payload()
+        with open(self.yaml_file, 'w') as f:
+            self.yaml.dump(render_payload, f)
+
+        cmd = [
+            sys.executable,
+            "-m",
+            "rendercv",
+            "render",
+            "--output-folder",
+            str(output_dir),
+            str(self.yaml_file),
+        ]
         format_flags = {
             "pdf": "--dont-generate-pdf",
             "html": "--dont-generate-html",
@@ -506,7 +584,7 @@ class RenderCVDocument:
                 if not source_file.exists():
                     errors.append(f"{fmt} not found at {source_file}")
                     continue
-                renamed = output_dir / f"{self.name}_{doc_type_label}.{ext}"
+                renamed = output_dir / f"{safe_doc_name}_{doc_type_label}.{ext}"
                 if renamed.exists():
                     renamed.unlink()
                 source_file.rename(renamed)
@@ -522,6 +600,8 @@ class RenderCVDocument:
             if not details and result.stdout:
                 details = result.stdout.strip()
             errors.insert(0, f"render failed (code {result.returncode}): {details}")
+            if removed_keys:
+                errors.append(f"ignored unsupported top-level keys: {', '.join(sorted(removed_keys))}")
 
         status = "successfully rendered" if not errors else "; ".join(errors)
         return status, outputs
@@ -565,7 +645,7 @@ class RenderCVDocument:
         fields = {'email': email, 'phone': phone, 'location': location, 'website': website, 'name': name}
         for field_name,value in fields.items():
             if value and str(value).strip():
-                cv[field_name] = value
+                cv[field_name] = str(value).strip()
         self._auto_save_if_enabled()
         return self
 
@@ -811,6 +891,143 @@ class RenderCVDocument:
         self._auto_save_if_enabled()
         return f"Successfully cleared {count} project(s)"
 
+    # ============== AWARDS (shared) ==============
+
+    @requires_data
+    def add_award(self, award: Award) -> str:
+        """
+        Add a new award entry to the awards section.
+        Available for both resume and portfolio document types. Creates the section if it doesn't exist.
+        Prevents duplicate award names.
+
+        Args:
+            award: Award dataclass instance with name (required), and optional date, location, highlights, website
+
+        Returns:
+            str: Success message with award name, or error if name is empty or duplicate
+        """
+        if not award.name or not award.name.strip():
+            return "Award name cannot be empty"
+
+        if 'awards' not in self.sections:
+            self.sections['awards'] = []
+            self.current_awards = self.sections['awards']
+
+        existing = [a.get('name') for a in self.current_awards]
+        if award.name in existing:
+            return f"Award '{award.name}' already exists"
+
+        self.current_awards.append(award.to_dict())
+        self._auto_save_if_enabled()
+        return f"Successfully added award '{award.name}'"
+
+    @requires_data
+    def modify_award(self, award_name: str, field: str, new_value) -> str:
+        """
+        Modify a specific field of an existing award entry.
+        Available for both resume and portfolio document types.
+
+        Args:
+            award_name: The exact name of the award to modify
+            field: The field to update (valid: "name", "date", "location", "highlights", "website")
+            new_value: The new value to set for the field
+
+        Returns:
+            str: Success message confirming the field was modified, or error if field is invalid or award not found
+        """
+        valid_fields = ["name", "date", "location", "highlights", "website"]
+        if field not in valid_fields:
+            return f"Invalid field '{field}'. Valid: {', '.join(valid_fields)}"
+
+        award = next((a for a in self.current_awards if a.get("name") == award_name), None)
+        if award is None:
+            return f"Award '{award_name}' not found"
+
+        if field == "website":
+            # Mirror the to_dict() logic: store website as "Link: ..." in highlights
+            highlights = [h for h in (award.get('highlights') or []) if not h.startswith("Link: ")]
+            if new_value:
+                highlights.append(f"Link: {new_value}")
+            award['highlights'] = highlights
+        else:
+            award[field] = new_value
+        self._auto_save_if_enabled()
+        return f"Successfully modified {field}"
+
+    @requires_data
+    def remove_award(self, award_name: str) -> str:
+        """
+        Remove an award entry by its name.
+        Available for both resume and portfolio document types.
+
+        Args:
+            award_name: The exact name of the award to remove
+
+        Returns:
+            str: Success message confirming deletion, or error if no awards exist or award not found
+        """
+        if 'awards' not in self.sections or not self.current_awards:
+            return "No awards to delete"
+
+        award = next((a for a in self.current_awards if a.get('name') == award_name), None)
+        if award is None:
+            return f"Award '{award_name}' not found"
+
+        self.current_awards.remove(award)
+        self._auto_save_if_enabled()
+        return f"Successfully deleted: {award_name}"
+
+    @requires_data
+    def get_awards(self) -> List[dict]:
+        """
+        Get all current award entries.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            List[dict]: List of award dictionaries with award details
+        """
+        return self.current_awards if self.current_awards else []
+
+    def count_awards(self) -> int:
+        """
+        Get the number of award entries in the document.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            int: Number of awards, or 0 if no data is loaded
+        """
+        if self.current_awards is None:
+            return 0
+        return len(self.current_awards)
+
+    def has_awards(self) -> bool:
+        """
+        Check if the document has any awards.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            bool: True if there are awards, False otherwise
+        """
+        return self.count_awards() > 0
+
+    @requires_data
+    def clear_awards(self) -> str:
+        """
+        Remove all awards from the document.
+        Available for both resume and portfolio document types.
+
+        Returns:
+            str: Success message with number of awards removed
+        """
+        if not self.current_awards:
+            return "No awards to clear"
+
+        count = len(self.current_awards)
+        self.sections['awards'] = []
+        self.current_awards = self.sections['awards']
+        self._auto_save_if_enabled()
+        return f"Successfully cleared {count} award(s)"
+
     # ============== CONNECTIONS (shared) ==============
 
     @requires_data
@@ -831,6 +1048,10 @@ class RenderCVDocument:
         if "social_networks" not in self.data['cv']:
             self.data['cv']['social_networks'] = []
             self.current_connections = self.data['cv']['social_networks']
+
+        connection_info.network = connection_info.network.strip()
+        if connection_info.username:
+            connection_info.username = connection_info.username.strip()
 
         existing = [c['network'] for c in self.current_connections]
         if connection_info.network in existing:
@@ -856,7 +1077,7 @@ class RenderCVDocument:
         if connection is None:
             return f"Connection '{network_name}' not found"
 
-        connection["username"] = new_username
+        connection["username"] = new_username.strip()
         self._auto_save_if_enabled()
         return f"Successfully updated: {network_name}"
 

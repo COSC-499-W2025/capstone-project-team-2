@@ -1,6 +1,6 @@
 import datetime
 
-def _format_duration(delta: datetime.timedelta) -> str:
+def format_duration(delta: datetime.timedelta) -> str:
     '''
     Formats a timedelta into a human-readable string.
 
@@ -82,15 +82,13 @@ class Project_Duration_Estimator:
         '''
         Extracts earliest and latest timestamps for a single file.
         '''
-        created = file.get("created")
         modified = file.get("modified")
         
-        timestamps = [t for t in (created, modified) if t is not None]
         
-        if not timestamps:
+        if not modified:
             return  # file has no usable timestamps
         
-        self.file_ranges.append((min(timestamps), max(timestamps)))
+        self.file_ranges.append(modified)
 
     def __find_duration(self):
         '''
@@ -100,8 +98,8 @@ class Project_Duration_Estimator:
         if not self.file_ranges:
             raise Exception("No files with valid timestamps. Estimate cannot be made.")
         
-        self.start_estimate = min(start for start, _ in self.file_ranges)
-        self.end_estimate = max(end for _, end in self.file_ranges)
+        self.start_estimate = min(self.file_ranges)
+        self.end_estimate = max(self.file_ranges)
         
     def get_duration(self) -> datetime.timedelta:
         '''
@@ -119,4 +117,4 @@ class Project_Duration_Estimator:
         '''
         Returns a human-readable duration estimate without microseconds.
         '''
-        return _format_duration(self.get_duration())
+        return format_duration(self.get_duration())

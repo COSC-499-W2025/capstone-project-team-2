@@ -220,3 +220,44 @@ def test_delete_thumbnail_missing_returns_404(monkeypatch, tmp_path):
     response = test_client.delete("/projects/MyProject/thumbnail")
     assert response.status_code == 404
     assert "No thumbnail found" in response.json()["detail"]
+
+
+def test_get_thumbnail_image_success(monkeypatch, tmp_path):
+    """GET /projects/{id}/thumbnail/image serves the image file."""
+    monkeypatch.setattr(runtimeAppContext, "legacy_save_dir", tmp_path)
+    monkeypatch.setattr(project_io_API, "list_project_insights", lambda storage_path: [_insight()])
+
+    fake_image = tmp_path / "proj-uuid-123.png"
+    fake_image.write_bytes(b"fake-image-bytes")
+
+    class _FakeThumbnailManager:
+        def __init__(self, storage_dir):
+            self.storage_dir = storage_dir
+
+        def get_thumbnail_path(self, project_id):
+            return fake_image if project_id == "proj-uuid-123" else None
+
+    monkeypatch.setattr(project_io_API, "ThumbnailManager", _FakeThumbnailManager)
+
+    response = test_client.get("/projects/MyProject/thumbnail/image")
+    assert response.status_code == 200
+    assert response.content == b"fake-image-bytes"
+
+
+def test_get_thumbnail_image_missing_returns_404(monkeypatch, tmp_path):
+    """GET /projects/{id}/thumbnail/image returns 404 when no thumbnail exists."""
+    monkeypatch.setattr(runtimeAppContext, "legacy_save_dir", tmp_path)
+    monkeypatch.setattr(project_io_API, "list_project_insights", lambda storage_path: [_insight()])
+
+    class _FakeThumbnailManager:
+        def __init__(self, storage_dir):
+            self.storage_dir = storage_dir
+
+        def get_thumbnail_path(self, _project_id):
+            return None
+
+    monkeypatch.setattr(project_io_API, "ThumbnailManager", _FakeThumbnailManager)
+
+    response = test_client.get("/projects/MyProject/thumbnail/image")
+    assert response.status_code == 404
+    assert "No thumbnail found" in response.json()["detail"]

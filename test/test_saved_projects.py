@@ -6,7 +6,6 @@ import shutil
 import pytest
 
 # Tests for listing, summarizing, and safely deleting saved analysis artifacts.
-from src.cli.main import run
 import src.storage.saved_projects as mod
 from src.core.app_context import runtimeAppContext
 
@@ -50,7 +49,7 @@ def test_list_saved_projects_filters_config_and_dedupes(tmp_path):
     assert len(projects) == 4
 
 
-def test_delete_file_from_disk_blocks_internal_artifacts(tmp_path, capsys):
+def test_delete_file_from_disk_blocks_internal_artifacts(tmp_path):
     """
     Internal system JSON artifacts should not be deleted through this helper.
     """
@@ -63,7 +62,6 @@ def test_delete_file_from_disk_blocks_internal_artifacts(tmp_path, capsys):
 
     assert deleted is False
     assert protected.exists() is True
-    assert "internal artifact" in capsys.readouterr().out.lower()
 
 
 def test_show_saved_summary_prints_contributors(monkeypatch, tmp_path, capsys):

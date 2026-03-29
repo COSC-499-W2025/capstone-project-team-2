@@ -71,7 +71,15 @@ The platforms target users are **graduating students** and **early career profes
 
 
 
-## 🎬 Video Demo
+## 🎬 Milestone 3 Video Demo
+
+<a href="https://youtu.be/xzNpFdaMMK8">
+  <img src="https://img.shields.io/badge/▶️%20Watch%20Demo-Click%20Here-red?style=for-the-badge&logo=youtube" alt="Watch Demo">
+</a>
+
+> *A complete walkthrough demonstrating project Features, Use, and Final Output.*
+
+## 🎬 Milestone 2 Demo
 
 <a href="https://youtu.be/zAoHiW9vn-U">
   <img src="https://img.shields.io/badge/▶️%20Watch%20Demo-Click%20Here-red?style=for-the-badge&logo=youtube" alt="Watch Demo 1">
@@ -203,15 +211,17 @@ cd capstone-project-team-2
 python -m pip install -r src/requirements.txt
 ```
 
-3. **Run the application:**
+3. **Run the backend API (FastAPI):**
 ```bash
-python -m src.cli.main
+uvicorn src.API.general_API:app --reload
 ```
 
-4. **Open the webpage and enjoy!**
-   
-   - ctrl+click (or cmd+click on Mac) the local http address
-   - ![alt text](image-3.png)
+4. **Run the web frontend (Next.js):**
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
 ## API Documentation
 
@@ -227,8 +237,8 @@ If you run the FastAPI app, interactive docs are also available at:
 
 ## Key Components
 
-- **Frontend (Presentation Layer)**: Built using **Next.js and React**, offering an intuitive menu-driven interface for users to navigate and interact with the application. Key features include:
-  - **Interactive menus**: For project analysis, viewing saved projects, resume and portfolio generation, and configuration management.
+- **Frontend (Presentation Layer)**: Built using **Next.js**, offering a web interface for users to navigate and interact with the application. Key features include:
+  - **Interactive menus**: For project analysis, viewing saved projects, portfolio generation, and configuration management.
   - **User consent workflow**: Guides users through the process of providing consent and configuring permissions for external services permissions
   - **Portfolio generation**: Enables users to generate a portfolio-ready resume or portfolio 
 
@@ -241,7 +251,6 @@ If you run the FastAPI app, interactive docs are also available at:
 - **Database (Storage Layer)**: 
   - The application uses **SQLite** as its primary database for persistent storage and data management.
   - **Project Data Storage**: Stores analyzed project metadata, JSON analysis reports, and file blobs for later retrieval.
-  - **Non-containerized Deployment**: SQLite runs without a Docker container, saving the contents locally and without a resource intensive container.
 
 - **External Services Integration**:
   - **Google Gemini API**: Powers AI-generated resume summaries and project descriptions (requires `GOOGLE_API_KEY`)

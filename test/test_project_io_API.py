@@ -21,9 +21,9 @@ def make_project_save_dir(monkeypatch, tmp_path):
     def _make(relative: str = "project_insights") -> Path:
         save_dir = tmp_path / relative
         save_dir.mkdir(parents=True, exist_ok=True)
-        monkeypatch.setattr(runtimeAppContext, "default_save_dir", save_dir)
+        import src.core.app_context as _ctx
+        monkeypatch.setattr(_ctx.runtimeAppContext, "default_save_dir", save_dir)
         return save_dir
-
     return _make
 
 def test_return_all_saved_projects_none():
@@ -102,27 +102,14 @@ def test_upload_file_API_no_zip():
     body = response.json()
     assert "zip file" in body["detail"]
 
-def test_upload_project_CLI_dir():
-    """
-    Test ensures adding a directory as an uploaded file through the CLI non-fastapi method
-    """
-    path = Path(os.getcwd())
-    assert upload_project_path_CLI(path) == "Upload Success"
-
-def test_upload_project_CLI_zip():
-    """
-    Test ensures adding a zip file as an uploaded file through the CLI non-fastapi method
-    """
-    path = Path(os.getcwd()).absolute().resolve() / "test" / "TestZIPs" / "TEST.zip"
-    assert upload_project_path_CLI(path) == "Upload Success"
-
 def test_get_project_by_name_prefers_database(monkeypatch):
     """
     Ensures GET /projects/{id} returns DB data when available.
     """
     expected = {"resume_item": {"project_name": "alpha"}}
+    from src.core import app_context
     monkeypatch.setattr(
-        runtimeAppContext.store,
+        app_context.runtimeAppContext.store,
         "fetch_by_name",
         lambda filename: expected if filename == "alpha.json" else None,
     )
@@ -301,3 +288,113 @@ def test_get_project_by_name_not_found():
 
     assert response.status_code == 404
     assert "not found" in response.json()["detail"].lower()
+
+def test_update_project_duration_404():
+    """
+    Confirm that a project that isn't found returns a 404 status code
+    """
+    response = test_client.post("/projects/nan/duration?start=2020-01-01&end=2020-02-01")
+
+    assert response.status_code == 404
+
+def test_update_project_duration_bad_dates(monkeypatch):
+    """
+    Confirm that when invalid dates are used, that a 400 status code is returned
+    """
+    expected = {"duration_estimate": ""}
+    monkeypatch.setattr(
+        runtimeAppContext.store,
+        "fetch_by_name",
+        lambda filename: expected
+    )
+    response = test_client.post("/projects/this/duration?start=2020-01-aa&end=2020-aa-01")
+
+    assert response.status_code == 400
+
+def test_update_project_duration_late_dates(monkeypatch):
+    """
+    Confirm that when start date is later than end date, status code 400 returned
+    """
+    expected = {"duration_estimate": ""}
+    monkeypatch.setattr(
+        runtimeAppContext.store,
+        "fetch_by_name",
+        lambda filename: expected
+    )
+    response = test_client.post("/projects/this/duration?start=2020-01-02&end=2020-01-01")
+
+    assert response.status_code == 400
+
+def test_update_project_duration_normal(monkeypatch):
+    """
+    Confirms status code 200 and correct duration returned when normal input and project exists
+    """
+    expected = {"duration_estimate": ""}
+
+    class MockAppContext:
+        def fetch_by_name(id):
+            return expected
+
+        def update(id, dur):
+            pass
+
+    monkeypatch.setattr(
+        "src.core.app_context.runtimeAppContext.store",
+        MockAppContext
+    )
+    response = test_client.post("/projects/this/duration?start=2020-01-01&end=2020-01-02")
+
+    assert response.status_code == 200
+    assert response.json()["dur"] == "1 day"
+
+def test_update_project_duration_empty(monkeypatch):
+    """
+    Confirms status code 200 and correct duration returned when normal input and project exists
+    """
+    expected = {"name": ""}
+
+    class MockAppContext:
+        def fetch_by_name(id):
+            return expected
+
+        def update(id, dur):
+            pass
+
+    monkeypatch.setattr(
+        "src.core.app_context.runtimeAppContext.store",
+        MockAppContext
+    )
+    response = test_client.post("/projects/this/duration?start=2020-01-01&end=2020-01-02")
+
+    assert response.status_code == 200
+    assert response.json()["dur"] == "1 day"
+
+def test_update_project_type_404():
+    """
+    Confirm that a project that isn't found returns a 404 status code
+    """
+    response = test_client.post("/projects/nan/type?project_type=individual")
+
+    assert response.status_code == 404
+
+def test_update_project_type_normal(monkeypatch):
+    """
+    Confirms status code 200 and correct type returned when normal input and project exists
+    """
+    expected = {"resume_item": { "project_type": ""}}
+
+    class MockAppContext:
+        def fetch_by_name(id):
+            return expected
+
+        def update(id, type):
+            pass
+
+    monkeypatch.setattr(
+        "src.core.app_context.runtimeAppContext.store",
+        MockAppContext
+    )
+    response = test_client.post("/projects/this/type?project_type=individual")
+
+    assert response.status_code == 200
+    assert response.json()["type"] == "individual"

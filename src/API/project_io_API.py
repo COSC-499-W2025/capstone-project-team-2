@@ -1,3 +1,4 @@
+import datetime
 import json
 import io
 import tempfile
@@ -5,7 +6,10 @@ from dataclasses import dataclass
 from pathlib import Path
 import uuid
 from fastapi import APIRouter, UploadFile, HTTPException, Query, status
+from fastapi.responses import FileResponse
 import zipfile
+import pandas as pd
+from src.core.project_duration_estimation import format_duration
 
 from src.storage import saved_projects
 from src.storage.saved_projects import list_saved_projects
@@ -14,6 +18,7 @@ from src.storage.saved_projects import *
 from src.config.project_thumbnails import ThumbnailManager
 from src.reporting.project_insights import (
     list_project_insights,
+    remove_project_from_insights,
     update_thumbnail_in_insights,
     remove_thumbnail_from_insights,
 )
@@ -109,9 +114,17 @@ def _allowed_project_save_dirs() -> tuple[Path, ...]:
 
 
 def _is_path_within_allowed_dirs(path: Path, allowed_dirs: tuple[Path, ...]) -> bool:
-    """Return True when path resolves inside one of allowed directories."""
-    resolved = path.expanduser().resolve()
-    return any(resolved == d or d in resolved.parents for d in allowed_dirs)
+    expanded = path.expanduser()
+    resolved = expanded.parent.resolve() / expanded.name
+    for d in allowed_dirs:
+        if resolved == d:
+            return True
+        try:
+            resolved.relative_to(d)
+            return True
+        except ValueError:
+            pass
+    return False
 
 @projectsRouter.post("/upload")
 async def upload_project(upload_file: UploadFile) -> dict:
@@ -139,39 +152,6 @@ async def upload_project(upload_file: UploadFile) -> dict:
         "stored_path": str(persisted_zip),
         "project_name": source_stem,
     }
-
-def upload_project_path_CLI(upload_file: Path) -> str:
-    """
-    CLI helper for setting the current project path.
-
-    Accepts either a directory path or a ZIP file path.
-
-    Args:
-        upload_file (Path): Filesystem path to a project directory or ZIP.
-
-    Returns:
-        str: ``"Upload Success"`` when valid, otherwise
-            ``"Error, path is not a project"``.
-    """
-    candidate_path = Path(upload_file).expanduser()
-    is_project_dir = candidate_path.is_dir()
-    is_zip_file = False
-
-    if not is_project_dir and candidate_path.is_file() and candidate_path.suffix.lower() == ".zip":
-        try:
-            # `is_zipfile` can occasionally return false negatives on some platforms.
-            is_zip_file = zipfile.is_zipfile(candidate_path) or candidate_path.exists()
-        except OSError:
-            is_zip_file = candidate_path.exists()
-
-    if not (is_project_dir or is_zip_file):
-        return "Error, path is not a project"
-
-    runtimeAppContext.currently_uploaded_file = candidate_path
-    runtimeAppContext.currently_uploaded_project_name = (
-        candidate_path.name if is_project_dir else candidate_path.stem
-    )
-    return "Upload Success"
 
 @projectsRouter.get("/")
 def return_all_saved_projects() -> list:
@@ -212,16 +192,13 @@ def get_project_by_name(id: str) -> dict:
     project_stem = Path(project_filename).stem
 
     # Prefer DB source when available.
-    try:
-        data = runtimeAppContext.store.fetch_by_name(project_filename)
-        if data is not None:
-            return {
-                "project_name": project_stem,
-                "source": "database",
-                "analysis": data,
-            }
-    except Exception:
-        pass
+    data = runtimeAppContext.store.fetch_by_name(project_filename)
+    if data is not None:
+        return {
+            "project_name": project_stem,
+            "source": "database",
+            "analysis": data,
+        }
 
     # Fallback to local files.
     candidate_paths = [
@@ -329,6 +306,13 @@ def delete_project(id: str, save_path: str | None = Query(default=None)) -> dict
             if deleted_file
             else f"[INFO] No local file was deleted for '{project_name}'."
         )
+
+    # Remove from project_insights.json so the dashboard stays in sync.
+    project_stem = Path(project_name).stem
+    try:
+        remove_project_from_insights(project_stem, storage_path=_insights_storage_path())
+    except Exception:
+        pass  # Non-critical — don't fail the whole delete if insights cleanup fails.
 
     return out_dict
 
@@ -451,6 +435,22 @@ def get_project_thumbnail(id: str) -> dict:
     }
 
 
+@projectsRouter.get("/{id}/thumbnail/image")
+def get_project_thumbnail_image(id: str) -> FileResponse:
+    """Serve the raw thumbnail image file for a project."""
+    resolved = _resolve_project_identifier(id)
+    manager = ThumbnailManager(storage_dir=_thumbnail_storage_dir())
+    thumb_path = manager.get_thumbnail_path(resolved.insight_id)
+    if thumb_path is None:
+        thumb_path = manager.get_thumbnail_path(resolved.project_name)
+    if thumb_path is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No thumbnail found for project '{resolved.project_name}'.",
+        )
+    return FileResponse(str(thumb_path))
+
+
 @projectsRouter.delete("/{id}/thumbnail")
 def delete_project_thumbnail(id: str) -> dict:
     """
@@ -486,3 +486,82 @@ def delete_project_thumbnail(id: str) -> dict:
         "project_id": resolved.insight_id,
         "project_name": resolved.project_name,
     }
+
+
+@projectsRouter.post("/{id}/type")
+def update_project_type(id: str, project_type: str) -> dict:
+    """
+    API endpoint for updating the project type of a given project
+
+    API call is ''POST /projects/{id}/type?project_type=str
+
+    Args:
+        id (str): name of the project
+        project_type (str): individual or collaborative project type
+
+    Returns:
+        dict: Success message and new project type
+    
+    Raises:
+        404: When project is not found in database
+    """
+
+    id = id if id.endswith(".json") else f"{id}.json"
+    dict_to_update: dict = runtimeAppContext.store.fetch_by_name(id)
+    if not dict_to_update:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Project {id} not found",
+        )
+    dict_to_update["resume_item"]["project_type"] = project_type
+    runtimeAppContext.store.update(id, dict_to_update)
+    return {"message": "Updated successfully", "type": project_type}
+
+
+@projectsRouter.post("/{id}/duration")
+def update_project_duration(id: str, start: str, end: str) -> dict:
+    """
+    API endpoint for updating the project duration of a given project with start and end dates
+
+    API call is ''POST /projects/{id}/duration?start=str&end=str
+
+    Args:
+        id (str): name of the project
+        start (str): string representation of the start date
+        end (str): string representation of the end date
+
+    Returns:
+        dict: Success message and new duration
+    
+    Raises:
+        404: When project is not found in database
+        400: When formatting date and converting to timedelta fails OR when start date is later than end date
+    """
+
+    id = id if id.endswith(".json") else f"{id}.json"
+    dict_to_update: dict = runtimeAppContext.store.fetch_by_name(id)
+    if not dict_to_update:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Project {id} not found",
+        )
+    try:
+        end_date = datetime.datetime.strptime(end, '%Y-%m-%d').date()
+        start_date = datetime.datetime.strptime(start, '%Y-%m-%d').date()
+        if end_date == start_date:
+            end_date += datetime.timedelta(days=1)
+        duration = end_date - start_date
+        str_duration = format_duration(duration)
+        dict_to_update["duration_estimate"] = str_duration  #Converts project duration to timedelta using a pandas library
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
+    if duration < datetime.timedelta(seconds=0):
+            raise HTTPException(
+            status_code=400,
+            detail=f"Start date must be before end date",
+            )
+    runtimeAppContext.store.update(id, dict_to_update)
+    return {"message": "Updated successfully", "dur": str_duration}

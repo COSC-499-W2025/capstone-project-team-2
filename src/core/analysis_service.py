@@ -2,13 +2,14 @@ import copy
 import datetime
 import json
 import logging
+import re
 import threading
 from pathlib import Path
 from typing import Any, Dict, List
 
 from fastapi import UploadFile
 
-# Analysis helpers used by the CLI menus for project ingestion and persistence.
+# Analysis helpers used by interactive app flows for project ingestion and persistence.
 from src.core.app_context import runtimeAppContext
 from src.core.data_extraction import FileMetadataExtractor
 from src.core.extraction import extractInfo
@@ -19,8 +20,6 @@ from src.analyzers.multilang_orchestrator import MultiLangOrchestrator
 from src.reporting.resume_item_generator import generate_resume_item
 from src.storage.file_data_saving import SaveFileAnalysisAsJSON
 from src.storage.dedup_index import deduplicate_project
-from src.core.ai_data_scrubbing import ai_data_scrubber
-from src.core.AI_analysis_code import codeAnalysisAI
 from src.utils.utility_methods import convert_datetime_to_string
 from src.core.document_analysis import DocumentAnalyzer
 from src.core.project_stack_detection import detect_project_stack
@@ -31,6 +30,13 @@ from src.reporting.portfolio_service import (
 from src.analysis.file_traverser import ProjectTraversalModule
 
 _write_lock = threading.Lock()
+
+def safe_project_name(name: str) -> str:
+    """Normalize a user-provided project name into a safe filename stem."""
+    normalized = (name or "").strip().replace(" ", "_")
+    normalized = re.sub(r'[<>:"/\\|?*\x00-\x1F]+', "_", normalized)
+    normalized = re.sub(r"_+", "_", normalized).strip("._")
+    return normalized or "project"
 
 def extract_if_zip(zip_path: Path | UploadFile) -> Path:
     """
@@ -106,7 +112,8 @@ def export_json(project_name: str, analysis: Dict[str, Any]) -> Dict[str, Any]:
     out_dir = Path(runtimeAppContext.default_save_dir).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    filename = project_name + ".json"
+    safe_name = safe_project_name(project_name)
+    filename = safe_name + ".json"
     dest_path = out_dir / filename
 
     def _snapshot(payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -159,7 +166,7 @@ def export_json(project_name: str, analysis: Dict[str, Any]) -> Dict[str, Any]:
     analysis_copy["snapshots"] = snapshots
 
     saver = SaveFileAnalysisAsJSON()
-    saver.saveAnalysis(project_name, analysis_copy, str(out_dir))
+    saver.saveAnalysis(safe_name, analysis_copy, str(out_dir))
 
     try:
         db_result = runtimeAppContext.store.insert_json(filename, analysis_copy)
@@ -187,14 +194,14 @@ def analyze_project(
 
     Args:
         root (Path): Project root to scan.
-        use_ai_analysis (bool): If true, uses ollama AI analysis.
+        use_ai_analysis (bool): If true, uses ollama AI analysis. (Deprecated)
         remove_duplicates (bool): If true, duplicate files are deleted after being recorded.
 
     Returns:
         None
     """
 
-    display_name = project_name or root.name
+    display_name = safe_project_name(project_name or root.name)
     hierarchy = FileMetadataExtractor(root).file_hierarchy()  #Metadata extracted with datetime objects
     try:
         duration = Project_Duration_Estimator(hierarchy).get_duration_human() #Project duration estimate
@@ -225,14 +232,6 @@ def analyze_project(
     evidence_block = dict(resume.evidence)
     evidence_block["duration"] = duration
 
-    #AI analysis performance through ollama
-    ai_analysis = None
-    if use_ai_analysis == True:
-        ollamaObject = codeAnalysisAI(root)
-        ai_analysis_raw = ollamaObject.run_analysis()
-        scrubber = ai_data_scrubber(ai_analysis_raw)
-        ai_analysis = scrubber.get_scrubbed_dict()
-
     analysis: Dict[str, Any] = {
         "project_root": str(root),
         "hierarchy": hierarchy,
@@ -255,9 +254,6 @@ def analyze_project(
             "mode": resume.detection_mode,
         },
     }
-
-    if ai_analysis:
-        analysis["ai_analysis"] = ai_analysis
 
     if contrib_summary is not None:
         analysis["contribution_summary"] = contrib_summary
@@ -301,15 +297,6 @@ def analyze_project(
         except Exception as e:
             logging.warning(f"Failed to record project insight (optional): {e}")
             insight = None 
-
-    #Need to remember this exists but also this can't be here
-    #portfolio_yaml = load_portfolio_showcase(display_name)
-    #analysis["portfolio_showcase"] = build_portfolio_showcase(analysis, portfolio_yaml)
-    #
-    #if portfolio_mode:
-    #    ps = analysis["portfolio_showcase"]
-    #    display_portfolio_showcase(ps)
-    #    return
 
         dedup_result = deduplicate_project(
             root,

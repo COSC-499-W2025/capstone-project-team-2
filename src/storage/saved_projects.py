@@ -90,7 +90,7 @@ def find_saved_file_path(filename: str) -> Path | None:
     return None
 
 
-def show_saved_summary(path_or_name: Path | str) -> None:
+def show_saved_summary(path_or_name: Path | str) -> None: #DEPRECATED. REMOVE ONCE GUI IS UP
     """
     Display a summary of a saved analysis JSON.
 
@@ -351,7 +351,7 @@ def delete_from_database_by_name(project_name: str) -> bool:
     """
     return runtimeAppContext.store.delete(project_name)
 
-#TODO remove prints
+
 def delete_file_from_disk(filename: str) -> bool:
     """
     Delete a file only if no remaining DB records reference it.
@@ -360,33 +360,25 @@ def delete_file_from_disk(filename: str) -> bool:
         filename (str): Target filename.
 
     Returns:
-        bool: True if the file was removed.
+        bool: True if the file was removed, False otherwise.
     """
+    if is_internal_analysis_artifact(filename):
+        return False
+
+    file_path = find_saved_file_path(filename)
+    if file_path is None:
+        return False
+
     try:
-        if is_internal_analysis_artifact(filename):
-            print(f"[INFO] '{Path(filename).name}' is an internal artifact and cannot be deleted here.")
-            return False
+        refs = runtimeAppContext.store.count_file_references(filename)
+    except Exception:
+        return False
 
-        file_path = find_saved_file_path(filename)
-        if file_path is None:
-            return False
+    if refs > 0:
+        return False
 
-        try:
-            refs = runtimeAppContext.store.count_file_references(filename)
-        except Exception as e:
-            print(f"[WARNING] Could not check DB references for '{filename}': {e}")
-            return False
-
-        if refs > 0:
-            print(
-                f"[INFO] File '{filename}' is still referenced by {refs} record(s). "
-                "Not deleting."
-            )
-            return False
-
+    try:
         file_path.unlink()
         return True
-
-    except Exception as e:
-        print(f"[WARNING] Failed to delete file '{filename}': {e}")
+    except Exception:
         return False

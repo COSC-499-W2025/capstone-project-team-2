@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from .analysis_API import analysisRouter
 from .consent_API import consentRouter
 from .skills_API import skillsRouter
@@ -12,6 +13,17 @@ app = FastAPI(
     title="DevDoc API",
     description="API for analysing projects and generating resumes and portfolios.",
     version="1.0.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(analysisRouter)

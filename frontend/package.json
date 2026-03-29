@@ -1,0 +1,30 @@
+{
+  "name": "capstone-liquid-glass-ui",
+  "version": "0.2.0",
+  "private": true,
+  "scripts": {
+    "predev": "node scripts/ensure-canonical-files.mjs",
+    "dev": "next dev",
+    "prebuild": "node scripts/ensure-canonical-files.mjs",
+    "build": "next build",
+    "prestart": "node scripts/ensure-canonical-files.mjs",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "node --test test/*.test.js",
+    "test:e2e": "playwright test",
+    "test:a11y": "playwright test e2e/accessibility.spec.js",
+    "test:signoff": "playwright test e2e/wcag22-signoff.spec.js"
+  },
+  "dependencies": {
+    "framer-motion": "^11.18.2",
+    "jszip": "^3.10.1",
+    "next": "15.5.12",
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
+    "@playwright/test": "^1.58.2"
+  }
+}
