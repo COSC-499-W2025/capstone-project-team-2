@@ -14,6 +14,7 @@ import pytest
 from src.reporting.Generate_AI_Resume import GenerateProjectResume
 from src.reporting.Generate_AI_Resume import OOPPrinciple,ResumeItem
 from pathlib import Path
+from types import SimpleNamespace
 
 
 class TestGenerateProjectResume(unittest.TestCase):
@@ -33,7 +34,34 @@ class TestGenerateProjectResume(unittest.TestCase):
         """
         root_folder = Path(__file__).resolve().parent
         cls.folder = root_folder / "tiny_scripts"
-        cls.instance = GenerateProjectResume(cls.folder)
+        cls.instance = GenerateProjectResume.__new__(GenerateProjectResume)
+        cls.instance.project_root = cls.folder
+        cls.instance.saveToJson = False
+        cls.instance.returnResume = None
+        cls.instance.max_chars = 20_000
+        cls.instance.chain = SimpleNamespace(
+            invoke=lambda _payload: {
+                "project_title": "Tiny Scripts",
+                "one_sentence_summary": "Summarizes scripts",
+                "detailed_summary": "Detailed summary for local deterministic test.",
+                "key_responsibilities": ["Implemented script utilities"],
+                "key_skills_used": ["Python", "Testing"],
+                "tech_stack": "Python",
+                "impact": "Improved developer productivity.",
+                "oop_principles_detected": {
+                    "abstraction": {
+                        "present": True,
+                        "description": "Used class abstraction.",
+                        "code_snippets": [{"file": "Classes.py", "code": "class A: pass"}],
+                    },
+                    "encapsulation": {
+                        "present": False,
+                        "description": "",
+                        "code_snippets": [],
+                    },
+                },
+            }
+        )
         cls.result = cls.instance.generate(saveToJson=False)
 
 

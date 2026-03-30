@@ -41,3 +41,29 @@ def isolate_dedup_side_effects(monkeypatch, tmp_path):
         safe_save_dir,
         raising=False,
     )
+
+
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    """
+    Add a styled end-of-run line so local test output is easier to scan.
+    """
+    heart_lines = [
+        "  ***     ***  ",
+        " *****   ***** ",
+        "******* *******",
+        " ************* ",
+        "  ***********  ",
+        "   *********   ",
+        "    *******    ",
+        "     *****     ",
+        "      ***      ",
+        "       *       ",
+    ]
+    if exitstatus == 0:
+        terminalreporter.write_sep("=", "Test Summary", green=True)
+        for line in heart_lines:
+            terminalreporter.write_line(line, green=True, bold=True)
+    else:
+        terminalreporter.write_sep("=", "Test Summary", red=True)
+        for line in heart_lines:
+            terminalreporter.write_line(line, red=True, bold=True)

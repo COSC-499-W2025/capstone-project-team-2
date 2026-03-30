@@ -18,10 +18,11 @@
      - [GitHub Token Setup](#-github-token-setup)
    - [Python Setup](#python-setup)
 6. [API Documentation](#api-documentation)
-7. [Key Components](#key-components)
-8. [DFD Level 1](#dfd-level-1)
-9. [Work Breakdown Structure](#-work-breakdown-structure)
-10. [Team Contract](#team-contract)
+7. [Test Report](#test-report)
+8. [Key Components](#key-components)
+9. [DFD Level 1](#dfd-level-1)
+10. [Work Breakdown Structure](#-work-breakdown-structure)
+11. [Team Contract](#team-contract)
 
 
 
@@ -236,6 +237,12 @@ If you run the FastAPI app, interactive docs are also available at:
 - `/docs` (Swagger UI)
 - `/redoc`
 - `/openapi.json`
+
+## Test Report
+
+Testing strategy, backend test inventory, and latest backend/frontend execution results are documented in:
+
+- [`docs/TEST_REPORT.md`](docs/TEST_REPORT.md)
 
 ## Key Components
 

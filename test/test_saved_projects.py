@@ -203,8 +203,6 @@ def test_show_saved_summary_confidence_unavailable_when_label_exists(tmp_path, c
     assert "report, confidence unavailable" in out
     assert "No strong text patterns were detected for document typing." not in out
 
-#Test doesn't work for unknown reasons, likely fake cursor doesn't work
-@pytest.mark.skip()
 def test_get_saved_projects_from_db_uses_cursor(monkeypatch):
     """Check that the DB cursor is used and closed.
 
@@ -231,7 +229,7 @@ def test_get_saved_projects_from_db_uses_cursor(monkeypatch):
             self.closed = True
 
     cursor = FakeCursor()
-    runtimeAppContext.conn=SimpleNamespace(cursor=lambda: cursor)
+    monkeypatch.setattr(runtimeAppContext, "conn", SimpleNamespace(cursor=lambda: cursor))
 
     result = mod.get_saved_projects_from_db()
 
@@ -239,8 +237,6 @@ def test_get_saved_projects_from_db_uses_cursor(monkeypatch):
     assert cursor.executed is True
     assert cursor.closed is True
 
-#Test no longer works for unknown reasons, likely temp path issue
-@pytest.mark.skip()
 def test_delete_file_from_disk_respects_references(monkeypatch, tmp_path):
     """Check that referenced files are not deleted.
 
@@ -252,8 +248,12 @@ def test_delete_file_from_disk_respects_references(monkeypatch, tmp_path):
         None: Assertions validate safe delete behavior.
     """
     runtimeAppContext.default_save_dir=tmp_path / "project_insights"
-    shutil.rmtree(runtimeAppContext.default_save_dir)
-    runtimeAppContext.default_save_dir.mkdir()
+    runtimeAppContext.default_save_dir.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(
+        runtimeAppContext,
+        "store",
+        SimpleNamespace(count_file_references=lambda _filename: 1),
+    )
     file_path = runtimeAppContext.default_save_dir / "kept.json"
     file_path.write_text("{}")
 
@@ -262,8 +262,6 @@ def test_delete_file_from_disk_respects_references(monkeypatch, tmp_path):
     assert deleted is False
     assert file_path.exists()
 
-#Test no longer works for unknown reasons, likely temp path issue
-@pytest.mark.skip()
 def test_delete_file_from_disk_deletes_when_no_references(monkeypatch, tmp_path):
     """Check that unreferenced files are deleted.
 
@@ -275,8 +273,12 @@ def test_delete_file_from_disk_deletes_when_no_references(monkeypatch, tmp_path)
         None: Assertions validate deletion behavior.
     """
     runtimeAppContext.default_save_dir=tmp_path / "project_insights"
-    shutil.rmtree(runtimeAppContext.default_save_dir)
-    runtimeAppContext.default_save_dir.mkdir()
+    runtimeAppContext.default_save_dir.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(
+        runtimeAppContext,
+        "store",
+        SimpleNamespace(count_file_references=lambda _filename: 0),
+    )
     file_path = runtimeAppContext.default_save_dir / "remove.json"
     file_path.write_text("{}")
 

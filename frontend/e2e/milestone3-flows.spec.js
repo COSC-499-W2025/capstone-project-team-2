@@ -180,9 +180,13 @@ async function installApiMocks(page, options = {}) {
     }
 
     if (pathname === "/representation/projects" && method === "GET") {
+      const activeProjectSet = new Set((state.projects || []).map((name) => String(name).trim().toLowerCase()));
       const projectMap = new Map();
       for (const insight of state.insights) {
-        if (insight?.project_name) projectMap.set(insight.project_name, insight);
+        const projectName = String(insight?.project_name || "").trim();
+        if (!projectName) continue;
+        if (activeProjectSet.size && !activeProjectSet.has(projectName.toLowerCase())) continue;
+        projectMap.set(projectName, insight);
       }
       const preferredOrder = Array.isArray(state.representation?.project_order) ? state.representation.project_order : [];
       const orderedNames = [];
@@ -307,7 +311,7 @@ test("saves config consent and profile details", async ({ page }) => {
   await page.getByLabel("Full name").fill("Jane Doe");
   await page.getByRole("button", { name: "Save Configuration" }).click();
 
-  await expect(page.getByText("Configuration saved.")).toBeVisible();
+  await expect(page.locator(".liquid-notify-stack span", { hasText: "Configuration saved." }).first()).toBeVisible();
   // nth(0) = full name input row (Update Settings), nth(1) = local, nth(2) = external, nth(3) = name
   await expect(page.locator(".config-grid .settings-row").nth(2)).toContainText("Allow");
   await expect(page.locator(".config-grid .settings-row").nth(3)).toContainText("Jane Doe");
@@ -322,7 +326,7 @@ test("uploads and analyzes a zip, then shows it on the dashboard", async ({ page
   await page.locator('input[type="file"]').first().setInputFiles(ZIP_FIXTURE);
   await page.getByRole("button", { name: /Analyze ZIP/ }).click();
 
-  await expect(page.getByText("Analysis complete for sample-project.")).toBeVisible();
+  await expect(page.locator(".liquid-notify-stack span", { hasText: "Analysis complete for sample-project." }).first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Analysis Summary" })).toBeVisible();
 
   await page.goto("/dashboard");
@@ -357,7 +361,9 @@ test("dashboard excludes deleted projects from current metrics and top cards", a
   await page.goto("/dashboard");
 
   await expect(page.getByRole("heading", { name: /Dashboard/ })).toBeVisible();
-  await expect(page.locator(".metric-value").first()).toHaveText("3");
+  await expect(
+    page.locator(".glass-card", { has: page.getByText("Projects", { exact: true }) }).locator(".metric-value")
+  ).toHaveText("3");
   await expect(page.getByText("Deleted Project")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Alpha" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Beta" })).toBeVisible();
@@ -374,7 +380,7 @@ test("generates and loads a resume in the workspace", async ({ page }) => {
   await page.getByLabel("Theme").selectOption("sb2nov");
   await page.getByRole("button", { name: "Generate Resume", exact: true }).click();
 
-  await expect(page.getByText("Resume created.")).toBeVisible();
+  await expect(page.locator(".liquid-notify-stack span", { hasText: "Resume created." }).first()).toBeVisible();
   await expect(page.locator(".workspace-page .settings-row").filter({ hasText: "Active ID" })).toContainText("Jane_Doe_resume_001");
 });
 
@@ -388,7 +394,7 @@ test("generates and loads a portfolio in the workspace", async ({ page }) => {
   await page.getByLabel("Theme").selectOption("sb2nov");
   await page.getByRole("button", { name: "Generate Portfolio", exact: true }).click();
 
-  await expect(page.getByText("Portfolio created.")).toBeVisible();
+  await expect(page.locator(".liquid-notify-stack span", { hasText: "Portfolio created." }).first()).toBeVisible();
   await expect(page.locator(".workspace-page .settings-row").filter({ hasText: "Active ID" })).toContainText("Jane_Doe_portfolio_001");
 });
 
@@ -421,7 +427,7 @@ test("first-time user with no consent is redirected to config and sees consent d
   await expect(page).toHaveURL(/\/config$/);
   await expect(page.getByRole("heading", { name: "Data Consent Agreement" })).toBeVisible();
   await expect(page.locator(".consent-document")).toBeVisible();
-  await expect(page.getByRole("button", { name: /Collapse/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Collapse ▲" })).toBeVisible();
 });
 
 test("returning user with consent set sees consent document collapsed", async ({ page }) => {
