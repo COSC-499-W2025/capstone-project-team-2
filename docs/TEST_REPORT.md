@@ -43,6 +43,8 @@ Latest local test execution summary:
   - `564 passed, 3 subtests passed, 0 skipped, 0 failed`
 - Frontend unit/API (`cd frontend && npm test`):
   - `86 passed, 0 failed, 0 skipped`
+- Frontend Playwright/e2e (`cd frontend && npm run test:e2e`):
+  - `22 passed, 0 failed`
 
 ## Test Files That Work With The System
 

@@ -596,6 +596,7 @@ export default function DashboardPage() {
                   aria-modal="true"
                   aria-label="Dashboard controls"
                   aria-hidden={!isDockOpen}
+                  hidden={!isDockOpen}
                   onClick={(event) => event.stopPropagation()}
                 >
                   <div className="dashboard-drawer-header">
