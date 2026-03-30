@@ -11,15 +11,28 @@ This report documents:
 From the repository root:
 
 ```bash
-./.venv/bin/python -m pip install -r src/requirements.txt
+python3 -m pip install -r src/requirements.txt
+python3 -m pytest -q -rs test
+```
+
+Optional (if using project virtualenv):
+
+```bash
 ./.venv/bin/python -m pytest -q -rs test
 ```
 
-Frontend tests:
+Frontend unit/API tests:
 
 ```bash
 cd frontend
 npm test
+```
+
+Frontend Playwright/e2e tests:
+
+```bash
+cd frontend
+npm run test:e2e
 ```
 
 ## Latest Execution Results
@@ -28,7 +41,7 @@ Latest local test execution summary:
 
 - Backend (`./.venv/bin/python -m pytest -q -rs test`):
   - `564 passed, 3 subtests passed, 0 skipped, 0 failed`
-- Frontend (`cd frontend && npm test`):
+- Frontend unit/API (`cd frontend && npm test`):
   - `86 passed, 0 failed, 0 skipped`
 
 ## Test Files That Work With The System
@@ -116,6 +129,19 @@ frontend/test/resume_and_portfolio_api.test.js
 
 </details>
 
+The following Playwright end-to-end test files are present in `frontend/e2e/` and are executed by `npm run test:e2e` (3 files):
+
+<details>
+<summary><strong>Frontend Playwright E2E Inventory (3) — Click to Expand</strong></summary>
+
+```text
+frontend/e2e/accessibility.spec.js
+frontend/e2e/milestone3-flows.spec.js
+frontend/e2e/wcag22-signoff.spec.js
+```
+
+</details>
+
 ## Test Strategies Used
 
 - Unit testing:
@@ -129,6 +155,10 @@ frontend/test/resume_and_portfolio_api.test.js
 - Frontend API/client testing (Node test runner):
   - Frontend API helper modules are tested through request construction and response/error handling assertions.
   - Examples: `frontend/test/api.test.js`, `frontend/test/resume_and_portfolio_api.test.js`.
+
+- Frontend end-to-end testing (Playwright):
+  - Browser-level user flows and accessibility checks are validated through Playwright specs.
+  - Examples: `frontend/e2e/milestone3-flows.spec.js`, `frontend/e2e/accessibility.spec.js`, `frontend/e2e/wcag22-signoff.spec.js`.
 
 - Mocking and patching:
   - External dependencies and side effects are isolated with `unittest.mock.patch`, `MagicMock`, and `monkeypatch`.

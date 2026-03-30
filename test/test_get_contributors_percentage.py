@@ -2,7 +2,11 @@ from pathlib import Path
 import shutil
 import sys
 sys.path.append(str(Path(__file__).parent.parent))
-from src.analysis.get_contributors_percentage_per_person import contribution_summary, contribution_percentages_from_local
+from src.analysis.get_contributors_percentage_per_person import (
+    contribution_summary,
+    contribution_percentages_from_local,
+    get_contributors_percentages_per_person,
+)
 from src.analysis.individual_contribution_detection import UNATTRIBUTED
 import unittest
 import tempfile
@@ -10,6 +14,7 @@ from git import Repo, Actor
 import os
 from unittest.mock import patch
 import pytest
+from collections import Counter
 
 
 def test_contribution_summary_bubbles_unexpected_repo_error():
@@ -23,6 +28,23 @@ def test_contribution_summary_bubbles_unexpected_repo_error():
             contribution_summary(root)
 
     assert "Failed to inspect repository" in str(excinfo.value)
+
+
+def _mock_get_repo_info_from_local(self):
+    """
+    Derive commit counts from local git history so tests validate real contribution math
+    without calling external GitHub APIs.
+    """
+    local_repo = Repo(self.file_path)
+    self.repo_name = self.final_url or "local/repo"
+    self.author_count = Counter()
+    self.total_commits = 0
+    for commit in local_repo.iter_commits():
+        author_name = (commit.author.name or "Unknown")
+        self.author_count[author_name] += 1
+        self.total_commits += 1
+    local_repo.close()
+    return "Data successfully collected"
 
 class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
 
@@ -61,23 +83,19 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
         cls.repo.git.add(A=True)
         cls.repo.index.commit("Commit B", author=Actor("Bob", "bob@example.com"))
 
+        # Add fake origins so get_repo_link() can resolve owner/repo format locally.
+        cls.repo.create_remote("origin", "https://example.com/demo/repo.git")
+        cls.repo_2.create_remote("origin", "https://example.com/demo/repo2.git")
+
     def test_two_contributors_equal_commits(self):
         """
         Checks to see if there are two commits in the repo that the PCT(percentage contributions)
         are 50%
         :return:
         """
-        with patch(
-            "src.analysis.get_contributors_percentage_per_person.get_contributors_percentages_per_person.output_result",
-            return_value={
-                "is_collaborative": True,
-                "project_name": "demo/repo",
-                "total_commits": 2,
-                "contributors": {
-                    "Alice": {"commit_count": 1, "percentage": "50.00%"},
-                    "Bob": {"commit_count": 1, "percentage": "50.00%"},
-                },
-            },
+        with (
+            patch.object(get_contributors_percentages_per_person, "get_repo_info", _mock_get_repo_info_from_local),
+            patch.object(get_contributors_percentages_per_person, "get_files_by_author", lambda self: {}),
         ):
             result = contribution_summary(self.repo_path)
         self.assertIsNotNone(result, "Result should not be None")
@@ -94,17 +112,9 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
         This test is checking to see if the return structure of the system is correct
         :return:
         """
-        with patch(
-            "src.analysis.get_contributors_percentage_per_person.get_contributors_percentages_per_person.output_result",
-            return_value={
-                "is_collaborative": True,
-                "project_name": "demo/repo",
-                "total_commits": 2,
-                "contributors": {
-                    "Alice": {"commit_count": 1, "percentage": "50.00%"},
-                    "Bob": {"commit_count": 1, "percentage": "50.00%"},
-                },
-            },
+        with (
+            patch.object(get_contributors_percentages_per_person, "get_repo_info", _mock_get_repo_info_from_local),
+            patch.object(get_contributors_percentages_per_person, "get_files_by_author", lambda self: {}),
         ):
             result = contribution_summary(self.repo_path)
         self.assertIn('is_collaborative', result)
@@ -129,16 +139,9 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
         Here we are testing to see if the individual repos return dictionary is correct
         :return:
         """
-        with patch(
-            "src.analysis.get_contributors_percentage_per_person.get_contributors_percentages_per_person.output_result",
-            return_value={
-                "is_collaborative": False,
-                "project_name": "demo/repo2",
-                "total_commits": 1,
-                "contributors": {
-                    "Bob": {"commit_count": 1, "percentage": "100.00%"},
-                },
-            },
+        with (
+            patch.object(get_contributors_percentages_per_person, "get_repo_info", _mock_get_repo_info_from_local),
+            patch.object(get_contributors_percentages_per_person, "get_files_by_author", lambda self: {}),
         ):
             result = contribution_summary(self.repo_path_2)
         self.assertFalse(result['is_collaborative'])
@@ -151,17 +154,9 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
         :return:
         """
         total_percentage = 0
-        with patch(
-            "src.analysis.get_contributors_percentage_per_person.get_contributors_percentages_per_person.output_result",
-            return_value={
-                "is_collaborative": True,
-                "project_name": "demo/repo",
-                "total_commits": 2,
-                "contributors": {
-                    "Alice": {"commit_count": 1, "percentage": "50.00%"},
-                    "Bob": {"commit_count": 1, "percentage": "50.00%"},
-                },
-            },
+        with (
+            patch.object(get_contributors_percentages_per_person, "get_repo_info", _mock_get_repo_info_from_local),
+            patch.object(get_contributors_percentages_per_person, "get_files_by_author", lambda self: {}),
         ):
             result = contribution_summary(self.repo_path)
         for name, stats in result['contributors'].items():
