@@ -73,7 +73,7 @@ The platforms target users are **graduating students** and **early career profes
 
 ## 🎬 Milestone 3 Video Demo
 
-<a href="https://youtu.be/xzNpFdaMMK8">
+<a href="https://youtu.be/kdntYkztrSk">
   <img src="https://img.shields.io/badge/▶️%20Watch%20Demo-Click%20Here-red?style=for-the-badge&logo=youtube" alt="Watch Demo">
 </a>
 
@@ -86,6 +86,8 @@ The platforms target users are **graduating students** and **early career profes
 </a>
 
 > *A complete walkthrough demonstrating project setup, features, and usage.*
+
+## 🎬 Milestone 1 Demo
 
 <a href="https://www.youtube.com/watch?v=xQ7I56scSu0">
   <img src="https://img.shields.io/badge/▶️%20Watch%20Demo-Click%20Here-red?style=for-the-badge&logo=youtube" alt="Watch Demo 2">
