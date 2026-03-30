@@ -53,7 +53,8 @@ class TestIndividualContributionDetection_percentage_git(unittest.TestCase):
         """
         Runs ONCE for the whole class.
         """
-        os.environ.setdefault("GITHUB_TOKEN", "dummy-token-for-tests")
+        # Force a deterministic local token for tests, even if host env has an empty var.
+        os.environ["GITHUB_TOKEN"] = "dummy-token-for-tests"
 
         # --- local repos (temp dirs) ---
         cls.repo_path = tempfile.mkdtemp()

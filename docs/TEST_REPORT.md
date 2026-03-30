@@ -188,4 +188,5 @@ frontend/e2e/wcag22-signoff.spec.js
 
 - Latest recorded runs: backend 564 passed (plus 3 subtests), frontend 86 passed.
 - External-dependency and platform-sensitive paths are covered using deterministic mocks/stubs.
+- Contributor-percentage tests set a dummy `GITHUB_TOKEN` in-test to remain offline and cross-platform.
 - This report reflects the current repository state and should be updated when tests are added, removed, or renamed.
