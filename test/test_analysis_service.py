@@ -89,7 +89,11 @@ def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypat
             captured["out_dir"] = out_dir
 
     monkeypatch.setattr(mod, "SaveFileAnalysisAsJSON", lambda: FakeSaver())
-    monkeypatch.setattr(runtimeAppContext.store, "insert_json", lambda filename, analysis: 1)
+    monkeypatch.setattr(
+        runtimeAppContext,
+        "store",
+        SimpleNamespace(insert_json=lambda filename, analysis: 1),
+    )
 
     analysis = {"ok": True}
     result = mod.export_json("DemoProj", analysis)
@@ -105,7 +109,11 @@ def test_export_json_saves_and_inserts_db_when_user_confirms(tmp_path, monkeypat
     def failing_insert(filename, analysis):
         raise Exception("Database connection failed")
     
-    monkeypatch.setattr(runtimeAppContext.store, "insert_json", failing_insert)
+    monkeypatch.setattr(
+        runtimeAppContext,
+        "store",
+        SimpleNamespace(insert_json=failing_insert),
+    )
 
     try:
         mod.export_json("DemoProj", {"ok": True})
@@ -128,7 +136,11 @@ def test_export_json_sanitizes_filename_stem(monkeypatch):
         return ("ok", False)
 
     monkeypatch.setattr(mod, "SaveFileAnalysisAsJSON", lambda: FakeSaver())
-    monkeypatch.setattr(runtimeAppContext.store, "insert_json", fake_insert)
+    monkeypatch.setattr(
+        runtimeAppContext,
+        "store",
+        SimpleNamespace(insert_json=fake_insert),
+    )
 
     result = mod.export_json("../Sam/http", {"ok": True})
     assert result["skipped"] is False
@@ -269,22 +281,29 @@ def test_oop_analysis_raises_on_failure(monkeypatch):
     with pytest.raises(RuntimeError):
         mod.oop_analysis(Path("/tmp/project"), ["Python"])
 
-@pytest.mark.skip
 def test_analyze_project_builds_analysis_and_exports(tmp_path, monkeypatch):
     """Check that analysis builds results and triggers export."""
-    ctx = SimpleNamespace(
-        default_save_dir=tmp_path / "saves",
-        legacy_save_dir=tmp_path / "legacy",
-        store=SimpleNamespace(),
-    )
-
     class FakeExtractor:
         def __init__(self, root):
             self.root = root
         def file_hierarchy(self):
             return {"type": "DIR", "children": []}
 
+    class FakeDurationEstimator:
+        def __init__(self, hierarchy):
+            self.hierarchy = hierarchy
+        def get_duration_human(self):
+            return "Unknown"
+
+    class FakeDocAnalyzer:
+        def __init__(self, root):
+            self.root = root
+        def analyze(self):
+            return {"documents": []}
+
     monkeypatch.setattr(mod, "FileMetadataExtractor", FakeExtractor)
+    monkeypatch.setattr(mod, "Project_Duration_Estimator", FakeDurationEstimator)
+    monkeypatch.setattr(mod, "DocumentAnalyzer", FakeDocAnalyzer)
     monkeypatch.setattr(
         mod,
         "generate_resume_item",
@@ -299,6 +318,20 @@ def test_analyze_project_builds_analysis_and_exports(tmp_path, monkeypatch):
         mod,
         "record_project_insight",
         lambda analysis, contributors=None, snapshot_label=None: SimpleNamespace(id=1, project_name=analysis["resume_item"]["project_name"]),
+    )
+    monkeypatch.setattr(mod, "load_portfolio_showcase", lambda display_name: None)
+    monkeypatch.setattr(mod, "build_portfolio_showcase", lambda data, yaml: None)
+    monkeypatch.setattr(mod, "detect_project_stack", lambda root: {"languages": []})
+    monkeypatch.setattr(
+        mod,
+        "deduplicate_project",
+        lambda root, index_path, remove_duplicates=True: SimpleNamespace(
+            unique_files=1,
+            duplicate_files=0,
+            duplicates=[],
+            index_size=1,
+            removed=0,
+        ),
     )
     monkeypatch.setattr(mod, "oop_analysis", lambda root, languages_found: {"score": {"oop_score": 0.75}})
 

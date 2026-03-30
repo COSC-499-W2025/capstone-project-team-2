@@ -9,6 +9,7 @@ import pytest
 from pathlib import Path
 from io import StringIO
 from unittest.mock import patch
+from types import SimpleNamespace
 import pytest
 
 from src.core.data_extraction import FileMetadataExtractor
@@ -137,11 +138,7 @@ class TestDataExtract(unittest.TestCase):
                 temp_file.unlink()
 
     @patch("platform.system", return_value="Windows")
-    @patch("win32security.LookupAccountSid")
-    @patch("win32security.GetFileSecurity")
-    @pytest.mark.skipif(sys.platform != "win32", reason="win32security is only available on Windows")
-    @unittest.skipUnless(sys.platform == "win32", "Requires Windows win32 APIs")
-    def test_win32(self, moc_get_sec, mock_lookup, mock_system):
+    def test_win32(self, mock_system):
         """
         Verify that file author resolution correctly uses Win32 security APIs
         when running on a Windows system with win32security available.
@@ -154,11 +151,16 @@ class TestDataExtract(unittest.TestCase):
         Returns:
             None: Assertions are used to validate expected behavior.
         """
-        # creating a mock file author and testing the return with win32
-        mock_lookup.return_value = ("John", "DESKTOP-12345", 1)
-        extractor = FileMetadataExtractor("test/path")
-        author = extractor.get_author(Path("file.txt"))
-        self.assertEqual(author, "John")
+        fake_sec = SimpleNamespace(GetSecurityDescriptorOwner=lambda: object())
+        fake_win32 = SimpleNamespace(
+            OWNER_SECURITY_INFORMATION=1,
+            GetFileSecurity=lambda *_args, **_kwargs: fake_sec,
+            LookupAccountSid=lambda *_args, **_kwargs: ("John", "DESKTOP-12345", 1),
+        )
+        with patch("src.core.data_extraction.win32security", fake_win32):
+            extractor = FileMetadataExtractor("test/path")
+            author = extractor.get_author(Path("file.txt"))
+            self.assertEqual(author, "John")
 
     @patch("platform.system", return_value="Windows")
     def test_no_win32(self, mock_system):

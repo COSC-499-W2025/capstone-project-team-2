@@ -1,6 +1,6 @@
 import unittest
 from src.reporting.resume_pdf_generator import SimpleResumeGenerator
-from src.reporting.Generate_AI_Resume import GenerateProjectResume
+from src.reporting.Generate_AI_Resume import ResumeItem
 from pathlib import Path
 import tempfile
 import os
@@ -37,7 +37,16 @@ class TestPDFGenerator(unittest.TestCase):
         cls.tempFolder = tempfile.mkdtemp()  # Creates actual directory for PDFs
         root_folder = Path(__file__).resolve().parent
         cls.test_folder = root_folder / "tiny_scripts"
-        cls.instance = GenerateProjectResume(cls.test_folder).generate(saveToJson=False)
+        cls.instance = ResumeItem(
+            project_title="Tiny Scripts",
+            one_sentence_summary="Built utility scripts for demonstration",
+            detailed_summary="Created and validated a set of tiny scripts to demonstrate analysis and reporting features.",
+            key_responsibilities=["Implemented script modules", "Validated output generation"],
+            key_skills_used=["Python", "Testing", "PDF Generation"],
+            tech_stack="Python, ReportLab",
+            impact="Provides deterministic local resume data for PDF generation tests.",
+            oop_principles_detected={},
+        )
 
 
     def test_save_pdf(self):
@@ -297,7 +306,6 @@ class TestPDFGenerator(unittest.TestCase):
                 shutil.rmtree(cls.tempFolder)
             except Exception as e:
                 print(f"Warning: Could not clean up temp folder: {e}")
-
 
 
 
